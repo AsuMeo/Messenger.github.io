@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MeowMail P2P Cyber-Messenger</title>
+    <title>MeowMail P2P</title>
     
     <!-- Подключаем децентрализованную P2P базу данных GunDB и модуль шифрования SEA -->
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
@@ -11,20 +11,19 @@
     
     <style>
         :root {
-            --bg-dark: #0e1621;
-            --bg-sidebar: #17212b;
-            --bg-surface: #182533;
-            --bg-input: #24303f;
-            --accent: #2b5278;
-            --accent-glow: #2f8cde;
-            --msg-out: #2b5278;
-            --msg-in: #182533;
+            --bg-dark: #000000;
+            --bg-surface: #1c1c1e;
+            --bg-input: #2c2c2e;
+            --accent: #2f80ed;
+            --accent-hover: #4f9bfd;
             --text-main: #f5f5f7;
-            --text-muted: #7f91a4;
-            --error: #ec3b3b;
-            --success: #4beb6e;
-            --warning: #f1a824;
-            --border-color: #101921;
+            --text-muted: #8e8e93;
+            --msg-in: #2c2c2e;
+            --msg-out: #2f80ed;
+            --error: #ff453a;
+            --success: #30d158;
+            --warning: #ff9f0a;
+            --border-color: #2c2c2e;
         }
 
         * {
@@ -33,19 +32,6 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
-        }
-
-        /* Кастомный скроллбар */
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
         }
 
         body {
@@ -61,88 +47,74 @@
         #login-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, var(--bg-sidebar) 0%, var(--bg-dark) 100%);
+            background: radial-gradient(circle at center, var(--bg-surface) 0%, var(--bg-dark) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            transition: all 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
+            transition: all 0.3s ease;
         }
 
         .login-card {
-            width: 95%;
-            max-width: 400px;
+            width: 90%;
+            max-width: 380px;
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
-            padding: 40px 30px;
+            padding: 30px 24px;
             border-radius: 24px;
             text-align: center;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
         }
 
         .login-logo {
-            font-size: 64px;
-            margin-bottom: 15px;
+            font-size: 56px;
+            margin-bottom: 12px;
             display: inline-block;
-            animation: float 4s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
         }
 
         .login-card h1 {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 800;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
+            margin-bottom: 6px;
         }
 
         .login-card p {
             color: var(--text-muted);
-            font-size: 13.5px;
-            margin-bottom: 25px;
-            line-height: 1.5;
+            font-size: 13px;
+            margin-bottom: 20px;
         }
 
         .login-input {
             width: 100%;
-            padding: 15px 18px;
-            border-radius: 14px;
+            padding: 14px 16px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
             background: var(--bg-input);
             color: white;
-            font-size: 14.5px;
+            font-size: 14px;
             outline: none;
-            margin-bottom: 15px;
-            transition: all 0.25s;
+            margin-bottom: 12px;
         }
 
         .login-input:focus {
-            border-color: var(--accent-glow);
-            box-shadow: 0 0 12px rgba(47, 140, 222, 0.25);
+            border-color: var(--accent);
         }
 
         .btn {
             width: 100%;
-            padding: 15px;
-            border-radius: 14px;
+            padding: 14px;
+            border-radius: 12px;
             border: none;
-            background: var(--accent-glow);
+            background: var(--accent);
             color: white;
             font-weight: 700;
-            font-size: 15.5px;
+            font-size: 15px;
             cursor: pointer;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
         }
-
-        .btn:hover { filter: brightness(1.1); }
-        .btn:active { transform: scale(0.98); }
 
         .wrapper {
             display: flex;
@@ -152,8 +124,8 @@
 
         /* Сайдбар */
         .sidebar {
-            width: 350px;
-            background: var(--bg-sidebar);
+            width: 340px;
+            background: var(--bg-dark);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
@@ -161,8 +133,8 @@
         }
 
         .bot-header {
-            padding: 15px 20px;
-            height: 70px;
+            padding: 15px;
+            height: 65px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -170,12 +142,8 @@
         }
 
         .brand-title {
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 800;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .profile-btn {
@@ -184,49 +152,38 @@
             color: var(--text-muted);
             font-size: 18px;
             cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .profile-btn:hover {
-            color: white;
-            background: rgba(255,255,255,0.05);
+            padding: 6px;
         }
 
         .search-area {
-            padding: 12px 20px 8px 20px;
+            padding: 10px 15px;
             display: flex;
             gap: 8px;
         }
 
         .search-field {
             flex: 1;
-            padding: 10px 16px;
-            border-radius: 20px;
+            padding: 10px 14px;
+            border-radius: 18px;
             border: none;
-            background: var(--bg-input);
+            background: var(--bg-surface);
             color: white;
-            font-size: 13.5px;
+            font-size: 13px;
             outline: none;
         }
 
         .add-chat-btn {
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: var(--accent-glow);
+            background: var(--accent);
             border: none;
             color: white;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
         }
 
         .chats-container {
@@ -237,30 +194,29 @@
         .chat-row {
             display: flex;
             align-items: center;
-            padding: 12px 20px;
+            padding: 12px 15px;
             cursor: pointer;
-            transition: background 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.01);
         }
 
-        .chat-row:hover { background: rgba(255, 255, 255, 0.03); }
-        .chat-row.active { background: #2b527844; }
+        .chat-row:hover { background: rgba(255, 255, 255, 0.02); }
+        .chat-row.active { background: var(--bg-surface); }
 
         .avatar {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background-color: var(--accent-glow);
+            background-color: var(--accent);
             color: white;
             font-weight: 700;
-            font-size: 17px;
+            font-size: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 15px;
+            margin-right: 12px;
             background-size: cover;
             background-position: center;
             flex-shrink: 0;
-            position: relative;
         }
 
         .chat-details {
@@ -268,24 +224,18 @@
             overflow: hidden;
         }
 
-        .chat-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-
         .chat-title {
             font-weight: 700;
-            font-size: 14.5px;
+            font-size: 14px;
             color: #ffffff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            margin-bottom: 3px;
         }
 
         .chat-last-message {
-            font-size: 13px;
+            font-size: 12.5px;
             color: var(--text-muted);
             white-space: nowrap;
             overflow: hidden;
@@ -302,11 +252,11 @@
         }
 
         .chat-window-header {
-            height: 70px;
-            padding: 10px 24px;
+            height: 65px;
+            padding: 10px 20px;
             display: flex;
             align-items: center;
-            background: var(--bg-sidebar);
+            background: var(--bg-surface);
             border-bottom: 1px solid var(--border-color);
             z-index: 10;
         }
@@ -314,10 +264,10 @@
         .back-btn {
             display: none;
             font-size: 18px;
-            color: var(--text-muted);
+            color: var(--accent);
             cursor: pointer;
-            margin-right: 15px;
-            width: 36px; height: 36px;
+            margin-right: 12px;
+            width: 32px; height: 32px;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
@@ -327,98 +277,96 @@
         .chat-feed {
             flex: 1;
             overflow-y: auto;
-            padding: 24px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            background: radial-gradient(circle at top, #141f29 0%, var(--bg-dark) 100%);
+            gap: 10px;
             scroll-behavior: smooth;
         }
 
-        /* Стильные бабблы сообщений а-ля Telegram */
+        .empty-placeholder {
+            margin: auto;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13.5px;
+            max-width: 250px;
+            line-height: 1.5;
+        }
+
+        /* Telegram-style сообщения */
         .bubble {
-            max-width: 65%;
-            padding: 10px 14px 12px 14px;
-            border-radius: 16px;
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 18px;
             font-size: 14px;
-            line-height: 1.45;
+            line-height: 1.4;
             word-wrap: break-word;
             position: relative;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-            animation: bubbleIntro 0.15s cubic-bezier(0.1, 0.9, 0.2, 1);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .bubble.in {
             align-self: flex-start;
             background-color: var(--msg-in);
-            border-bottom-left-radius: 4px;
             color: var(--text-main);
+            border-bottom-left-radius: 4px;
         }
 
         .bubble.out {
             align-self: flex-end;
             background-color: var(--msg-out);
-            border-bottom-right-radius: 4px;
             color: #ffffff;
+            border-bottom-right-radius: 4px;
         }
 
         .bubble-time {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.4);
+            font-size: 9.5px;
+            color: rgba(255, 255, 255, 0.45);
             margin-top: 4px;
             align-self: flex-end;
-            display: flex;
-            align-items: center;
-            gap: 4px;
         }
 
         .bubble-media {
             max-width: 100%;
-            border-radius: 10px;
-            margin-bottom: 5px;
+            border-radius: 12px;
+            margin-bottom: 4px;
             display: block;
             cursor: pointer;
             object-fit: cover;
-            max-height: 250px;
+            max-height: 240px;
         }
 
-        /* Оформление голосового сообщения */
+        /* Аудиоплеер голосовых */
         .voice-player {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 6px 0;
-            min-width: 180px;
+            gap: 10px;
+            padding: 4px 0;
+            min-width: 160px;
         }
 
         .voice-control-btn {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             border: none;
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.15);
             color: white;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            transition: all 0.15s;
-        }
-
-        .voice-control-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+            font-size: 11px;
         }
 
         .voice-timeline {
             flex: 1;
             height: 4px;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 2px;
             position: relative;
-            cursor: pointer;
         }
 
         .voice-progress {
@@ -430,21 +378,21 @@
 
         /* Инпут бар */
         .chat-input-bar {
-            padding: 12px 18px;
-            background: var(--bg-sidebar);
+            padding: 10px;
+            background: var(--bg-surface);
             display: flex;
             align-items: flex-end;
-            gap: 10px;
+            gap: 8px;
             border-top: 1px solid var(--border-color);
         }
 
         .input-box-container {
             flex: 1;
             background: var(--bg-input);
-            border-radius: 22px;
+            border-radius: 20px;
             display: flex;
             align-items: flex-end;
-            padding: 4px 10px;
+            padding: 2px 8px;
             min-width: 0;
         }
 
@@ -453,13 +401,11 @@
             border: none;
             color: var(--text-muted);
             font-size: 18px;
-            padding: 8px;
+            padding: 6px;
             cursor: pointer;
-            transition: color 0.15s;
             flex-shrink: 0;
         }
 
-        .input-side-btn:hover { color: white; }
         #toggle-crypt-btn.active { color: var(--success); }
         #toggle-crypt-btn.inactive { color: var(--error); }
 
@@ -469,26 +415,26 @@
             border: none;
             outline: none;
             color: white;
-            font-size: 14.5px;
-            padding: 9px 4px;
+            font-size: 14px;
+            padding: 8px 4px;
             resize: none;
-            max-height: 120px;
-            min-height: 38px;
-            line-height: 1.4;
+            max-height: 100px;
+            min-height: 34px;
+            line-height: 1.3;
             min-width: 0;
         }
 
-        /* Панель записи голосового сообщения */
+        /* Голосовая запись */
         .recording-overlay {
             flex: 1;
             display: none;
             align-items: center;
             justify-content: space-between;
             background: var(--bg-input);
-            padding: 9px 16px;
-            border-radius: 22px;
+            padding: 8px 12px;
+            border-radius: 20px;
             color: var(--text-main);
-            font-size: 14px;
+            font-size: 13.5px;
         }
 
         .recording-dot {
@@ -497,55 +443,51 @@
             background: var(--error);
             border-radius: 50%;
             animation: pulseRecord 1s infinite alternate;
+            display: inline-block;
+            margin-right: 6px;
         }
 
         @keyframes pulseRecord {
-            from { opacity: 1; transform: scale(1); }
-            to { opacity: 0.3; transform: scale(1.2); }
+            from { opacity: 1; }
+            to { opacity: 0.3; }
         }
 
         .action-round-btn {
-            width: 42px;
-            height: 42px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
-            background: var(--accent-glow);
+            background: var(--accent);
             color: white;
             border: none;
-            font-size: 17px;
+            font-size: 16px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
             flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(47, 140, 222, 0.2);
         }
-
-        .action-round-btn:hover { filter: brightness(1.1); }
-        .action-round-btn:active { transform: scale(0.95); }
 
         .file-preview-container {
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(47, 140, 222, 0.1);
-            padding: 8px 12px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            font-size: 13px;
-            border: 1px solid rgba(47, 140, 222, 0.2);
+            background: rgba(47, 128, 237, 0.15);
+            padding: 6px 10px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            font-size: 12.5px;
         }
 
         .status-badge {
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 8px;
+            padding: 2px 6px;
+            border-radius: 6px;
             display: inline-block;
         }
-        .status-badge.secure { background: rgba(75, 235, 110, 0.1); color: var(--success); }
-        .status-badge.unsecure { background: rgba(236, 59, 59, 0.1); color: var(--error); }
-        .status-badge.waiting { background: rgba(241, 168, 36, 0.1); color: var(--warning); }
+        .status-badge.secure { background: rgba(48, 209, 88, 0.15); color: var(--success); }
+        .status-badge.unsecure { background: rgba(255, 69, 58, 0.15); color: var(--error); }
+        .status-badge.waiting { background: rgba(255, 159, 10, 0.15); color: var(--warning); }
 
         @media (max-width: 768px) {
             .sidebar { width: 100%; }
@@ -562,42 +504,40 @@
     <div id="login-screen">
         <div class="login-card">
             <div class="login-logo">🐾</div>
-            <h1>MeowMail Cyber</h1>
-            <p>100% бесплатный, децентрализованный E2EE P2P мессенджер нового поколения.</p>
+            <h1>MeowMail P2P</h1>
+            <p>Безопасный децентрализованный мессенджер без серверов.</p>
             
-            <input type="text" id="login-email" class="login-input" placeholder="Введите ваш Ник">
+            <input type="text" id="login-email" class="login-input" placeholder="Никнейм или почта">
             <input type="password" id="login-password" class="login-input" placeholder="Пароль">
             
             <button class="btn" id="login-action-btn" onclick="handleLogin()">
                 Войти в сеть
             </button>
-            <div id="login-error" style="color:var(--error); margin-top:15px; font-size:13px; display:none;"></div>
+            <div id="login-error" style="color:var(--error); margin-top:12px; font-size:12px; display:none;"></div>
         </div>
     </div>
 
     <!-- Основной Интерфейс -->
     <div class="wrapper">
-        <!-- Левый Сайдбар -->
         <div class="sidebar">
             <div class="bot-header">
                 <div class="brand-title">🐾 MeowMail</div>
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="font-size: 11px; color: var(--warning)" id="p2p-status">Подключение...</div>
-                    <button class="profile-btn" onclick="openProfileSettings()" title="Настройки профиля">⚙️</button>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <div style="font-size: 10.5px; color: var(--warning)" id="p2p-status">Подключение...</div>
+                    <button class="profile-btn" onclick="openProfileSettings()">⚙️</button>
                 </div>
             </div>
 
             <div class="search-area">
                 <input type="text" id="search-input" class="search-field" placeholder="Поиск контактов..." oninput="renderChats()">
-                <button class="add-chat-btn" onclick="openNewChatPrompt()" title="Начать новый чат">+</button>
+                <button class="add-chat-btn" onclick="openNewChatPrompt()">+</button>
             </div>
 
             <div class="chats-container" id="chats-list">
-                <div class="empty-placeholder">У вас нет активных диалогов. Нажмите «+», чтобы начать.</div>
+                <div class="empty-placeholder">У вас нет диалогов. Нажмите «+», чтобы создать.</div>
             </div>
         </div>
 
-        <!-- Окно Чата -->
         <div class="chat-window" id="chat-window-pane">
             <div class="chat-window-header">
                 <div class="back-btn" onclick="backToSidebar()">←</div>
@@ -606,23 +546,19 @@
                     <div class="chat-title" id="active-chat-name">Выберите чат</div>
                     <div id="active-chat-status-badge" style="margin-top: 2px;"></div>
                 </div>
-                <button class="btn" id="crypt-action-btn" style="width: auto; padding: 8px 16px; font-size: 12px; display:none;" onclick="openCryptSettingsModal()">Ключи E2EE</button>
+                <button class="btn" id="crypt-action-btn" style="width: auto; padding: 6px 12px; font-size: 12px; display:none;" onclick="openCryptSettingsModal()">Ключи E2EE</button>
             </div>
 
             <div class="chat-feed" id="messages-feed">
-                <div class="empty-placeholder">
-                    Выберите диалог для защищенной переписки.
-                </div>
+                <div class="empty-placeholder">Выберите диалог для защищенной переписки.</div>
             </div>
 
-            <!-- Ввод сообщения -->
             <div class="chat-input-bar" id="chat-input-bar" style="display: none;">
-                <!-- Стандартная панель ввода -->
                 <div class="input-box-container" id="input-fields-container">
-                    <button class="input-side-btn" onclick="triggerFileInput()" title="Прикрепить файл">📎</button>
+                    <button class="input-side-btn" onclick="triggerFileInput()">📎</button>
                     <input type="file" id="file-input" class="file-upload-input" accept="image/*,video/*" onchange="handleFileChange(event)">
                     
-                    <button class="input-side-btn" id="toggle-crypt-btn" onclick="toggleCryptForCurrentChat()" title="Шифрование">🔒</button>
+                    <button class="input-side-btn" id="toggle-crypt-btn" onclick="toggleCryptForCurrentChat()">🔒</button>
 
                     <div class="input-controls" style="flex: 1; min-width: 0;">
                         <div id="file-preview" class="file-preview-container" style="display: none;">
@@ -633,16 +569,14 @@
                     </div>
                 </div>
 
-                <!-- Панель Записи Голоса -->
                 <div class="recording-overlay" id="recording-fields-container">
-                    <div style="display: flex; align-items: center; gap: 10px;">
+                    <div>
                         <div class="recording-dot"></div>
                         <span>Запись аудио: <b id="recording-timer">00:00</b></span>
                     </div>
-                    <span style="color: var(--error); cursor: pointer;" onclick="cancelVoiceRecording()">Отмена</span>
+                    <span style="color: var(--error); cursor: pointer; font-size: 12.5px;" onclick="cancelVoiceRecording()">Отмена</span>
                 </div>
 
-                <!-- Кнопка Отправки / Микрофон -->
                 <button class="action-round-btn" id="action-btn" onclick="handleSendOrRecordClick()">🐾</button>
             </div>
         </div>
@@ -652,9 +586,7 @@
     <div class="modal-overlay" id="crypt-settings-modal">
         <div class="modal">
             <div class="modal-header">Управление ключами E2EE</div>
-            <div class="modal-desc">
-                Принудительно запросить ключи собеседника из глобальной сети для сброса ошибок шифрования.
-            </div>
+            <div class="modal-desc">Принудительно запросить ключи из P2P-сети для исправления ошибок дешифрования.</div>
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <button class="btn" onclick="forceE2EKeyExchange()">Принудительно обновить ключи</button>
                 <button class="btn" onclick="closeModal('crypt-settings-modal')" style="background:var(--bg-input); color:white;">Закрыть</button>
@@ -665,8 +597,8 @@
     <div class="modal-overlay" id="new-chat-modal">
         <div class="modal">
             <div class="modal-header">Новый диалог</div>
-            <div class="modal-desc">Введите никнейм собеседника, чтобы мгновенно начать диалог.</div>
-            <input type="text" id="new-chat-email" class="login-input" placeholder="friend_nick" style="margin-bottom:15px;">
+            <div class="modal-desc">Введите никнейм собеседника для начала чата.</div>
+            <input type="text" id="new-chat-email" class="login-input" placeholder="meowing">
             <div style="display: flex; gap: 12px;">
                 <button class="btn" onclick="createNewChat()" style="flex:1;">Начать</button>
                 <button class="btn" onclick="closeModal('new-chat-modal')" style="background:var(--bg-input); color:white; flex:1;">Отмена</button>
@@ -680,9 +612,9 @@
             <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 20px;">
                 <div class="avatar" id="profile-modal-avatar" style="width: 80px; height: 80px; font-size: 28px; margin-right: 0; cursor: pointer;" onclick="triggerAvatarUpload()">?</div>
                 <input type="file" id="avatar-input" class="file-upload-input" accept="image/*" onchange="handleAvatarChange(event)">
-                <span style="font-size: 12px; color: var(--accent-glow); cursor: pointer;" onclick="triggerAvatarUpload()">Загрузить аватарку</span>
+                <span style="font-size: 12px; color: var(--accent); cursor: pointer;" onclick="triggerAvatarUpload()">Изменить фото</span>
             </div>
-            <input type="text" id="profile-display-name" class="login-input" placeholder="Никнейм для отображения">
+            <input type="text" id="profile-display-name" class="login-input" placeholder="Отображаемое имя">
             <div style="display: flex; gap: 12px;">
                 <button class="btn" onclick="saveProfileSettings()" style="flex:1;">Сохранить</button>
                 <button class="btn" onclick="closeModal('profile-settings-modal')" style="background:var(--bg-input); color:white; flex:1;">Отмена</button>
@@ -691,7 +623,6 @@
     </div>
 
     <script>
-        // Стабильный пул распределенных серверов GunDB
         const gunPeers = [
             'https://gun-manhattan.herokuapp.com/gun',
             'https://gunjs.herokuapp.com/gun',
@@ -710,7 +641,6 @@
         let peerProfiles = {}; 
         let activeRoomSubscriptions = {}; 
 
-        // Переменные для голосовых сообщений
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
@@ -739,7 +669,7 @@
             const savedPass = safeStorage.get("meow_p2p_pass");
 
             gun.on('auth', () => {
-                document.getElementById('p2p-status').innerText = "Сеть онлайн";
+                document.getElementById('p2p-status').innerText = "Онлайн (P2P)";
                 document.getElementById('p2p-status').style.color = "var(--success)";
             });
 
@@ -770,9 +700,9 @@
                 if (ack.err) {
                     user.create(email, pass, function(regAck) {
                         if (regAck.err) {
-                            showLoginError("Ошибка сети: " + regAck.err);
+                            showLoginError("Ошибка сети P2P: " + regAck.err);
                             btn.disabled = false;
-                            btn.innerText = "Войти / Создать аккаунт";
+                            btn.innerText = "Войти в сеть";
                         } else {
                             user.auth(email, pass, async function() {
                                 myEmail = email;
@@ -930,7 +860,7 @@
 
             const peerEpub = safeStorage.get("meow_epub_" + peerEmail);
             if (!peerEpub) {
-                msg.text = "[Ожидание обмена P2P ключами шифрования...]";
+                msg.text = "[Ожидание обмена P2P ключами...]";
                 return;
             }
 
@@ -951,10 +881,10 @@
                     }
                     msg.decrypted = true;
                 } else {
-                    msg.text = "[Ошибка дешифрования: неверные ключи]";
+                    msg.text = "[Ошибка расшифровки: неверные ключи]";
                 }
             } catch (e) {
-                msg.text = "[Ошибка расшифровки]";
+                msg.text = "[Ошибка]";
             }
         }
 
@@ -984,9 +914,9 @@
                     safeStorage.set("meow_epub_" + peerEmail, data.epub);
                     safeStorage.set("meow_pub_" + peerEmail, data.pub);
                     decryptAllMessages(peerEmail);
-                    alert("Ключи обновлены!");
+                    alert("Ключи шифрования обновлены!");
                 } else {
-                    alert("Собеседник офлайн.");
+                    alert("Пользователь еще не онлайн в этой комнате.");
                 }
             });
             closeModal('crypt-settings-modal');
@@ -1033,20 +963,18 @@
                 name: newName,
                 avatar: newAvatar
             }, () => {
-                alert("Профиль сохранен!");
+                alert("Профиль успешно обновлен!");
                 closeModal('profile-settings-modal');
             });
         }
 
-        // --- ГОЛОСОВЫЕ СООБЩЕНИЯ (MEDIA RECORDER) ---
+        // --- ГОЛОСОВЫЕ СООБЩЕНИЯ ---
 
         function handleSendOrRecordClick() {
             const messageText = document.getElementById('message-text').value.trim();
             if (messageText || selectedFile) {
-                // Если есть текст или файл — отправляем
                 sendChatMessage();
             } else {
-                // Если пусто — управляем записью аудио
                 if (!isRecording) {
                     startVoiceRecording();
                 } else {
@@ -1058,7 +986,17 @@
         async function startVoiceRecording() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
+                
+                // Автоматический выбор поддерживаемого кодека
+                let options = { mimeType: 'audio/webm' };
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options = { mimeType: 'audio/mp4' };
+                }
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options = {}; // дефолт браузера (самый надежный способ для Android/iOS)
+                }
+
+                mediaRecorder = new MediaRecorder(stream, options);
                 audioChunks = [];
 
                 mediaRecorder.ondataavailable = event => {
@@ -1066,14 +1004,13 @@
                 };
 
                 mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
                     await sendAudioBlobMessage(audioBlob);
                 };
 
                 mediaRecorder.start();
                 isRecording = true;
                 
-                // Переключаем интерфейс
                 document.getElementById('input-fields-container').style.display = 'none';
                 document.getElementById('recording-fields-container').style.display = 'flex';
                 document.getElementById('action-btn').innerHTML = "🛑";
@@ -1089,14 +1026,13 @@
                 }, 1000);
 
             } catch (err) {
-                alert("Нет доступа к микрофону: " + err.message);
+                alert("Микрофон заблокирован или не подключен: " + err.message);
             }
         }
 
         function stopVoiceRecordingAndSend() {
             if (mediaRecorder && isRecording) {
                 mediaRecorder.stop();
-                // Закрываем треки микрофона
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 resetAudioRecordUI();
             }
@@ -1104,7 +1040,7 @@
 
         function cancelVoiceRecording() {
             if (mediaRecorder && isRecording) {
-                mediaRecorder.onstop = null; // Отменяем callback отправки
+                mediaRecorder.onstop = null;
                 mediaRecorder.stop();
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 resetAudioRecordUI();
@@ -1117,8 +1053,8 @@
             document.getElementById('input-fields-container').style.display = 'flex';
             document.getElementById('recording-fields-container').style.display = 'none';
             document.getElementById('action-btn').innerHTML = "🐾";
-            document.getElementById('action-btn').style.background = "var(--accent-glow)";
-            handleTypingEffect(); // Возвращаем размер кнопке
+            document.getElementById('action-btn').style.background = "var(--accent)";
+            handleTypingEffect();
         }
 
         async function sendAudioBlobMessage(blob) {
@@ -1129,14 +1065,13 @@
 
             const fileUrl = URL.createObjectURL(blob);
 
-            // Оптимистичный рендер
             const tempMessage = {
                 id: msgId,
                 time: msgTime,
                 out: true,
                 text: "",
                 fileUrl: fileUrl,
-                fileType: "audio/webm",
+                fileType: blob.type,
                 fileName: "Голосовое сообщение",
                 encrypted: isEncrypted,
                 decrypted: true
@@ -1155,7 +1090,7 @@
                     const payload = {
                         text: "",
                         fileB64: base64Data,
-                        fileType: "audio/webm",
+                        fileType: blob.type,
                         fileName: "Голосовое сообщение"
                     };
 
@@ -1185,11 +1120,11 @@
             } catch (e) {
                 chats[targetEmail].messages = chats[targetEmail].messages.filter(m => m.id !== msgId);
                 await renderMessages();
-                alert("Ошибка отправки аудио: " + e.message);
+                alert("Ошибка отправки голосового сообщения.");
             }
         }
 
-        // --- ОТПРАВКА СТАНДАРТНЫХ СООБЩЕНИЙ ---
+        // --- ОТПРАВКА ТЕКСТА И ФАЙЛОВ ---
 
         async function sendChatMessage() {
             const textarea = document.getElementById('message-text');
@@ -1268,13 +1203,14 @@
                 removeFile();
                 saveState();
             } catch (e) {
+                console.error(e);
                 chats[targetEmail].messages = chats[targetEmail].messages.filter(m => m.id !== msgId);
                 await renderMessages();
 
                 if (e.message === "E2EE_NOT_ESTABLISHED") {
-                    alert("Обмен ключами еще не завершен. Выключите замок (🔓) для отправки обычного текста.");
+                    alert("Собеседник еще не вошел в эту комнату. Отключите шифрование (🔒) для отправки обычного текста.");
                 } else {
-                    alert("Ошибка отправки: " + e.message);
+                    alert("Сбой P2P: " + e.message);
                 }
             }
         }
@@ -1287,7 +1223,7 @@
             container.innerHTML = "";
 
             if (chat.messages.length === 0) {
-                container.innerHTML = `<div class="empty-placeholder">Нет сообщений. Отправьте первое P2P сообщение!</div>`;
+                container.innerHTML = `<div class="empty-placeholder">Нет сообщений. Напишите первое P2P сообщение!</div>`;
                 return;
             }
 
@@ -1295,7 +1231,7 @@
                 const div = document.createElement('div');
                 div.className = `bubble ${msg.out ? 'out' : 'in'}`;
 
-                // Рендер аудио
+                // Рендер голосовых
                 if (msg.fileUrl && msg.fileType.startsWith('audio/')) {
                     const voiceWrapper = document.createElement('div');
                     voiceWrapper.className = 'voice-player';
@@ -1372,7 +1308,7 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // --- УПРАВЛЕНИЕ ДИСПЛЕЕМ ---
+        // --- УПРАВЛЕНИЕ ДИАЛОГАМИ ---
 
         function openNewChatPrompt() {
             openModal('new-chat-modal');
@@ -1484,14 +1420,14 @@
 
             if (isEncrypted) {
                 if (peerPub) {
-                    badge.innerHTML = `<span class="status-badge secure">🔒 Сквозное шифрование (E2EE)</span>`;
+                    badge.innerHTML = `<span class="status-badge secure">🔒 Сквозное шифрование активен</span>`;
                 } else {
-                    badge.innerHTML = `<span class="status-badge waiting">⏳ Ожидание ключей E2EE...</span>`;
+                    badge.innerHTML = `<span class="status-badge waiting">⏳ Ожидание ключей шифрования...</span>`;
                 }
                 toggleBtn.className = "input-side-btn active";
                 toggleBtn.innerHTML = "🔒";
             } else {
-                badge.innerHTML = `<span class="status-badge unsecure">🔓 Без шифрования</span>`;
+                badge.innerHTML = `<span class="status-badge unsecure">🔓 Передача в открытом виде</span>`;
                 toggleBtn.className = "input-side-btn inactive";
                 toggleBtn.innerHTML = "🔓";
             }
@@ -1547,7 +1483,6 @@
             textarea.style.height = "auto";
             textarea.style.height = textarea.scrollHeight + "px";
 
-            // Смена иконки отправить/войс
             if (textarea.value.trim() !== "" || selectedFile) {
                 actionBtn.innerHTML = "➔";
             } else {
