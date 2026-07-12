@@ -524,7 +524,7 @@
         <div class="sidebar">
             <div class="bot-header">
                 <div class="brand-title">🐾 MeowMail P2P</div>
-                <div style="font-size: 11px; color: var(--success)" id="p2p-status">Подключение...</div>
+                <div style="font-size: 11px; color: var(--warning)" id="p2p-status">Подключение...</div>
             </div>
 
             <div class="search-area">
@@ -580,10 +580,10 @@
         <div class="modal">
             <div class="modal-header">Управление ключами E2EE</div>
             <div class="modal-desc">
-                Вы можете принудительно обновить публичные ключи собеседника из глобальной P2P-сети GunDB для исправления ошибок дешифрования.
+                Вы можете принудительно запросить публичные ключи собеседника из P2P-сети для возобновления и исправления ошибок шифрования.
             </div>
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                <button class="btn" onclick="forceE2EKeyExchange()">Обновить ключи собеседника</button>
+                <button class="btn" onclick="forceE2EKeyExchange()">Принудительно обновить ключи</button>
                 <button class="btn" onclick="closeModal('crypt-settings-modal')" style="background:var(--bg-input); color:white;">Закрыть</button>
             </div>
         </div>
@@ -602,16 +602,21 @@
     </div>
 
     <script>
-        // Инициализация GunDB с использованием открытых стабильных dApp-реле
-        const gun = Gun([
+        // Стабильный пул распределенных серверов GunDB
+        const gunPeers = [
             'https://gun-manhattan.herokuapp.com/gun',
-            'https://gundb.herokuapp.com/gun'
-        ]);
+            'https://gunjs.herokuapp.com/gun',
+            'https://peer.wall.bar/gun',
+            'https://gun-us.herokuapp.com/gun',
+            'https://gun-eu.herokuapp.com/gun'
+        ];
+        
+        const gun = Gun({ peers: gunPeers });
         const user = gun.user().recall({sessionStorage: true});
 
         let myEmail = "";
         let chats = {};
-        let currentChatId = null; // Email собеседника
+        let currentChatId = null; 
         let selectedFile = null;
 
         const safeStorage = {
@@ -619,7 +624,7 @@
             set(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
         };
 
-        // SHA-256 хэшер для безопасных ключей комнат
+        // Хэширование для формирования уникальной P2P-комнаты
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
@@ -627,26 +632,23 @@
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        // Вычисление уникального идентификатора комнаты на основе двух Email-адресов
         async function getRoomKey(email1, email2) {
             const sorted = [email1.toLowerCase().trim(), email2.toLowerCase().trim()].sort().join('_');
             return 'meowroom_' + (await sha256(sorted));
         }
 
-        window.onload = function() {
-            // Поддержка визуализации статуса подключения к P2P-сети
-            gun.on('auth', () => {
-                document.getElementById('p2p-status').innerText = "Подключен (P2P)";
-                document.getElementById('p2p-status').style.color = "var(--success)";
-            });
-
-            if (user.is) {
-                myEmail = safeStorage.get("meow_p2p_email");
+        // Авторизация One-Tap / Сессия
+        gun.on('auth', async () => {
+            document.getElementById('p2p-status').innerText = "Подключен (P2P)";
+            document.getElementById('p2p-status').style.color = "var(--success)";
+            
+            myEmail = safeStorage.get("meow_p2p_email");
+            if (myEmail) {
                 completeLogin();
             }
-        };
+        });
 
-        // Вход и автоматическая регистрация аккаунта в P2P-сети Gun
+        // Вход и Авторегистрация
         function handleLogin() {
             const email = document.getElementById('login-email').value.trim().toLowerCase();
             const pass = document.getElementById('login-password').value.trim();
@@ -658,11 +660,10 @@
             }
 
             btn.disabled = true;
-            btn.innerText = "Авторизация в P2P сети...";
+            btn.innerText = "Подключение к P2P сети...";
 
             user.auth(email, pass, async function(ack) {
                 if (ack.err) {
-                    // Если аккаунт не найден, создаем его на лету
                     user.create(email, pass, function(regAck) {
                         if (regAck.err) {
                             showLoginError("Ошибка регистрации: " + regAck.err);
@@ -672,7 +673,6 @@
                             user.auth(email, pass, async function() {
                                 myEmail = email;
                                 safeStorage.set("meow_p2p_email", email);
-                                await publishMyKeys();
                                 completeLogin();
                             });
                         }
@@ -680,23 +680,8 @@
                 } else {
                     myEmail = email;
                     safeStorage.set("meow_p2p_email", email);
-                    await publishMyKeys();
                     completeLogin();
                 }
-            });
-        }
-
-        // Публикация ключей шифрования пользователя в глобальном P2P реестре
-        async function publishMyKeys() {
-            if (!user.is) return;
-            const myPub = user.is.pub;
-            const myEpub = user._.sea.epub;
-            
-            // Записываем наши ключи в открытый реестр, чтобы собеседники могли нас найти и шифровать сообщения
-            gun.get('meowmail_p2p_registry').get(myEmail).put({
-                pub: myPub,
-                epub: myEpub,
-                email: myEmail
             });
         }
 
@@ -715,12 +700,11 @@
             }
             renderChats();
 
-            // Прослушиваем новые диалоги, созданные другими пользователями с нами
-            gun.get('meowmail_p2p_registry').get(myEmail).get('chats').map().on((roomKey, peerEmail) => {
+            // Поиск всех активных комнат, связанных с нами
+            gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').map().on((roomKey, peerEmail) => {
                 if (peerEmail && !chats[peerEmail]) {
                     chats[peerEmail] = { id: peerEmail, name: peerEmail, messages: [] };
                     renderChats();
-                    saveState();
                 }
                 if (roomKey) {
                     subscribeToRoom(roomKey, peerEmail);
@@ -728,97 +712,146 @@
             });
         }
 
-        // Подписка на комнату и дешифрование сообщений в реальном времени
+        // Подписка на комнату, обмен ключами и обработка входящего потока
         async function subscribeToRoom(roomKey, peerEmail) {
-            gun.get(roomKey).map().on(async (encryptedPacket, msgId) => {
-                if (!encryptedPacket) return;
+            const room = gun.get(roomKey);
 
-                // Защита от дублей
-                if (chats[peerEmail] && chats[peerEmail].messages.some(m => m.id === msgId)) return;
-
-                try {
-                    const packet = typeof encryptedPacket === 'string' ? JSON.parse(encryptedPacket) : encryptedPacket;
-                    let decryptedText = "";
-                    let fileUrl = null;
-                    let fileType = null;
-                    let fileName = null;
-
-                    if (packet.encrypted) {
-                        // Попытка дешифрования E2EE
-                        const peerEpub = safeStorage.get("meow_epub_" + peerEmail);
-                        if (!peerEpub) {
-                            // Ключи еще не загружены
-                            decryptedText = "[Зашифровано E2EE. Нажмите кнопку 'Ключи' вверху для обновления]";
-                        } else {
-                            const sharedSecret = await SEA.secret(peerEpub, user._.sea);
-                            const dec = await SEA.decrypt(packet.content, sharedSecret);
-                            
-                            if (dec) {
-                                if (typeof dec === 'object') {
-                                    decryptedText = dec.text || "";
-                                    if (dec.fileB64) {
-                                        fileUrl = `data:${dec.fileType};base64,${dec.fileB64}`;
-                                        fileType = dec.fileType;
-                                        fileName = dec.fileName;
-                                    }
-                                } else {
-                                    decryptedText = dec;
-                                }
-                            } else {
-                                decryptedText = "[Ошибка дешифрования: несовпадение ключей]";
-                            }
-                        }
-                    } else {
-                        // Обычное открытое сообщение
-                        if (typeof packet.content === 'object') {
-                            decryptedText = packet.content.text || "";
-                        } else {
-                            decryptedText = packet.content;
-                        }
-                    }
-
-                    if (!chats[peerEmail]) {
-                        chats[peerEmail] = { id: peerEmail, name: peerEmail, messages: [] };
-                    }
-
-                    // Добавляем сообщение в ленту
-                    chats[peerEmail].messages.push({
-                        id: msgId,
-                        time: packet.time,
-                        out: packet.sender === myEmail,
-                        text: decryptedText,
-                        fileUrl: fileUrl,
-                        fileType: fileType,
-                        fileName: fileName,
-                        encrypted: packet.encrypted
-                    });
-
-                    chats[peerEmail].messages.sort((a, b) => a.time - b.time);
-
-                    if (currentChatId === peerEmail) {
-                        await renderMessages();
-                    }
-                    renderChats();
-                    saveState();
-                } catch (e) {
-                    console.error("Ошибка парсинга P2P пакета: ", e);
-                }
+            // Публикуем свои публичные ключи шифрования в эту комнату
+            room.get('keys').get(myEmail).put({
+                pub: user.is.pub,
+                epub: user._.sea.epub
             });
-        }
 
-        // Принудительное обновление ключей E2EE из реестра
-        async function forceE2EKeyExchange() {
-            if (!currentChatId) return;
-            const peerEmail = currentChatId;
-
-            gun.get('meowmail_p2p_registry').get(peerEmail).once(async (data) => {
+            // Подписываемся на ключи собеседника в этой комнате
+            room.get('keys').get(peerEmail).on((data) => {
                 if (data && data.epub) {
                     safeStorage.set("meow_epub_" + peerEmail, data.epub);
                     safeStorage.set("meow_pub_" + peerEmail, data.pub);
-                    alert("Ключи собеседника успешно обновлены! Переоткройте этот чат для применения изменений.");
-                    await openChat(peerEmail);
+                    updateCryptStatusDisplay();
+                    decryptAllMessages(peerEmail); // Мгновенно расшифровываем сообщения, если ключ прилетел позже
+                }
+            });
+
+            // Слушаем сообщения
+            room.get('messages').map().on(async (encryptedPacket, msgId) => {
+                if (!encryptedPacket) return;
+
+                if (!chats[peerEmail]) {
+                    chats[peerEmail] = { id: peerEmail, name: peerEmail, messages: [] };
+                }
+
+                if (chats[peerEmail].messages.some(m => m.id === msgId)) return;
+
+                const packet = typeof encryptedPacket === 'string' ? JSON.parse(encryptedPacket) : encryptedPacket;
+
+                let messageItem = {
+                    id: msgId,
+                    time: packet.time,
+                    out: packet.sender === myEmail,
+                    text: "", 
+                    rawPacket: packet, 
+                    fileUrl: null,
+                    fileType: null,
+                    fileName: null,
+                    encrypted: packet.encrypted,
+                    decrypted: false
+                };
+
+                chats[peerEmail].messages.push(messageItem);
+                chats[peerEmail].messages.sort((a, b) => a.time - b.time);
+
+                await tryDecryptMessage(messageItem, peerEmail);
+
+                if (currentChatId === peerEmail) {
+                    await renderMessages();
+                }
+                renderChats();
+                saveState();
+            });
+        }
+
+        // Функция расшифровки конкретного сообщения
+        async function tryDecryptMessage(msg, peerEmail) {
+            if (!msg.encrypted) {
+                if (typeof msg.rawPacket.content === 'object') {
+                    msg.text = msg.rawPacket.content.text || "";
+                    if (msg.rawPacket.content.fileB64) {
+                        msg.fileUrl = `data:${msg.rawPacket.content.fileType};base64,${msg.rawPacket.content.fileB64}`;
+                        msg.fileType = msg.rawPacket.content.fileType;
+                        msg.fileName = msg.rawPacket.content.fileName;
+                    }
                 } else {
-                    alert("Пользователь еще не зарегистрирован в P2P реестре.");
+                    msg.text = msg.rawPacket.content;
+                }
+                msg.decrypted = true;
+                return;
+            }
+
+            if (msg.decrypted) return;
+
+            const peerEpub = safeStorage.get("meow_epub_" + peerEmail);
+            if (!peerEpub) {
+                msg.text = "[Ожидание обмена P2P ключами шифрования...]";
+                return;
+            }
+
+            try {
+                const sharedSecret = await SEA.secret(peerEpub, user._.sea);
+                const dec = await SEA.decrypt(msg.rawPacket.content, sharedSecret);
+                
+                if (dec) {
+                    if (typeof dec === 'object') {
+                        msg.text = dec.text || "";
+                        if (dec.fileB64) {
+                            msg.fileUrl = `data:${dec.fileType};base64,${dec.fileB64}`;
+                            msg.fileType = dec.fileType;
+                            msg.fileName = dec.fileName;
+                        }
+                    } else {
+                        msg.text = dec;
+                    }
+                    msg.decrypted = true;
+                } else {
+                    msg.text = "[Ошибка дешифрования: несовпадение ключей]";
+                }
+            } catch (e) {
+                msg.text = "[Ошибка расшифровки]";
+            }
+        }
+
+        // Полное обновление диалога при получении ключей
+        async function decryptAllMessages(peerEmail) {
+            if (!chats[peerEmail]) return;
+            for (let msg of chats[peerEmail].messages) {
+                await tryDecryptMessage(msg, peerEmail);
+            }
+            if (currentChatId === peerEmail) {
+                await renderMessages();
+            }
+        }
+
+        // Принудительный обмен ключами по клику кнопки
+        async function forceE2EKeyExchange() {
+            if (!currentChatId) return;
+            const peerEmail = currentChatId;
+            const roomKey = await getRoomKey(myEmail, peerEmail);
+            const room = gun.get(roomKey);
+
+            // Переотправляем свой ключ
+            room.get('keys').get(myEmail).put({
+                pub: user.is.pub,
+                epub: user._.sea.epub
+            });
+
+            // Пытаемся перезапросить ключ собеседника
+            room.get('keys').get(peerEmail).once((data) => {
+                if (data && data.epub) {
+                    safeStorage.set("meow_epub_" + peerEmail, data.epub);
+                    safeStorage.set("meow_pub_" + peerEmail, data.pub);
+                    decryptAllMessages(peerEmail);
+                    alert("Ключи шифрования обновлены!");
+                } else {
+                    alert("Собеседник еще не вошел в эту комнату. Ожидайте подключения.");
                 }
             });
             closeModal('crypt-settings-modal');
@@ -841,13 +874,14 @@
             const msgId = 'msg-' + Math.random().toString(36).substring(2, 11);
             const msgTime = Date.now();
 
-            // Создаем оптимистичный шаблон сообщения на клиенте
+            // Локальный мгновенный шаблон
             const tempMessage = {
                 id: msgId,
                 time: msgTime,
                 out: true,
                 text: text,
-                encrypted: isEncrypted
+                encrypted: isEncrypted,
+                decrypted: true
             };
             if (selectedFile) {
                 tempMessage.fileUrl = URL.createObjectURL(selectedFile);
@@ -863,22 +897,11 @@
                 let contentToSend = "";
 
                 if (isEncrypted) {
-                    // Получаем epub собеседника из локального кэша
-                    let peerEpub = safeStorage.get("meow_epub_" + targetEmail);
+                    const peerEpub = safeStorage.get("meow_epub_" + targetEmail);
                     if (!peerEpub) {
-                        // Пробуем быстро подгрузить из реестра Gun
-                        const registryData = await new Promise(resolve => {
-                            gun.get('meowmail_p2p_registry').get(targetEmail).once(data => resolve(data));
-                        });
-                        if (registryData && registryData.epub) {
-                            peerEpub = registryData.epub;
-                            safeStorage.set("meow_epub_" + targetEmail, peerEpub);
-                        } else {
-                            throw new Error("E2EE_NOT_ESTABLISHED");
-                        }
+                        throw new Error("E2EE_NOT_ESTABLISHED");
                     }
 
-                    // Формируем секретный E2EE пакет
                     const payload = { text: text };
                     if (selectedFile) {
                         payload.fileB64 = await fileToBase64(selectedFile);
@@ -886,11 +909,10 @@
                         payload.fileName = selectedFile.name;
                     }
 
-                    // Шифруем с помощью SEA.encrypt и общего секрета ECDH
                     const sharedSecret = await SEA.secret(peerEpub, user._.sea);
                     contentToSend = await SEA.encrypt(payload, sharedSecret);
                 } else {
-                    // Открытый режим
+                    // Передача файлов БЕЗ шифрования
                     if (selectedFile) {
                         contentToSend = {
                             text: text,
@@ -910,25 +932,24 @@
                     content: contentToSend
                 };
 
-                // Отправляем пакет в P2P комнату
-                gun.get(roomKey).get(msgId).put(JSON.stringify(packet));
+                // Запись сообщения в Gun
+                gun.get(roomKey).get('messages').get(msgId).put(JSON.stringify(packet));
 
-                // Оповещаем получателя о новом чате (создаем ссылку в его инбоксе)
-                gun.get('meowmail_p2p_registry').get(targetEmail).get('chats').get(myEmail).put(roomKey);
-                // Оповещаем себя
-                gun.get('meowmail_p2p_registry').get(myEmail).get('chats').get(targetEmail).put(roomKey);
+                // Уведомляем участников о существовании этой комнаты
+                gun.get('meowmail_p2p_registry').get(targetEmail).get('rooms').get(myEmail).put(roomKey);
+                gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').get(targetEmail).put(roomKey);
 
                 removeFile();
                 saveState();
             } catch (e) {
-                console.error("Ошибка при отправке сообщения: ", e);
+                console.error(e);
                 chats[targetEmail].messages = chats[targetEmail].messages.filter(m => m.id !== msgId);
                 await renderMessages();
 
                 if (e.message === "E2EE_NOT_ESTABLISHED") {
-                    alert("Собеседник еще не зарегистрирован в P2P сети. Дождитесь, пока он войдет в приложение, либо отключите шифрование (иконка замочка).");
+                    alert("Шифрование E2EE включено, но ключи с собеседником еще не установлены. Отключите замок (🔓) для отправки открытых сообщений.");
                 } else {
-                    alert("Ошибка сети P2P: " + e.message);
+                    alert("Ошибка отправки: " + e.message);
                 }
             }
         }
@@ -941,7 +962,7 @@
             container.innerHTML = "";
 
             if (chat.messages.length === 0) {
-                container.innerHTML = `<div class="empty-placeholder">Нет сообщений. Отправьте первое P2P-сообщение!</div>`;
+                container.innerHTML = `<div class="empty-placeholder">Нет сообщений. Напишите первое P2P сообщение!</div>`;
                 return;
             }
 
@@ -983,7 +1004,7 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // --- УПРАВЛЕНИЕ ДИАЛОГАМИ ---
+        // --- УПРАВЛЕНИЕ ДИСПЛЕЕМ ---
 
         function openNewChatPrompt() {
             openModal('new-chat-modal');
@@ -1005,14 +1026,6 @@
                 };
             }
 
-            // Пытаемся сразу предзагрузить ключи собеседника из сети
-            gun.get('meowmail_p2p_registry').get(email).once(data => {
-                if (data && data.epub) {
-                    safeStorage.set("meow_epub_" + email, data.epub);
-                    safeStorage.set("meow_pub_" + email, data.pub);
-                }
-            });
-
             emailInput.value = "";
             closeModal('new-chat-modal');
             renderChats();
@@ -1029,7 +1042,7 @@
             });
 
             if (activeChats.length === 0) {
-                container.innerHTML = `<div class="empty-placeholder">Активных диалогов нет. Нажмите «+», чтобы начать.</div>`;
+                container.innerHTML = `<div class="empty-placeholder">Активных диалогов нет.</div>`;
                 return;
             }
 
@@ -1041,7 +1054,7 @@
                 const lastMsg = chat.messages[chat.messages.length - 1];
                 let displayLast = "Нет сообщений";
                 if (lastMsg) {
-                    displayLast = lastMsg.text || (lastMsg.fileUrl ? "📎 Медиафайл" : "Сообщение");
+                    displayLast = lastMsg.text || "📎 Медиафайл";
                 }
 
                 item.innerHTML = `
@@ -1075,7 +1088,6 @@
             await renderMessages();
             renderChats();
 
-            // Автоматически подключаемся к комнате в P2P сети
             const roomKey = await getRoomKey(myEmail, peerEmail);
             subscribeToRoom(roomKey, peerEmail);
         }
@@ -1085,13 +1097,18 @@
             const toggleBtn = document.getElementById('toggle-crypt-btn');
             
             const isEncrypted = loadChatEncryptState(currentChatId);
+            const peerPub = safeStorage.get("meow_epub_" + currentChatId);
 
             if (isEncrypted) {
-                badge.innerHTML = `<span class="status-badge secure">🔒 Сквозное шифрование (E2EE)</span>`;
+                if (peerPub) {
+                    badge.innerHTML = `<span class="status-badge secure">🔒 Канал E2EE настроен и защищен</span>`;
+                } else {
+                    badge.innerHTML = `<span class="status-badge waiting">⏳ Ожидание ключей E2EE...</span>`;
+                }
                 toggleBtn.className = "input-side-btn active";
                 toggleBtn.innerHTML = "🔒";
             } else {
-                badge.innerHTML = `<span class="status-badge unsecure">🔓 Сообщения передаются в открытом виде</span>`;
+                badge.innerHTML = `<span class="status-badge unsecure">🔓 Без шифрования (Открытый P2P поток)</span>`;
                 toggleBtn.className = "input-side-btn inactive";
                 toggleBtn.innerHTML = "🔓";
             }
@@ -1099,7 +1116,7 @@
 
         function loadChatEncryptState(peerId) {
             const val = safeStorage.get("meow_p2p_crypt_state_" + peerId);
-            return val === null ? true : val === "true"; // По умолчанию шифрование ВСЕГДА активно
+            return val === null ? true : val === "true"; 
         }
 
         function toggleCryptForCurrentChat() {
@@ -1109,7 +1126,7 @@
             updateCryptStatusDisplay();
         }
 
-        // --- ВСПЛЫВАЮЩИЕ ОКНА И КЭШ ---
+        // --- ДОПОЛНИТЕЛЬНЫЕ ИНСТРУМЕНТЫ ---
 
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
