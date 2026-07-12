@@ -735,12 +735,10 @@
     <script>
         // Глобальный отказоустойчивый пул dApp реле-серверов GunDB
         const gunPeers = [
-            'https://gun-manhattan.herokuapp.com/gun',
-            'https://gunjs.herokuapp.com/gun',
-            'https://peer.wall.bar/gun',
-            'https://gun-us.herokuapp.com/gun',
-            'https://gun-eu.herokuapp.com/gun'
-        ];
+    'https://relay.peer.ooo/gun',
+    'https://gun-rs.herokuapp.com/gun',
+    'https://www.rayjson.com/gun'
+];
         
         const gun = Gun({ peers: gunPeers });
         const user = gun.user().recall({sessionStorage: true});
