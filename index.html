@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MeowMail Crypt</title>
-    <!-- Подключаем Google Identity Services API -->
+    <title>MeowMail Messenger</title>
+    <!-- Подключаем современную библиотеку авторизации Google -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
@@ -54,7 +54,7 @@
 
         .login-card {
             width: 95%;
-            max-width: 440px;
+            max-width: 420px;
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
             padding: 40px 30px;
@@ -85,46 +85,8 @@
         .login-card p {
             color: var(--text-muted);
             font-size: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             line-height: 1.5;
-        }
-
-        .instruction-box {
-            background: rgba(47, 128, 237, 0.06);
-            border: 1px solid rgba(47, 128, 237, 0.15);
-            border-radius: 16px;
-            padding: 18px;
-            text-align: left;
-            margin-bottom: 20px;
-            font-size: 13px;
-            line-height: 1.55;
-        }
-
-        .instruction-box ol {
-            margin-left: 18px;
-            margin-top: 8px;
-        }
-
-        .instruction-box li {
-            margin-bottom: 6px;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 14px 18px;
-            border-radius: 14px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-input);
-            color: white;
-            font-size: 14px;
-            outline: none;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-        }
-
-        .login-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 12px rgba(47, 128, 237, 0.2);
         }
 
         .btn {
@@ -146,7 +108,6 @@
 
         .btn:hover { background: var(--accent-hover); }
         .btn:active { transform: scale(0.98); }
-        .btn:disabled { background: var(--border-color); color: var(--text-muted); cursor: not-allowed; }
 
         .wrapper {
             display: flex;
@@ -264,15 +225,6 @@
             background-position: center;
             flex-shrink: 0;
             position: relative;
-        }
-
-        .online-dot {
-            position: absolute;
-            bottom: 1px; right: 1px;
-            width: 12px; height: 12px;
-            background: var(--success);
-            border-radius: 50%;
-            border: 2px solid var(--bg-dark);
         }
 
         .chat-details {
@@ -562,22 +514,11 @@
         <div class="login-card">
             <div class="login-logo">🐾</div>
             <h1>MeowMail Crypt</h1>
-            <p>E2EE Мессенджер прямо на вашей почте Google Gmail</p>
+            <p>E2EE Мессенджер на базе вашей почты Gmail</p>
             
-            <div class="instruction-box">
-                <b>Как начать использование:</b>
-                <ol>
-                    <li>Создайте проект в <a href="https://console.cloud.google.com/" target="_blank" style="color:var(--accent)">Google Cloud Console</a>.</li>
-                    <li>Включите <b>Gmail API</b> в библиотеке API.</li>
-                    <li>Настройте OAuth Screen и создайте <b>OAuth Client ID</b> (тип Web Application). Добавьте адрес вашего сайта в Authorized JavaScript Origins.</li>
-                    <li>Вставьте полученный Client ID ниже и войдите:</li>
-                </ol>
-            </div>
-
-            <input type="text" id="client-id-field" class="login-input" placeholder="Google Client ID" value="">
             <button class="btn" id="login-action-btn" onclick="initiateGoogleLogin()">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.59.1-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.32 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.004 0 1.624 2.282.352 5.61l3.007 2.333c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/></svg>
-                Войти через Google
+                Быстрый вход через Google
             </button>
             <div id="login-error" style="color:var(--error); margin-top:15px; font-size:13px; display:none;"></div>
         </div>
@@ -668,18 +609,22 @@
     </div>
 
     <script>
+        // ==========================================
+        // ВСТАВЬТЕ ВАШ GOOGLE CLIENT ID СЮДА:
+        const GOOGLE_CLIENT_ID = "ВАШ_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+        // ==========================================
+
         const MEOW_KEY_REQ_TAG = "[MEOW_MAIL_KEY_REQ]";
         const MEOW_KEY_RES_TAG = "[MEOW_MAIL_KEY_RES]";
         const MEOW_E2E_TAG = "[MEOW_MAIL_E2E]";
 
-        let gapiInited = false;
         let tokenClient;
         let accessToken = null;
         
         let myEmail = "";
         let myName = "";
         let chats = {};
-        let currentChatId = null; // Будет хранить Email собеседника
+        let currentChatId = null; 
         let selectedFile = null;
         let isFetching = false;
 
@@ -688,44 +633,60 @@
             set(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
         };
 
-        // Загрузка сохраненного токена и сессии
+        // Запуск инициализации One Tap сразу при загрузке
         window.onload = function() {
-            const savedClientId = safeStorage.get("meowmail_client_id");
-            if (savedClientId) {
-                document.getElementById('client-id-field').value = savedClientId;
-            }
             const savedChats = safeStorage.get("meowmail_chats");
             if (savedChats) {
                 try { chats = JSON.parse(savedChats); } catch(e) {}
             }
             renderChats();
+
+            // Пытаемся сразу загрузить нативную шторку быстрого входа
+            if (window.google) {
+                initGoogleOneTap();
+            } else {
+                setTimeout(initGoogleOneTap, 1000); // Ожидаем подгрузку SDK
+            }
         };
 
-        // Инициализация Google Login
-        function initiateGoogleLogin() {
-            const clientId = document.getElementById('client-id-field').value.trim();
-            if (!clientId) {
-                showLoginError("Пожалуйста, укажите валидный Google Client ID.");
+        // Настройка быстрого входа Google One Tap
+        function initGoogleOneTap() {
+            if (GOOGLE_CLIENT_ID.startsWith("ВАШ")) {
+                showLoginError("Пожалуйста, отредактируйте файл index.html и пропишите ваш реальный GOOGLE_CLIENT_ID на строчке 402.");
                 return;
             }
-            safeStorage.set("meowmail_client_id", clientId);
 
             try {
+                // Инициализируем всплывающее окно
                 tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: clientId,
+                    client_id: GOOGLE_CLIENT_ID,
                     scope: 'https://www.googleapis.com/auth/gmail.modify',
                     callback: async (tokenResponse) => {
                         if (tokenResponse.error !== undefined) {
-                            showLoginError("Ошибка авторизации: " + tokenResponse.error);
+                            showLoginError("Ошибка входа: " + tokenResponse.error);
                             return;
                         }
                         accessToken = tokenResponse.access_token;
                         await completeLogin();
                     },
                 });
-                tokenClient.requestAccessToken({ prompt: 'consent' });
+
+                // Если в системе уже есть сохраненная сессия, пробуем тихий вход
+                const hasSession = safeStorage.get("meow_logged_in") === "true";
+                if (hasSession) {
+                    tokenClient.requestAccessToken({ prompt: '' }); // Тихое обновление без всплывающих окон
+                }
             } catch (err) {
-                showLoginError("Ошибка инициализации Google SDK: " + err.message);
+                showLoginError("Ошибка инициализации Google Sign-In: " + err.message);
+            }
+        }
+
+        // Вызов нативного выбора аккаунта по кнопке
+        function initiateGoogleLogin() {
+            if (tokenClient) {
+                tokenClient.requestAccessToken({ prompt: 'select_account' });
+            } else {
+                showLoginError("API еще загружается, попробуйте через секунду...");
             }
         }
 
@@ -737,7 +698,6 @@
 
         async function completeLogin() {
             try {
-                // Получение информации о пользователе
                 const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
                     headers: { "Authorization": `Bearer ${accessToken}` }
                 });
@@ -745,19 +705,19 @@
                 myEmail = profile.email;
                 myName = profile.name;
 
-                // Отображаем профиль в шапке
                 document.getElementById('user-profile-header').style.display = "flex";
                 if (profile.picture) {
                     document.getElementById('my-avatar').style.backgroundImage = `url(${profile.picture})`;
                 }
 
                 document.getElementById('login-screen').style.display = 'none';
+                safeStorage.set("meow_logged_in", "true");
 
                 await ensureECKeyPair();
                 await fetchMailbox();
                 startSyncPoller();
             } catch (e) {
-                showLoginError("Ошибка получения профиля: " + e.message);
+                showLoginError("Ошибка входа: " + e.message);
             }
         }
 
@@ -864,7 +824,7 @@
                     return "[Ошибка дешифрования: неверные сессионные ключи]";
                 }
             }
-            return encryptedString; // Если пришло нешифрованное
+            return encryptedString; 
         }
 
         // --- GMAIL API ИНТЕГРАЦИЯ ---
@@ -883,7 +843,6 @@
         }
 
         async function sendGmailRaw(subject, bodyText, recipient) {
-            // Формируем RFC 2822 письмо
             const utf8Subject = `=?utf-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`;
             const emailParts = [
                 `To: ${recipient}`,
@@ -909,7 +868,6 @@
             if (isFetching) return;
             isFetching = true;
             try {
-                // Ищем письма с темой "[MeowMail]"
                 const listData = await gmailApiCall('messages?q=subject:"[MeowMail]"&maxResults=50');
                 if (!listData.messages) {
                     isFetching = false;
@@ -917,9 +875,7 @@
                 }
 
                 for (const msgRef of listData.messages) {
-                    // Проверяем, обрабатывали ли мы это письмо ранее
                     if (isMessageProcessed(msgRef.id)) continue;
-
                     const msg = await gmailApiCall(`messages/${msgRef.id}`);
                     await processGmailMessage(msg);
                 }
@@ -942,10 +898,8 @@
             const headers = msg.payload.headers;
             const fromHeader = headers.find(h => h.name.toLowerCase() === 'from')?.value || "";
             const toHeader = headers.find(h => h.name.toLowerCase() === 'to')?.value || "";
-            const subjectHeader = headers.find(h => h.name.toLowerCase() === 'subject')?.value || "";
             const dateVal = parseInt(msg.internalDate);
 
-            // Парсим email-адреса из заголовков типа "Имя <email@domain.com>"
             const extractEmail = (str) => {
                 const match = str.match(/<([^>]+)>/);
                 return match ? match[1].toLowerCase().trim() : str.toLowerCase().trim();
@@ -954,11 +908,15 @@
             const fromEmail = extractEmail(fromHeader);
             const toEmail = extractEmail(toHeader);
 
-            // Определяем, кто наш собеседник
             let peerEmail = "";
             let isOut = false;
 
-            if (fromEmail === myEmail.toLowerCase()) {
+            // ФИКС ЧАТА С САМИМ СОБОЙ
+            if (fromEmail === myEmail.toLowerCase() && toEmail === myEmail.toLowerCase()) {
+                peerEmail = myEmail.toLowerCase();
+                // Для своих же писем мы определяем их как Out только если мы их отправляем
+                isOut = msg.labelIds && msg.labelIds.includes("SENT");
+            } else if (fromEmail === myEmail.toLowerCase()) {
                 peerEmail = toEmail;
                 isOut = true;
             } else {
@@ -968,7 +926,6 @@
 
             if (!peerEmail) return;
 
-            // Извлекаем тело письма
             let rawBody = "";
             if (msg.payload.parts) {
                 const part = msg.payload.parts.find(p => p.mimeType === 'text/plain');
@@ -989,7 +946,9 @@
                 };
             }
 
-            // Добавляем сообщение в историю
+            // Проверка на дубликат сообщения с этим id
+            if (chats[peerEmail].messages.some(m => m.id === msg.id)) return;
+
             const decryptedString = await decryptData(rawBody, peerEmail);
             let messageObject = {
                 id: msg.id,
@@ -999,7 +958,6 @@
                 rawText: rawBody
             };
 
-            // Если внутри JSON пакет с файлом (формат E2EE медиа)
             try {
                 if (decryptedString.startsWith("{") && decryptedString.endsWith("}")) {
                     const parsedJson = JSON.parse(decryptedString);
@@ -1015,7 +973,6 @@
             chats[peerEmail].messages.push(messageObject);
             chats[peerEmail].messages.sort((a,b) => a.time - b.time);
 
-            // Если открыт этот чат, мгновенно рендерим
             if (currentChatId === peerEmail) {
                 await renderMessages();
             }
@@ -1034,7 +991,7 @@
         function startSyncPoller() {
             setInterval(async () => {
                 await fetchMailbox();
-            }, 8000); // Опрос раз в 8 секунд
+            }, 6000); 
         }
 
         // --- УПРАВЛЕНИЕ ДИАЛОГАМИ ---
@@ -1075,7 +1032,7 @@
             });
 
             if (activeChats.length === 0) {
-                container.innerHTML = `<div class="empty-placeholder">Диалогов не найдено. Нажмите «+», чтобы создать.</div>`;
+                container.innerHTML = `<div class="empty-placeholder">У вас пока нет активных диалогов. Нажмите «+», чтобы создать.</div>`;
                 return;
             }
 
@@ -1087,7 +1044,7 @@
                 const lastMsg = chat.messages[chat.messages.length - 1];
                 let displayLast = "Нет сообщений";
                 if (lastMsg) {
-                    displayLast = lastMsg.text || (lastMsg.fileUrl ? "📎 Зашифрованный медиафайл" : "Шифрованное E2EE сообщение");
+                    displayLast = lastMsg.text || (lastMsg.fileUrl ? "📎 Медиафайл" : "Шифрованное сообщение");
                 }
 
                 item.innerHTML = `
@@ -1121,7 +1078,6 @@
             await renderMessages();
             renderChats();
 
-            // Автоматически отправляем свой публичный ключ при открытии чата, если нет ключа собеседника
             await sendOwnPublicKeyIfNeeded(peerEmail);
         }
 
@@ -1134,16 +1090,16 @@
 
             if (isEncrypted) {
                 if (peerPub) {
-                    badge.innerHTML = `<span class="status-badge secure">🔒 Подключение E2EE защищено</span>`;
+                    badge.innerHTML = `<span class="status-badge secure">🔒 Подключение защищено</span>`;
                     toggleBtn.className = "input-side-btn active";
                     toggleBtn.innerHTML = "🔒";
                 } else {
-                    badge.innerHTML = `<span class="status-badge waiting">⏳ Ожидание E2EE ключей собеседника</span>`;
+                    badge.innerHTML = `<span class="status-badge waiting">⏳ Ожидание обмена ключами</span>`;
                     toggleBtn.className = "input-side-btn active";
                     toggleBtn.innerHTML = "🔒";
                 }
             } else {
-                badge.innerHTML = `<span class="status-badge unsecure">🔓 Шифрование отключено</span>`;
+                badge.innerHTML = `<span class="status-badge unsecure">🔓 Без шифрования</span>`;
                 toggleBtn.className = "input-side-btn inactive";
                 toggleBtn.innerHTML = "🔓";
             }
@@ -1196,7 +1152,6 @@
 
             const isEncrypted = loadChatEncryptState(targetEmail);
 
-            // Рендерим оптимистичный шаблон в диалог
             const tempId = "opt-" + Math.random();
             const optimisticMessage = {
                 id: tempId,
@@ -1216,7 +1171,6 @@
                 let bodyToSend = "";
 
                 if (isEncrypted) {
-                    // Формируем E2EE пакет
                     const payload = { text: text };
                     if (selectedFile) {
                         const fileB64 = await fileToBase64(selectedFile);
@@ -1225,22 +1179,17 @@
                         payload.fileType = selectedFile.type;
                     }
                     const jsonString = JSON.stringify(payload);
-                    
-                    // Попытка E2E шифрования
                     bodyToSend = await encryptData(jsonString, targetEmail);
                 } else {
-                    // Если отправка без шифрования
                     if (selectedFile) {
-                        alert("Отправка медиафайлов поддерживается ТОЛЬКО в зашифрованном E2E режиме.");
+                        alert("Отправка файлов поддерживается ТОЛЬКО в защищенном режиме.");
                         throw new Error("MEDIA_REQUIRES_E2E");
                     }
                     bodyToSend = text;
                 }
 
-                // Шлем почту через Gmail API
                 const sendResult = await sendGmailRaw(`[MeowMail] Secure Message`, bodyToSend, targetEmail);
 
-                // Заменяем оптимистичный шаблон реальным
                 const optMsg = chats[targetEmail].messages.find(m => m.id === tempId);
                 if (optMsg) {
                     optMsg.id = sendResult.id;
@@ -1253,12 +1202,11 @@
                 renderChats();
                 saveState();
             } catch (e) {
-                // Удаляем сообщение из ленты при ошибке
                 chats[targetEmail].messages = chats[targetEmail].messages.filter(m => m.id !== tempId);
                 await renderMessages();
 
                 if (e.message === "E2EE_NOT_ESTABLISHED") {
-                    alert("Не удалось зашифровать сообщение. Сначала установите обмен ключами с собеседником.");
+                    alert("Не удалось зашифровать. Ожидаем, пока собеседник откроет приложение и обменяется с нами ключами.");
                     await sendOwnPublicKeyIfNeeded(targetEmail, true);
                 } else if (e.message !== "MEDIA_REQUIRES_E2E") {
                     alert("Ошибка отправки: " + e.message);
@@ -1274,7 +1222,7 @@
             container.innerHTML = "";
 
             if (chat.messages.length === 0) {
-                container.innerHTML = `<div class="empty-placeholder">Нет сообщений. Напишите первое защищенное письмо прямо сейчас!</div>`;
+                container.innerHTML = `<div class="empty-placeholder">Нет сообщений. Напишите первое защищенное письмо!</div>`;
                 return;
             }
 
@@ -1328,7 +1276,7 @@
             return text && (text.startsWith("🐾 [") || text.includes("Ожидание E2EE"));
         }
 
-        // --- ДОПОЛНИТЕЛЬНЫЕ ИНСТРУМЕНТЫ ---
+        // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
@@ -1432,4 +1380,5 @@
         }
     </script>
 </body>
-  </html>
+</html>
+<!-- мяу -->
