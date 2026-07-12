@@ -156,13 +156,25 @@
         }
 
         .brand-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
             color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 8px;
         }
+
+        .profile-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+
+        .profile-btn:hover { color: white; }
 
         .search-area {
             padding: 14px 20px 8px 20px;
@@ -509,8 +521,8 @@
             <h1>MeowMail P2P</h1>
             <p>100% бесплатный децентрализованный E2EE мессенджер без серверов.</p>
             
-            <input type="email" id="login-email" class="login-input" placeholder="Введите ваш Email">
-            <input type="password" id="login-password" class="login-input" placeholder="Введите ваш пароль">
+            <input type="text" id="login-email" class="login-input" placeholder="Никнейм или Почта">
+            <input type="password" id="login-password" class="login-input" placeholder="Пароль">
             
             <button class="btn" id="login-action-btn" onclick="handleLogin()">
                 Войти / Создать аккаунт
@@ -524,7 +536,10 @@
         <div class="sidebar">
             <div class="bot-header">
                 <div class="brand-title">🐾 MeowMail P2P</div>
-                <div style="font-size: 11px; color: var(--warning)" id="p2p-status">Подключение...</div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="font-size: 11px; color: var(--warning)" id="p2p-status">Подключение...</div>
+                    <button class="profile-btn" onclick="openProfileSettings()" title="Профиль">⚙️</button>
+                </div>
             </div>
 
             <div class="search-area">
@@ -592,8 +607,8 @@
     <div class="modal-overlay" id="new-chat-modal">
         <div class="modal">
             <div class="modal-header">Новый диалог</div>
-            <div class="modal-desc">Введите Email-адрес собеседника, чтобы начать диалог.</div>
-            <input type="email" id="new-chat-email" class="login-input" placeholder="friend@example.com" style="margin-bottom:15px;">
+            <div class="modal-desc">Введите никнейм или Email собеседника, чтобы начать диалог.</div>
+            <input type="text" id="new-chat-email" class="login-input" placeholder="meowing" style="margin-bottom:15px;">
             <div style="display: flex; gap: 12px;">
                 <button class="btn" onclick="createNewChat()" style="flex:1;">Начать</button>
                 <button class="btn" onclick="closeModal('new-chat-modal')" style="background:var(--bg-input); color:white; flex:1;">Отмена</button>
@@ -601,8 +616,25 @@
         </div>
     </div>
 
+    <!-- Модалка Настройки Профиля -->
+    <div class="modal-overlay" id="profile-settings-modal">
+        <div class="modal">
+            <div class="modal-header">Настройки Профиля</div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 20px;">
+                <div class="avatar" id="profile-modal-avatar" style="width: 80px; height: 80px; font-size: 28px; margin-right: 0; cursor: pointer;" onclick="triggerAvatarUpload()">?</div>
+                <input type="file" id="avatar-input" class="file-upload-input" accept="image/*" onchange="handleAvatarChange(event)">
+                <span style="font-size: 12px; color: var(--accent); cursor: pointer;" onclick="triggerAvatarUpload()">Загрузить фото</span>
+            </div>
+            <input type="text" id="profile-display-name" class="login-input" placeholder="Ваше отображаемое имя">
+            <div style="display: flex; gap: 12px;">
+                <button class="btn" onclick="saveProfileSettings()" style="flex:1;">Сохранить</button>
+                <button class="btn" onclick="closeModal('profile-settings-modal')" style="background:var(--bg-input); color:white; flex:1;">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Стабильный пул распределенных серверов GunDB
+        // Глобальный отказоустойчивый пул dApp реле-серверов GunDB
         const gunPeers = [
             'https://gun-manhattan.herokuapp.com/gun',
             'https://gunjs.herokuapp.com/gun',
@@ -618,13 +650,14 @@
         let chats = {};
         let currentChatId = null; 
         let selectedFile = null;
+        let peerProfiles = {}; // Кэш профилей собеседников (имя, аватар)
+        let activeRoomSubscriptions = {}; // Чтобы не вешать дублирующих слушателей на комнаты
 
         const safeStorage = {
             get(key) { try { return localStorage.getItem(key); } catch(e) { return null; } },
             set(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
         };
 
-        // Хэширование для формирования уникальной P2P-комнаты
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
@@ -637,18 +670,28 @@
             return 'meowroom_' + (await sha256(sorted));
         }
 
-        // Авторизация One-Tap / Сессия
-        gun.on('auth', async () => {
-            document.getElementById('p2p-status').innerText = "Подключен (P2P)";
-            document.getElementById('p2p-status').style.color = "var(--success)";
-            
-            myEmail = safeStorage.get("meow_p2p_email");
-            if (myEmail) {
-                completeLogin();
-            }
-        });
+        // Автологин при запуске
+        window.onload = function() {
+            const savedEmail = safeStorage.get("meow_p2p_email");
+            const savedPass = safeStorage.get("meow_p2p_pass");
 
-        // Вход и Авторегистрация
+            gun.on('auth', () => {
+                document.getElementById('p2p-status').innerText = "Подключен (P2P)";
+                document.getElementById('p2p-status').style.color = "var(--success)";
+            });
+
+            if (savedEmail && savedPass) {
+                // Пытаемся залогиниться тихо на фоне
+                user.auth(savedEmail, savedPass, (ack) => {
+                    if (!ack.err) {
+                        myEmail = savedEmail;
+                        completeLogin();
+                    }
+                });
+            }
+        };
+
+        // Логин/Регистрация
         function handleLogin() {
             const email = document.getElementById('login-email').value.trim().toLowerCase();
             const pass = document.getElementById('login-password').value.trim();
@@ -660,7 +703,7 @@
             }
 
             btn.disabled = true;
-            btn.innerText = "Подключение к P2P сети...";
+            btn.innerText = "Подключение...";
 
             user.auth(email, pass, async function(ack) {
                 if (ack.err) {
@@ -673,6 +716,8 @@
                             user.auth(email, pass, async function() {
                                 myEmail = email;
                                 safeStorage.set("meow_p2p_email", email);
+                                safeStorage.set("meow_p2p_pass", pass);
+                                await initMyProfileOnRegistration();
                                 completeLogin();
                             });
                         }
@@ -680,8 +725,17 @@
                 } else {
                     myEmail = email;
                     safeStorage.set("meow_p2p_email", email);
+                    safeStorage.set("meow_p2p_pass", pass);
                     completeLogin();
                 }
+            });
+        }
+
+        async function initMyProfileOnRegistration() {
+            // При регистрации создаем пустой профиль в реестре
+            gun.get('meow_p2p_profiles').get(myEmail).put({
+                name: myEmail,
+                avatar: ""
             });
         }
 
@@ -694,45 +748,80 @@
         function completeLogin() {
             document.getElementById('login-screen').style.display = 'none';
 
+            // Загружаем сохраненный кэш диалогов для мгновенного отображения переписки
             const savedChats = safeStorage.get("meow_p2p_chats_" + myEmail);
             if (savedChats) {
                 try { chats = JSON.parse(savedChats); } catch(e) {}
             }
             renderChats();
 
-            // Поиск всех активных комнат, связанных с нами
-            gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').map().on((roomKey, peerEmail) => {
-                if (peerEmail && !chats[peerEmail]) {
+            // Прослушиваем новые диалоги и мгновенно подключаем комнаты
+            gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').map().on(async (roomKey, peerEmail) => {
+                if (!peerEmail) return;
+
+                if (!chats[peerEmail]) {
                     chats[peerEmail] = { id: peerEmail, name: peerEmail, messages: [] };
                     renderChats();
                 }
+
+                // Загружаем профиль собеседника на лету
+                subscribeToPeerProfile(peerEmail);
+
                 if (roomKey) {
                     subscribeToRoom(roomKey, peerEmail);
                 }
             });
         }
 
-        // Подписка на комнату, обмен ключами и обработка входящего потока
+        // Слушатель изменений профиля любого собеседника в P2P сети
+        function subscribeToPeerProfile(peerEmail) {
+            gun.get('meow_p2p_profiles').get(peerEmail).on((data) => {
+                if (data) {
+                    peerProfiles[peerEmail] = {
+                        name: data.name || peerEmail,
+                        avatar: data.avatar || ""
+                    };
+                    renderChats();
+                    if (currentChatId === peerEmail) {
+                        document.getElementById('active-chat-name').innerText = data.name || peerEmail;
+                        const headerAvatar = document.getElementById('active-chat-avatar');
+                        if (data.avatar) {
+                            headerAvatar.style.backgroundImage = `url(${data.avatar})`;
+                            headerAvatar.innerText = "";
+                        } else {
+                            headerAvatar.style.backgroundImage = "";
+                            headerAvatar.innerText = peerEmail[0].toUpperCase();
+                        }
+                    }
+                }
+            });
+        }
+
+        // Подписка на сообщения в реальном времени
         async function subscribeToRoom(roomKey, peerEmail) {
+            // Предотвращаем дублирование подписок при переходах
+            if (activeRoomSubscriptions[roomKey]) return;
+            activeRoomSubscriptions[roomKey] = true;
+
             const room = gun.get(roomKey);
 
-            // Публикуем свои публичные ключи шифрования в эту комнату
+            // Публикуем криптоключи
             room.get('keys').get(myEmail).put({
                 pub: user.is.pub,
                 epub: user._.sea.epub
             });
 
-            // Подписываемся на ключи собеседника в этой комнате
+            // Слушаем ключи собеседника
             room.get('keys').get(peerEmail).on((data) => {
                 if (data && data.epub) {
                     safeStorage.set("meow_epub_" + peerEmail, data.epub);
                     safeStorage.set("meow_pub_" + peerEmail, data.pub);
                     updateCryptStatusDisplay();
-                    decryptAllMessages(peerEmail); // Мгновенно расшифровываем сообщения, если ключ прилетел позже
+                    decryptAllMessages(peerEmail); 
                 }
             });
 
-            // Слушаем сообщения
+            // Слушаем входящие сообщения
             room.get('messages').map().on(async (encryptedPacket, msgId) => {
                 if (!encryptedPacket) return;
 
@@ -740,6 +829,7 @@
                     chats[peerEmail] = { id: peerEmail, name: peerEmail, messages: [] };
                 }
 
+                // Избегаем дублирования записей
                 if (chats[peerEmail].messages.some(m => m.id === msgId)) return;
 
                 const packet = typeof encryptedPacket === 'string' ? JSON.parse(encryptedPacket) : encryptedPacket;
@@ -770,7 +860,6 @@
             });
         }
 
-        // Функция расшифровки конкретного сообщения
         async function tryDecryptMessage(msg, peerEmail) {
             if (!msg.encrypted) {
                 if (typeof msg.rawPacket.content === 'object') {
@@ -812,14 +901,13 @@
                     }
                     msg.decrypted = true;
                 } else {
-                    msg.text = "[Ошибка дешифрования: несовпадение ключей]";
+                    msg.text = "[Ошибка дешифрования: неверные ключи]";
                 }
             } catch (e) {
                 msg.text = "[Ошибка расшифровки]";
             }
         }
 
-        // Полное обновление диалога при получении ключей
         async function decryptAllMessages(peerEmail) {
             if (!chats[peerEmail]) return;
             for (let msg of chats[peerEmail].messages) {
@@ -830,20 +918,17 @@
             }
         }
 
-        // Принудительный обмен ключами по клику кнопки
         async function forceE2EKeyExchange() {
             if (!currentChatId) return;
             const peerEmail = currentChatId;
             const roomKey = await getRoomKey(myEmail, peerEmail);
             const room = gun.get(roomKey);
 
-            // Переотправляем свой ключ
             room.get('keys').get(myEmail).put({
                 pub: user.is.pub,
                 epub: user._.sea.epub
             });
 
-            // Пытаемся перезапросить ключ собеседника
             room.get('keys').get(peerEmail).once((data) => {
                 if (data && data.epub) {
                     safeStorage.set("meow_epub_" + peerEmail, data.epub);
@@ -851,10 +936,59 @@
                     decryptAllMessages(peerEmail);
                     alert("Ключи шифрования обновлены!");
                 } else {
-                    alert("Собеседник еще не вошел в эту комнату. Ожидайте подключения.");
+                    alert("Собеседник еще не подключен к вашей комнате.");
                 }
             });
             closeModal('crypt-settings-modal');
+        }
+
+        // --- УПРАВЛЕНИЕ ПРОФИЛЕМ ---
+
+        function openProfileSettings() {
+            // Подгружаем текущие настройки в модалку
+            gun.get('meow_p2p_profiles').get(myEmail).once((data) => {
+                if (data) {
+                    document.getElementById('profile-display-name').value = data.name || myEmail;
+                    if (data.avatar) {
+                        document.getElementById('profile-modal-avatar').style.backgroundImage = `url(${data.avatar})`;
+                        document.getElementById('profile-modal-avatar').innerText = "";
+                    } else {
+                        document.getElementById('profile-modal-avatar').style.backgroundImage = "";
+                        document.getElementById('profile-modal-avatar').innerText = "?";
+                    }
+                }
+            });
+            openModal('profile-settings-modal');
+        }
+
+        function triggerAvatarUpload() {
+            document.getElementById('avatar-input').click();
+        }
+
+        async function handleAvatarChange(event) {
+            if (event.target.files.length > 0) {
+                const file = event.target.files[0];
+                const base64 = await fileToBase64(file);
+                const fullBase64 = `data:${file.type};base64,${base64}`;
+                document.getElementById('profile-modal-avatar').style.backgroundImage = `url(${fullBase64})`;
+                document.getElementById('profile-modal-avatar').innerText = "";
+                
+                // Сохраняем временную аватарку в свойство элемента
+                document.getElementById('profile-modal-avatar').dataset.tempAvatar = fullBase64;
+            }
+        }
+
+        function saveProfileSettings() {
+            const newName = document.getElementById('profile-display-name').value.trim() || myEmail;
+            const newAvatar = document.getElementById('profile-modal-avatar').dataset.tempAvatar || "";
+
+            gun.get('meow_p2p_profiles').get(myEmail).put({
+                name: newName,
+                avatar: newAvatar
+            }, () => {
+                alert("Профиль успешно сохранен!");
+                closeModal('profile-settings-modal');
+            });
         }
 
         // --- ОТПРАВКА СООБЩЕНИЙ ---
@@ -874,7 +1008,6 @@
             const msgId = 'msg-' + Math.random().toString(36).substring(2, 11);
             const msgTime = Date.now();
 
-            // Локальный мгновенный шаблон
             const tempMessage = {
                 id: msgId,
                 time: msgTime,
@@ -912,7 +1045,6 @@
                     const sharedSecret = await SEA.secret(peerEpub, user._.sea);
                     contentToSend = await SEA.encrypt(payload, sharedSecret);
                 } else {
-                    // Передача файлов БЕЗ шифрования
                     if (selectedFile) {
                         contentToSend = {
                             text: text,
@@ -932,10 +1064,9 @@
                     content: contentToSend
                 };
 
-                // Запись сообщения в Gun
                 gun.get(roomKey).get('messages').get(msgId).put(JSON.stringify(packet));
 
-                // Уведомляем участников о существовании этой комнаты
+                // Оповещаем участников об этой комнате
                 gun.get('meowmail_p2p_registry').get(targetEmail).get('rooms').get(myEmail).put(roomKey);
                 gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').get(targetEmail).put(roomKey);
 
@@ -947,7 +1078,7 @@
                 await renderMessages();
 
                 if (e.message === "E2EE_NOT_ESTABLISHED") {
-                    alert("Шифрование E2EE включено, но ключи с собеседником еще не установлены. Отключите замок (🔓) для отправки открытых сообщений.");
+                    alert("Шифрование E2EE включено, но ключи еще не установлены. Отключите замок (🔓) для отправки открытых сообщений.");
                 } else {
                     alert("Ошибка отправки: " + e.message);
                 }
@@ -1004,7 +1135,7 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // --- УПРАВЛЕНИЕ ДИСПЛЕЕМ ---
+        // --- УПРАВЛЕНИЕ ДИАЛОГАМИ ---
 
         function openNewChatPrompt() {
             openModal('new-chat-modal');
@@ -1013,8 +1144,8 @@
         async function createNewChat() {
             const emailInput = document.getElementById('new-chat-email');
             const email = emailInput.value.trim().toLowerCase();
-            if (!email || !email.includes('@')) {
-                alert("Укажите корректный Email.");
+            if (!email) {
+                alert("Укажите корректный никнейм или Email.");
                 return;
             }
 
@@ -1025,6 +1156,11 @@
                     messages: []
                 };
             }
+
+            // Мгновенная инициализация комнаты в реестре
+            const roomKey = await getRoomKey(myEmail, email);
+            gun.get('meowmail_p2p_registry').get(email).get('rooms').get(myEmail).put(roomKey);
+            gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').get(email).put(roomKey);
 
             emailInput.value = "";
             closeModal('new-chat-modal');
@@ -1057,13 +1193,15 @@
                     displayLast = lastMsg.text || "📎 Медиафайл";
                 }
 
+                const profile = peerProfiles[chat.id] || { name: chat.name, avatar: "" };
+
                 item.innerHTML = `
-                    <div class="avatar">
-                        ${chat.name[0].toUpperCase()}
+                    <div class="avatar" style="${profile.avatar ? `background-image:url(${profile.avatar})` : ''}">
+                        ${profile.avatar ? '' : profile.name[0].toUpperCase()}
                     </div>
                     <div class="chat-details">
                         <div class="chat-meta">
-                            <div class="chat-title">${escapeHtml(chat.name)}</div>
+                            <div class="chat-title">${escapeHtml(profile.name)}</div>
                         </div>
                         <div class="chat-last-message">${escapeHtml(displayLast)}</div>
                     </div>
@@ -1076,13 +1214,23 @@
             currentChatId = peerEmail;
             const chat = chats[peerEmail];
             
+            // Загружаем профиль собеседника
+            subscribeToPeerProfile(peerEmail);
+            const profile = peerProfiles[peerEmail] || { name: chat.name, avatar: "" };
+
             document.body.classList.add('chat-opened');
-            document.getElementById('active-chat-name').innerText = chat.name;
+            document.getElementById('active-chat-name').innerText = profile.name;
             document.getElementById('chat-input-bar').style.display = 'flex';
             document.getElementById('crypt-action-btn').style.display = 'block';
 
             const chatHeaderAvatar = document.getElementById('active-chat-avatar');
-            chatHeaderAvatar.innerText = chat.name[0].toUpperCase();
+            if (profile.avatar) {
+                chatHeaderAvatar.style.backgroundImage = `url(${profile.avatar})`;
+                chatHeaderAvatar.innerText = "";
+            } else {
+                chatHeaderAvatar.style.backgroundImage = "";
+                chatHeaderAvatar.innerText = profile.name[0].toUpperCase();
+            }
 
             updateCryptStatusDisplay();
             await renderMessages();
@@ -1137,6 +1285,7 @@
             });
         }
 
+        // Вызовы триггеров файлов
         function triggerFileInput() {
             document.getElementById('file-input').click();
         }
