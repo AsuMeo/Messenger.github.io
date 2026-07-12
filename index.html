@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"&gt;
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>MeowMail P2P Messenger</title>
     
@@ -11,19 +11,19 @@
     
     <style>
         :root {
-            --bg-dark: #0e1621; /* Основной фон чата Telegram */
-            --bg-surface: #17212b; /* Панели и шапка Telegram */
-            --bg-input: #24303f; /* Инпуты и поля ввода */
-            --accent: #2481cc; /* Фирменный синий Telegram */
-            --accent-hover: #2f93de;
-            --text-main: #f5f5f5;
-            --text-muted: #7f91a4;
-            --msg-in: #182533; /* Входящее облачко Telegram */
-            --msg-out: #2b5278; /* Исходящее облачко Telegram */
-            --error: #ec3d3d;
-            --success: #4cd964;
-            --warning: #f0a732;
-            --border-color: #101924;
+            --bg-dark: #000000;
+            --bg-surface: #1c1c1e;
+            --bg-input: #2c2c2e;
+            --accent: #2f80ed;
+            --accent-hover: #4f9bfd;
+            --text-main: #f5f5f7;
+            --text-muted: #8e8e93;
+            --msg-in: #2c2c2e; /* Серый для входящих */
+            --msg-out: #2f80ed; /* Синий для исходящих */
+            --error: #ff453a;
+            --success: #30d158;
+            --warning: #ff9f0a;
+            --border-color: #38383a;
         }
 
         * {
@@ -44,7 +44,7 @@
             position: relative;
         }
 
-        /* Кастомный скроллбар */
+        /* Красивый скроллбар */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -77,9 +77,9 @@
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
             padding: 40px 30px;
-            border-radius: 24px;
+            border-radius: 28px;
             text-align: center;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9);
         }
 
         .login-logo {
@@ -96,7 +96,7 @@
 
         .login-card h1 {
             font-size: 26px;
-            font-weight: 800;
+            font-weight: 850;
             margin-bottom: 8px;
             letter-spacing: -0.5px;
         }
@@ -111,7 +111,7 @@
         .login-input {
             width: 100%;
             padding: 16px 20px;
-            border-radius: 14px;
+            border-radius: 16px;
             border: 1px solid var(--border-color);
             background: var(--bg-input);
             color: white;
@@ -123,13 +123,13 @@
 
         .login-input:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 12px rgba(36, 129, 204, 0.2);
+            box-shadow: 0 0 16px rgba(47, 128, 237, 0.2);
         }
 
         .btn {
             width: 100%;
             padding: 16px;
-            border-radius: 14px;
+            border-radius: 16px;
             border: none;
             background: var(--accent);
             color: white;
@@ -154,7 +154,7 @@
 
         .sidebar {
             width: 360px;
-            background: var(--bg-surface);
+            background: var(--bg-dark);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
@@ -168,10 +168,11 @@
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid var(--border-color);
+            background: var(--bg-surface);
         }
 
         .brand-title {
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 800;
             color: var(--text-main);
             display: flex;
@@ -200,7 +201,7 @@
         .search-field {
             flex: 1;
             padding: 12px 18px;
-            border-radius: 20px;
+            border-radius: 22px;
             border: 1px solid var(--border-color);
             background: var(--bg-input);
             color: white;
@@ -215,7 +216,7 @@
             background: var(--accent);
             border: none;
             color: white;
-            font-size: 22px;
+            font-size: 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -233,27 +234,22 @@
         .chat-row {
             display: flex;
             align-items: center;
-            padding: 12px 20px;
+            padding: 14px 20px;
             cursor: pointer;
             transition: background 0.2s;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid rgba(255,255,255,0.01);
         }
 
         .chat-row:hover { background: rgba(255, 255, 255, 0.02); }
-        .chat-row.active { background: #2b5278; }
-
-        .chat-row.active .chat-title,
-        .chat-row.active .chat-last-message {
-            color: white;
-        }
+        .chat-row.active { background: var(--bg-surface); }
 
         .avatar {
-            width: 48px;
-            height: 48px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             color: white;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -277,8 +273,8 @@
         }
 
         .chat-title {
-            font-weight: 600;
-            font-size: 15px;
+            font-weight: 700;
+            font-size: 14.5px;
             color: #ffffff;
             white-space: nowrap;
             overflow: hidden;
@@ -286,7 +282,7 @@
         }
 
         .chat-last-message {
-            font-size: 13.5px;
+            font-size: 13px;
             color: var(--text-muted);
             white-space: nowrap;
             overflow: hidden;
@@ -332,9 +328,6 @@
             flex-direction: column;
             gap: 12px;
             scroll-behavior: smooth;
-            /* Уникальная Telegram-подобная текстура фона чата */
-            background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 24px 24px;
         }
 
         .empty-placeholder {
@@ -346,17 +339,17 @@
             line-height: 1.5;
         }
 
-        /* Облачка в стиле Telegram */
+        /* Облачка с разделением по цветам и позиционированием (как в TG) */
         .bubble {
             max-width: 70%;
-            padding: 10px 14px 6px 14px;
+            padding: 12px 16px;
             font-size: 14.5px;
             line-height: 1.45;
             word-wrap: break-word;
             position: relative;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
             animation: bubbleIntro 0.12s cubic-bezier(0.1, 0.9, 0.2, 1);
         }
 
@@ -365,29 +358,30 @@
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
+        /* Входящие (собеседник) — серые, прижаты влево */
         .bubble.in {
             align-self: flex-start;
             background-color: var(--msg-in);
-            border-radius: 14px 14px 14px 3px;
+            border-radius: 18px 18px 18px 4px;
         }
 
+        /* Исходящие (мои) — синие, прижаты вправо */
         .bubble.out {
             align-self: flex-end;
             background-color: var(--msg-out);
-            border-radius: 14px 14px 3px 14px;
+            border-radius: 18px 18px 4px 18px;
         }
 
         .bubble-time {
             font-size: 10px;
             color: rgba(255, 255, 255, 0.4);
-            margin-top: 4px;
+            margin-top: 5px;
             align-self: flex-end;
-            white-space: nowrap;
         }
 
         .bubble-media {
             max-width: 100%;
-            border-radius: 10px;
+            border-radius: 14px;
             margin-bottom: 6px;
             display: block;
             cursor: pointer;
@@ -410,7 +404,7 @@
             flex: 1;
             background: var(--bg-input);
             border: 1px solid var(--border-color);
-            border-radius: 22px;
+            border-radius: 24px;
             display: flex;
             align-items: flex-end;
             padding: 4px 10px;
@@ -471,22 +465,22 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(36, 129, 204, 0.1);
+            background: rgba(47, 128, 237, 0.1);
             padding: 8px 12px;
             border-radius: 12px;
             margin-bottom: 8px;
             font-size: 13px;
-            border: 1px solid rgba(36, 129, 204, 0.3);
+            border: 1px solid rgba(47, 128, 237, 0.3);
             color: var(--text-main);
         }
 
-        /* Стиль плеера голосовых в стиле TG */
+        /* Стильный плеер голосовых сообщений (как в TG) */
         .tg-voice-player {
             display: flex;
             align-items: center;
             gap: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
             padding: 8px 12px;
             margin-top: 4px;
             margin-bottom: 4px;
@@ -508,9 +502,7 @@
             transition: background 0.2s;
         }
 
-        .tg-voice-play-btn:hover {
-            background: var(--accent-hover);
-        }
+        .tg-voice-play-btn:hover { background: var(--accent-hover); }
 
         .tg-voice-info {
             flex: 1;
@@ -528,7 +520,7 @@
             width: 100%;
             -webkit-appearance: none;
             appearance: none;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.2);
             height: 4px;
             border-radius: 2px;
             outline: none;
@@ -549,7 +541,7 @@
             color: var(--text-muted);
         }
 
-        /* Интерфейс записи голосового */
+        /* Интерфейс во время записи голосового */
         #voice-record-ui {
             display: none;
             align-items: center;
@@ -589,7 +581,7 @@
             border: 1px solid var(--border-color);
             width: 90%;
             max-width: 400px;
-            border-radius: 24px;
+            border-radius: 28px;
             padding: 30px;
         }
 
@@ -615,9 +607,9 @@
             border-radius: 8px;
             display: inline-block;
         }
-        .status-badge.secure { background: rgba(76, 217, 100, 0.15); color: var(--success); }
-        .status-badge.unsecure { background: rgba(236, 61, 61, 0.15); color: var(--error); }
-        .status-badge.waiting { background: rgba(240, 167, 50, 0.15); color: var(--warning); }
+        .status-badge.secure { background: rgba(48, 209, 88, 0.15); color: var(--success); }
+        .status-badge.unsecure { background: rgba(255, 69, 58, 0.15); color: var(--error); }
+        .status-badge.waiting { background: rgba(255, 159, 10, 0.15); color: var(--warning); }
 
         @media (max-width: 768px) {
             .sidebar { width: 100%; }
@@ -635,7 +627,7 @@
         <div class="login-card">
             <div class="login-logo">🐾</div>
             <h1>MeowMail P2P</h1>
-            <p>Абсолютно бесплатный децентрализованный E2EE мессенджер без серверов.</p>
+            <p>100% бесплатный децентрализованный E2EE мессенджер без серверов.</p>
             
             <input type="text" id="login-email" class="login-input" placeholder="Никнейм или Почта">
             <input type="password" id="login-password" class="login-input" placeholder="Пароль">
@@ -686,7 +678,7 @@
             </div>
 
             <div class="chat-input-bar" id="chat-input-bar" style="display: none;">
-                <!-- Стандартный инпут бар -->
+                <!-- Панель ввода -->
                 <div class="input-box-container">
                     <button class="input-side-btn" onclick="triggerFileInput()">📎</button>
                     <input type="file" id="file-input" class="file-upload-input" accept="image/*,video/*" onchange="handleFileChange(event)">
@@ -702,7 +694,7 @@
                     </div>
                 </div>
 
-                <!-- Режим записи голосового (выкатывается поверх) -->
+                <!-- Блок записи голосовых -->
                 <div id="voice-record-ui">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <div class="recording-indicator"></div>
@@ -715,7 +707,7 @@
                 </div>
 
                 <button class="action-round-btn" id="action-btn" onclick="sendChatMessage()">
-                    <!-- Динамическая иконка микрофона или отправки -->
+                    <!-- Динамически меняется на микрофон или самолетик -->
                 </button>
             </div>
         </div>
@@ -768,8 +760,8 @@
         // Глобальный отказоустойчивый пул dApp реле-серверов GunDB
         const gunPeers = [
             'https://gun-manhattan.herokuapp.com/gun',
-            'https://gunjs.herokuapp.com/gun',
             'https://peer.wall.bar/gun',
+            'https://gundb.ctzn.one/gun',
             'https://gun-us.herokuapp.com/gun',
             'https://gun-eu.herokuapp.com/gun'
         ];
@@ -784,7 +776,7 @@
         let peerProfiles = {}; // Кэш профилей собеседников (имя, аватар)
         let activeRoomSubscriptions = {}; // Чтобы не вешать дублирующих слушателей на комнаты
 
-        // Переменные для записи голосовых сообщений
+        // Запись голоса
         let mediaRecorder = null;
         let audioChunks = [];
         let recordingTimerInterval = null;
@@ -795,7 +787,20 @@
             set(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
         };
 
-        // Генератор приятного цвета для аватарок по буквам
+        // Функции кодирования для предотвращения багов с "." и "@" путями в GunDB
+        function encodeEmail(email) {
+            return email.toLowerCase().trim()
+                .replace(/@/g, '_at_')
+                .replace(/\./g, '_dot_');
+        }
+
+        function decodeEmail(encoded) {
+            return encoded
+                .replace(/_at_/g, '@')
+                .replace(/_dot_/g, '.');
+        }
+
+        // Автогенерация цвета аватарки
         function getAvatarColor(char) {
             const colors = [
                 '#e53935', '#d81b60', '#8e24aa', '#5e35b1', '#3949ab',
@@ -878,7 +883,7 @@
         }
 
         async function initMyProfileOnRegistration() {
-            gun.get('meow_p2p_profiles').get(myEmail).put({
+            gun.get('meow_p2p_profiles').get(encodeEmail(myEmail)).put({
                 name: myEmail,
                 avatar: ""
             });
@@ -899,8 +904,10 @@
             }
             renderChats();
 
-            gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').map().on(async (roomKey, peerEmail) => {
-                if (!peerEmail) return;
+            const myEncoded = encodeEmail(myEmail);
+            gun.get('meowmail_p2p_registry').get(myEncoded).get('rooms').map().on(async (roomKey, peerEncoded) => {
+                if (!peerEncoded) return;
+                const peerEmail = decodeEmail(peerEncoded);
 
                 if (!chats[peerEmail]) {
                     chats[peerEmail] = { id: peerEmail, name: peerEmail, messages: [] };
@@ -915,8 +922,9 @@
             });
         }
 
+        // Слушатель профилей
         function subscribeToPeerProfile(peerEmail) {
-            gun.get('meow_p2p_profiles').get(peerEmail).on((data) => {
+            gun.get('meow_p2p_profiles').get(encodeEmail(peerEmail)).on((data) => {
                 if (data) {
                     peerProfiles[peerEmail] = {
                         name: data.name || peerEmail,
@@ -941,18 +949,22 @@
             });
         }
 
+        // Подписка на сообщения в реальном времени
         async function subscribeToRoom(roomKey, peerEmail) {
             if (activeRoomSubscriptions[roomKey]) return;
             activeRoomSubscriptions[roomKey] = true;
 
             const room = gun.get(roomKey);
+            const myEncoded = encodeEmail(myEmail);
+            const peerEncoded = encodeEmail(peerEmail);
 
-            room.get('keys').get(myEmail).put({
+            // Обмен ключами
+            room.get('keys').get(myEncoded).put({
                 pub: user.is.pub,
                 epub: user._.sea.epub
             });
 
-            room.get('keys').get(peerEmail).on((data) => {
+            room.get('keys').get(peerEncoded).on((data) => {
                 if (data && data.epub) {
                     safeStorage.set("meow_epub_" + peerEmail, data.epub);
                     safeStorage.set("meow_pub_" + peerEmail, data.pub);
@@ -961,6 +973,7 @@
                 }
             });
 
+            // Слушаем входящие
             room.get('messages').map().on(async (encryptedPacket, msgId) => {
                 if (!encryptedPacket) return;
 
@@ -1062,12 +1075,12 @@
             const roomKey = await getRoomKey(myEmail, peerEmail);
             const room = gun.get(roomKey);
 
-            room.get('keys').get(myEmail).put({
+            room.get('keys').get(encodeEmail(myEmail)).put({
                 pub: user.is.pub,
                 epub: user._.sea.epub
             });
 
-            room.get('keys').get(peerEmail).once((data) => {
+            room.get('keys').get(encodeEmail(peerEmail)).once((data) => {
                 if (data && data.epub) {
                     safeStorage.set("meow_epub_" + peerEmail, data.epub);
                     safeStorage.set("meow_pub_" + peerEmail, data.pub);
@@ -1083,7 +1096,7 @@
         // --- УПРАВЛЕНИЕ ПРОФИЛЕМ ---
 
         function openProfileSettings() {
-            gun.get('meow_p2p_profiles').get(myEmail).once((data) => {
+            gun.get('meow_p2p_profiles').get(encodeEmail(myEmail)).once((data) => {
                 if (data) {
                     document.getElementById('profile-display-name').value = data.name || myEmail;
                     const avatarEl = document.getElementById('profile-modal-avatar');
@@ -1128,7 +1141,7 @@
                 newAvatar = avatarEl.dataset.currentAvatar || "";
             }
 
-            gun.get('meow_p2p_profiles').get(myEmail).put({
+            gun.get('meow_p2p_profiles').get(encodeEmail(myEmail)).put({
                 name: newName,
                 avatar: newAvatar
             }, () => {
@@ -1137,7 +1150,7 @@
             });
         }
 
-        // --- ОТПРАВКА СООБЩЕНИЙ ---
+        // --- ОТПРАВКА ТЕКСТА И ФАЙЛОВ ---
 
         async function sendChatMessage() {
             const textarea = document.getElementById('message-text');
@@ -1212,8 +1225,10 @@
 
                 gun.get(roomKey).get('messages').get(msgId).put(JSON.stringify(packet));
 
-                gun.get('meowmail_p2p_registry').get(targetEmail).get('rooms').get(myEmail).put(roomKey);
-                gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').get(targetEmail).put(roomKey);
+                const myEncoded = encodeEmail(myEmail);
+                const targetEncoded = encodeEmail(targetEmail);
+                gun.get('meowmail_p2p_registry').get(targetEncoded).get('rooms').get(myEncoded).put(roomKey);
+                gun.get('meowmail_p2p_registry').get(myEncoded).get('rooms').get(targetEncoded).put(roomKey);
 
                 removeFile();
                 saveState();
@@ -1230,11 +1245,11 @@
             }
         }
 
-        // --- ЗАПИСЬ И ОТПРАВКА ГОЛОСОВЫХ СООБЩЕНИЙ ---
+        // --- ЗАПИСЬ И ОТПРАВКА ГОЛОСОВЫХ ---
 
         async function startVoiceRecording() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert("Запись звука не поддерживается в вашем браузере или заблокирована.");
+                alert("Запись звука не поддерживается на вашем устройстве или заблокирована браузером.");
                 return;
             }
 
@@ -1269,7 +1284,7 @@
                     resetRecordingUI();
                 };
 
-                // Настройки отображения интерфейса записи
+                // Включаем интерфейс записи
                 document.getElementById('voice-record-ui').style.display = 'flex';
                 document.querySelector('.input-box-container').style.display = 'none';
                 document.getElementById('action-btn').style.display = 'none';
@@ -1287,7 +1302,7 @@
                 mediaRecorder.start();
             } catch (err) {
                 console.error(err);
-                alert("Доступ к микрофону отклонен. Проверьте разрешения браузера.");
+                alert("Нет доступа к микрофону.");
             }
         }
 
@@ -1373,8 +1388,10 @@
 
                 gun.get(roomKey).get('messages').get(msgId).put(JSON.stringify(packet));
 
-                gun.get('meowmail_p2p_registry').get(targetEmail).get('rooms').get(myEmail).put(roomKey);
-                gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').get(targetEmail).put(roomKey);
+                const myEncoded = encodeEmail(myEmail);
+                const targetEncoded = encodeEmail(targetEmail);
+                gun.get('meowmail_p2p_registry').get(targetEncoded).get('rooms').get(myEncoded).put(roomKey);
+                gun.get('meowmail_p2p_registry').get(myEncoded).get('rooms').get(targetEncoded).put(roomKey);
 
                 saveState();
             } catch (e) {
@@ -1385,7 +1402,7 @@
             }
         }
 
-        // --- КАСТОМНЫЙ КЛИЕНТ ДЛЯ ПЛЕЕРА ГОЛОСОВЫХ ---
+        // --- УПРАВЛЕНИЕ КАСТОМНЫМ ПРОИГРЫВАТЕЛЕМ ---
 
         function toggleVoicePlay(btn, audioId) {
             const audio = document.getElementById(audioId);
@@ -1550,8 +1567,11 @@
             }
 
             const roomKey = await getRoomKey(myEmail, email);
-            gun.get('meowmail_p2p_registry').get(email).get('rooms').get(myEmail).put(roomKey);
-            gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').get(email).put(roomKey);
+            const myEncoded = encodeEmail(myEmail);
+            const peerEncoded = encodeEmail(email);
+
+            gun.get('meowmail_p2p_registry').get(peerEncoded).get('rooms').get(myEncoded).put(roomKey);
+            gun.get('meowmail_p2p_registry').get(myEncoded).get('rooms').get(peerEncoded).put(roomKey);
 
             emailInput.value = "";
             closeModal('new-chat-modal');
@@ -1677,20 +1697,17 @@
             updateCryptStatusDisplay();
         }
 
-        // --- УПРАВЛЕНИЕ КНОПКОЙ ДЕЙСТВИЯ (ЗАПИСЬ VS ОТПРАВКА) ---
-
+        // Динамическое изменение иконки микрофон / отправить
         function updateActionButtonState() {
             const text = document.getElementById('message-text').value.trim();
             const actionBtn = document.getElementById('action-btn');
             
             if (text || selectedFile) {
-                // Иконка "Отправить"
-                actionBtn.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+                actionBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
                 actionBtn.title = "Отправить";
                 actionBtn.onclick = sendChatMessage;
             } else {
-                // Иконка "Записать голосовое"
-                actionBtn.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`;
+                actionBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`;
                 actionBtn.title = "Записать голосовое";
                 actionBtn.onclick = startVoiceRecording;
             }
@@ -1714,8 +1731,8 @@
         function handleFileChange(event) {
             if (event.target.files.length > 0) {
                 const file = event.target.files[0];
-                if (file.size > 2 * 1024 * 1024) { // Ограничение в 2МБ для стабильности dApp
-                    alert("Размер файла превышает 2 МБ. Пожалуйста, отправляйте более легкие файлы для мгновенного P2P!");
+                if (file.size > 2 * 1024 * 1024) { // Ограничение во избежание зависания P2P dApp
+                    alert("Пожалуйста, отправляйте легкие файлы (до 2 МБ) для стабильного P2P!");
                     event.target.value = '';
                     return;
                 }
@@ -1759,7 +1776,6 @@
             document.getElementById(id).classList.add('active');
         }
 
-        // Метод очистки временных кэшей модалки профиля
         function closeModal(id) {
             document.getElementById(id).classList.remove('active');
             if (id === 'profile-settings-modal') {
