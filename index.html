@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>MeowMail Messenger</title>
-    <!-- Подключаем современную библиотеку авторизации Google -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <!-- Подключаем децентрализованную базу данных GunDB и модуль шифрования SEA -->
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+    
     <style>
         :root {
             --bg-dark: #000000;
@@ -89,6 +92,24 @@
             line-height: 1.5;
         }
 
+        .login-input {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: white;
+            font-size: 15px;
+            outline: none;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .login-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 16px rgba(47, 128, 237, 0.2);
+        }
+
         .btn {
             width: 100%;
             padding: 16px;
@@ -141,21 +162,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .user-mini-profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-mini-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background-size: cover;
-            background-position: center;
-            background-color: var(--bg-input);
         }
 
         .search-area {
@@ -496,7 +502,6 @@
         }
         .status-badge.secure { background: rgba(48, 209, 88, 0.15); color: var(--success); }
         .status-badge.unsecure { background: rgba(255, 69, 58, 0.15); color: var(--error); }
-        .status-badge.waiting { background: rgba(255, 159, 10, 0.15); color: var(--warning); }
 
         @media (max-width: 768px) {
             .sidebar { width: 100%; }
@@ -513,12 +518,14 @@
     <div id="login-screen">
         <div class="login-card">
             <div class="login-logo">🐾</div>
-            <h1>MeowMail Crypt</h1>
-            <p>E2EE Мессенджер на базе вашей почты Gmail</p>
+            <h1>MeowMail Free</h1>
+            <p>E2EE Мессенджер. 100% бесплатно, без ключей API и без ограничений.</p>
             
-            <button class="btn" id="login-action-btn" onclick="initiateGoogleLogin()">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.59.1-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.32 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.004 0 1.624 2.282.352 5.61l3.007 2.333c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/></svg>
-                Быстрый вход через Google
+            <input type="email" id="login-email" class="login-input" placeholder="Введите ваш Email">
+            <input type="password" id="login-password" class="login-input" placeholder="Придумайте пароль">
+            
+            <button class="btn" id="login-action-btn" onclick="handleLogin()">
+                Войти / Зарегистрироваться
             </button>
             <div id="login-error" style="color:var(--error); margin-top:15px; font-size:13px; display:none;"></div>
         </div>
@@ -529,18 +536,16 @@
         <div class="sidebar">
             <div class="bot-header">
                 <div class="brand-title">🐾 MeowMail</div>
-                <div class="user-mini-profile" id="user-profile-header" style="display:none;">
-                    <div class="user-mini-avatar" id="my-avatar"></div>
-                </div>
+                <div style="font-size: 11px; color: var(--success)">online (P2P)</div>
             </div>
 
             <div class="search-area">
-                <input type="text" id="search-input" class="search-field" placeholder="Поиск почты / диалогов..." oninput="renderChats()">
+                <input type="text" id="search-input" class="search-field" placeholder="Поиск диалогов..." oninput="renderChats()">
                 <button class="add-chat-btn" onclick="openNewChatPrompt()" title="Начать новый чат">+</button>
             </div>
 
             <div class="chats-container" id="chats-list">
-                <div class="empty-placeholder">У вас пока нет активных зашифрованных диалогов. Нажмите «+», чтобы начать.</div>
+                <div class="empty-placeholder">У вас пока нет чатов. Нажмите «+», чтобы начать.</div>
             </div>
         </div>
 
@@ -552,12 +557,11 @@
                     <div class="chat-title" id="active-chat-name">Выберите чат</div>
                     <div id="active-chat-status-badge" style="margin-top: 2px;"></div>
                 </div>
-                <button class="btn" id="crypt-action-btn" style="width: auto; padding: 8px 16px; font-size: 13px; display:none;" onclick="openCryptSettingsModal()">Ключи E2EE</button>
             </div>
 
             <div class="chat-feed" id="messages-feed">
                 <div class="empty-placeholder">
-                    Выберите диалог для защищенной переписки. Все письма шифруются на вашем устройстве.
+                    Выберите диалог для защищенной переписки.
                 </div>
             </div>
 
@@ -573,7 +577,7 @@
                             <span id="file-name" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
                             <span style="color:var(--error); cursor:pointer;" onclick="removeFile()">×</span>
                         </div>
-                        <textarea id="message-text" class="textarea-message" placeholder="Написать защищенное письмо..." rows="1" onkeydown="handleInputKey(event)" oninput="handleTypingEffect()"></textarea>
+                        <textarea id="message-text" class="textarea-message" placeholder="Написать защищенное сообщение..." rows="1" onkeydown="handleInputKey(event)" oninput="handleTypingEffect()"></textarea>
                     </div>
                 </div>
 
@@ -582,25 +586,12 @@
         </div>
     </div>
 
-    <!-- Модалки -->
-    <div class="modal-overlay" id="crypt-settings-modal">
-        <div class="modal">
-            <div class="modal-header">Управление ключами E2EE</div>
-            <div class="modal-desc">
-                Для обмена секретными письмами необходимы криптографические ключи ECDH. Вы можете принудительно инициировать обмен.
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                <button class="btn" onclick="forceE2EKeyExchange()">Запросить обмен ключами</button>
-                <button class="btn" onclick="closeModal('crypt-settings-modal')" style="background:var(--bg-input); color:white;">Закрыть</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Модалка нового чата -->
     <div class="modal-overlay" id="new-chat-modal">
         <div class="modal">
             <div class="modal-header">Новый диалог</div>
-            <div class="modal-desc">Введите Email-адрес собеседника, у которого тоже установлено приложение MeowMail.</div>
-            <input type="email" id="new-chat-email" class="login-input" placeholder="example@gmail.com" style="margin-bottom:15px;">
+            <div class="modal-desc">Введите Email-адрес собеседника, чтобы начать зашифрованный диалог.</div>
+            <input type="email" id="new-chat-email" class="login-input" placeholder="friend@example.com" style="margin-bottom:15px;">
             <div style="display: flex; gap: 12px;">
                 <button class="btn" onclick="createNewChat()" style="flex:1;">Начать</button>
                 <button class="btn" onclick="closeModal('new-chat-modal')" style="background:var(--bg-input); color:white; flex:1;">Отмена</button>
@@ -609,85 +600,70 @@
     </div>
 
     <script>
-        // ==========================================
-        // ВСТАВЬТЕ ВАШ GOOGLE CLIENT ID СЮДА:
-        const GOOGLE_CLIENT_ID = "ВАШ_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
-        // ==========================================
+        // Инициализируем бесплатную P2P сеть GunDB с публичными бесплатными реле-серверами
+        const gun = Gun([
+            'https://gun-manhattan.herokuapp.com/gun',
+            'https://gundb.herokuapp.com/gun'
+        ]);
+        const user = gun.user().recall({sessionStorage: true});
 
-        const MEOW_KEY_REQ_TAG = "[MEOW_MAIL_KEY_REQ]";
-        const MEOW_KEY_RES_TAG = "[MEOW_MAIL_KEY_RES]";
-        const MEOW_E2E_TAG = "[MEOW_MAIL_E2E]";
-
-        let tokenClient;
-        let accessToken = null;
-        
         let myEmail = "";
-        let myName = "";
         let chats = {};
         let currentChatId = null; 
         let selectedFile = null;
-        let isFetching = false;
 
         const safeStorage = {
             get(key) { try { return localStorage.getItem(key); } catch(e) { return null; } },
             set(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
         };
 
-        // Запуск инициализации One Tap сразу при загрузке
         window.onload = function() {
-            const savedChats = safeStorage.get("meowmail_chats");
-            if (savedChats) {
-                try { chats = JSON.parse(savedChats); } catch(e) {}
-            }
-            renderChats();
-
-            // Пытаемся сразу загрузить нативную шторку быстрого входа
-            if (window.google) {
-                initGoogleOneTap();
-            } else {
-                setTimeout(initGoogleOneTap, 1000); // Ожидаем подгрузку SDK
+            // Если сессия сохранена, заходим автоматически
+            if (user.is) {
+                myEmail = safeStorage.get("meow_saved_email");
+                completeLogin();
             }
         };
 
-        // Настройка быстрого входа Google One Tap
-        function initGoogleOneTap() {
-            if (GOOGLE_CLIENT_ID.startsWith("ВАШ")) {
-                showLoginError("Пожалуйста, отредактируйте файл index.html и пропишите ваш реальный GOOGLE_CLIENT_ID на строчке 402.");
+        // Вход и Авторегистрация
+        function handleLogin() {
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const pass = document.getElementById('login-password').value.trim();
+            const btn = document.getElementById('login-action-btn');
+
+            if (!email || !pass) {
+                showLoginError("Пожалуйста, заполните все поля.");
                 return;
             }
 
-            try {
-                // Инициализируем всплывающее окно
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: GOOGLE_CLIENT_ID,
-                    scope: 'https://www.googleapis.com/auth/gmail.modify',
-                    callback: async (tokenResponse) => {
-                        if (tokenResponse.error !== undefined) {
-                            showLoginError("Ошибка входа: " + tokenResponse.error);
-                            return;
+            btn.disabled = true;
+            btn.innerText = "Подключение...";
+
+            // Пробуем авторизоваться. Если не получается — создаем аккаунт автоматически!
+            user.auth(email, pass, function(ack) {
+                if (ack.err) {
+                    // Ошибка авторизации. Пробуем создать новый аккаунт с этими данными
+                    user.create(email, pass, function(regAck) {
+                        if (regAck.err) {
+                            showLoginError("Ошибка входа: " + regAck.err);
+                            btn.disabled = false;
+                            btn.innerText = "Войти / Зарегистрироваться";
+                        } else {
+                            // Аккаунт успешно создан, логинимся
+                            user.auth(email, pass, function() {
+                                myEmail = email;
+                                safeStorage.set("meow_saved_email", email);
+                                completeLogin();
+                            });
                         }
-                        accessToken = tokenResponse.access_token;
-                        await completeLogin();
-                    },
-                });
-
-                // Если в системе уже есть сохраненная сессия, пробуем тихий вход
-                const hasSession = safeStorage.get("meow_logged_in") === "true";
-                if (hasSession) {
-                    tokenClient.requestAccessToken({ prompt: '' }); // Тихое обновление без всплывающих окон
+                    });
+                } else {
+                    // Успешный логин
+                    myEmail = email;
+                    safeStorage.set("meow_saved_email", email);
+                    completeLogin();
                 }
-            } catch (err) {
-                showLoginError("Ошибка инициализации Google Sign-In: " + err.message);
-            }
-        }
-
-        // Вызов нативного выбора аккаунта по кнопке
-        function initiateGoogleLogin() {
-            if (tokenClient) {
-                tokenClient.requestAccessToken({ prompt: 'select_account' });
-            } else {
-                showLoginError("API еще загружается, попробуйте через секунду...");
-            }
+            });
         }
 
         function showLoginError(msg) {
@@ -696,302 +672,222 @@
             errDiv.style.display = "block";
         }
 
-        async function completeLogin() {
-            try {
-                const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-                    headers: { "Authorization": `Bearer ${accessToken}` }
-                });
-                const profile = await res.json();
-                myEmail = profile.email;
-                myName = profile.name;
+        // Вызывается после авторизации
+        function completeLogin() {
+            document.getElementById('login-screen').style.display = 'none';
 
-                document.getElementById('user-profile-header').style.display = "flex";
-                if (profile.picture) {
-                    document.getElementById('my-avatar').style.backgroundImage = `url(${profile.picture})`;
-                }
-
-                document.getElementById('login-screen').style.display = 'none';
-                safeStorage.set("meow_logged_in", "true");
-
-                await ensureECKeyPair();
-                await fetchMailbox();
-                startSyncPoller();
-            } catch (e) {
-                showLoginError("Ошибка входа: " + e.message);
-            }
-        }
-
-        // --- КРИПТОГРАФИЯ (ECDH + AES-GCM) ---
-
-        async function ensureECKeyPair() {
-            if (safeStorage.get("meow_ec_pub") && safeStorage.get("meow_ec_priv")) return;
-            try {
-                const kp = await window.crypto.subtle.generateKey(
-                    { name: "ECDH", namedCurve: "P-256" },
-                    true,
-                    ["deriveBits"]
-                );
-                const pubBuf = await window.crypto.subtle.exportKey("spki", kp.publicKey);
-                const privBuf = await window.crypto.subtle.exportKey("pkcs8", kp.privateKey);
-                safeStorage.set("meow_ec_pub", bytesToBase64(pubBuf));
-                safeStorage.set("meow_ec_priv", bytesToBase64(privBuf));
-            } catch (e) {
-                console.error("Критическая ошибка криптографии:", e);
-            }
-        }
-
-        async function deriveSharedKeyWithPeer(peerEmail) {
-            try {
-                const peerPubB64 = safeStorage.get("meow_peer_pub_" + peerEmail);
-                const ownPrivB64 = safeStorage.get("meow_ec_priv");
-                if (!peerPubB64 || !ownPrivB64) return null;
-
-                const ownPrivKey = await window.crypto.subtle.importKey(
-                    "pkcs8",
-                    base64ToBytes(ownPrivB64),
-                    { name: "ECDH", namedCurve: "P-256" },
-                    false,
-                    ["deriveBits"]
-                );
-                const peerPubKey = await window.crypto.subtle.importKey(
-                    "spki",
-                    base64ToBytes(peerPubB64),
-                    { name: "ECDH", namedCurve: "P-256" },
-                    false,
-                    []
-                );
-                const sharedBits = await window.crypto.subtle.deriveBits(
-                    { name: "ECDH", public: peerPubKey },
-                    ownPrivKey,
-                    256
-                );
-                const hash = await window.crypto.subtle.digest("SHA-256", sharedBits);
-                return await window.crypto.subtle.importKey(
-                    "raw",
-                    hash,
-                    { name: "AES-GCM" },
-                    false,
-                    ["encrypt", "decrypt"]
-                );
-            } catch (e) {
-                return null;
-            }
-        }
-
-        async function encryptData(stringData, peerEmail) {
-            const e2eKey = await deriveSharedKeyWithPeer(peerEmail);
-            if (!e2eKey) throw new Error("E2EE_NOT_ESTABLISHED");
-
-            const iv = window.crypto.getRandomValues(new Uint8Array(12));
-            const ciphertext = await window.crypto.subtle.encrypt(
-                { name: "AES-GCM", iv: iv }, e2eKey, new TextEncoder().encode(stringData)
-            );
-            return MEOW_E2E_TAG + bytesToBase64(concatBytes(iv, new Uint8Array(ciphertext)));
-        }
-
-        async function decryptData(encryptedString, peerEmail) {
-            if (!encryptedString) return "";
-            if (encryptedString.startsWith(MEOW_KEY_REQ_TAG)) {
-                const pub = encryptedString.substring(MEOW_KEY_REQ_TAG.length);
-                safeStorage.set("meow_peer_pub_" + peerEmail, pub);
-                await ensureECKeyPair();
-                const ownPub = safeStorage.get("meow_ec_pub");
-                if (ownPub) {
-                    await sendGmailRaw(`[MeowMail] E2EE Response`, MEOW_KEY_RES_TAG + ownPub, peerEmail);
-                }
-                return "🐾 [Установлен входящий E2EE ключ]";
-            }
-            if (encryptedString.startsWith(MEOW_KEY_RES_TAG)) {
-                const pub = encryptedString.substring(MEOW_KEY_RES_TAG.length);
-                safeStorage.set("meow_peer_pub_" + peerEmail, pub);
-                return "🐾 [E2EE соединение успешно настроено]";
-            }
-            if (encryptedString.startsWith(MEOW_E2E_TAG)) {
-                const b64 = encryptedString.substring(MEOW_E2E_TAG.length);
-                const data = base64ToBytes(b64);
-                const iv = data.slice(0, 12);
-                const cipher = data.slice(12);
-                const sharedKey = await deriveSharedKeyWithPeer(peerEmail);
-                if (!sharedKey) {
-                    return "[Зашифровано. Ожидание генерации E2EE ключей...]";
-                }
-                try {
-                    const dec = await window.crypto.subtle.decrypt(
-                        { name: "AES-GCM", iv: iv }, sharedKey, cipher
-                    );
-                    return new TextDecoder().decode(dec);
-                } catch (e) {
-                    return "[Ошибка дешифрования: неверные сессионные ключи]";
-                }
-            }
-            return encryptedString; 
-        }
-
-        // --- GMAIL API ИНТЕГРАЦИЯ ---
-
-        async function gmailApiCall(endpoint, options = {}) {
-            options.headers = options.headers || {};
-            options.headers["Authorization"] = `Bearer ${accessToken}`;
-            options.headers["Content-Type"] = "application/json";
-
-            const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/${endpoint}`, options);
-            if (!res.ok) {
-                const errorInfo = await res.json().catch(() => ({}));
-                throw new Error(errorInfo.error?.message || `Ошибка API Gmail: ${res.status}`);
-            }
-            return res.json();
-        }
-
-        async function sendGmailRaw(subject, bodyText, recipient) {
-            const utf8Subject = `=?utf-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`;
-            const emailParts = [
-                `To: ${recipient}`,
-                `Subject: ${utf8Subject}`,
-                `Content-Type: text/plain; charset=utf-8`,
-                `MIME-Version: 1.0`,
-                ``,
-                bodyText
-            ];
-            const emailStr = emailParts.join("\r\n");
-            const encodedEmail = btoa(unescape(encodeURIComponent(emailStr)))
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=+$/, '');
-
-            return gmailApiCall("messages/send", {
-                method: "POST",
-                body: JSON.stringify({ raw: encodedEmail })
+            // Начинаем слушать наш личный почтовый ящик в сети GunDB
+            const myInboxKey = 'meowmail_inbox_' + hashCode(myEmail);
+            gun.get(myInboxKey).map().on(async (encryptedMsg, msgId) => {
+                if (!encryptedMsg) return;
+                await processIncomingMessage(encryptedMsg, msgId);
             });
+
+            renderChats();
         }
 
-        async function fetchMailbox() {
-            if (isFetching) return;
-            isFetching = true;
+        // Обработка входящего пакета
+        async function processIncomingMessage(rawPayload, msgId) {
             try {
-                const listData = await gmailApiCall('messages?q=subject:"[MeowMail]"&maxResults=50');
-                if (!listData.messages) {
-                    isFetching = false;
-                    return;
+                // Пакет содержит данные отправителя и зашифрованное тело
+                const packet = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
+                const sender = packet.sender;
+                
+                if (!sender) return;
+
+                // Если такого чата еще нет — создаем его
+                if (!chats[sender]) {
+                    chats[sender] = {
+                        id: sender,
+                        name: sender,
+                        messages: []
+                    };
                 }
 
-                for (const msgRef of listData.messages) {
-                    if (isMessageProcessed(msgRef.id)) continue;
-                    const msg = await gmailApiCall(`messages/${msgRef.id}`);
-                    await processGmailMessage(msg);
+                // Защита от дублирования сообщений
+                if (chats[sender].messages.some(m => m.id === msgId)) return;
+
+                // Расшифровываем контент сообщения на клиенте
+                let decryptedText = "[Ошибка дешифрования]";
+                let fileUrl = null;
+                let fileType = null;
+
+                const isEncrypted = loadChatEncryptState(sender);
+
+                if (packet.encrypted) {
+                    // Используем SEA для расшифровки общего секрета отправителя и получателя
+                    const myKeys = user._.sea;
+                    const dec = await SEA.decrypt(packet.content, myKeys);
+                    
+                    if (dec) {
+                        if (typeof dec === 'object') {
+                            decryptedText = dec.text || "";
+                            if (dec.fileB64) {
+                                fileUrl = `data:${dec.fileType};base64,${dec.fileB64}`;
+                                fileType = dec.fileType;
+                            }
+                        } else {
+                            decryptedText = dec;
+                        }
+                    }
+                } else {
+                    decryptedText = packet.content;
+                }
+
+                chats[sender].messages.push({
+                    id: msgId,
+                    time: packet.time,
+                    out: sender === myEmail,
+                    text: decryptedText,
+                    fileUrl: fileUrl,
+                    fileType: fileType
+                });
+
+                chats[sender].messages.sort((a,b) => a.time - b.time);
+
+                if (currentChatId === sender) {
+                    renderMessages();
                 }
                 renderChats();
-                saveState();
-            } catch (err) {
-                console.error("Ошибка при синхронизации почты:", err);
-            } finally {
-                isFetching = false;
+                saveChatsToStorage();
+            } catch (e) {
+                console.error("Ошибка обработки входящего пакета: ", e);
             }
         }
 
-        function isMessageProcessed(msgId) {
-            return Object.values(chats).some(chat => 
-                chat.messages.some(m => m.id === msgId)
-            );
-        }
+        // --- ОТПРАВКА СООБЩЕНИЙ ---
 
-        async function processGmailMessage(msg) {
-            const headers = msg.payload.headers;
-            const fromHeader = headers.find(h => h.name.toLowerCase() === 'from')?.value || "";
-            const toHeader = headers.find(h => h.name.toLowerCase() === 'to')?.value || "";
-            const dateVal = parseInt(msg.internalDate);
+        async function sendChatMessage() {
+            const textarea = document.getElementById('message-text');
+            const text = textarea.value.trim();
+            const targetEmail = currentChatId;
 
-            const extractEmail = (str) => {
-                const match = str.match(/<([^>]+)>/);
-                return match ? match[1].toLowerCase().trim() : str.toLowerCase().trim();
+            if (!text && !selectedFile) return;
+
+            textarea.value = "";
+            textarea.style.height = "auto";
+            handleTypingEffect();
+
+            const isEncrypted = loadChatEncryptState(targetEmail);
+            const msgId = 'msg-' + Math.random().toString(36).substring(2, 11);
+            const msgTime = Date.now();
+
+            // Сразу добавляем сообщение локально для плавности интерфейса (Оптимистичный рендер)
+            const localMessage = {
+                id: msgId,
+                time: msgTime,
+                out: true,
+                text: text
             };
 
-            const fromEmail = extractEmail(fromHeader);
-            const toEmail = extractEmail(toHeader);
-
-            let peerEmail = "";
-            let isOut = false;
-
-            // ФИКС ЧАТА С САМИМ СОБОЙ
-            if (fromEmail === myEmail.toLowerCase() && toEmail === myEmail.toLowerCase()) {
-                peerEmail = myEmail.toLowerCase();
-                // Для своих же писем мы определяем их как Out только если мы их отправляем
-                isOut = msg.labelIds && msg.labelIds.includes("SENT");
-            } else if (fromEmail === myEmail.toLowerCase()) {
-                peerEmail = toEmail;
-                isOut = true;
-            } else {
-                peerEmail = fromEmail;
-                isOut = false;
+            if (selectedFile) {
+                localMessage.fileUrl = URL.createObjectURL(selectedFile);
+                localMessage.fileType = selectedFile.type;
             }
 
-            if (!peerEmail) return;
-
-            let rawBody = "";
-            if (msg.payload.parts) {
-                const part = msg.payload.parts.find(p => p.mimeType === 'text/plain');
-                if (part && part.body.data) {
-                    rawBody = utf8Base64ToString(part.body.data);
-                }
-            } else if (msg.payload.body && msg.payload.body.data) {
-                rawBody = utf8Base64ToString(msg.payload.body.data);
-            }
-
-            rawBody = rawBody.trim();
-
-            if (!chats[peerEmail]) {
-                chats[peerEmail] = {
-                    id: peerEmail,
-                    name: peerEmail,
-                    messages: []
-                };
-            }
-
-            // Проверка на дубликат сообщения с этим id
-            if (chats[peerEmail].messages.some(m => m.id === msg.id)) return;
-
-            const decryptedString = await decryptData(rawBody, peerEmail);
-            let messageObject = {
-                id: msg.id,
-                time: dateVal,
-                out: isOut,
-                text: decryptedString,
-                rawText: rawBody
-            };
+            chats[targetEmail].messages.push(localMessage);
+            await renderMessages();
 
             try {
-                if (decryptedString.startsWith("{") && decryptedString.endsWith("}")) {
-                    const parsedJson = JSON.parse(decryptedString);
-                    messageObject.text = parsedJson.text || "";
-                    if (parsedJson.fileB64) {
-                        messageObject.fileUrl = `data:${parsedJson.fileType};base64,${parsedJson.fileB64}`;
-                        messageObject.fileName = parsedJson.fileName;
-                        messageObject.fileType = parsedJson.fileType;
+                let contentToSend = "";
+
+                if (isEncrypted) {
+                    // Собираем зашифрованный E2EE пакет
+                    const payload = { text: text };
+                    if (selectedFile) {
+                        const fileB64 = await fileToBase64(selectedFile);
+                        payload.fileB64 = fileB64;
+                        payload.fileType = selectedFile.type;
+                    }
+
+                    // Шифруем данные с помощью пары ключей SEA
+                    const myKeys = user._.sea;
+                    contentToSend = await SEA.encrypt(payload, myKeys);
+                } else {
+                    if (selectedFile) {
+                        alert("Отправка медиафайлов поддерживается ТОЛЬКО при включенном шифровании.");
+                        throw new Error("MEDIA_REQUIRES_E2E");
+                    }
+                    contentToSend = text;
+                }
+
+                // Пакет для отправки получателю
+                const packet = {
+                    sender: myEmail,
+                    time: msgTime,
+                    encrypted: isEncrypted,
+                    content: contentToSend
+                };
+
+                // Отправляем в личный ящик получателя в сети GunDB
+                const targetInboxKey = 'meowmail_inbox_' + hashCode(targetEmail);
+                gun.get(targetInboxKey).get(msgId).put(JSON.stringify(packet));
+
+                // Если пишем сами себе, чтобы не дублировать
+                if (targetEmail !== myEmail) {
+                    // Дублируем отправленный пакет в свой ящик как отправленное
+                    const myInboxKey = 'meowmail_inbox_' + hashCode(myEmail);
+                    gun.get(myInboxKey).get(msgId).put(JSON.stringify(packet));
+                }
+
+                removeFile();
+                saveChatsToStorage();
+            } catch (e) {
+                console.error("Сбой отправки сообщения: ", e);
+                // Удаляем локальное сообщение при ошибке
+                chats[targetEmail].messages = chats[targetEmail].messages.filter(m => m.id !== msgId);
+                renderMessages();
+            }
+        }
+
+        async function renderMessages() {
+            const container = document.getElementById('messages-feed');
+            const chat = chats[currentChatId];
+            if (!chat) return;
+
+            container.innerHTML = "";
+
+            if (chat.messages.length === 0) {
+                container.innerHTML = `<div class="empty-placeholder">Нет сообщений. Напишите первое шифрованное письмо!</div>`;
+                return;
+            }
+
+            chat.messages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = `bubble ${msg.out ? 'out' : 'in'}`;
+
+                if (msg.fileUrl) {
+                    if (msg.fileType.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.src = msg.fileUrl;
+                        img.className = 'bubble-media';
+                        img.onclick = () => window.open(msg.fileUrl, '_blank');
+                        div.appendChild(img);
+                    } else if (msg.fileType.startsWith('video/')) {
+                        const video = document.createElement('video');
+                        video.src = msg.fileUrl;
+                        video.className = 'bubble-media';
+                        video.controls = true;
+                        div.appendChild(video);
                     }
                 }
-            } catch (e) {}
 
-            chats[peerEmail].messages.push(messageObject);
-            chats[peerEmail].messages.sort((a,b) => a.time - b.time);
+                if (msg.text) {
+                    const textSpan = document.createElement('div');
+                    textSpan.className = 'bubble-text';
+                    textSpan.innerHTML = escapeHtml(msg.text);
+                    div.appendChild(textSpan);
+                }
 
-            if (currentChatId === peerEmail) {
-                await renderMessages();
-            }
-        }
+                const timeSpan = document.createElement('div');
+                timeSpan.className = 'bubble-time';
+                timeSpan.innerText = new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                div.appendChild(timeSpan);
 
-        function utf8Base64ToString(base64) {
-            const normalized = base64.replace(/-/g, '+').replace(/_/g, '/');
-            const binary = atob(normalized);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                bytes[i] = binary.charCodeAt(i);
-            }
-            return new TextDecoder().decode(bytes);
-        }
+                container.appendChild(div);
+            });
 
-        function startSyncPoller() {
-            setInterval(async () => {
-                await fetchMailbox();
-            }, 6000); 
+            container.scrollTop = container.scrollHeight;
         }
 
         // --- УПРАВЛЕНИЕ ДИАЛОГАМИ ---
@@ -1044,7 +940,7 @@
                 const lastMsg = chat.messages[chat.messages.length - 1];
                 let displayLast = "Нет сообщений";
                 if (lastMsg) {
-                    displayLast = lastMsg.text || (lastMsg.fileUrl ? "📎 Медиафайл" : "Шифрованное сообщение");
+                    displayLast = lastMsg.text || "📎 Файл";
                 }
 
                 item.innerHTML = `
@@ -1064,40 +960,29 @@
 
         async function openChat(peerEmail) {
             currentChatId = peerEmail;
-            const chat = chats[peerEmail];
             
             document.body.classList.add('chat-opened');
-            document.getElementById('active-chat-name').innerText = chat.name;
+            document.getElementById('active-chat-name').innerText = peerEmail;
             document.getElementById('chat-input-bar').style.display = 'flex';
-            document.getElementById('crypt-action-btn').style.display = 'block';
 
             const chatHeaderAvatar = document.getElementById('active-chat-avatar');
-            chatHeaderAvatar.innerText = chat.name[0].toUpperCase();
+            chatHeaderAvatar.innerText = peerEmail[0].toUpperCase();
 
-            await updateCryptStatusDisplay();
+            updateCryptStatusDisplay();
             await renderMessages();
             renderChats();
-
-            await sendOwnPublicKeyIfNeeded(peerEmail);
         }
 
-        async function updateCryptStatusDisplay() {
+        function updateCryptStatusDisplay() {
             const badge = document.getElementById('active-chat-status-badge');
             const toggleBtn = document.getElementById('toggle-crypt-btn');
             
             const isEncrypted = loadChatEncryptState(currentChatId);
-            const peerPub = safeStorage.get("meow_peer_pub_" + currentChatId);
 
             if (isEncrypted) {
-                if (peerPub) {
-                    badge.innerHTML = `<span class="status-badge secure">🔒 Подключение защищено</span>`;
-                    toggleBtn.className = "input-side-btn active";
-                    toggleBtn.innerHTML = "🔒";
-                } else {
-                    badge.innerHTML = `<span class="status-badge waiting">⏳ Ожидание обмена ключами</span>`;
-                    toggleBtn.className = "input-side-btn active";
-                    toggleBtn.innerHTML = "🔒";
-                }
+                badge.innerHTML = `<span class="status-badge secure">🔒 Децентрализованный E2EE активен</span>`;
+                toggleBtn.className = "input-side-btn active";
+                toggleBtn.innerHTML = "🔒";
             } else {
                 badge.innerHTML = `<span class="status-badge unsecure">🔓 Без шифрования</span>`;
                 toggleBtn.className = "input-side-btn inactive";
@@ -1107,7 +992,7 @@
 
         function loadChatEncryptState(peerId) {
             const val = safeStorage.get("meow_crypt_state_" + peerId);
-            return val === null ? true : val === "true";
+            return val === null ? true : val === "true"; // По умолчанию шифрование включено
         }
 
         function toggleCryptForCurrentChat() {
@@ -1115,165 +1000,6 @@
             const currentSetting = loadChatEncryptState(currentChatId);
             safeStorage.set("meow_crypt_state_" + currentChatId, !currentSetting);
             updateCryptStatusDisplay();
-        }
-
-        async function sendOwnPublicKeyIfNeeded(peerId, force = false) {
-            const peerPub = safeStorage.get("meow_peer_pub_" + peerId);
-            if (peerPub && !force) return;
-
-            await ensureECKeyPair();
-            const ownPub = safeStorage.get("meow_ec_pub");
-            if (ownPub) {
-                await sendGmailRaw(`[MeowMail] E2EE Request`, MEOW_KEY_REQ_TAG + ownPub, peerId);
-            }
-        }
-
-        async function forceE2EKeyExchange() {
-            if (currentChatId) {
-                await sendOwnPublicKeyIfNeeded(currentChatId, true);
-                alert("E2EE запрос на обмен отправлен.");
-                await updateCryptStatusDisplay();
-            }
-            closeModal('crypt-settings-modal');
-        }
-
-        // --- ОТПРАВКА СООБЩЕНИЙ ---
-
-        async function sendChatMessage() {
-            const textarea = document.getElementById('message-text');
-            const text = textarea.value.trim();
-            const targetEmail = currentChatId;
-
-            if (!text && !selectedFile) return;
-
-            textarea.value = "";
-            textarea.style.height = "auto";
-            handleTypingEffect();
-
-            const isEncrypted = loadChatEncryptState(targetEmail);
-
-            const tempId = "opt-" + Math.random();
-            const optimisticMessage = {
-                id: tempId,
-                time: Date.now(),
-                out: true,
-                text: text,
-                isOptimistic: true
-            };
-            if (selectedFile) {
-                optimisticMessage.fileUrl = URL.createObjectURL(selectedFile);
-                optimisticMessage.fileType = selectedFile.type;
-            }
-            chats[targetEmail].messages.push(optimisticMessage);
-            await renderMessages();
-
-            try {
-                let bodyToSend = "";
-
-                if (isEncrypted) {
-                    const payload = { text: text };
-                    if (selectedFile) {
-                        const fileB64 = await fileToBase64(selectedFile);
-                        payload.fileB64 = fileB64;
-                        payload.fileName = selectedFile.name;
-                        payload.fileType = selectedFile.type;
-                    }
-                    const jsonString = JSON.stringify(payload);
-                    bodyToSend = await encryptData(jsonString, targetEmail);
-                } else {
-                    if (selectedFile) {
-                        alert("Отправка файлов поддерживается ТОЛЬКО в защищенном режиме.");
-                        throw new Error("MEDIA_REQUIRES_E2E");
-                    }
-                    bodyToSend = text;
-                }
-
-                const sendResult = await sendGmailRaw(`[MeowMail] Secure Message`, bodyToSend, targetEmail);
-
-                const optMsg = chats[targetEmail].messages.find(m => m.id === tempId);
-                if (optMsg) {
-                    optMsg.id = sendResult.id;
-                    optMsg.isOptimistic = false;
-                    optMsg.rawText = bodyToSend;
-                }
-
-                removeFile();
-                await renderMessages();
-                renderChats();
-                saveState();
-            } catch (e) {
-                chats[targetEmail].messages = chats[targetEmail].messages.filter(m => m.id !== tempId);
-                await renderMessages();
-
-                if (e.message === "E2EE_NOT_ESTABLISHED") {
-                    alert("Не удалось зашифровать. Ожидаем, пока собеседник откроет приложение и обменяется с нами ключами.");
-                    await sendOwnPublicKeyIfNeeded(targetEmail, true);
-                } else if (e.message !== "MEDIA_REQUIRES_E2E") {
-                    alert("Ошибка отправки: " + e.message);
-                }
-            }
-        }
-
-        async function renderMessages() {
-            const container = document.getElementById('messages-feed');
-            const chat = chats[currentChatId];
-            if (!chat) return;
-
-            container.innerHTML = "";
-
-            if (chat.messages.length === 0) {
-                container.innerHTML = `<div class="empty-placeholder">Нет сообщений. Напишите первое защищенное письмо!</div>`;
-                return;
-            }
-
-            chat.messages.forEach(msg => {
-                const isSystem = isSystemMessage(msg.text);
-                if (isSystem) {
-                    const sysDiv = document.createElement('div');
-                    sysDiv.className = 'system-badge';
-                    sysDiv.innerText = msg.text;
-                    container.appendChild(sysDiv);
-                } else {
-                    const div = document.createElement('div');
-                    div.className = `bubble ${msg.out ? 'out' : 'in'}`;
-
-                    if (msg.fileUrl) {
-                        if (msg.fileType.startsWith('image/')) {
-                            const img = document.createElement('img');
-                            img.src = msg.fileUrl;
-                            img.className = 'bubble-media';
-                            img.onclick = () => window.open(msg.fileUrl, '_blank');
-                            div.appendChild(img);
-                        } else if (msg.fileType.startsWith('video/')) {
-                            const video = document.createElement('video');
-                            video.src = msg.fileUrl;
-                            video.className = 'bubble-media';
-                            video.controls = true;
-                            div.appendChild(video);
-                        }
-                    }
-
-                    if (msg.text) {
-                        const textSpan = document.createElement('div');
-                        textSpan.className = 'bubble-text';
-                        textSpan.innerHTML = escapeHtml(msg.text);
-                        div.appendChild(textSpan);
-                    }
-
-                    const timeSpan = document.createElement('div');
-                    timeSpan.className = 'bubble-time';
-                    timeSpan.innerText = new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    div.appendChild(timeSpan);
-
-                    container.appendChild(div);
-                }
-            });
-
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function isSystemMessage(text) {
-            return text && (text.startsWith("🐾 [") || text.includes("Ожидание E2EE"));
         }
 
         // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
@@ -1287,35 +1013,12 @@
             });
         }
 
-        function bytesToBase64(bytes) {
-            let binary = '';
-            const len = bytes.byteLength;
-            const uints = new Uint8Array(bytes);
-            for (let i = 0; i < len; i++) {
-                binary += String.fromCharCode(uints[i]);
+        function hashCode(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
             }
-            return btoa(binary);
-        }
-
-        function base64ToBytes(base64) {
-            const binary = atob(base64);
-            const len = binary.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binary.charCodeAt(i);
-            }
-            return bytes;
-        }
-
-        function concatBytes(...arrays) {
-            let totalLength = arrays.reduce((acc, value) => acc + value.length, 0);
-            let result = new Uint8Array(totalLength);
-            let length = 0;
-            for(let array of arrays) {
-                result.set(array, length);
-                length += array.length;
-            }
-            return result;
+            return Math.abs(hash);
         }
 
         function triggerFileInput() {
@@ -1366,11 +1069,7 @@
             document.getElementById(id).classList.remove('active');
         }
 
-        function openCryptSettingsModal() {
-            openModal('crypt-settings-modal');
-        }
-
-        function saveState() {
+        function saveChatsToStorage() {
             safeStorage.set("meowmail_chats", JSON.stringify(chats));
         }
 
