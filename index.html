@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MeowMail P2P Messenger</title>
+    <title>MeowMail P2P Cyber-Messenger</title>
     
     <!-- Подключаем децентрализованную P2P базу данных GunDB и модуль шифрования SEA -->
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
@@ -11,19 +11,20 @@
     
     <style>
         :root {
-            --bg-dark: #000000;
-            --bg-surface: #1c1c1e;
-            --bg-input: #2c2c2e;
-            --accent: #2f80ed;
-            --accent-hover: #4f9bfd;
+            --bg-dark: #0e1621;
+            --bg-sidebar: #17212b;
+            --bg-surface: #182533;
+            --bg-input: #24303f;
+            --accent: #2b5278;
+            --accent-glow: #2f8cde;
+            --msg-out: #2b5278;
+            --msg-in: #182533;
             --text-main: #f5f5f7;
-            --text-muted: #8e8e93;
-            --msg-in: #2c2c2e;
-            --msg-out: #2f80ed;
-            --error: #ff453a;
-            --success: #30d158;
-            --warning: #ff9f0a;
-            --border-color: #38383a;
+            --text-muted: #7f91a4;
+            --error: #ec3b3b;
+            --success: #4beb6e;
+            --warning: #f1a824;
+            --border-color: #101921;
         }
 
         * {
@@ -32,6 +33,19 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
         }
 
         body {
@@ -47,27 +61,27 @@
         #login-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, var(--bg-surface) 0%, var(--bg-dark) 100%);
+            background: radial-gradient(circle at center, var(--bg-sidebar) 0%, var(--bg-dark) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            transition: all 0.4s ease;
+            transition: all 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
         }
 
         .login-card {
             width: 95%;
-            max-width: 420px;
+            max-width: 400px;
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
             padding: 40px 30px;
-            border-radius: 28px;
+            border-radius: 24px;
             text-align: center;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
         }
 
         .login-logo {
-            font-size: 72px;
+            font-size: 64px;
             margin-bottom: 15px;
             display: inline-block;
             animation: float 4s ease-in-out infinite;
@@ -75,50 +89,50 @@
 
         @keyframes float {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-8px); }
         }
 
         .login-card h1 {
-            font-size: 26px;
-            font-weight: 850;
+            font-size: 24px;
+            font-weight: 800;
             margin-bottom: 8px;
             letter-spacing: -0.5px;
         }
 
         .login-card p {
             color: var(--text-muted);
-            font-size: 14px;
+            font-size: 13.5px;
             margin-bottom: 25px;
             line-height: 1.5;
         }
 
         .login-input {
             width: 100%;
-            padding: 16px 20px;
-            border-radius: 16px;
+            padding: 15px 18px;
+            border-radius: 14px;
             border: 1px solid var(--border-color);
             background: var(--bg-input);
             color: white;
-            font-size: 15px;
+            font-size: 14.5px;
             outline: none;
             margin-bottom: 15px;
-            transition: all 0.3s;
+            transition: all 0.25s;
         }
 
         .login-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 16px rgba(47, 128, 237, 0.2);
+            border-color: var(--accent-glow);
+            box-shadow: 0 0 12px rgba(47, 140, 222, 0.25);
         }
 
         .btn {
             width: 100%;
-            padding: 16px;
-            border-radius: 16px;
+            padding: 15px;
+            border-radius: 14px;
             border: none;
-            background: var(--accent);
+            background: var(--accent-glow);
             color: white;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 15.5px;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
@@ -127,7 +141,7 @@
             gap: 10px;
         }
 
-        .btn:hover { background: var(--accent-hover); }
+        .btn:hover { filter: brightness(1.1); }
         .btn:active { transform: scale(0.98); }
 
         .wrapper {
@@ -136,9 +150,10 @@
             height: 100%;
         }
 
+        /* Сайдбар */
         .sidebar {
-            width: 360px;
-            background: var(--bg-dark);
+            width: 350px;
+            background: var(--bg-sidebar);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
@@ -147,16 +162,15 @@
 
         .bot-header {
             padding: 15px 20px;
-            height: 75px;
+            height: 70px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid var(--border-color);
-            background: var(--bg-surface);
         }
 
         .brand-title {
-            font-size: 18px;
+            font-size: 19px;
             font-weight: 800;
             color: var(--text-main);
             display: flex;
@@ -168,36 +182,43 @@
             background: none;
             border: none;
             color: var(--text-muted);
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
-            padding: 5px;
-            transition: color 0.2s;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .profile-btn:hover { color: white; }
+        .profile-btn:hover {
+            color: white;
+            background: rgba(255,255,255,0.05);
+        }
 
         .search-area {
-            padding: 14px 20px 8px 20px;
+            padding: 12px 20px 8px 20px;
             display: flex;
             gap: 8px;
         }
 
         .search-field {
             flex: 1;
-            padding: 12px 18px;
-            border-radius: 22px;
-            border: 1px solid var(--border-color);
+            padding: 10px 16px;
+            border-radius: 20px;
+            border: none;
             background: var(--bg-input);
             color: white;
-            font-size: 14px;
+            font-size: 13.5px;
             outline: none;
         }
 
         .add-chat-btn {
-            width: 44px;
-            height: 44px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
-            background: var(--accent);
+            background: var(--accent-glow);
             border: none;
             color: white;
             font-size: 20px;
@@ -208,8 +229,6 @@
             transition: all 0.2s;
         }
 
-        .add-chat-btn:hover { background: var(--accent-hover); }
-
         .chats-container {
             flex: 1;
             overflow-y: auto;
@@ -218,23 +237,22 @@
         .chat-row {
             display: flex;
             align-items: center;
-            padding: 14px 20px;
+            padding: 12px 20px;
             cursor: pointer;
             transition: background 0.2s;
-            border-bottom: 1px solid rgba(255,255,255,0.01);
         }
 
-        .chat-row:hover { background: rgba(255, 255, 255, 0.02); }
-        .chat-row.active { background: var(--bg-surface); }
+        .chat-row:hover { background: rgba(255, 255, 255, 0.03); }
+        .chat-row.active { background: #2b527844; }
 
         .avatar {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background-color: var(--accent);
+            background-color: var(--accent-glow);
             color: white;
             font-weight: 700;
-            font-size: 18px;
+            font-size: 17px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -274,6 +292,7 @@
             text-overflow: ellipsis;
         }
 
+        /* Окно чата */
         .chat-window {
             flex: 1;
             display: flex;
@@ -283,23 +302,22 @@
         }
 
         .chat-window-header {
-            height: 75px;
+            height: 70px;
             padding: 10px 24px;
             display: flex;
             align-items: center;
-            background: var(--bg-surface);
+            background: var(--bg-sidebar);
             border-bottom: 1px solid var(--border-color);
             z-index: 10;
         }
 
         .back-btn {
             display: none;
-            font-size: 22px;
-            color: var(--accent);
+            font-size: 18px;
+            color: var(--text-muted);
             cursor: pointer;
             margin-right: 15px;
             width: 36px; height: 36px;
-            display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
@@ -313,81 +331,117 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            background: radial-gradient(circle at top, #141f29 0%, var(--bg-dark) 100%);
             scroll-behavior: smooth;
         }
 
-        .empty-placeholder {
-            margin: auto;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 14px;
-            max-width: 280px;
-            line-height: 1.5;
-        }
-
+        /* Стильные бабблы сообщений а-ля Telegram */
         .bubble {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 20px;
-            font-size: 14.5px;
+            max-width: 65%;
+            padding: 10px 14px 12px 14px;
+            border-radius: 16px;
+            font-size: 14px;
             line-height: 1.45;
             word-wrap: break-word;
             position: relative;
             display: flex;
             flex-direction: column;
-            animation: bubbleIntro 0.12s cubic-bezier(0.1, 0.9, 0.2, 1);
-        }
-
-        @keyframes bubbleIntro {
-            from { opacity: 0; transform: translateY(8px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            animation: bubbleIntro 0.15s cubic-bezier(0.1, 0.9, 0.2, 1);
         }
 
         .bubble.in {
             align-self: flex-start;
             background-color: var(--msg-in);
             border-bottom-left-radius: 4px;
+            color: var(--text-main);
         }
 
         .bubble.out {
             align-self: flex-end;
             background-color: var(--msg-out);
             border-bottom-right-radius: 4px;
+            color: #ffffff;
         }
 
         .bubble-time {
             font-size: 10px;
             color: rgba(255, 255, 255, 0.4);
-            margin-top: 5px;
+            margin-top: 4px;
             align-self: flex-end;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .bubble-media {
             max-width: 100%;
-            border-radius: 14px;
-            margin-bottom: 6px;
+            border-radius: 10px;
+            margin-bottom: 5px;
             display: block;
             cursor: pointer;
             object-fit: cover;
-            max-height: 280px;
+            max-height: 250px;
         }
 
+        /* Оформление голосового сообщения */
+        .voice-player {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 0;
+            min-width: 180px;
+        }
+
+        .voice-control-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+
+        .voice-control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .voice-timeline {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .voice-progress {
+            height: 100%;
+            background: #ffffff;
+            border-radius: 2px;
+            width: 0%;
+        }
+
+        /* Инпут бар */
         .chat-input-bar {
-            padding: 12px 16px;
-            background: var(--bg-surface);
+            padding: 12px 18px;
+            background: var(--bg-sidebar);
             display: flex;
             align-items: flex-end;
             gap: 10px;
             border-top: 1px solid var(--border-color);
-            width: 100%;
-            flex-shrink: 0;
         }
 
         .input-box-container {
             flex: 1;
             background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
+            border-radius: 22px;
             display: flex;
             align-items: flex-end;
             padding: 4px 10px;
@@ -398,10 +452,10 @@
             background: none;
             border: none;
             color: var(--text-muted);
-            font-size: 20px;
+            font-size: 18px;
             padding: 8px;
             cursor: pointer;
-            transition: color 0.2s;
+            transition: color 0.15s;
             flex-shrink: 0;
         }
 
@@ -415,93 +469,83 @@
             border: none;
             outline: none;
             color: white;
-            font-size: 15px;
-            padding: 10px 6px;
+            font-size: 14.5px;
+            padding: 9px 4px;
             resize: none;
             max-height: 120px;
-            min-height: 40px;
+            min-height: 38px;
             line-height: 1.4;
             min-width: 0;
         }
 
-        .action-round-btn {
-            width: 44px;
-            height: 44px;
+        /* Панель записи голосового сообщения */
+        .recording-overlay {
+            flex: 1;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-input);
+            padding: 9px 16px;
+            border-radius: 22px;
+            color: var(--text-main);
+            font-size: 14px;
+        }
+
+        .recording-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--error);
             border-radius: 50%;
-            background: var(--accent);
+            animation: pulseRecord 1s infinite alternate;
+        }
+
+        @keyframes pulseRecord {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0.3; transform: scale(1.2); }
+        }
+
+        .action-round-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--accent-glow);
             color: white;
             border: none;
-            font-size: 18px;
+            font-size: 17px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
             flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(47, 140, 222, 0.2);
         }
 
-        .file-upload-input { display: none; }
+        .action-round-btn:hover { filter: brightness(1.1); }
+        .action-round-btn:active { transform: scale(0.95); }
 
         .file-preview-container {
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(47, 128, 237, 0.1);
+            background: rgba(47, 140, 222, 0.1);
             padding: 8px 12px;
             border-radius: 12px;
             margin-bottom: 8px;
             font-size: 13px;
-            border: 1px solid rgba(47, 128, 237, 0.3);
-            color: var(--text-main);
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1100;
-            backdrop-filter: blur(10px);
-        }
-
-        .modal-overlay.active { display: flex; }
-
-        .modal {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            width: 90%;
-            max-width: 400px;
-            border-radius: 28px;
-            padding: 30px;
-        }
-
-        .modal-header {
-            font-size: 20px;
-            font-weight: 800;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .modal-desc {
-            font-size: 14px;
-            color: var(--text-muted);
-            line-height: 1.5;
-            margin-bottom: 20px;
-            text-align: center;
+            border: 1px solid rgba(47, 140, 222, 0.2);
         }
 
         .status-badge {
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 600;
             padding: 3px 8px;
             border-radius: 8px;
             display: inline-block;
         }
-        .status-badge.secure { background: rgba(48, 209, 88, 0.15); color: var(--success); }
-        .status-badge.unsecure { background: rgba(255, 69, 58, 0.15); color: var(--error); }
-        .status-badge.waiting { background: rgba(255, 159, 10, 0.15); color: var(--warning); }
+        .status-badge.secure { background: rgba(75, 235, 110, 0.1); color: var(--success); }
+        .status-badge.unsecure { background: rgba(236, 59, 59, 0.1); color: var(--error); }
+        .status-badge.waiting { background: rgba(241, 168, 36, 0.1); color: var(--warning); }
 
         @media (max-width: 768px) {
             .sidebar { width: 100%; }
@@ -518,14 +562,14 @@
     <div id="login-screen">
         <div class="login-card">
             <div class="login-logo">🐾</div>
-            <h1>MeowMail P2P</h1>
-            <p>100% бесплатный децентрализованный E2EE мессенджер без серверов.</p>
+            <h1>MeowMail Cyber</h1>
+            <p>100% бесплатный, децентрализованный E2EE P2P мессенджер нового поколения.</p>
             
-            <input type="text" id="login-email" class="login-input" placeholder="Никнейм или Почта">
+            <input type="text" id="login-email" class="login-input" placeholder="Введите ваш Ник">
             <input type="password" id="login-password" class="login-input" placeholder="Пароль">
             
             <button class="btn" id="login-action-btn" onclick="handleLogin()">
-                Войти / Создать аккаунт
+                Войти в сеть
             </button>
             <div id="login-error" style="color:var(--error); margin-top:15px; font-size:13px; display:none;"></div>
         </div>
@@ -533,25 +577,27 @@
 
     <!-- Основной Интерфейс -->
     <div class="wrapper">
+        <!-- Левый Сайдбар -->
         <div class="sidebar">
             <div class="bot-header">
-                <div class="brand-title">🐾 MeowMail P2P</div>
-                <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="brand-title">🐾 MeowMail</div>
+                <div style="display: flex; align-items: center; gap: 5px;">
                     <div style="font-size: 11px; color: var(--warning)" id="p2p-status">Подключение...</div>
-                    <button class="profile-btn" onclick="openProfileSettings()" title="Профиль">⚙️</button>
+                    <button class="profile-btn" onclick="openProfileSettings()" title="Настройки профиля">⚙️</button>
                 </div>
             </div>
 
             <div class="search-area">
-                <input type="text" id="search-input" class="search-field" placeholder="Поиск диалогов..." oninput="renderChats()">
+                <input type="text" id="search-input" class="search-field" placeholder="Поиск контактов..." oninput="renderChats()">
                 <button class="add-chat-btn" onclick="openNewChatPrompt()" title="Начать новый чат">+</button>
             </div>
 
             <div class="chats-container" id="chats-list">
-                <div class="empty-placeholder">У вас пока нет активных диалогов. Нажмите «+», чтобы начать.</div>
+                <div class="empty-placeholder">У вас нет активных диалогов. Нажмите «+», чтобы начать.</div>
             </div>
         </div>
 
+        <!-- Окно Чата -->
         <div class="chat-window" id="chat-window-pane">
             <div class="chat-window-header">
                 <div class="back-btn" onclick="backToSidebar()">←</div>
@@ -560,7 +606,7 @@
                     <div class="chat-title" id="active-chat-name">Выберите чат</div>
                     <div id="active-chat-status-badge" style="margin-top: 2px;"></div>
                 </div>
-                <button class="btn" id="crypt-action-btn" style="width: auto; padding: 8px 16px; font-size: 13px; display:none;" onclick="openCryptSettingsModal()">Ключи</button>
+                <button class="btn" id="crypt-action-btn" style="width: auto; padding: 8px 16px; font-size: 12px; display:none;" onclick="openCryptSettingsModal()">Ключи E2EE</button>
             </div>
 
             <div class="chat-feed" id="messages-feed">
@@ -569,9 +615,11 @@
                 </div>
             </div>
 
+            <!-- Ввод сообщения -->
             <div class="chat-input-bar" id="chat-input-bar" style="display: none;">
-                <div class="input-box-container">
-                    <button class="input-side-btn" onclick="triggerFileInput()">📎</button>
+                <!-- Стандартная панель ввода -->
+                <div class="input-box-container" id="input-fields-container">
+                    <button class="input-side-btn" onclick="triggerFileInput()" title="Прикрепить файл">📎</button>
                     <input type="file" id="file-input" class="file-upload-input" accept="image/*,video/*" onchange="handleFileChange(event)">
                     
                     <button class="input-side-btn" id="toggle-crypt-btn" onclick="toggleCryptForCurrentChat()" title="Шифрование">🔒</button>
@@ -585,7 +633,17 @@
                     </div>
                 </div>
 
-                <button class="action-round-btn" id="action-btn" onclick="sendChatMessage()">🐾</button>
+                <!-- Панель Записи Голоса -->
+                <div class="recording-overlay" id="recording-fields-container">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="recording-dot"></div>
+                        <span>Запись аудио: <b id="recording-timer">00:00</b></span>
+                    </div>
+                    <span style="color: var(--error); cursor: pointer;" onclick="cancelVoiceRecording()">Отмена</span>
+                </div>
+
+                <!-- Кнопка Отправки / Микрофон -->
+                <button class="action-round-btn" id="action-btn" onclick="handleSendOrRecordClick()">🐾</button>
             </div>
         </div>
     </div>
@@ -595,7 +653,7 @@
         <div class="modal">
             <div class="modal-header">Управление ключами E2EE</div>
             <div class="modal-desc">
-                Вы можете принудительно запросить публичные ключи собеседника из P2P-сети для возобновления и исправления ошибок шифрования.
+                Принудительно запросить ключи собеседника из глобальной сети для сброса ошибок шифрования.
             </div>
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <button class="btn" onclick="forceE2EKeyExchange()">Принудительно обновить ключи</button>
@@ -607,8 +665,8 @@
     <div class="modal-overlay" id="new-chat-modal">
         <div class="modal">
             <div class="modal-header">Новый диалог</div>
-            <div class="modal-desc">Введите никнейм или Email собеседника, чтобы начать диалог.</div>
-            <input type="text" id="new-chat-email" class="login-input" placeholder="meowing" style="margin-bottom:15px;">
+            <div class="modal-desc">Введите никнейм собеседника, чтобы мгновенно начать диалог.</div>
+            <input type="text" id="new-chat-email" class="login-input" placeholder="friend_nick" style="margin-bottom:15px;">
             <div style="display: flex; gap: 12px;">
                 <button class="btn" onclick="createNewChat()" style="flex:1;">Начать</button>
                 <button class="btn" onclick="closeModal('new-chat-modal')" style="background:var(--bg-input); color:white; flex:1;">Отмена</button>
@@ -616,25 +674,24 @@
         </div>
     </div>
 
-    <!-- Модалка Настройки Профиля -->
     <div class="modal-overlay" id="profile-settings-modal">
         <div class="modal">
-            <div class="modal-header">Настройки Профиля</div>
+            <div class="modal-header">Профиль</div>
             <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 20px;">
                 <div class="avatar" id="profile-modal-avatar" style="width: 80px; height: 80px; font-size: 28px; margin-right: 0; cursor: pointer;" onclick="triggerAvatarUpload()">?</div>
                 <input type="file" id="avatar-input" class="file-upload-input" accept="image/*" onchange="handleAvatarChange(event)">
-                <span style="font-size: 12px; color: var(--accent); cursor: pointer;" onclick="triggerAvatarUpload()">Загрузить фото</span>
+                <span style="font-size: 12px; color: var(--accent-glow); cursor: pointer;" onclick="triggerAvatarUpload()">Загрузить аватарку</span>
             </div>
-            <input type="text" id="profile-display-name" class="login-input" placeholder="Ваше отображаемое имя">
+            <input type="text" id="profile-display-name" class="login-input" placeholder="Никнейм для отображения">
             <div style="display: flex; gap: 12px;">
                 <button class="btn" onclick="saveProfileSettings()" style="flex:1;">Сохранить</button>
-                <button class="btn" onclick="closeModal('profile-settings-modal')" style="background:var(--bg-input); color:white; flex:1;">Закрыть</button>
+                <button class="btn" onclick="closeModal('profile-settings-modal')" style="background:var(--bg-input); color:white; flex:1;">Отмена</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Глобальный отказоустойчивый пул dApp реле-серверов GunDB
+        // Стабильный пул распределенных серверов GunDB
         const gunPeers = [
             'https://gun-manhattan.herokuapp.com/gun',
             'https://gunjs.herokuapp.com/gun',
@@ -650,8 +707,15 @@
         let chats = {};
         let currentChatId = null; 
         let selectedFile = null;
-        let peerProfiles = {}; // Кэш профилей собеседников (имя, аватар)
-        let activeRoomSubscriptions = {}; // Чтобы не вешать дублирующих слушателей на комнаты
+        let peerProfiles = {}; 
+        let activeRoomSubscriptions = {}; 
+
+        // Переменные для голосовых сообщений
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let recordingSeconds = 0;
+        let recordingInterval;
 
         const safeStorage = {
             get(key) { try { return localStorage.getItem(key); } catch(e) { return null; } },
@@ -670,18 +734,16 @@
             return 'meowroom_' + (await sha256(sorted));
         }
 
-        // Автологин при запуске
         window.onload = function() {
             const savedEmail = safeStorage.get("meow_p2p_email");
             const savedPass = safeStorage.get("meow_p2p_pass");
 
             gun.on('auth', () => {
-                document.getElementById('p2p-status').innerText = "Подключен (P2P)";
+                document.getElementById('p2p-status').innerText = "Сеть онлайн";
                 document.getElementById('p2p-status').style.color = "var(--success)";
             });
 
             if (savedEmail && savedPass) {
-                // Пытаемся залогиниться тихо на фоне
                 user.auth(savedEmail, savedPass, (ack) => {
                     if (!ack.err) {
                         myEmail = savedEmail;
@@ -691,7 +753,6 @@
             }
         };
 
-        // Логин/Регистрация
         function handleLogin() {
             const email = document.getElementById('login-email').value.trim().toLowerCase();
             const pass = document.getElementById('login-password').value.trim();
@@ -709,7 +770,7 @@
                 if (ack.err) {
                     user.create(email, pass, function(regAck) {
                         if (regAck.err) {
-                            showLoginError("Ошибка регистрации: " + regAck.err);
+                            showLoginError("Ошибка сети: " + regAck.err);
                             btn.disabled = false;
                             btn.innerText = "Войти / Создать аккаунт";
                         } else {
@@ -732,7 +793,6 @@
         }
 
         async function initMyProfileOnRegistration() {
-            // При регистрации создаем пустой профиль в реестре
             gun.get('meow_p2p_profiles').get(myEmail).put({
                 name: myEmail,
                 avatar: ""
@@ -748,14 +808,12 @@
         function completeLogin() {
             document.getElementById('login-screen').style.display = 'none';
 
-            // Загружаем сохраненный кэш диалогов для мгновенного отображения переписки
             const savedChats = safeStorage.get("meow_p2p_chats_" + myEmail);
             if (savedChats) {
                 try { chats = JSON.parse(savedChats); } catch(e) {}
             }
             renderChats();
 
-            // Прослушиваем новые диалоги и мгновенно подключаем комнаты
             gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').map().on(async (roomKey, peerEmail) => {
                 if (!peerEmail) return;
 
@@ -764,7 +822,6 @@
                     renderChats();
                 }
 
-                // Загружаем профиль собеседника на лету
                 subscribeToPeerProfile(peerEmail);
 
                 if (roomKey) {
@@ -773,7 +830,6 @@
             });
         }
 
-        // Слушатель изменений профиля любого собеседника в P2P сети
         function subscribeToPeerProfile(peerEmail) {
             gun.get('meow_p2p_profiles').get(peerEmail).on((data) => {
                 if (data) {
@@ -797,21 +853,17 @@
             });
         }
 
-        // Подписка на сообщения в реальном времени
         async function subscribeToRoom(roomKey, peerEmail) {
-            // Предотвращаем дублирование подписок при переходах
             if (activeRoomSubscriptions[roomKey]) return;
             activeRoomSubscriptions[roomKey] = true;
 
             const room = gun.get(roomKey);
 
-            // Публикуем криптоключи
             room.get('keys').get(myEmail).put({
                 pub: user.is.pub,
                 epub: user._.sea.epub
             });
 
-            // Слушаем ключи собеседника
             room.get('keys').get(peerEmail).on((data) => {
                 if (data && data.epub) {
                     safeStorage.set("meow_epub_" + peerEmail, data.epub);
@@ -821,7 +873,6 @@
                 }
             });
 
-            // Слушаем входящие сообщения
             room.get('messages').map().on(async (encryptedPacket, msgId) => {
                 if (!encryptedPacket) return;
 
@@ -829,7 +880,6 @@
                     chats[peerEmail] = { id: peerEmail, name: peerEmail, messages: [] };
                 }
 
-                // Избегаем дублирования записей
                 if (chats[peerEmail].messages.some(m => m.id === msgId)) return;
 
                 const packet = typeof encryptedPacket === 'string' ? JSON.parse(encryptedPacket) : encryptedPacket;
@@ -934,9 +984,9 @@
                     safeStorage.set("meow_epub_" + peerEmail, data.epub);
                     safeStorage.set("meow_pub_" + peerEmail, data.pub);
                     decryptAllMessages(peerEmail);
-                    alert("Ключи шифрования обновлены!");
+                    alert("Ключи обновлены!");
                 } else {
-                    alert("Собеседник еще не подключен к вашей комнате.");
+                    alert("Собеседник офлайн.");
                 }
             });
             closeModal('crypt-settings-modal');
@@ -945,7 +995,6 @@
         // --- УПРАВЛЕНИЕ ПРОФИЛЕМ ---
 
         function openProfileSettings() {
-            // Подгружаем текущие настройки в модалку
             gun.get('meow_p2p_profiles').get(myEmail).once((data) => {
                 if (data) {
                     document.getElementById('profile-display-name').value = data.name || myEmail;
@@ -972,8 +1021,6 @@
                 const fullBase64 = `data:${file.type};base64,${base64}`;
                 document.getElementById('profile-modal-avatar').style.backgroundImage = `url(${fullBase64})`;
                 document.getElementById('profile-modal-avatar').innerText = "";
-                
-                // Сохраняем временную аватарку в свойство элемента
                 document.getElementById('profile-modal-avatar').dataset.tempAvatar = fullBase64;
             }
         }
@@ -986,12 +1033,163 @@
                 name: newName,
                 avatar: newAvatar
             }, () => {
-                alert("Профиль успешно сохранен!");
+                alert("Профиль сохранен!");
                 closeModal('profile-settings-modal');
             });
         }
 
-        // --- ОТПРАВКА СООБЩЕНИЙ ---
+        // --- ГОЛОСОВЫЕ СООБЩЕНИЯ (MEDIA RECORDER) ---
+
+        function handleSendOrRecordClick() {
+            const messageText = document.getElementById('message-text').value.trim();
+            if (messageText || selectedFile) {
+                // Если есть текст или файл — отправляем
+                sendChatMessage();
+            } else {
+                // Если пусто — управляем записью аудио
+                if (!isRecording) {
+                    startVoiceRecording();
+                } else {
+                    stopVoiceRecordingAndSend();
+                }
+            }
+        }
+
+        async function startVoiceRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    await sendAudioBlobMessage(audioBlob);
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                
+                // Переключаем интерфейс
+                document.getElementById('input-fields-container').style.display = 'none';
+                document.getElementById('recording-fields-container').style.display = 'flex';
+                document.getElementById('action-btn').innerHTML = "🛑";
+                document.getElementById('action-btn').style.background = "var(--error)";
+
+                recordingSeconds = 0;
+                document.getElementById('recording-timer').innerText = "00:00";
+                recordingInterval = setInterval(() => {
+                    recordingSeconds++;
+                    const minutes = Math.floor(recordingSeconds / 60).toString().padStart(2, '0');
+                    const seconds = (recordingSeconds % 60).toString().padStart(2, '0');
+                    document.getElementById('recording-timer').innerText = `${minutes}:${seconds}`;
+                }, 1000);
+
+            } catch (err) {
+                alert("Нет доступа к микрофону: " + err.message);
+            }
+        }
+
+        function stopVoiceRecordingAndSend() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                // Закрываем треки микрофона
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                resetAudioRecordUI();
+            }
+        }
+
+        function cancelVoiceRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.onstop = null; // Отменяем callback отправки
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                resetAudioRecordUI();
+            }
+        }
+
+        function resetAudioRecordUI() {
+            isRecording = false;
+            clearInterval(recordingInterval);
+            document.getElementById('input-fields-container').style.display = 'flex';
+            document.getElementById('recording-fields-container').style.display = 'none';
+            document.getElementById('action-btn').innerHTML = "🐾";
+            document.getElementById('action-btn').style.background = "var(--accent-glow)";
+            handleTypingEffect(); // Возвращаем размер кнопке
+        }
+
+        async function sendAudioBlobMessage(blob) {
+            const targetEmail = currentChatId;
+            const isEncrypted = loadChatEncryptState(targetEmail);
+            const msgId = 'msg-' + Math.random().toString(36).substring(2, 11);
+            const msgTime = Date.now();
+
+            const fileUrl = URL.createObjectURL(blob);
+
+            // Оптимистичный рендер
+            const tempMessage = {
+                id: msgId,
+                time: msgTime,
+                out: true,
+                text: "",
+                fileUrl: fileUrl,
+                fileType: "audio/webm",
+                fileName: "Голосовое сообщение",
+                encrypted: isEncrypted,
+                decrypted: true
+            };
+            chats[targetEmail].messages.push(tempMessage);
+            await renderMessages();
+
+            try {
+                const roomKey = await getRoomKey(myEmail, targetEmail);
+                let contentToSend = "";
+
+                const fileReader = new FileReader();
+                fileReader.readAsDataURL(blob);
+                fileReader.onloadend = async () => {
+                    const base64Data = fileReader.result.split(',')[1];
+                    const payload = {
+                        text: "",
+                        fileB64: base64Data,
+                        fileType: "audio/webm",
+                        fileName: "Голосовое сообщение"
+                    };
+
+                    if (isEncrypted) {
+                        const peerEpub = safeStorage.get("meow_epub_" + targetEmail);
+                        if (!peerEpub) throw new Error("E2EE_NOT_ESTABLISHED");
+                        
+                        const sharedSecret = await SEA.secret(peerEpub, user._.sea);
+                        contentToSend = await SEA.encrypt(payload, sharedSecret);
+                    } else {
+                        contentToSend = payload;
+                    }
+
+                    const packet = {
+                        sender: myEmail,
+                        time: msgTime,
+                        encrypted: isEncrypted,
+                        content: contentToSend
+                    };
+
+                    gun.get(roomKey).get('messages').get(msgId).put(JSON.stringify(packet));
+                    
+                    gun.get('meowmail_p2p_registry').get(targetEmail).get('rooms').get(myEmail).put(roomKey);
+                    gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').get(targetEmail).put(roomKey);
+                    saveState();
+                };
+            } catch (e) {
+                chats[targetEmail].messages = chats[targetEmail].messages.filter(m => m.id !== msgId);
+                await renderMessages();
+                alert("Ошибка отправки аудио: " + e.message);
+            }
+        }
+
+        // --- ОТПРАВКА СТАНДАРТНЫХ СООБЩЕНИЙ ---
 
         async function sendChatMessage() {
             const textarea = document.getElementById('message-text');
@@ -1031,9 +1229,7 @@
 
                 if (isEncrypted) {
                     const peerEpub = safeStorage.get("meow_epub_" + targetEmail);
-                    if (!peerEpub) {
-                        throw new Error("E2EE_NOT_ESTABLISHED");
-                    }
+                    if (!peerEpub) throw new Error("E2EE_NOT_ESTABLISHED");
 
                     const payload = { text: text };
                     if (selectedFile) {
@@ -1066,19 +1262,17 @@
 
                 gun.get(roomKey).get('messages').get(msgId).put(JSON.stringify(packet));
 
-                // Оповещаем участников об этой комнате
                 gun.get('meowmail_p2p_registry').get(targetEmail).get('rooms').get(myEmail).put(roomKey);
                 gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').get(targetEmail).put(roomKey);
 
                 removeFile();
                 saveState();
             } catch (e) {
-                console.error(e);
                 chats[targetEmail].messages = chats[targetEmail].messages.filter(m => m.id !== msgId);
                 await renderMessages();
 
                 if (e.message === "E2EE_NOT_ESTABLISHED") {
-                    alert("Шифрование E2EE включено, но ключи еще не установлены. Отключите замок (🔓) для отправки открытых сообщений.");
+                    alert("Обмен ключами еще не завершен. Выключите замок (🔓) для отправки обычного текста.");
                 } else {
                     alert("Ошибка отправки: " + e.message);
                 }
@@ -1093,7 +1287,7 @@
             container.innerHTML = "";
 
             if (chat.messages.length === 0) {
-                container.innerHTML = `<div class="empty-placeholder">Нет сообщений. Напишите первое P2P сообщение!</div>`;
+                container.innerHTML = `<div class="empty-placeholder">Нет сообщений. Отправьте первое P2P сообщение!</div>`;
                 return;
             }
 
@@ -1101,7 +1295,50 @@
                 const div = document.createElement('div');
                 div.className = `bubble ${msg.out ? 'out' : 'in'}`;
 
-                if (msg.fileUrl) {
+                // Рендер аудио
+                if (msg.fileUrl && msg.fileType.startsWith('audio/')) {
+                    const voiceWrapper = document.createElement('div');
+                    voiceWrapper.className = 'voice-player';
+                    
+                    const playBtn = document.createElement('button');
+                    playBtn.className = 'voice-control-btn';
+                    playBtn.innerHTML = '▶';
+                    
+                    const timeline = document.createElement('div');
+                    timeline.className = 'voice-timeline';
+                    
+                    const progress = document.createElement('div');
+                    progress.className = 'voice-progress';
+                    timeline.appendChild(progress);
+
+                    const audio = new Audio(msg.fileUrl);
+                    
+                    playBtn.onclick = () => {
+                        if (audio.paused) {
+                            audio.play();
+                            playBtn.innerHTML = '⏸';
+                        } else {
+                            audio.pause();
+                            playBtn.innerHTML = '▶';
+                        }
+                    };
+
+                    audio.ontimeupdate = () => {
+                        const pct = (audio.currentTime / audio.duration) * 100;
+                        progress.style.width = `${pct}%`;
+                    };
+
+                    audio.onended = () => {
+                        playBtn.innerHTML = '▶';
+                        progress.style.width = '0%';
+                    };
+
+                    voiceWrapper.appendChild(playBtn);
+                    voiceWrapper.appendChild(timeline);
+                    div.appendChild(voiceWrapper);
+                }
+                // Рендер фото/видео
+                else if (msg.fileUrl) {
                     if (msg.fileType.startsWith('image/')) {
                         const img = document.createElement('img');
                         img.src = msg.fileUrl;
@@ -1135,7 +1372,7 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // --- УПРАВЛЕНИЕ ДИАЛОГАМИ ---
+        // --- УПРАВЛЕНИЕ ДИСПЛЕЕМ ---
 
         function openNewChatPrompt() {
             openModal('new-chat-modal');
@@ -1145,7 +1382,7 @@
             const emailInput = document.getElementById('new-chat-email');
             const email = emailInput.value.trim().toLowerCase();
             if (!email) {
-                alert("Укажите корректный никнейм или Email.");
+                alert("Укажите корректный никнейм.");
                 return;
             }
 
@@ -1157,7 +1394,6 @@
                 };
             }
 
-            // Мгновенная инициализация комнаты в реестре
             const roomKey = await getRoomKey(myEmail, email);
             gun.get('meowmail_p2p_registry').get(email).get('rooms').get(myEmail).put(roomKey);
             gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').get(email).put(roomKey);
@@ -1190,7 +1426,7 @@
                 const lastMsg = chat.messages[chat.messages.length - 1];
                 let displayLast = "Нет сообщений";
                 if (lastMsg) {
-                    displayLast = lastMsg.text || "📎 Медиафайл";
+                    displayLast = lastMsg.text || "📎 Файл / Аудио";
                 }
 
                 const profile = peerProfiles[chat.id] || { name: chat.name, avatar: "" };
@@ -1214,7 +1450,6 @@
             currentChatId = peerEmail;
             const chat = chats[peerEmail];
             
-            // Загружаем профиль собеседника
             subscribeToPeerProfile(peerEmail);
             const profile = peerProfiles[peerEmail] || { name: chat.name, avatar: "" };
 
@@ -1249,14 +1484,14 @@
 
             if (isEncrypted) {
                 if (peerPub) {
-                    badge.innerHTML = `<span class="status-badge secure">🔒 Канал E2EE настроен и защищен</span>`;
+                    badge.innerHTML = `<span class="status-badge secure">🔒 Сквозное шифрование (E2EE)</span>`;
                 } else {
                     badge.innerHTML = `<span class="status-badge waiting">⏳ Ожидание ключей E2EE...</span>`;
                 }
                 toggleBtn.className = "input-side-btn active";
                 toggleBtn.innerHTML = "🔒";
             } else {
-                badge.innerHTML = `<span class="status-badge unsecure">🔓 Без шифрования (Открытый P2P поток)</span>`;
+                badge.innerHTML = `<span class="status-badge unsecure">🔓 Без шифрования</span>`;
                 toggleBtn.className = "input-side-btn inactive";
                 toggleBtn.innerHTML = "🔓";
             }
@@ -1274,7 +1509,7 @@
             updateCryptStatusDisplay();
         }
 
-        // --- ДОПОЛНИТЕЛЬНЫЕ ИНСТРУМЕНТЫ ---
+        // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
@@ -1285,7 +1520,6 @@
             });
         }
 
-        // Вызовы триггеров файлов
         function triggerFileInput() {
             document.getElementById('file-input').click();
         }
@@ -1308,8 +1542,17 @@
 
         function handleTypingEffect() {
             const textarea = document.getElementById('message-text');
+            const actionBtn = document.getElementById('action-btn');
+            
             textarea.style.height = "auto";
             textarea.style.height = textarea.scrollHeight + "px";
+
+            // Смена иконки отправить/войс
+            if (textarea.value.trim() !== "" || selectedFile) {
+                actionBtn.innerHTML = "➔";
+            } else {
+                actionBtn.innerHTML = "🐾";
+            }
         }
 
         function handleInputKey(e) {
