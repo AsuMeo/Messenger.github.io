@@ -276,7 +276,7 @@
             display: flex;
         }
 
-        /* Центрированная шапка чата в стиле нового Telegram iOS */
+        /* Центрированная шапка чата в стиле Telegram iOS */
         .chat-header {
             height: 60px;
             background-color: var(--bg-bar);
@@ -843,7 +843,7 @@
         </div>
     </div>
 
-    <!-- Обновленная шапка в стиле iOS Telegram (Аватарка и имя отцентрированы) -->
+    <!-- Шапка чата в стиле Telegram iOS (Аватарка и имя отцентрированы) -->
     <div class="chat-window" id="chat-window">
         <div class="chat-header">
             <button class="header-btn" onclick="closeChat()">⬅</button>
@@ -1508,7 +1508,6 @@
                                 }
                             }
 
-                            // ФОНОВАЯ И МОМЕНТАЛЬНАЯ генерация ключа E2EE для мгновенного доступа без зависаний!
                             getDerivedSharedKey(peerId);
                         }
                     });
@@ -1604,9 +1603,8 @@
             document.getElementById('chat-window').classList.add('active');
             
             const feed = document.getElementById('chat-feed');
-            feed.innerHTML = ""; // Очищаем без блокирующих и зависающих баннеров
+            feed.innerHTML = ""; 
 
-            // Мгновенная инициация ключа из кэша
             activeRoomSharedKey = derivedKeysCache[peerId] || await getDerivedSharedKey(peerId);
 
             const isCloud = (peerId === myUid);
@@ -1708,9 +1706,6 @@
 
                 let lastMessageDateStr = "";
 
-                // Мгновенная пакетная отправка "Прочитано" на сервер (без лагов, за 1 микросекунду)
-                const readBatchUpdates = {};
-
                 Object.entries(messages).forEach(([msgId, m]) => {
                     if (localDeleted[msgId]) return;
 
@@ -1719,9 +1714,10 @@
                         return;
                     }
 
-                    // Собираем unread-сообщения от собеседника для групповой пометки "прочитано"
-                    if (m.sender !== myUid && !m.read) {
-                        readBatchUpdates[`messages/${currentRoomId}/list/${msgId}/read`] = true;
+                    // Моментальная отправка флага read на сервер, если сообщение получено и не прочитано
+                    if (m.sender !== myUid && m.read !== true) {
+                        window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), { read: true })
+                            .catch(err => console.error("Ошибка прочтения:", err));
                     }
 
                     const messageDateStr = new Date(m.time).toDateString();
@@ -1745,7 +1741,7 @@
                     } catch (e) {}
 
                     if (container) {
-                        // Динамическое обновление галочек НА ЛЕТУ БЕЗ ПЕРЕЗАГРУЗКИ!
+                        // Динамическое обновление галочек на лету в реальном времени!
                         const ticksSpan = container.querySelector('.ticks-status');
                         if (ticksSpan && m.sender === myUid) {
                             ticksSpan.innerHTML = m.read ? `<span style="color: #64B5F6; font-weight: bold;">✓✓</span>` : `<span>✓</span>`;
@@ -1835,11 +1831,6 @@
                         feed.appendChild(container);
                     }
                 });
-
-                // Вызов одиночной пакетной отправки прочитанных сообщений на сервер без повторных циклов
-                if (Object.keys(readBatchUpdates).length > 0) {
-                    window.fb.update(window.fb.ref(window.fb.db), readBatchUpdates);
-                }
 
                 feed.scrollTop = feed.scrollHeight;
             });
