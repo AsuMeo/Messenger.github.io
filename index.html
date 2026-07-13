@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>VK Meow Messenger</title>
     
-    <!-- CryptoJS для базового AES-шифрования -->
+    <!-- CryptoJS для AES-256 шифрования -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
     <!-- Инициализация Firebase SDK -->
@@ -43,6 +43,7 @@
             --text-white: #F2F2F7;
             --online: #34C759;
             --error: #FF3B30;
+            --secure: #00C781;          /* Зеленый для индикации E2EE */
         }
 
         * {
@@ -324,10 +325,13 @@
         .chat-header-title {
             font-size: 16px;
             font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .chat-header-status {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
         }
 
@@ -382,25 +386,6 @@
             padding: 4px 4px 0 4px;
             font-size: 10px;
             color: rgba(255, 255, 255, 0.4);
-        }
-
-        /* КРУЖОЧКИ (ВИДЕО-СООБЩЕНИЯ) */
-        .msg-video-note {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid var(--accent);
-            background: #000;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .msg-video-note video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
         }
 
         /* РАЗДЕЛИТЕЛЬ ДАТ В ЧАТЕ */
@@ -555,35 +540,20 @@
         .menu-btn.danger { background: var(--error); color: white; }
         .menu-btn.danger:hover { background: #E0241B; }
 
-        /* ИНТЕРФЕЙС ЗАПИСИ КРУЖОЧКА */
-        #video-note-container {
+        /* ИНФОРМАЦИОННАЯ ПЛАШКА */
+        .secure-badge {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 15px;
-        }
-        .round-recorder-view {
-            width: 220px;
-            height: 220px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 5px solid var(--accent);
-            background: #000;
-            position: relative;
-        }
-        .round-recorder-view.selfie {
-            transform: scaleX(-1); /* Зеркально для селфи */
-        }
-        .round-recorder-view video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-        #recorder-timer {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--error);
+            justify-content: center;
+            gap: 6px;
+            background: rgba(0, 199, 129, 0.1);
+            color: var(--secure);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px dashed rgba(0, 199, 129, 0.3);
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -657,6 +627,10 @@
 
                 <button class="search-action-btn" style="width: 100%; margin-top: 10px; height: 48px; justify-content: center;" onclick="saveProfileSettings()">💾 Сохранить изменения</button>
             </div>
+
+            <div class="secure-badge">
+                🛡️ Сквозное шифрование E2EE (P-256 / AES-256) активно
+            </div>
         </div>
 
     </div>
@@ -683,7 +657,9 @@
             <button class="header-btn" onclick="closeChat()">⬅</button>
             <div class="chat-header-avatar" id="chat-header-av" onclick="showActivePeerProfile()">?</div>
             <div class="chat-header-info" onclick="showActivePeerProfile()">
-                <div class="chat-header-title" id="chat-header-title">Загрузка...</div>
+                <div class="chat-header-title">
+                    <span id="chat-header-title">Загрузка...</span>
+                </div>
                 <div class="chat-header-status" id="chat-header-status">офлайн</div>
             </div>
         </div>
@@ -693,36 +669,10 @@
         <div class="chat-input-bar">
             <input type="file" id="media-upload" style="display: none;" accept="image/*,video/*" onchange="compressAndSendMedia(this.files[0])">
             <button class="header-btn" style="color: var(--accent)" id="clip-btn" onclick="document.getElementById('media-upload').click()">📎</button>
-            <button class="header-btn" style="color: var(--accent)" id="video-note-btn" onclick="openVideoNoteRecorder()">📹</button>
 
-            <textarea class="message-input" id="message-input" placeholder="Сообщение..." rows="1"></textarea>
+            <textarea class="message-input" id="message-input" placeholder="Зашифрованное E2EE сообщение..." rows="1"></textarea>
 
             <button class="header-btn" style="color: var(--accent)" id="send-btn" onclick="handleSendClick()">➤</button>
-        </div>
-    </div>
-
-    <!-- МОДАЛКА ЗАПИСИ КРУЖОЧКОВ -->
-    <div class="modal-overlay" id="video-note-modal">
-        <div class="modal-card" style="max-width: 320px;">
-            <div id="video-note-container">
-                <h3 style="text-align: center;">📹 Запись кружочка</h3>
-                <div class="round-recorder-view selfie" id="recorder-preview-container">
-                    <video id="recorder-preview" autoplay muted playsinline></video>
-                </div>
-                <div id="recorder-timer">00:00</div>
-                <div style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
-                    <button class="menu-btn" style="background:#444;" id="cam-switch-btn" onclick="switchCamera()">🔄 Сменить камеру</button>
-                    <button class="menu-btn danger" id="rec-control-btn" onclick="toggleVideoNoteRecording()">🔴 Запись</button>
-                    
-                    <!-- Кнопки отправки и отмены просмотра -->
-                    <div id="post-record-actions" style="display: none; width: 100%; gap: 8px;">
-                        <button class="menu-btn danger" style="flex:1; margin-bottom: 0;" onclick="resetVideoNoteRecording()">🗑 Сбросить</button>
-                        <button class="menu-btn" style="flex:1; background: var(--online); color: white; margin-bottom: 0;" onclick="sendVideoNoteRecording()">✈️ Отправить</button>
-                    </div>
-
-                    <button class="menu-btn" id="close-rec-btn" onclick="closeVideoNoteRecorder()">Закрыть</button>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -778,7 +728,6 @@
     <!-- ЛОГИКА ПРИЛОЖЕНИЯ -->
     <script>
         const TG_AVATAR_COLORS = ["#E17076", "#FAA774", "#A695E7", "#34C759", "#6EC9CB", "#1F80E0"];
-        const BASE_AES_KEY = "12345678901234567890123456789012";
 
         let myUid = null;
         let myEmail = null;
@@ -787,22 +736,19 @@
         let currentRoomId = null;
         let tempProfileAvatarBase64 = ""; 
 
+        // Активный секретный ключ сессии E2EE
+        let activeRoomSharedKey = null;
+
         // Идентификаторы выбранных элементов при удалении
         let selectedMsgIdToDelete = null;
         let selectedChatIdToDelete = null;
 
-        // Запись кружочков
-        let voiceNoteRecorder = null;
-        let voiceChunks = [];
-        let recorderStream = null;
-        let currentFacingMode = 'user'; // 'user' - передняя, 'environment' - задняя
-        let recordingSeconds = 0;
-        let recordingTimerInterval = null;
-        let recordedBlobUrl = null;
-        let recordedBase64 = null;
-        let recordedMimeType = "";
+        // Виртуальный Blob-кэш
+        let objectUrlCache = {};
+        // Кеш вычисленных общих ключей
+        let derivedKeysCache = {};
 
-        // Сборщики слушателей для предотвращения зависаний
+        // Сборщики слушателей
         let unsubDialogs = null;
         let unsubChatMessages = null;
         let unsubHeaderPresence = null;
@@ -825,8 +771,129 @@
                 const decrypted = CryptoJS.AES.decrypt(cipher, key, { iv: iv });
                 return decrypted.toString(CryptoJS.enc.Utf8);
             } catch (e) {
-                return "[Ошибка расшифровки]";
+                return "[Ошибка расшифровки E2EE]";
             }
+        }
+
+        // --- ИНИЦИАЛИЗАЦИЯ СКВОЗНОГО ШИФРОВАНИЯ (E2EE) ---
+        async function initE2EE() {
+            let privJwk = localStorage.getItem(`meow_priv_${myUid}`);
+            let pubJwk = localStorage.getItem(`meow_pub_${myUid}`);
+            
+            if (!privJwk || !pubJwk) {
+                // Создаем криптографическую пару Диффи-Хеллмана
+                const keyPair = await window.crypto.subtle.generateKey(
+                    { name: "ECDH", namedCurve: "P-256" },
+                    true,
+                    ["deriveKey", "deriveBits"]
+                );
+                
+                const priv = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
+                const pub = await window.crypto.subtle.exportKey("jwk", keyPair.publicKey);
+                
+                localStorage.setItem(`meow_priv_${myUid}`, JSON.stringify(priv));
+                localStorage.setItem(`meow_pub_${myUid}`, JSON.stringify(pub));
+                
+                privJwk = JSON.stringify(priv);
+                pubJwk = JSON.stringify(pub);
+            }
+            
+            // Выгружаем публичный ключ в профиль (он открыт для всех контактов)
+            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
+                publicKey: pubJwk
+            });
+        }
+
+        // --- ВЫЧИСЛЕНИЕ ОБЩЕГО СЕКРЕТНОГО КЛЮЧА AES-256 НА КЛИЕНТЕ ---
+        async function getDerivedSharedKey(peerId) {
+            if (derivedKeysCache[peerId]) return derivedKeysCache[peerId];
+            
+            try {
+                if (peerId === myUid) {
+                    // Хранилище Облака (шифруем на собственном приватном ключе)
+                    const privStr = localStorage.getItem(`meow_priv_${myUid}`);
+                    const hash = CryptoJS.SHA256(privStr).toString();
+                    derivedKeysCache[peerId] = hash;
+                    return hash;
+                }
+                
+                // Получаем публичный ключ собеседника из Firebase
+                const peerProfSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile/publicKey`));
+                if (!peerProfSnap.exists()) {
+                    return null; // Собеседник еще не обновил ключи
+                }
+                
+                const peerPubJwk = JSON.parse(peerProfSnap.val());
+                const myPrivJwk = JSON.parse(localStorage.getItem(`meow_priv_${myUid}`));
+                
+                // Импортируем ключи в Web Crypto API
+                const myPrivKeyObj = await window.crypto.subtle.importKey(
+                    "jwk",
+                    myPrivJwk,
+                    { name: "ECDH", namedCurve: "P-256" },
+                    true,
+                    ["deriveBits"]
+                );
+                
+                const peerPubKeyObj = await window.crypto.subtle.importKey(
+                    "jwk",
+                    peerPubJwk,
+                    { name: "ECDH", namedCurve: "P-256" },
+                    true,
+                    []
+                );
+                
+                // Магия Диффи-Хеллмана: вычисляем бит-массив общего секрета
+                const sharedBits = await window.crypto.subtle.deriveBits(
+                    { name: "ECDH", public: peerPubKeyObj },
+                    myPrivKeyObj,
+                    256
+                );
+                
+                const buffer = new Uint8Array(sharedBits);
+                const hexKey = Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join('');
+                
+                derivedKeysCache[peerId] = hexKey;
+                return hexKey;
+            } catch (e) {
+                console.error("Ошибка генерации сквозного секрета:", e);
+                return null;
+            }
+        }
+
+        // --- КОНВЕРТЕР BASE64 В BLOB URL (Защита от утечки памяти и черного экрана) ---
+        function getCachedObjectUrl(msgId, base64Data) {
+            if (!base64Data) return "";
+            if (objectUrlCache[msgId]) return objectUrlCache[msgId];
+            
+            try {
+                const parts = base64Data.split(';base64,');
+                const contentType = parts[0].split(':')[1];
+                const raw = window.atob(parts[1]);
+                const rawLength = raw.length;
+                const uInt8Array = new Uint8Array(rawLength);
+                
+                for (let i = 0; i < rawLength; ++i) {
+                    uInt8Array[i] = raw.charCodeAt(i);
+                }
+                
+                const blob = new Blob([uInt8Array], { type: contentType });
+                const url = URL.createObjectURL(blob);
+                objectUrlCache[msgId] = url;
+                return url;
+            } catch (e) {
+                console.error("Ошибка парсинга Base64 в Blob-память:", e);
+                return base64Data;
+            }
+        }
+
+        function clearObjectUrlCache() {
+            Object.values(objectUrlCache).forEach(url => {
+                if (url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url);
+                }
+            });
+            objectUrlCache = {};
         }
 
         // --- УМНОЕ ОТОБРАЖЕНИЕ ВРЕМЕНИ АКТИВНОСТИ ---
@@ -882,6 +949,9 @@
                     document.getElementById('login-screen').style.display = 'none';
                     
                     updatePresence("online");
+
+                    // Запуск сквозного шифрования (E2EE)
+                    await initE2EE();
 
                     // Подгружаем профиль
                     const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
@@ -1037,7 +1107,7 @@
             switchTab(0);
         }
 
-        // --- СПИСОК ДИАЛОГОВ (РЕАКТИВНЫЙ И ЧИСТЫЙ) ---
+        // --- СПИСОК ДИАЛОГОВ С ДЕШИФРАЦИЕЙ ПОСЛЕДНИХ СООБЩЕНИЙ ---
         function loadDialogs() {
             if (unsubDialogs) unsubDialogs();
             Object.values(activePresenceListeners).forEach(un => un());
@@ -1099,7 +1169,7 @@
                                 <div class="chat-row-name" id="name-${peerId}">Загрузка...</div>
                                 <div class="chat-row-time" id="time-${peerId}"></div>
                             </div>
-                            <div class="chat-row-msg" id="last-msg-${peerId}">Загрузка сообщений...</div>
+                            <div class="chat-row-msg" id="last-msg-${peerId}">🛡️ Зашифровано E2EE</div>
                         </div>
                         <button class="delete-chat-btn" onclick="deleteDialog(event, '${peerId}')" title="Удалить">🗑️</button>
                     `;
@@ -1165,16 +1235,7 @@
                         if (mSnap.exists() && msgBox) {
                             const list = Object.values(mSnap.val());
                             const lastMsg = list[list.length - 1];
-                            let raw = lastMsg.text || "";
-                            if (raw.startsWith("[MEOW]")) {
-                                raw = aesDecrypt(raw.substring(6), BASE_AES_KEY);
-                            }
-                            try {
-                                const parsed = JSON.parse(raw);
-                                msgBox.innerText = parsed.text || "[Медиа]";
-                            } catch (e) {
-                                msgBox.innerText = raw;
-                            }
+                            decryptAndRenderLastMsg(peerId, lastMsg.text, msgBox);
                         } else if (msgBox) {
                             msgBox.innerText = "Нет сообщений";
                         }
@@ -1183,19 +1244,32 @@
             });
         }
 
+        // Фоновая безопасная дешифрация текста для списка диалогов
+        async function decryptAndRenderLastMsg(peerId, rawText, element) {
+            const key = await getDerivedSharedKey(peerId);
+            if (!key) {
+                element.innerText = "🔒 Зашифровано E2EE";
+                return;
+            }
+            let raw = rawText || "";
+            if (raw.startsWith("[MEOW]")) {
+                raw = aesDecrypt(raw.substring(6), key);
+            }
+            try {
+                const parsed = JSON.parse(raw);
+                element.innerText = parsed.text || "[Файл]";
+            } catch (e) {
+                element.innerText = raw;
+            }
+        }
+
         async function deleteDialog(event, peerId) {
             event.stopPropagation();
             triggerChatDeletion(peerId);
         }
 
-        // --- ИЗБРАННОЕ ---
-        function openCloudChat() {
-            const cloudRoom = `saved_${myUid}`;
-            openChatWindow(myUid, cloudRoom);
-        }
-
-        // --- ОКНО ЧАТА И ИСТОРИЯ ---
-        function openChatWindow(peerId, roomId) {
+        // --- ОКНО ЧАТА С СИНХРОННЫМ ДЕШИФРОВАНИЕМ В ОПЕРАТИВНОЙ ПАМЯТИ ---
+        async function openChatWindow(peerId, roomId) {
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
 
@@ -1205,7 +1279,15 @@
             document.getElementById('chat-window').classList.add('active');
             
             const feed = document.getElementById('chat-feed');
-            feed.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:20px;">Загрузка истории...</div>`;
+            feed.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:20px;">🛡️ Сборка ключей E2EE...</div>`;
+
+            // Вычисляем общий крипто-ключ сессии перед чтением базы данных
+            activeRoomSharedKey = await getDerivedSharedKey(peerId);
+
+            if (!activeRoomSharedKey) {
+                feed.innerHTML = `<div style="text-align:center;color:var(--error);margin-top:20px;">🔒 Ожидание, пока собеседник зайдет в приложение для обмена публичными ключами...</div>`;
+                return;
+            }
 
             const isCloud = (peerId === myUid);
             const headerAv = document.getElementById('chat-header-av');
@@ -1213,18 +1295,18 @@
             const headerStatus = document.getElementById('chat-header-status');
 
             if (isCloud) {
-                headerTitle.innerText = "Избранное (Облако)";
+                headerTitle.innerHTML = "Избранное (Облако) <span style='color: var(--secure); font-size: 13px;'>🔒</span>";
                 headerAv.style.backgroundImage = "none";
                 headerAv.style.backgroundColor = "var(--accent)";
                 headerAv.innerText = "☁️";
-                headerStatus.innerText = "персональное хранилище";
+                headerStatus.innerText = "персональное защищенное хранилище";
             } else {
                 // ЖИВОЙ СЛУШАТЕЛЬ ДЛЯ ШАПКИ ЧАТА
                 unsubHeaderPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/profile`), (snap) => {
                     if (snap.exists()) {
                         const prof = snap.val();
                         const displayName = (prof.name || "Без имени") + (prof.lastname ? " " + prof.lastname : "");
-                        headerTitle.innerText = displayName;
+                        headerTitle.innerHTML = `${displayName} <span style="color: var(--secure); font-size: 14px;" title="Сквозное шифрование">🔒</span>`;
 
                         if (prof.avatar) {
                             headerAv.style.backgroundImage = `url(${prof.avatar})`;
@@ -1260,7 +1342,7 @@
                 };
             }
 
-            // Загрузка переписки
+            // Загрузка зашифрованной переписки
             unsubChatMessages = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), async (snapshot) => {
                 feed.innerHTML = "";
                 if (!snapshot.exists()) {
@@ -1293,7 +1375,7 @@
                     container.className = `msg-container ${isOut ? 'out' : 'in'}`;
                     container.id = `msg-${msgId}`;
 
-                    // Долгое нажатие
+                    // Долгое нажатие для стирания
                     let msgTimer;
                     const onMsgStart = () => {
                         msgTimer = setTimeout(() => {
@@ -1310,8 +1392,10 @@
                     const timeString = new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                     let raw = m.text || "";
+                    
+                    // Дешифровка с использованием вычисленного E2EE-ключа
                     if (raw.startsWith("[MEOW]")) {
-                        raw = aesDecrypt(raw.substring(6), BASE_AES_KEY);
+                        raw = aesDecrypt(raw.substring(6), activeRoomSharedKey);
                     }
 
                     let messageObject = { text: raw };
@@ -1319,36 +1403,25 @@
                         messageObject = JSON.parse(raw);
                     } catch (e) {}
 
-                    let bubbleHtml = "";
-                    if (messageObject.isVideoNote) {
-                        // Круглый TG-кружочек видео
-                        bubbleHtml += `
-                            <div class="msg-video-note" onclick="toggleVideoNoteSound(this)">
-                                <video src="${messageObject.fileData}" loop autoplay muted playsinline></video>
-                            </div>
-                            <div class="msg-meta" style="align-self: flex-start; margin-top: 4px;">
-                                <span>${timeString} 📹</span>
-                            </div>
-                        `;
-                    } else {
-                        // Обычное сообщение (Текст / Сжатая картинка / Сжатое видео до 1.5МБ)
-                        bubbleHtml += `<div class="msg-bubble">`;
-                        if (messageObject.fileData) {
-                            if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
-                                bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${messageObject.fileData}', true)"><video src="${messageObject.fileData}" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
-                            } else {
-                                bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${messageObject.fileData}', false)"><img src="${messageObject.fileData}"></div>`;
-                            }
+                    let bubbleHtml = `<div class="msg-bubble">`;
+                    if (messageObject.fileData) {
+                        // Виртуализация бинарных данных
+                        const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
+                        
+                        if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
+                            bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${blobUrl}', true)"><video src="${blobUrl}" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
+                        } else {
+                            bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${blobUrl}', false)"><img src="${blobUrl}"></div>`;
                         }
-                        if (messageObject.text && messageObject.text !== "[Медиа]") {
-                            bubbleHtml += `<div>${messageObject.text}</div>`;
-                        }
-                        bubbleHtml += `
-                            <div class="msg-meta">
-                                <span>${timeString}</span>
-                            </div>
-                        </div>`;
                     }
+                    if (messageObject.text && messageObject.text !== "[Медиа]") {
+                        bubbleHtml += `<div>${messageObject.text}</div>`;
+                    }
+                    bubbleHtml += `
+                        <div class="msg-meta">
+                            <span>${timeString}</span>
+                        </div>
+                    </div>`;
 
                     container.innerHTML = bubbleHtml;
                     feed.appendChild(container);
@@ -1358,31 +1431,25 @@
             });
         }
 
-        // Включение/выключение звука кружочка при тапе
-        window.toggleVideoNoteSound = (el) => {
-            const vid = el.querySelector('video');
-            if (vid) {
-                vid.muted = !vid.muted;
-                el.style.borderColor = vid.muted ? "var(--accent)" : "var(--online)";
-            }
-        };
-
         function closeChat() {
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
+            clearObjectUrlCache(); // Очищаем кэш ссылок для освобождения ОЗУ
             document.getElementById('chat-window').classList.remove('active');
             currentPeer = null;
             currentRoomId = null;
+            activeRoomSharedKey = null;
         }
 
         // --- ОТПРАВКА СООБЩЕНИЙ ---
         async function handleSendClick() {
             const input = document.getElementById('message-input');
             const txt = input.value.trim();
-            if (!txt) return;
+            if (!txt || !activeRoomSharedKey) return;
 
             const rawStr = JSON.stringify({ text: txt });
-            const finalString = "[MEOW]" + aesEncrypt(rawStr, BASE_AES_KEY);
+            // Сообщение пакуется и шифруется сквозным сессионным ключом
+            const finalString = "[MEOW]" + aesEncrypt(rawStr, activeRoomSharedKey);
 
             const dbPacket = {
                 sender: myUid,
@@ -1397,7 +1464,7 @@
 
         // --- МОМЕНТАЛЬНОЕ СЖАТИЕ И ПРЯМАЯ ОТПРАВКА ФОТО/ВИДЕО (До 1.5 МБ) ---
         async function compressAndSendMedia(file) {
-            if (!file) return;
+            if (!file || !activeRoomSharedKey) return;
 
             const clipBtn = document.getElementById('clip-btn');
             const sendBtn = document.getElementById('send-btn');
@@ -1443,9 +1510,8 @@
                         };
                     };
                 } else if (file.type.startsWith('video/')) {
-                    // Строгое ограничение размера для гарантированной работы без сбоев
                     if (file.size > 1.5 * 1024 * 1024) {
-                        alert("Размер видео превышает 1.5 МБ. Пожалуйста, выберите более короткое видео или воспользуйтесь функцией записи кружочка!");
+                        alert("Размер видео превышает 1.5 МБ. Пожалуйста, отправляйте ролики меньшей длительности!");
                         clipBtn.innerText = "📎";
                         sendBtn.innerText = "➤";
                         return;
@@ -1466,14 +1532,14 @@
             }
         }
 
-        async function transmitDirectMedia(base64Data, fileType, isVideoNote = false) {
+        async function transmitDirectMedia(base64Data, fileType) {
             const rawStr = JSON.stringify({
-                text: isVideoNote ? "[Кружочек]" : "[Медиа]",
+                text: "[Медиа]",
                 fileData: base64Data,
-                fileType: fileType,
-                isVideoNote: isVideoNote
+                fileType: fileType
             });
-            const finalString = "[MEOW]" + aesEncrypt(rawStr, BASE_AES_KEY);
+            // Файлы точно так же шифруются E2EE
+            const finalString = "[MEOW]" + aesEncrypt(rawStr, activeRoomSharedKey);
 
             const dbPacket = {
                 sender: myUid,
@@ -1508,200 +1574,6 @@
             document.getElementById('media-viewer-modal').classList.remove('active');
             document.getElementById('media-viewer-content').innerHTML = "";
         }
-
-        // --- ЗАПИСЬ КРУЖОЧКОВ С ПЕРЕКЛЮЧЕНИЕМ КАМЕР И ПРЕДВАРИТЕЛЬНЫМ ПРОСМОТРОМ ---
-        window.openVideoNoteRecorder = async () => {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert("Камера и микрофон не поддерживаются вашим устройством!");
-                return;
-            }
-            currentFacingMode = 'user'; // По умолчанию фронтальная
-            document.getElementById('recorder-preview-container').className = "round-recorder-view selfie";
-            
-            await initRecorderStream();
-            openModal('video-note-modal');
-        };
-
-        async function initRecorderStream() {
-            try {
-                if (recorderStream) {
-                    recorderStream.getTracks().forEach(track => track.stop());
-                }
-                
-                recorderStream = await navigator.mediaDevices.getUserMedia({
-                    audio: true,
-                    video: {
-                        facingMode: currentFacingMode,
-                        width: { ideal: 240 },
-                        height: { ideal: 240 },
-                        frameRate: { ideal: 15 }
-                    }
-                });
-
-                const previewVideo = document.getElementById('recorder-preview');
-                previewVideo.src = null;
-                previewVideo.srcObject = recorderStream;
-                previewVideo.muted = true;
-                previewVideo.controls = false;
-                previewVideo.loop = false;
-                previewVideo.autoplay = true;
-                previewVideo.play();
-            } catch (err) {
-                console.error(err);
-                alert("Пожалуйста, разрешите доступ к микрофону и камере в настройках устройства!");
-            }
-        }
-
-        // Смена камеры во время активного предпросмотра / записи
-        window.switchCamera = async () => {
-            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-            
-            const container = document.getElementById('recorder-preview-container');
-            if (currentFacingMode === 'user') {
-                container.classList.add('selfie');
-            } else {
-                container.classList.remove('selfie');
-            }
-
-            // Перезапускаем поток с новыми constraints
-            await initRecorderStream();
-
-            // Если MediaRecorder уже записывает, плавно подменяем видео-дорожку без остановки записи!
-            if (voiceNoteRecorder && voiceNoteRecorder.state === "recording") {
-                const newVideoTrack = recorderStream.getVideoTracks()[0];
-                const activeTracks = voiceNoteRecorder.stream.getVideoTracks();
-                if (activeTracks.length > 0) {
-                    voiceNoteRecorder.stream.removeTrack(activeTracks[0]);
-                    activeTracks[0].stop();
-                }
-                voiceNoteRecorder.stream.addTrack(newVideoTrack);
-            }
-        };
-
-        window.toggleVideoNoteRecording = () => {
-            const btn = document.getElementById('rec-control-btn');
-            
-            if (!voiceNoteRecorder || voiceNoteRecorder.state === "inactive") {
-                voiceChunks = [];
-                let options = { mimeType: 'video/webm;codecs=vp8,opus' };
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options = { mimeType: 'video/mp4' }; // Поддержка iOS/Mac Safari
-                }
-
-                recordedMimeType = options.mimeType;
-                
-                // Создаем MediaRecorder на базе текущего потока
-                voiceNoteRecorder = new MediaRecorder(recorderStream, options);
-                voiceNoteRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) voiceChunks.push(e.data);
-                };
-
-                voiceNoteRecorder.onstop = async () => {
-                    const videoBlob = new Blob(voiceChunks, { type: recordedMimeType });
-                    recordedBlobUrl = URL.createObjectURL(videoBlob);
-                    
-                    // Переводим превью в режим просмотра записанного ролика со звуком
-                    const previewVideo = document.getElementById('recorder-preview');
-                    
-                    // Останавливаем стрим камеры, чтобы освободить объектив
-                    if (recorderStream) {
-                        recorderStream.getTracks().forEach(track => track.stop());
-                    }
-
-                    previewVideo.srcObject = null;
-                    previewVideo.src = recordedBlobUrl;
-                    previewVideo.muted = false; // Включаем звук
-                    previewVideo.loop = true;
-                    previewVideo.controls = true; // Даем возможность перематывать
-                    previewVideo.play();
-
-                    // Конвертируем в Base64 параллельно для быстрой отправки
-                    recordedBase64 = await fileToBase64(videoBlob);
-
-                    // Меняем кнопки
-                    document.getElementById('rec-control-btn').style.display = 'none';
-                    document.getElementById('cam-switch-btn').style.display = 'none';
-                    document.getElementById('close-rec-btn').style.display = 'none';
-                    document.getElementById('post-record-actions').style.display = 'flex';
-                };
-
-                voiceNoteRecorder.start();
-                btn.innerText = "⏹ Остановить";
-
-                recordingSeconds = 0;
-                document.getElementById('recorder-timer').innerText = "00:00";
-                recordingTimerInterval = setInterval(() => {
-                    recordingSeconds++;
-                    const minutes = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
-                    const seconds = String(recordingSeconds % 60).padStart(2, '0');
-                    document.getElementById('recorder-timer').innerText = `${minutes}:${seconds}`;
-
-                    if (recordingSeconds >= 60) {
-                        toggleVideoNoteRecording(); // Лимит 60 сек
-                    }
-                }, 1000);
-            } else {
-                voiceNoteRecorder.stop();
-                clearInterval(recordingTimerInterval);
-            }
-        };
-
-        // Отправка записанного кружочка
-        window.sendVideoNoteRecording = async () => {
-            if (!recordedBase64) return;
-            
-            const originalClipBtn = document.getElementById('clip-btn');
-            originalClipBtn.innerText = "⏳";
-
-            await transmitDirectMedia(recordedBase64, recordedMimeType, true);
-            
-            originalClipBtn.innerText = "📎";
-            closeVideoNoteRecorder();
-        };
-
-        // Сбросить записанный кружочек и начать заново
-        window.resetVideoNoteRecording = async () => {
-            if (recordedBlobUrl) {
-                URL.revokeObjectURL(recordedBlobUrl);
-                recordedBlobUrl = null;
-            }
-            recordedBase64 = null;
-
-            // Возвращаем кнопки в исходное
-            document.getElementById('rec-control-btn').style.display = 'block';
-            document.getElementById('rec-control-btn').innerText = "🔴 Запись";
-            document.getElementById('cam-switch-btn').style.display = 'block';
-            document.getElementById('close-rec-btn').style.display = 'block';
-            document.getElementById('post-record-actions').style.display = 'none';
-            document.getElementById('recorder-timer').innerText = "00:00";
-
-            // Перезапускаем трансляцию с камеры
-            await initRecorderStream();
-        };
-
-        window.closeVideoNoteRecorder = () => {
-            if (recorderStream) {
-                recorderStream.getTracks().forEach(track => track.stop());
-                recorderStream = null;
-            }
-            if (recordedBlobUrl) {
-                URL.revokeObjectURL(recordedBlobUrl);
-                recordedBlobUrl = null;
-            }
-            recordedBase64 = null;
-            voiceNoteRecorder = null;
-
-            clearInterval(recordingTimerInterval);
-            closeModal('video-note-modal');
-            
-            // Сбрасываем видимость кнопок
-            document.getElementById('rec-control-btn').style.display = 'block';
-            document.getElementById('rec-control-btn').innerText = "🔴 Запись";
-            document.getElementById('cam-switch-btn').style.display = 'block';
-            document.getElementById('close-rec-btn').style.display = 'block';
-            document.getElementById('post-record-actions').style.display = 'none';
-            document.getElementById('recorder-timer').innerText = "00:00";
-        };
 
         // --- УПРАВЛЕНИЕ УДАЛЕНИЕМ СООБЩЕНИЙ ---
         function triggerMessageDeletion(msgId) {
