@@ -341,12 +341,8 @@
             flex-direction: column;
             max-width: 75%;
             margin-bottom: 2px;
-            animation: bubbleAnim 0.15s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
-        }
-
-        @keyframes bubbleAnim {
-            from { transform: translateY(5px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            position: relative;
+            transition: transform 0.2s;
         }
 
         .msg-container.out {
@@ -363,6 +359,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.03);
         }
 
         .msg-container.out .msg-bubble {
@@ -382,20 +379,23 @@
         }
 
         .msg-bubble.has-media {
-            padding: 3px;
+            padding: 0;
+            background-color: transparent !important;
+            border: none;
         }
 
         .msg-media {
-            border-radius: 15px;
+            border-radius: 14px;
             overflow: hidden;
             cursor: pointer;
             width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .msg-media img, .msg-media video {
             width: 100%;
-            max-width: 320px;
-            max-height: 280px;
+            max-width: 280px;
+            max-height: 240px;
             display: block;
             object-fit: cover;
         }
@@ -416,7 +416,89 @@
         }
 
         .msg-bubble.has-media .msg-meta {
-            padding: 4px 6px 2px 6px;
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: white;
+            backdrop-filter: blur(4px);
+        }
+
+        .reply-quote-preview {
+            border-left: 3px solid var(--accent);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            margin: 4px 8px 0 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .reply-quote-sender {
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 2px;
+        }
+
+        .reply-quote-text {
+            color: var(--text-muted);
+        }
+
+        .reply-bar-active {
+            display: none;
+            background: var(--bg-bar);
+            border-top: 1px solid #161618;
+            padding: 8px 16px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .reply-bar-active.active {
+            display: flex;
+        }
+
+        .voice-play-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .voice-wave-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            min-width: 180px;
+        }
+
+        .voice-progress-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .voice-progress-fill {
+            height: 100%;
+            background: white;
+            width: 0%;
+            border-radius: 2px;
         }
 
         .date-separator {
@@ -562,6 +644,20 @@
             border: 1px dashed rgba(0, 199, 129, 0.3);
             margin-top: 15px;
         }
+
+        .forward-list-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 6px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .forward-list-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
     </style>
 </head>
 <body>
@@ -665,9 +761,18 @@
         
         <div class="chat-feed" id="chat-feed"></div>
 
+        <div class="reply-bar-active" id="reply-preview-container">
+            <div class="reply-quote-preview" style="margin: 0; flex: 1;">
+                <div class="reply-quote-sender" id="reply-preview-sender">Имя</div>
+                <div class="reply-quote-text" id="reply-preview-text">Сообщение</div>
+            </div>
+            <button class="header-btn" style="font-size: 16px; margin-left: 8px;" onclick="cancelReply()">✕</button>
+        </div>
+
         <div class="chat-input-bar">
             <input type="file" id="media-upload" style="display: none;" accept="image/*,video/*" onchange="compressAndSendMedia(this.files[0])">
             <button class="header-btn" style="color: var(--accent)" id="clip-btn" onclick="document.getElementById('media-upload').click()">📎</button>
+            <button class="header-btn" style="color: var(--error)" id="voice-record-btn" onclick="handleVoiceRecordClick()">🎤</button>
 
             <textarea class="message-input" id="message-input" placeholder="Зашифрованное E2EE сообщение..." rows="1"></textarea>
 
@@ -693,6 +798,24 @@
             <div id="e2ee-fingerprint" style="font-family: monospace; background: #2C2C2E; padding: 12px; border-radius: 10px; font-size: 14px; color: var(--secure); margin-bottom: 20px; letter-spacing: 1px;">XXXX-XXXX-XXXX-XXXX</div>
             <p style="color: var(--text-muted); font-size: 11px; margin-bottom: 20px;">Если эти цифры совпадают на экранах обоих устройств, переписка абсолютно защищена от прослушивания кем бы то ни было.</p>
             <button class="menu-btn" onclick="closeModal('e2ee-verify-modal')">Понятно</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="msg-options-modal">
+        <div class="modal-card">
+            <h3 style="margin-bottom: 16px; text-align: center;">💬 Действия</h3>
+            <button class="menu-btn" onclick="triggerReplyFromMenu()">Ответить</button>
+            <button class="menu-btn" onclick="triggerForwardFromMenu()">Переслать</button>
+            <button class="menu-btn danger" onclick="triggerDeleteFromMenu()">Удалить сообщение</button>
+            <button class="menu-btn" style="background: transparent;" onclick="closeModal('msg-options-modal')">Отмена</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="forward-select-modal">
+        <div class="modal-card">
+            <h3 style="margin-bottom: 16px; text-align: center;">✈️ Кому переслать?</h3>
+            <div id="forward-chats-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 16px;"></div>
+            <button class="menu-btn" style="background: transparent;" onclick="closeModal('forward-select-modal')">Отмена</button>
         </div>
     </div>
 
@@ -745,6 +868,16 @@
 
         let selectedMsgIdToDelete = null;
         let selectedChatIdToDelete = null;
+        let activeMenuMsgId = null;
+        let activeMenuMsgObj = null;
+
+        let replyTargetMessageId = null;
+        let replyTargetSenderName = "";
+        let replyTargetText = "";
+
+        let audioRecorder = null;
+        let audioChunks = [];
+        let isRecordingAudio = false;
 
         let objectUrlCache = {};
         let derivedKeysCache = {};
@@ -770,7 +903,7 @@
                 const decrypted = CryptoJS.AES.decrypt(cipher, key, { iv: iv });
                 return decrypted.toString(CryptoJS.enc.Utf8);
             } catch (e) {
-                return "[Ошибка расшифровки E2EE]";
+                return "[Ошибка дешифрования]";
             }
         }
 
@@ -847,7 +980,6 @@
                 derivedKeysCache[peerId] = hexKey;
                 return hexKey;
             } catch (e) {
-                console.error(e);
                 return null;
             }
         }
@@ -1262,7 +1394,11 @@
             }
             try {
                 const parsed = JSON.parse(raw);
-                element.innerText = parsed.text || "[Файл]";
+                if (parsed.isVoice) {
+                    element.innerText = "🎤 Голосовое сообщение";
+                } else {
+                    element.innerText = parsed.text || "[Файл]";
+                }
             } catch (e) {
                 element.innerText = raw;
             }
@@ -1385,18 +1521,23 @@
                     container.className = `msg-container ${isOut ? 'out' : 'in'}`;
                     container.id = `msg-${msgId}`;
 
-                    let msgTimer;
-                    const onMsgStart = () => {
-                        msgTimer = setTimeout(() => {
-                            triggerMessageDeletion(msgId);
-                        }, 800);
+                    let startX = 0;
+                    container.addEventListener('touchstart', (e) => {
+                        startX = e.touches[0].clientX;
+                    }, { passive: true });
+
+                    container.addEventListener('touchend', (e) => {
+                        let diffX = startX - e.changedTouches[0].clientX;
+                        if (diffX > 60) {
+                            initiateReply(msgId, messageObject.text || (messageObject.isVoice ? "Голосовое сообщение" : "[Медиа]"), m.sender);
+                        }
+                    }, { passive: true });
+
+                    container.onclick = () => {
+                        activeMenuMsgId = msgId;
+                        activeMenuMsgObj = messageObject;
+                        openModal('msg-options-modal');
                     };
-                    const onMsgEnd = () => clearTimeout(msgTimer);
-                    container.addEventListener('mousedown', onMsgStart);
-                    container.addEventListener('mouseup', onMsgEnd);
-                    container.addEventListener('mouseleave', onMsgEnd);
-                    container.addEventListener('touchstart', onMsgStart);
-                    container.addEventListener('touchend', onMsgEnd);
 
                     const timeString = new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -1413,17 +1554,36 @@
 
                     let bubbleHtml = `<div class="msg-bubble ${messageObject.fileData ? 'has-media' : ''}">`;
                     
-                    if (messageObject.fileData) {
+                    if (messageObject.replyTo) {
+                        bubbleHtml += `
+                            <div class="reply-quote-preview" onclick="scrollToMessage('${messageObject.replyTo.msgId}')">
+                                <div class="reply-quote-sender">${messageObject.replyTo.senderName}</div>
+                                <div class="reply-quote-text">${messageObject.replyTo.text}</div>
+                            </div>
+                        `;
+                    }
+
+                    if (messageObject.isVoice) {
+                        const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
+                        bubbleHtml += `
+                            <div class="voice-wave-container">
+                                <button class="voice-play-btn" onclick="toggleVoicePlayback(this, '${blobUrl}')">▶</button>
+                                <div class="voice-progress-bar" onclick="seekVoice(event, this)">
+                                    <div class="voice-progress-fill"></div>
+                                </div>
+                            </div>
+                        `;
+                    } else if (messageObject.fileData) {
                         const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
                         
                         if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
-                            bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${blobUrl}', true)"><video src="${blobUrl}" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
+                            bubbleHtml += `<div class="msg-media" onclick="event.stopPropagation(); viewMediaFull('${blobUrl}', true)"><video src="${blobUrl}" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
                         } else {
-                            bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${blobUrl}', false)"><img src="${blobUrl}"></div>`;
+                            bubbleHtml += `<div class="msg-media" onclick="event.stopPropagation(); viewMediaFull('${blobUrl}', false)"><img src="${blobUrl}"></div>`;
                         }
                     }
                     
-                    if (messageObject.text && messageObject.text !== "[Медиа]") {
+                    if (messageObject.text && messageObject.text !== "[Медиа]" && !messageObject.isVoice) {
                         bubbleHtml += `<div class="msg-text">${messageObject.text}</div>`;
                     }
                     
@@ -1441,9 +1601,66 @@
             });
         }
 
+        function scrollToMessage(msgId) {
+            const el = document.getElementById(`msg-${msgId}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.style.transform = 'scale(1.05)';
+                setTimeout(() => el.style.transform = 'scale(1)', 400);
+            }
+        }
+
+        function toggleVoicePlayback(btn, url) {
+            event.stopPropagation();
+            let audio = btn.audioInstance;
+            const bar = btn.nextElementSibling;
+            const fill = bar.querySelector('.voice-progress-fill');
+
+            if (!audio) {
+                audio = new Audio(url);
+                btn.audioInstance = audio;
+                
+                audio.ontimeupdate = () => {
+                    const pct = (audio.currentTime / audio.duration) * 100;
+                    fill.style.width = `${pct}%`;
+                };
+
+                audio.onended = () => {
+                    btn.innerText = "▶";
+                    fill.style.width = "0%";
+                };
+            }
+
+            if (audio.paused) {
+                document.querySelectorAll('audio').forEach(a => {
+                    if (a !== audio) a.pause();
+                });
+                document.querySelectorAll('.voice-play-btn').forEach(b => {
+                    if (b !== btn) b.innerText = "▶";
+                });
+                audio.play();
+                btn.innerText = "⏸";
+            } else {
+                audio.pause();
+                btn.innerText = "▶";
+            }
+        }
+
+        function seekVoice(event, bar) {
+            event.stopPropagation();
+            const btn = bar.previousElementSibling;
+            const audio = btn.audioInstance;
+            if (!audio) return;
+            const rect = bar.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const pct = clickX / rect.width;
+            audio.currentTime = pct * audio.duration;
+        }
+
         function closeChat() {
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
+            cancelReply();
             clearObjectUrlCache(); 
             document.getElementById('chat-window').classList.remove('active');
             currentPeer = null;
@@ -1451,12 +1668,52 @@
             activeRoomSharedKey = null;
         }
 
+        function initiateReply(msgId, text, senderId) {
+            replyTargetMessageId = msgId;
+            replyTargetText = text.length > 40 ? text.slice(0, 40) + "..." : text;
+            
+            if (senderId === myUid) {
+                replyTargetSenderName = "Вы";
+                setupReplyUI();
+            } else {
+                window.fb.get(window.fb.ref(window.fb.db, `users/${senderId}/profile/name`)).then(snap => {
+                    replyTargetSenderName = snap.exists() ? snap.val() : "Собеседник";
+                    setupReplyUI();
+                });
+            }
+        }
+
+        function setupReplyUI() {
+            document.getElementById('reply-preview-sender').innerText = replyTargetSenderName;
+            document.getElementById('reply-preview-text').innerText = replyTargetText;
+            document.getElementById('reply-preview-container').classList.add('active');
+            document.getElementById('message-input').focus();
+        }
+
+        function cancelReply() {
+            replyTargetMessageId = null;
+            replyTargetSenderName = "";
+            replyTargetText = "";
+            document.getElementById('reply-preview-container').classList.remove('active');
+        }
+
         async function handleSendClick() {
             const input = document.getElementById('message-input');
             const txt = input.value.trim();
             if (!txt || !activeRoomSharedKey) return;
 
-            const rawStr = JSON.stringify({ text: txt });
+            const messagePayload = { text: txt };
+            
+            if (replyTargetMessageId) {
+                messagePayload.replyTo = {
+                    msgId: replyTargetMessageId,
+                    senderName: replyTargetSenderName,
+                    text: replyTargetText
+                };
+                cancelReply();
+            }
+
+            const rawStr = JSON.stringify(messagePayload);
             const finalString = "[MEOW]" + aesEncrypt(rawStr, activeRoomSharedKey);
 
             const dbPacket = {
@@ -1468,6 +1725,65 @@
             await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
             input.value = "";
             input.style.height = "auto";
+        }
+
+        async function handleVoiceRecordClick() {
+            const recBtn = document.getElementById('voice-record-btn');
+            
+            if (!isRecordingAudio) {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert("Запись звука не поддерживается вашим браузером!");
+                    return;
+                }
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    audioChunks = [];
+                    
+                    let options = { mimeType: 'audio/webm' };
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        options = { mimeType: 'audio/mp4' };
+                    }
+
+                    audioRecorder = new MediaRecorder(stream, options);
+                    audioRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) audioChunks.push(e.data);
+                    };
+
+                    audioRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: options.mimeType });
+                        const base64 = await fileToBase64(audioBlob);
+                        
+                        const rawStr = JSON.stringify({
+                            isVoice: true,
+                            fileData: base64,
+                            fileType: options.mimeType
+                        });
+                        
+                        const finalString = "[MEOW]" + aesEncrypt(rawStr, activeRoomSharedKey);
+                        const dbPacket = {
+                            sender: myUid,
+                            text: finalString,
+                            time: Date.now()
+                        };
+
+                        await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    audioRecorder.start();
+                    isRecordingAudio = true;
+                    recBtn.innerText = "⏹";
+                    recBtn.style.color = "var(--error)";
+                } catch (err) {
+                    alert("Не удалось получить доступ к микрофону!");
+                }
+            } else {
+                audioRecorder.stop();
+                isRecordingAudio = false;
+                recBtn.innerText = "🎤";
+                recBtn.style.color = "var(--accent)";
+            }
         }
 
         async function compressAndSendMedia(file) {
@@ -1587,6 +1903,89 @@
             const fingerprint = hash.slice(0, 16).replace(/(.{4})/g, '$1-').slice(0, -1);
             document.getElementById('e2ee-fingerprint').innerText = fingerprint;
             openModal('e2ee-verify-modal');
+        }
+
+        function triggerReplyFromMenu() {
+            closeModal('msg-options-modal');
+            if (activeMenuMsgId && activeMenuMsgObj) {
+                initiateReply(activeMenuMsgId, activeMenuMsgObj.text || (activeMenuMsgObj.isVoice ? "Голосовое сообщение" : "[Медиа]"), activeMenuMsgId ? document.getElementById(`msg-${activeMenuMsgId}`).classList.contains('out') ? myUid : currentPeer : myUid);
+            }
+        }
+
+        function triggerForwardFromMenu() {
+            closeModal('msg-options-modal');
+            const listContainer = document.getElementById('forward-chats-list');
+            listContainer.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;">Загрузка списка диалогов...</div>`;
+            openModal('forward-select-modal');
+
+            window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/chats`)).then(async (snap) => {
+                listContainer.innerHTML = "";
+                
+                const cloudItem = document.createElement('div');
+                cloudItem.className = "forward-list-item";
+                cloudItem.onclick = () => executeForward(myUid, `saved_${myUid}`);
+                cloudItem.innerHTML = `
+                    <div class="chat-avatar" style="width:36px;height:36px;font-size:14px;background-color:var(--accent);margin-right:12px;">☁️</div>
+                    <div style="font-weight:bold;font-size:14px;">Избранное (Облако)</div>
+                `;
+                listContainer.appendChild(cloudItem);
+
+                if (snap.exists()) {
+                    const chats = snap.val();
+                    for (let [peerId, meta] of Object.entries(chats)) {
+                        if (peerId === myUid) continue;
+                        
+                        const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`));
+                        if (profSnap.exists()) {
+                            const prof = profSnap.val();
+                            const name = (prof.name || "Без имени") + (prof.lastname ? " " + prof.lastname : "");
+                            const item = document.createElement('div');
+                            item.className = "forward-list-item";
+                            item.onclick = () => executeForward(peerId, meta.roomId);
+                            
+                            item.innerHTML = `
+                                <div class="chat-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;${prof.avatar ? `background-image:url(${prof.avatar})` : `background-color:var(--accent)`}">
+                                    ${prof.avatar ? '' : name[0].toUpperCase()}
+                                </div>
+                                <div style="font-weight:bold;font-size:14px;">${name}</div>
+                            `;
+                            listContainer.appendChild(item);
+                        }
+                    }
+                }
+            });
+        }
+
+        async function executeForward(targetPeerId, targetRoomId) {
+            if (!activeMenuMsgObj) return;
+            closeModal('forward-select-modal');
+
+            const targetKey = await getDerivedSharedKey(targetPeerId);
+            if (!targetKey) {
+                alert("Ошибка шифрования: не удалось получить ключ получателя!");
+                return;
+            }
+
+            const forwardPayload = { ...activeMenuMsgObj };
+            delete forwardPayload.replyTo;
+
+            const rawStr = JSON.stringify(forwardPayload);
+            const finalString = "[MEOW]" + aesEncrypt(rawStr, targetKey);
+
+            const dbPacket = {
+                sender: myUid,
+                text: finalString,
+                time: Date.now()
+            };
+
+            await window.fb.push(window.fb.ref(window.fb.db, `messages/${targetRoomId}/list`), dbPacket);
+            alert("Сообщение успешно переслано!");
+        }
+
+        function triggerDeleteFromMenu() {
+            closeModal('msg-options-modal');
+            selectedMsgIdToDelete = activeMenuMsgId;
+            openModal('delete-msg-modal');
         }
 
         function triggerMessageDeletion(msgId) {
