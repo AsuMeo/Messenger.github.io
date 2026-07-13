@@ -546,7 +546,7 @@
             <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Настройки профиля</h2>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Ваша почта полностью скрыта и защищена от посторонних глаз</p>
             
-            <!-- Добавили круглый выбор фото профиля в настройки -->
+            <!-- Круглый выбор фото профиля в настройки -->
             <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
                 <div class="chat-avatar" id="my-profile-avatar" style="width: 80px; height: 80px; font-size: 24px; cursor: pointer; background-color: var(--accent);" onclick="document.getElementById('profile-avatar-upload').click()">?</div>
                 <input type="file" id="profile-avatar-upload" style="display: none;" accept="image/*" onchange="compressAndSetProfileAvatar(this.files[0])">
@@ -1101,7 +1101,7 @@
 
         // --- ОТПРАВКА СООБЩЕНИЙ ---
         async function handleSendClick() {
-            const input = document.getElementById('message-text');
+            const input = document.getElementById('message-input'); // ИСПРАВЛЕНО: Правильный ID 'message-input'
             const txt = input.value.trim();
             if (!txt) return;
 
