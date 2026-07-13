@@ -51,6 +51,7 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             -webkit-tap-highlight-color: transparent;
+            user-select: none; /* Предотвращает системное выделение текста при долгом нажатии */
         }
 
         body {
@@ -174,6 +175,7 @@
             padding: 0 16px;
             outline: none;
             font-size: 15px;
+            user-select: text;
         }
 
         .search-action-btn {
@@ -310,11 +312,13 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            cursor: pointer;
         }
 
         .chat-header-info {
             flex: 1;
             margin-left: 12px;
+            cursor: pointer;
         }
 
         .chat-header-title {
@@ -341,6 +345,7 @@
             display: flex;
             flex-direction: column;
             max-width: 75%;
+            margin-bottom: 4px;
         }
 
         .msg-container.out {
@@ -356,6 +361,7 @@
             font-size: 15px;
             line-height: 1.4;
             word-wrap: break-word;
+            cursor: pointer;
         }
 
         .msg-container.out .msg-bubble {
@@ -376,6 +382,19 @@
             padding: 4px 4px 0 4px;
             font-size: 10px;
             color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* РАЗДЕЛИТЕЛЬ ДАТ В ЧАТЕ */
+        .date-separator {
+            align-self: center;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin: 10px 0;
+            text-transform: capitalize;
         }
 
         /* ПАНЕЛЬ ВВОДА */
@@ -399,6 +418,7 @@
             padding: 12px 18px;
             font-size: 15px;
             resize: none;
+            user-select: text;
         }
 
         /* ЭКРАН ВХОДА */
@@ -496,6 +516,25 @@
             height: 100%;
             object-fit: cover;
         }
+
+        /* СТИЛЬ КНОПОК МЕНЮ УДАЛЕНИЯ */
+        .menu-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: #2C2C2E;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s;
+        }
+        .menu-btn:hover { background: #3A3A3C; }
+        .menu-btn.danger { background: var(--error); color: white; }
+        .menu-btn.danger:hover { background: #E0241B; }
     </style>
 </head>
 <body>
@@ -546,7 +585,7 @@
             <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Настройки профиля</h2>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Ваша почта полностью скрыта и защищена от посторонних глаз</p>
             
-            <!-- Круглый выбор фото профиля в настройки -->
+            <!-- Выбор фото профиля -->
             <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
                 <div class="chat-avatar" id="my-profile-avatar" style="width: 80px; height: 80px; font-size: 24px; cursor: pointer; background-color: var(--accent);" onclick="document.getElementById('profile-avatar-upload').click()">?</div>
                 <input type="file" id="profile-avatar-upload" style="display: none;" accept="image/*" onchange="compressAndSetProfileAvatar(this.files[0])">
@@ -559,6 +598,9 @@
 
                 <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ФАМИЛИЯ (НЕОБЯЗАТЕЛЬНО)</label>
                 <input type="text" id="setting-lastname" class="search-bar" placeholder="Введите фамилию">
+
+                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">О СЕБЕ (ОПИСАНИЕ ПРОФИЛЯ)</label>
+                <input type="text" id="setting-bio" class="search-bar" placeholder="Напишите пару слов о себе">
 
                 <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ВАШ УНИКАЛЬНЫЙ НИКНЕЙМ (@)</label>
                 <input type="text" id="setting-username" class="search-bar" placeholder="username">
@@ -589,8 +631,8 @@
     <div class="chat-window" id="chat-window">
         <div class="chat-header">
             <button class="header-btn" onclick="closeChat()">⬅</button>
-            <div class="chat-header-avatar" id="chat-header-av">?</div>
-            <div class="chat-header-info">
+            <div class="chat-header-avatar" id="chat-header-av" onclick="showActivePeerProfile()">?</div>
+            <div class="chat-header-info" onclick="showActivePeerProfile()">
                 <div class="chat-header-title" id="chat-header-title">Загрузка...</div>
                 <div class="chat-header-status" id="chat-header-status">офлайн</div>
             </div>
@@ -605,6 +647,38 @@
             <textarea class="message-input" id="message-input" placeholder="Сообщение..." rows="1"></textarea>
 
             <button class="header-btn" style="color: var(--accent)" id="send-btn" onclick="handleSendClick()">➤</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ПРОСМОТРА ПРОФИЛЯ СОБЕСЕДНИКА -->
+    <div class="modal-overlay" id="peer-profile-modal">
+        <div class="modal-card" style="text-align: center;">
+            <div class="chat-avatar" id="peer-profile-av" style="width: 100px; height: 100px; font-size: 36px; margin: 0 auto 16px auto; background-color: var(--accent);">?</div>
+            <h3 id="peer-profile-name" style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">Имя</h3>
+            <p id="peer-profile-username" style="color: var(--accent); font-weight: 700; font-size: 14px; margin-bottom: 12px;">@username</p>
+            <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 14px; line-height: 1.4; margin-bottom: 24px;">Описание отсутствует</p>
+            <button class="menu-btn" onclick="closeModal('peer-profile-modal')">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА УДАЛЕНИЯ СООБЩЕНИЯ (ACTION SHEET) -->
+    <div class="modal-overlay" id="delete-msg-modal">
+        <div class="modal-card">
+            <h3 style="margin-bottom: 16px; text-align: center;">🗑️ Удалить сообщение?</h3>
+            <button class="menu-btn" onclick="deleteMessageConfirm(false)">Удалить только у себя</button>
+            <button class="menu-btn danger" onclick="deleteMessageConfirm(true)">Удалить у обоих</button>
+            <button class="menu-btn" style="background: transparent;" onclick="closeModal('delete-msg-modal')">Отмена</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА УДАЛЕНИЯ ДИАЛОГА -->
+    <div class="modal-overlay" id="delete-chat-modal">
+        <div class="modal-card">
+            <h3 style="margin-bottom: 16px; text-align: center;">🗑️ Удалить переписку?</h3>
+            <p style="color: var(--text-muted); font-size: 12px; text-align: center; margin-bottom: 20px;">Действие невозможно отменить</p>
+            <button class="menu-btn" onclick="deleteChatConfirm(false)">Удалить у себя</button>
+            <button class="menu-btn danger" onclick="deleteChatConfirm(true)">Удалить у обоих участников</button>
+            <button class="menu-btn" style="background: transparent;" onclick="closeModal('delete-chat-modal')">Отмена</button>
         </div>
     </div>
 
@@ -635,7 +709,11 @@
         let myNameCombined = "";
         let currentPeer = null; 
         let currentRoomId = null;
-        let tempProfileAvatarBase64 = ""; // Временный контейнер фото профиля
+        let tempProfileAvatarBase64 = ""; 
+
+        // Идентификаторы выбранных элементов при удалении
+        let selectedMsgIdToDelete = null;
+        let selectedChatIdToDelete = null;
 
         // Сборщики слушателей для предотвращения зависаний
         let unsubDialogs = null;
@@ -664,6 +742,50 @@
             }
         }
 
+        // --- УМНОЕ ОТОБРАЖЕНИЕ ВРЕМЕНИ АКТИВНОСТИ ---
+        function formatFriendlyLastSeen(timestamp) {
+            if (!timestamp) return "офлайн";
+            const date = new Date(timestamp);
+            const now = new Date();
+            
+            const isToday = date.toDateString() === now.toDateString();
+            
+            const yesterday = new Date();
+            yesterday.setDate(now.getDate() - 1);
+            const isYesterday = date.toDateString() === yesterday.toDateString();
+            
+            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            if (isToday) {
+                return `был(а) в сети сегодня в ${timeStr}`;
+            } else if (isYesterday) {
+                return `был(а) в сети вчера в ${timeStr}`;
+            } else {
+                const dayStr = String(date.getDate()).padStart(2, '0');
+                const monthStr = String(date.getMonth() + 1).padStart(2, '0');
+                const yearStr = date.getFullYear();
+                return `был(а) в сети ${dayStr}.${monthStr}.${yearStr} в ${timeStr}`;
+            }
+        }
+
+        // --- КРАСИВОЕ СРАВНЕНИЕ ДЛЯ СЕПАРАТОРОВ ДАТ ---
+        function getFriendlyDateSeparator(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            
+            if (date.toDateString() === now.toDateString()) {
+                return "Сегодня";
+            }
+            
+            const yesterday = new Date();
+            yesterday.setDate(now.getDate() - 1);
+            if (date.toDateString() === yesterday.toDateString()) {
+                return "Вчера";
+            }
+            
+            return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
         // --- АВТОРИЗАЦИЯ ---
         setTimeout(() => {
             window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
@@ -681,6 +803,7 @@
                         document.getElementById('setting-name').value = prof.name || "";
                         document.getElementById('setting-lastname').value = prof.lastname || "";
                         document.getElementById('setting-username').value = prof.username ? prof.username : "";
+                        document.getElementById('setting-bio').value = prof.bio || "";
                         myNameCombined = (prof.name || "Без имени") + (prof.lastname ? " " + prof.lastname : "");
                         
                         tempProfileAvatarBase64 = prof.avatar || "";
@@ -699,6 +822,7 @@
                             name: myNameCombined,
                             lastname: "",
                             username: fallbackNick,
+                            bio: "",
                             avatar: ""
                         });
                         await window.fb.set(window.fb.ref(window.fb.db, `usernames/${fallbackNick}`), myUid);
@@ -776,7 +900,6 @@
                 const img = new Image();
                 img.src = event.target.result;
                 img.onload = () => {
-                    // Аватарка 120x120 и качество 0.5 гарантирует размер до 3 КБ!
                     canvas.width = 120;
                     canvas.height = 120;
                     const ctx = canvas.getContext('2d');
@@ -794,6 +917,7 @@
         async function saveProfileSettings() {
             const name = document.getElementById('setting-name').value.trim();
             const lastname = document.getElementById('setting-lastname').value.trim();
+            const bio = document.getElementById('setting-bio').value.trim();
             let username = document.getElementById('setting-username').value.trim().replace('@', '').toLowerCase();
 
             if (!name || !username) {
@@ -812,10 +936,10 @@
                 await window.fb.remove(window.fb.ref(window.fb.db, `usernames/${profSnap.val().username}`));
             }
 
-            // Запись в базу ОДИН раз — моментально обновится у всех друзей
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
                 name: name,
                 lastname: lastname,
+                bio: bio,
                 username: username,
                 avatar: tempProfileAvatarBase64
             });
@@ -853,7 +977,29 @@
                     row.className = "chat-row";
                     row.id = `chat-row-${peerId}`;
 
-                    row.onclick = () => openChatWindow(peerId, chatMeta.roomId);
+                    // Долгое нажатие на чат для удаления переписки
+                    let pressTimer;
+                    const startPress = () => {
+                        pressTimer = setTimeout(() => {
+                            triggerChatDeletion(peerId);
+                        }, 800);
+                    };
+                    const endPress = () => clearTimeout(pressTimer);
+                    row.addEventListener('mousedown', startPress);
+                    row.addEventListener('mouseup', endPress);
+                    row.addEventListener('mouseleave', endPress);
+                    row.addEventListener('touchstart', startPress);
+                    row.addEventListener('touchend', endPress);
+
+                    row.onclick = (e) => {
+                        // Если кликнули на аватар, открываем профиль и блокируем открытие чата
+                        if (e.target.classList.contains('chat-avatar')) {
+                            e.stopPropagation();
+                            showPeerProfile(peerId);
+                        } else {
+                            openChatWindow(peerId, chatMeta.roomId);
+                        }
+                    };
 
                     let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
 
@@ -920,7 +1066,7 @@
                                     timeText.style.color = "var(--online)";
                                 } else {
                                     dot.style.display = "none";
-                                    timeText.innerText = formatTimeDiff(p.lastSeen);
+                                    timeText.innerText = formatFriendlyLastSeen(p.lastSeen).replace("был(а) в сети ", "");
                                     timeText.style.color = "var(--text-muted)";
                                 }
                             }
@@ -953,21 +1099,7 @@
 
         async function deleteDialog(event, peerId) {
             event.stopPropagation();
-            if (confirm("Вы действительно хотите удалить этот чат из списка?")) {
-                await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/chats/${peerId}`));
-                loadDialogs();
-            }
-        }
-
-        function formatTimeDiff(timestamp) {
-            if (!timestamp) return "офлайн";
-            const diff = Date.now() - timestamp;
-            const mins = Math.floor(diff / 60000);
-            if (mins < 1) return "только что";
-            if (mins < 60) return `${mins}м назад`;
-            const hours = Math.floor(mins / 60);
-            if (hours < 24) return `${hours}ч назад`;
-            return new Date(timestamp).toLocaleDateString();
+            triggerChatDeletion(peerId);
         }
 
         // --- ИЗБРАННОЕ ---
@@ -976,7 +1108,7 @@
             openChatWindow(myUid, cloudRoom);
         }
 
-        // --- ОКНО ЧАТА И ИСТОРИЯ ---
+        // --- ОКНО ЧАТА И ИСТОРИЯ СООБЩЕНИЙ С СЕПАРАТОРАМИ ДАТ ---
         function openChatWindow(peerId, roomId) {
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
@@ -1021,13 +1153,13 @@
                     }
                 });
 
-                // Живой онлайн статус в шапке
+                // Живой онлайн статус в шапке (с новым умным временем)
                 const unsubPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (snap) => {
                     if (snap.exists() && snap.val().status === "online") {
                         headerStatus.innerText = "в сети";
                         headerStatus.style.color = "var(--online)";
                     } else if (snap.exists()) {
-                        headerStatus.innerText = `был(а) в сети ${formatTimeDiff(snap.val().lastSeen)}`;
+                        headerStatus.innerText = formatFriendlyLastSeen(snap.val().lastSeen);
                         headerStatus.style.color = "var(--text-muted)";
                     } else {
                         headerStatus.innerText = "офлайн";
@@ -1043,7 +1175,7 @@
             }
 
             // Загрузка переписки
-            unsubChatMessages = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), (snapshot) => {
+            unsubChatMessages = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), async (snapshot) => {
                 feed.innerHTML = "";
                 if (!snapshot.exists()) {
                     feed.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:20px;font-size:14px;">Сообщений нет. Начните переписку!</div>`;
@@ -1051,10 +1183,44 @@
                 }
                 
                 const messages = snapshot.val();
+                
+                // Сначала подтягиваем удаленные локально сообщения
+                const localDeletedSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/deletedMessages/${currentRoomId}`));
+                const localDeleted = localDeletedSnap.exists() ? localDeletedSnap.val() : {};
+
+                let lastMessageDateStr = "";
+
                 Object.entries(messages).forEach(([msgId, m]) => {
+                    if (localDeleted[msgId]) return; // Пропускаем сообщения, удаленные "для себя"
+
+                    // Добавление красивого группировочного сепаратора дат
+                    const messageDateStr = new Date(m.time).toDateString();
+                    if (messageDateStr !== lastMessageDateStr) {
+                        const dateDiv = document.createElement('div');
+                        dateDiv.className = "date-separator";
+                        dateDiv.innerText = getFriendlyDateSeparator(m.time);
+                        feed.appendChild(dateDiv);
+                        lastMessageDateStr = messageDateStr;
+                    }
+
                     const isOut = m.sender === myUid;
                     const container = document.createElement('div');
                     container.className = `msg-container ${isOut ? 'out' : 'in'}`;
+                    container.id = `msg-${msgId}`;
+
+                    // Вешаем долгое нажатие (0.8с) для вызова модалки удаления сообщений
+                    let msgTimer;
+                    const onMsgStart = () => {
+                        msgTimer = setTimeout(() => {
+                            triggerMessageDeletion(msgId);
+                        }, 800);
+                    };
+                    const onMsgEnd = () => clearTimeout(msgTimer);
+                    container.addEventListener('mousedown', onMsgStart);
+                    container.addEventListener('mouseup', onMsgEnd);
+                    container.addEventListener('mouseleave', onMsgEnd);
+                    container.addEventListener('touchstart', onMsgStart);
+                    container.addEventListener('touchend', onMsgEnd);
 
                     let raw = m.text || "";
                     if (raw.startsWith("[MEOW]")) {
@@ -1101,7 +1267,7 @@
 
         // --- ОТПРАВКА СООБЩЕНИЙ ---
         async function handleSendClick() {
-            const input = document.getElementById('message-input'); // ИСПРАВЛЕНО: Правильный ID 'message-input'
+            const input = document.getElementById('message-input');
             const txt = input.value.trim();
             if (!txt) return;
 
@@ -1126,7 +1292,6 @@
             const clipBtn = document.getElementById('clip-btn');
             const sendBtn = document.getElementById('send-btn');
             
-            // Включаем визуальный индикатор отправки
             clipBtn.innerText = "⏳";
             sendBtn.innerText = "⏳";
 
@@ -1141,8 +1306,6 @@
                             const canvas = document.createElement('canvas');
                             let width = img.width;
                             let height = img.height;
-                            
-                            // 500px макс сторона — идеальное мобильное качество без лишнего веса!
                             const maxSide = 500; 
 
                             if (width > height) {
@@ -1162,7 +1325,6 @@
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
                             
-                            // Качество 0.55 ужимает размер фото до 12-25 КБ! Передается секунда в секунду!
                             const compressedBase64 = canvas.toDataURL('image/jpeg', 0.55);
                             await transmitMedia(compressedBase64, 'image/jpeg');
                             
@@ -1171,9 +1333,9 @@
                         };
                     };
                 } else if (file.type.startsWith('video/')) {
-                    // Ограничиваем видео до 1.5 МБ
-                    if (file.size > 1.5 * 1024 * 1024) {
-                        alert("Размер видео превышает 1.5 МБ. Пожалуйста, отправляйте более короткие ролики!");
+                    // Разрешаем отправку видео объемом до 8 МБ
+                    if (file.size > 8.0 * 1024 * 1024) {
+                        alert("Размер видео слишком велик. Вы можете отправлять видео файлы объемом до 8 МБ!");
                         clipBtn.innerText = "📎";
                         sendBtn.innerText = "➤";
                         return;
@@ -1236,6 +1398,113 @@
             document.getElementById('media-viewer-content').innerHTML = "";
         }
 
+        // --- УПРАВЛЕНИЕ УДАЛЕНИЕМ СООБЩЕНИЙ ---
+        function triggerMessageDeletion(msgId) {
+            selectedMsgIdToDelete = msgId;
+            openModal('delete-msg-modal');
+        }
+
+        async function deleteMessageConfirm(deleteForBoth) {
+            if (!selectedMsgIdToDelete || !currentRoomId) return;
+
+            if (deleteForBoth) {
+                // Полное удаление сообщения для всех
+                await window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${selectedMsgIdToDelete}`));
+            } else {
+                // Удаление только на своем устройстве
+                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/deletedMessages/${currentRoomId}/${selectedMsgIdToDelete}`), true);
+            }
+
+            closeModal('delete-msg-modal');
+            selectedMsgIdToDelete = null;
+        }
+
+        // --- УПРАВЛЕНИЕ УДАЛЕНИЕМ ДИАЛОГОВ ---
+        function triggerChatDeletion(peerId) {
+            selectedChatIdToDelete = peerId;
+            openModal('delete-chat-modal');
+        }
+
+        async function deleteChatConfirm(deleteForBoth) {
+            if (!selectedChatIdToDelete) return;
+            
+            const pId = selectedChatIdToDelete;
+            const chatSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pId}`));
+            if (!chatSnap.exists()) return;
+            const rId = chatSnap.val().roomId;
+
+            if (deleteForBoth) {
+                // Стираем ветки контактов у обоих участников
+                await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pId}`));
+                await window.fb.remove(window.fb.ref(window.fb.db, `users/${pId}/chats/${myUid}`));
+                // Полностью уничтожаем переписку
+                await window.fb.remove(window.fb.ref(window.fb.db, `messages/${rId}`));
+            } else {
+                // Просто скрываем у себя из списка
+                await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pId}`));
+            }
+
+            closeModal('delete-chat-modal');
+            selectedChatIdToDelete = null;
+            if (currentPeer === pId) {
+                closeChat();
+            }
+            loadDialogs();
+        }
+
+        // --- ПОКАЗ ПРОФИЛЯ СОБЕСЕДНИКА ---
+        async function showPeerProfile(peerId) {
+            const avEl = document.getElementById('peer-profile-av');
+            const nameEl = document.getElementById('peer-profile-name');
+            const userEl = document.getElementById('peer-profile-username');
+            const bioEl = document.getElementById('peer-profile-bio');
+
+            avEl.style.backgroundImage = "none";
+            avEl.innerText = "?";
+            nameEl.innerText = "Загрузка...";
+            userEl.innerText = "";
+            bioEl.innerText = "";
+
+            if (peerId === myUid) {
+                // Свой собственный профиль (Избранное)
+                nameEl.innerText = "Избранное (Вы)";
+                userEl.innerText = "@cloud";
+                bioEl.innerText = "Личное зашифрованное хранилище.";
+                avEl.innerText = "☁️";
+                avEl.style.backgroundColor = "var(--accent)";
+                openModal('peer-profile-modal');
+                return;
+            }
+
+            const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`));
+            if (profSnap.exists()) {
+                const p = profSnap.val();
+                const displayName = (p.name || "Без имени") + (p.lastname ? " " + p.lastname : "");
+                
+                nameEl.innerText = displayName;
+                userEl.innerText = p.username ? "@" + p.username : "нет никнейма";
+                bioEl.innerText = p.bio || "Описание не указано.";
+
+                if (p.avatar) {
+                    avEl.style.backgroundImage = `url(${p.avatar})`;
+                    avEl.innerText = "";
+                } else {
+                    let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+                    avEl.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
+                    avEl.innerText = displayName[0].toUpperCase();
+                }
+            }
+
+            openModal('peer-profile-modal');
+        }
+
+        // Открытие профиля из шапки чата
+        function showActivePeerProfile() {
+            if (currentPeer) {
+                showPeerProfile(currentPeer);
+            }
+        }
+
         // --- ПОИСК СОБЕСЕДНИКА ПО НИКУ ---
         async function searchPeople() {
             let target = document.getElementById('search-by-username').value.trim().toLowerCase().replace('@', '');
@@ -1253,15 +1522,12 @@
                 const targetUid = snap.val();
                 closeModal('search-people-modal');
 
-                // Исключительно чистый Room ID без дублирования мутабельных полей
                 const rId = [myUid, targetUid].sort().join("_");
 
-                // Добавляем чат инициатору
                 await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${targetUid}`), {
                     roomId: rId
                 });
                 
-                // Добавляем чат получателю
                 await window.fb.set(window.fb.ref(window.fb.db, `users/${targetUid}/chats/${myUid}`), {
                     roomId: rId
                 });
