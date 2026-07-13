@@ -14,7 +14,6 @@
         import { getDatabase, ref, set, push, onValue, onChildAdded, get, child, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // Твой конфиг Firebase
         const firebaseConfig = {
           apiKey: "AIzaSyDQMqwnJp34H6I7ragLr14LQ4YszpDFYbg",
           authDomain: "meowmessenger.firebaseapp.com",
@@ -182,35 +181,9 @@
             margin-top: 4px;
         }
 
-        /* СЕГМЕНТЫ (ЧАТЫ / ГРУППЫ) */
-        .segment-wrapper {
-            margin: 10px 16px 6px 16px;
-            background: #1C1C1E;
-            padding: 4px;
-            border-radius: 8px;
-            display: flex;
-        }
-
-        .segment-btn {
-            flex: 1;
-            padding: 6px;
-            text-align: center;
-            font-size: 13px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-            color: var(--text-muted);
-        }
-
-        .segment-btn.active {
-            background: #2C2C2E;
-            color: white;
-        }
-
         /* ПОИСК */
         .search-row {
-            margin: 10px 16px;
+            margin: 12px 16px;
             display: flex;
             gap: 10px;
         }
@@ -248,9 +221,9 @@
         .chat-row {
             display: flex;
             align-items: center;
-            padding: 10px 16px;
+            padding: 12px 16px;
             cursor: pointer;
-            border-bottom: 1px solid #161618;
+            border-bottom: 1px solid #111113;
             transition: background 0.2s;
         }
 
@@ -259,8 +232,8 @@
         }
 
         .chat-avatar {
-            width: 48px;
-            height: 48px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background-size: cover;
             background-position: center;
@@ -268,21 +241,21 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 17px;
             color: white;
             position: relative;
             flex-shrink: 0;
         }
 
         .online-dot {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             background: var(--online);
             border-radius: 50%;
             position: absolute;
-            bottom: 0;
-            right: 0;
-            border: 2px solid var(--bg-dark);
+            bottom: -1px;
+            right: -1px;
+            border: 2.5px solid var(--bg-dark);
             display: none;
         }
 
@@ -296,12 +269,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
 
         .chat-row-name {
             font-weight: bold;
             font-size: 16px;
+            color: var(--text-white);
         }
 
         .chat-row-time {
@@ -315,6 +289,21 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .delete-chat-btn {
+            background: none;
+            border: none;
+            color: var(--error);
+            font-size: 16px;
+            padding: 8px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .delete-chat-btn:hover {
+            opacity: 1;
         }
 
         /* ОКНО ЧАТА */
@@ -383,7 +372,7 @@
         .msg-container {
             display: flex;
             flex-direction: column;
-            max-width: 70%;
+            max-width: 75%;
         }
 
         .msg-container.out {
@@ -395,7 +384,7 @@
         }
 
         .msg-bubble {
-            padding: 8px 14px;
+            padding: 10px 14px;
             font-size: 16px;
             line-height: 1.4;
             word-wrap: break-word;
@@ -417,16 +406,16 @@
         .msg-meta {
             display: flex;
             justify-content: flex-end;
-            padding: 2px 6px 0 6px;
+            padding: 4px 6px 0 6px;
             font-size: 11px;
             color: rgba(255, 255, 255, 0.5);
         }
 
         /* МЕДИА И ГОЛОСОВЫЕ */
         .msg-media {
-            width: 180px;
-            height: 130px;
-            border-radius: 20px;
+            width: 200px;
+            height: 150px;
+            border-radius: 14px;
             background-color: #161618;
             overflow: hidden;
             position: relative;
@@ -452,11 +441,11 @@
 
         /* ПАНЕЛЬ ВВОДА */
         .chat-input-bar {
-            padding: 8px;
+            padding: 10px;
             background-color: var(--bg-bar);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .input-container-inner {
@@ -609,10 +598,10 @@
             <div class="header-title" id="header-main-title">VK Meow</div>
         </div>
         <div class="header-buttons">
-            <button class="header-btn" onclick="openCloudChat()">☁️</button>
-            <button class="header-btn" onclick="openModal('profile-settings-modal')">⚙️</button>
-            <button class="header-btn" onclick="openModal('background-modal')">🎨</button>
-            <button class="header-btn" onclick="logoutAction()">🚪</button>
+            <button class="header-btn" title="Избранное (Облако)" onclick="openCloudChat()">☁️</button>
+            <button class="header-btn" title="Настройки профиля" onclick="openModal('profile-settings-modal')">⚙️</button>
+            <button class="header-btn" title="Настройки оформления" onclick="openModal('background-modal')">🎨</button>
+            <button class="header-btn" title="Выйти" onclick="logoutAction()">🚪</button>
         </div>
     </div>
 
@@ -621,12 +610,8 @@
         
         <!-- ВКЛАДКА 0: ЧАТЫ -->
         <div class="tab-panel active" id="tab-0">
-            <div class="segment-wrapper">
-                <div class="segment-btn active" id="seg-chats" onclick="switchSegment(0)">Чаты</div>
-                <div class="segment-btn" id="seg-groups" onclick="switchSegment(1)">Группы</div>
-            </div>
             <div class="search-row">
-                <input type="text" id="chat-search" class="search-bar" placeholder="Поиск диалогов..." oninput="filterDialogs(this.value)">
+                <input type="text" id="chat-search" class="search-bar" placeholder="Поиск по диалогам..." oninput="filterDialogs(this.value)">
                 <button class="search-action-btn" style="background: #1C1C1E;" onclick="openModal('search-people-modal')">👤</button>
             </div>
             <div class="chats-list" id="chats-list-container"></div>
@@ -676,7 +661,6 @@
         <div class="chat-input-bar">
             <input type="file" id="media-upload" style="display: none;" accept="image/*,video/*" onchange="uploadMedia(this.files[0])">
             <button class="header-btn" style="color: var(--accent)" onclick="document.getElementById('media-upload').click()">📎</button>
-            <button class="header-btn" id="e2e-lock-btn" onclick="toggleEncryptionState()">🔒</button>
 
             <div class="input-container-inner">
                 <textarea class="message-input" id="message-input" placeholder="Сообщение..." rows="1" oninput="adjustInputHeight(this)"></textarea>
@@ -695,10 +679,12 @@
     <div class="modal-overlay" id="profile-settings-modal">
         <div class="modal-card">
             <h3 style="margin-bottom: 15px; text-align: center;">⚙️ Настройки профиля</h3>
-            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; text-align: center;">Почта скрыта и не видна другим пользователям</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; text-align: center;">Почта полностью скрыта от других участников.</div>
+            
             <input type="text" id="setting-name" class="search-bar" style="width: 100%; margin-bottom: 10px;" placeholder="Имя">
             <input type="text" id="setting-lastname" class="search-bar" style="width: 100%; margin-bottom: 10px;" placeholder="Фамилия (необязательно)">
             <input type="text" id="setting-username" class="search-bar" style="width: 100%; margin-bottom: 15px;" placeholder="@username">
+            
             <button class="search-action-btn" style="width: 100%; background: var(--accent); color: white; margin-bottom: 8px;" onclick="saveProfileSettings()">Сохранить</button>
             <button class="search-action-btn" style="width: 100%; background: #2C2C2E; color: white;" onclick="closeModal('profile-settings-modal')">Отмена</button>
         </div>
@@ -719,8 +705,8 @@
     <!-- МОДАЛКА ПОИСКА ПОЛЬЗОВАТЕЛЕЙ -->
     <div class="modal-overlay" id="search-people-modal">
         <div class="modal-card">
-            <h3 style="margin-bottom: 15px; text-align: center;">👤 Найти котика по нику</h3>
-            <input type="text" id="search-by-username" class="search-bar" style="width: 100%; margin-bottom: 12px;" placeholder="@username">
+            <h3 style="margin-bottom: 15px; text-align: center;">👤 Поиск по нику @username</h3>
+            <input type="text" id="search-by-username" class="search-bar" style="width: 100%; margin-bottom: 12px;" placeholder="@username (без знака @)">
             <button class="search-action-btn" style="width: 100%; background: var(--accent); color: white; margin-bottom: 8px;" onclick="searchPeople()">Найти</button>
             <button class="search-action-btn" style="width: 100%; background: #2C2C2E; color: white;" onclick="closeModal('search-people-modal')">Закрыть</button>
         </div>
@@ -739,13 +725,10 @@
 
         let myUid = null;
         let myEmail = null;
+        let myNameCombined = "";
         let currentPeer = null; 
         let currentRoomId = null;
-        let currentSegment = 0; // 0 = Чаты, 1 = Группы
         let activeTab = 0;
-
-        let myKeyPair = null;
-        let peerPublicKey = null;
 
         let mediaRecorder = null;
         let voiceChunks = [];
@@ -754,7 +737,14 @@
         let isRecording = false;
         let currentAudio = null;
 
-        // --- CRYPTO (AES-GCM Fallback на CryptoJS CBC) ---
+        // Глобальные переменные отписок Firebase слушателей во избежание «утечек»
+        let unsubDialogs = null;
+        let unsubPresenceList = {};
+        let unsubLastMsgList = {};
+        let unsubChatMessages = null;
+        let unsubHeaderPresence = null;
+
+        // --- CRYPTO (AES) ---
         function aesEncrypt(text, keyString) {
             const key = CryptoJS.enc.Utf8.parse(keyString.padEnd(32, '0').slice(0, 32));
             const iv = CryptoJS.lib.WordArray.random(16);
@@ -782,21 +772,21 @@
                     myEmail = user.email;
                     document.getElementById('login-screen').style.display = 'none';
                     
-                    // Обновляем присутствие в сети
                     updatePresence("online");
 
-                    // Подтягиваем данные профиля в настройки
+                    // Подтягиваем данные профиля
                     const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
                     if (profSnap.exists()) {
                         const prof = profSnap.val();
                         document.getElementById('setting-name').value = prof.name || "";
                         document.getElementById('setting-lastname').value = prof.lastname || "";
                         document.getElementById('setting-username').value = prof.username ? "@" + prof.username : "";
+                        myNameCombined = prof.name + (prof.lastname ? " " + prof.lastname : "");
                     } else {
-                        // Значения по умолчанию
-                        const fallbackNick = "user_" + Math.floor(1000 + Math.random() * 9000);
+                        const fallbackNick = "id_" + Math.floor(1000 + Math.random() * 9000);
+                        myNameCombined = user.email.split('@')[0];
                         await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
-                            name: user.email.split('@')[0],
+                            name: myNameCombined,
                             lastname: "",
                             username: fallbackNick,
                             avatar: ""
@@ -867,13 +857,6 @@
             }
         }
 
-        function switchSegment(index) {
-            currentSegment = index;
-            document.getElementById('seg-chats').classList.toggle('active', index === 0);
-            document.getElementById('seg-groups').classList.toggle('active', index === 1);
-            loadDialogs();
-        }
-
         // --- СОХРАНЕНИЕ ПРОФИЛЯ ---
         async function saveProfileSettings() {
             const name = document.getElementById('setting-name').value.trim();
@@ -885,20 +868,17 @@
                 return;
             }
 
-            // Проверка уникальности username
             const nameCheck = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${username}`));
             if (nameCheck.exists() && nameCheck.val() !== myUid) {
-                alert("Данный @username уже занят другим пользователем!");
+                alert("Данный @username уже занят!");
                 return;
             }
 
-            // Получаем старый ник, чтобы удалить из индекса usernames
             const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
             if (profSnap.exists() && profSnap.val().username !== username) {
                 await window.fb.remove(window.fb.ref(window.fb.db, `usernames/${profSnap.val().username}`));
             }
 
-            // Пишем в БД
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
                 name: name,
                 lastname: lastname,
@@ -906,52 +886,65 @@
             });
             await window.fb.set(window.fb.ref(window.fb.db, `usernames/${username}`), myUid);
 
+            myNameCombined = name + (lastname ? " " + lastname : "");
             closeModal('profile-settings-modal');
             alert("Профиль успешно обновлен!");
             loadDialogs();
         }
 
-        // --- ЗАГРУЗКА РЕАЛЬНЫХ ДИАЛОГОВ (КАК В ORIGINAL) ---
+        // --- ЗАГРУЗКА ДИАЛОГОВ (БЕЗ СТАРЫХ УТЕЧЕК) ---
         function loadDialogs() {
+            // Сбрасываем старые подписки на списки
+            if (unsubDialogs) unsubDialogs();
+            Object.values(unsubPresenceList).forEach(un => un());
+            Object.values(unsubLastMsgList).forEach(un => un());
+            unsubPresenceList = {};
+            unsubLastMsgList = {};
+
             const container = document.getElementById('chats-list-container');
             container.innerHTML = "";
 
-            if (currentSegment === 0) {
-                // Выкачиваем ветку контактов пользователя
-                window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/chats`), async (snap) => {
-                    container.innerHTML = "";
-                    if (!snap.exists()) return;
-                    const chats = snap.val();
+            unsubDialogs = window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/chats`), async (snap) => {
+                container.innerHTML = "";
+                if (!snap.exists()) return;
+                const chats = snap.val();
 
-                    for (let peerId in chats) {
-                        const chatMeta = chats[peerId];
-                        
-                        // Получаем онлайн-статус и время захода пользователя в реальном времени
-                        const row = document.createElement('div');
-                        row.className = "chat-row";
-                        row.onclick = () => openChatWindow(peerId, chatMeta.name, chatMeta.avatar, chatMeta.roomId);
+                for (let peerId in chats) {
+                    const chatMeta = chats[peerId];
+                    const isCloud = (peerId === myUid);
+                    
+                    const row = document.createElement('div');
+                    row.className = "chat-row";
+                    
+                    // Нажатие открывает диалог
+                    row.onclick = () => openChatWindow(peerId, chatMeta.name, chatMeta.avatar, chatMeta.roomId);
 
-                        let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
-                        let avStyle = chatMeta.avatar ? `background-image:url(${chatMeta.avatar})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`;
-                        let letter = chatMeta.name ? chatMeta.name[0].toUpperCase() : "🐾";
+                    let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+                    let avStyle = chatMeta.avatar ? `background-image:url(${chatMeta.avatar})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`;
+                    let letter = isCloud ? "☁️" : (chatMeta.name ? chatMeta.name[0].toUpperCase() : "👤");
 
-                        row.innerHTML = `
-                            <div class="chat-avatar" id="avatar-${peerId}" style="${avStyle}">${chatMeta.avatar ? '' : letter}<div class="online-dot" id="dot-${peerId}"></div></div>
-                            <div class="chat-info">
-                                <div class="chat-name-row">
-                                    <div class="chat-row-name">${chatMeta.name}</div>
-                                    <div class="chat-row-time" id="time-${peerId}">Meow</div>
-                                </div>
-                                <div class="chat-row-msg" id="last-msg-${peerId}">Загрузка сообщений...</div>
+                    row.innerHTML = `
+                        <div class="chat-avatar" id="avatar-${peerId}" style="${avStyle}">
+                            ${chatMeta.avatar ? '' : letter}
+                            <div class="online-dot" id="dot-${peerId}"></div>
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-name-row">
+                                <div class="chat-row-name">${isCloud ? "Избранное (Облако)" : chatMeta.name}</div>
+                                <div class="chat-row-time" id="time-${peerId}"></div>
                             </div>
-                        `;
-                        container.appendChild(row);
+                            <div class="chat-row-msg" id="last-msg-${peerId}">Загрузка сообщений...</div>
+                        </div>
+                        <button class="delete-chat-btn" onclick="deleteDialog(event, '${peerId}')" title="Удалить диалог">🗑️</button>
+                    `;
+                    container.appendChild(row);
 
-                        // Слушаем статус присутствия
-                        window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (pSnap) => {
+                    // 1. Слушаем присутствие в сети
+                    if (!isCloud) {
+                        unsubPresenceList[peerId] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (pSnap) => {
                             const dot = document.getElementById(`dot-${peerId}`);
                             const timeText = document.getElementById(`time-${peerId}`);
-                            if (pSnap.exists() && dot) {
+                            if (pSnap.exists() && dot && timeText) {
                                 const presence = pSnap.val();
                                 if (presence.status === "online") {
                                     dot.style.display = "block";
@@ -964,56 +957,43 @@
                                 }
                             }
                         });
+                    } else {
+                        const timeText = document.getElementById(`time-${peerId}`);
+                        if (timeText) timeText.innerText = "облако";
+                    }
 
-                        // Получаем последнее сообщение
-                        window.fb.onValue(window.fb.ref(window.fb.db, `messages/${chatMeta.roomId}/list`), (mSnap) => {
-                            const msgBox = document.getElementById(`last-msg-${peerId}`);
-                            if (mSnap.exists() && msgBox) {
-                                const messages = Object.values(mSnap.val());
-                                const lastM = messages[messages.length - 1];
-                                
-                                // Расшифровываем
-                                let decrypted = lastM.text;
-                                if (decrypted.startsWith("[MEOW]")) {
-                                    decrypted = aesDecrypt(decrypted.substring(6), BASE_AES_KEY);
-                                }
-                                try {
-                                    const parsed = JSON.parse(decrypted);
-                                    msgBox.innerText = parsed.text || "[Медиа]";
-                                } catch (e) {
-                                    msgBox.innerText = decrypted;
-                                }
-                            } else if (msgBox) {
-                                msgBox.innerText = "Нет сообщений";
+                    // 2. Слушаем и дешифруем последнее сообщение в реальном времени
+                    unsubLastMsgList[peerId] = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${chatMeta.roomId}/list`), (mSnap) => {
+                        const msgBox = document.getElementById(`last-msg-${peerId}`);
+                        if (mSnap.exists() && msgBox) {
+                            const messages = Object.values(mSnap.val());
+                            const lastM = messages[messages.length - 1];
+                            
+                            let decrypted = lastM.text;
+                            if (decrypted.startsWith("[MEOW]")) {
+                                decrypted = aesDecrypt(decrypted.substring(6), BASE_AES_KEY);
                             }
-                        });
-                    }
-                });
-            } else {
-                // Вкладка Группы/Каналы
-                window.fb.onValue(window.fb.ref(window.fb.db, `groups`), (snap) => {
-                    container.innerHTML = "";
-                    if (!snap.exists()) return;
-                    const groups = snap.val();
+                            try {
+                                const parsed = JSON.parse(decrypted);
+                                msgBox.innerText = parsed.text || "[Медиа]";
+                            } catch (e) {
+                                msgBox.innerText = decrypted;
+                            }
+                        } else if (msgBox) {
+                            msgBox.innerText = "Нет сообщений";
+                        }
+                    });
+                }
+            });
+        }
 
-                    for (let gId in groups) {
-                        const g = groups[gId];
-                        const row = document.createElement('div');
-                        row.className = "chat-row";
-                        row.onclick = () => openChatWindow(gId, g.name, g.avatar, `room_${gId}`);
-
-                        row.innerHTML = `
-                            <div class="chat-avatar" style="background-image:url(${g.avatar})"></div>
-                            <div class="chat-info">
-                                <div class="chat-name-row">
-                                    <div class="chat-row-name">${g.name}</div>
-                                </div>
-                                <div class="chat-row-msg">${g.description}</div>
-                            </div>
-                        `;
-                        container.appendChild(row);
-                    }
-                });
+        // --- УДАЛЕНИЕ ДИАЛОГА ИЗ СПИСКА ---
+        async function deleteDialog(event, peerId) {
+            event.stopPropagation(); // Исключаем открытие чата
+            if (confirm("Вы действительно хотите удалить этот диалог из списка? История переписки на сервере не удалится.")) {
+                await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/chats/${peerId}`));
+                alert("Диалог успешно удален из списка.");
+                loadDialogs();
             }
         }
 
@@ -1034,30 +1014,42 @@
             openChatWindow(myUid, "Избранное (Облако)", "", cloudRoom);
         }
 
-        // --- ОКНО ЧАТА ---
+        // --- ОКНО ЧАТА (ЧИСТОЕ ОТ ПЕРЕКРЫТИЯ СЛУШАТЕЛЕЙ) ---
         async function openChatWindow(peerId, name, avatar, roomId) {
+            // 1. Очищаем старые подписки этого чата перед открытием нового!
+            if (unsubChatMessages) { unsubChatMessages(); unsubChatMessages = null; }
+            if (unsubHeaderPresence) { unsubHeaderPresence(); unsubHeaderPresence = null; }
+
             currentPeer = peerId;
             currentRoomId = roomId;
 
             document.getElementById('chat-window').classList.add('active');
-            document.getElementById('chat-header-title').innerText = name;
+            document.getElementById('chat-feed').innerHTML = ""; // Очистка старой ленты визуально
+
+            const isCloud = (peerId === myUid);
+            document.getElementById('chat-header-title').innerText = isCloud ? "Избранное (Облако)" : name;
             
             const headerAv = document.getElementById('chat-header-av');
             let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
-            if (avatar) {
+            if (isCloud) {
+                headerAv.style.backgroundImage = "none";
+                headerAv.style.backgroundColor = "var(--accent)";
+                headerAv.innerText = "☁️";
+            } else if (avatar) {
                 headerAv.style.backgroundImage = `url(${avatar})`;
                 headerAv.innerText = "";
             } else {
                 headerAv.style.backgroundImage = "none";
                 headerAv.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
-                headerAv.innerText = name[0].toUpperCase();
+                headerAv.innerText = name ? name[0].toUpperCase() : "👤";
             }
 
             // Статус онлайн в шапке
-            if (peerId === myUid) {
+            if (isCloud) {
                 document.getElementById('chat-header-status').innerText = "персональное облако";
+                document.getElementById('chat-header-status').style.color = "var(--text-muted)";
             } else {
-                window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (snap) => {
+                unsubHeaderPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (snap) => {
                     const statusDiv = document.getElementById('chat-header-status');
                     if (snap.exists() && snap.val().status === "online") {
                         statusDiv.innerText = "в сети";
@@ -1076,17 +1068,22 @@
         }
 
         function closeChat() {
+            // Сбрасываем подписки чата при выходе
+            if (unsubChatMessages) { unsubChatMessages(); unsubChatMessages = null; }
+            if (unsubHeaderPresence) { unsubHeaderPresence(); unsubHeaderPresence = null; }
+            
             document.getElementById('chat-window').classList.remove('active');
             currentPeer = null;
             currentRoomId = null;
         }
 
-        // --- КАТАЛОГ СИСТЕМЫ СООБЩЕНИЙ ---
+        // --- ЗАГРУЗКА И ДЕШИФРОВКА КАНАЛА СООБЩЕНИЙ ---
         function loadMessages() {
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = "";
 
-            window.fb.onChildAdded(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), (snap) => {
+            // Слушаем дочерние элементы и вешаем только одну подписку
+            unsubChatMessages = window.fb.onChildAdded(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), (snap) => {
                 if (!currentRoomId) return;
                 const m = snap.val();
                 
@@ -1094,7 +1091,7 @@
                 const container = document.createElement('div');
                 container.className = `msg-container ${isOut ? 'out' : 'in'}`;
 
-                // Расшифровка
+                // Автоматическая расшифровка AES
                 let decryptedPayload = m.text || "";
                 if (decryptedPayload.startsWith("[MEOW]")) {
                     decryptedPayload = aesDecrypt(decryptedPayload.substring(6), BASE_AES_KEY);
@@ -1130,7 +1127,6 @@
                 bubbleHtml += `
                         <div class="msg-meta">
                             <span>${new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                            <span style="cursor: pointer; margin-left: 8px; color: var(--accent);" onclick="translateTextBubble(this, '${messageObject.text}')">🌐</span>
                         </div>
                     </div>
                 `;
@@ -1159,16 +1155,12 @@
 
         function sendSecurePayload(payload) {
             const rawStr = JSON.stringify(payload);
-            const isEncState = localStorage.getItem(`enc_state_${currentPeer}`) !== "false";
-
-            let finalString = rawStr;
-            if (isEncState) {
-                finalString = "[MEOW]" + aesEncrypt(rawStr, BASE_AES_KEY);
-            }
+            
+            // Абсолютно прозрачное шифрование AES-256 по умолчанию
+            const finalString = "[MEOW]" + aesEncrypt(rawStr, BASE_AES_KEY);
 
             const dbPacket = {
                 sender: myUid,
-                senderEmail: "hidden@meow.safe",
                 text: finalString,
                 time: Date.now()
             };
@@ -1263,7 +1255,7 @@
             }
         }
 
-        // --- МЕДИАФАЙЛЫ (ОТПРАВКА & ПОЛНОЭКРАННЫЙ РЕЖИМ) ---
+        // --- МЕДИАФАЙЛЫ ---
         async function uploadMedia(file) {
             if (!file) return;
             const base64 = await fileToBase64(file);
@@ -1376,68 +1368,52 @@
             window.fb.set(window.fb.ref(window.fb.db, `news/${postId}/likes`), currentLikes + 1);
         }
 
-        // --- ВСПЛЫВАЮЩИЙ ПЕРЕВОДЧИК ---
-        async function translateTextBubble(btn, text) {
-            try {
-                const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ru&dt=t&q=${encodeURIComponent(text)}`);
-                const data = await response.json();
-                const translated = data[0][0][0];
-                alert("Перевод: " + translated);
-            } catch (err) {
-                alert("Ошибка перевода!");
-            }
-        }
-
-        // --- ПОИСК КОТИКОВ ПО НИКУ ---
+        // --- ПОИСК ПОЛЬЗОВАТЕЛЕЙ И ДОБАВЛЕНИЕ (АБСОЛЮТНО НАДЕЖНО) ---
         async function searchPeople() {
             let target = document.getElementById('search-by-username').value.trim().toLowerCase().replace('@', '');
             if (!target) return;
 
+            if (target === document.getElementById('setting-username').value.trim().replace('@', '').toLowerCase()) {
+                alert("Вы не можете искать самого себя. Пользуйтесь Избранным (облако).");
+                return;
+            }
+
             const snap = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${target}`));
             if (snap.exists()) {
                 const targetUid = snap.val();
-                
-                // Получаем профиль
                 const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${targetUid}/profile`));
+                
                 if (profSnap.exists()) {
                     const prof = profSnap.val();
                     closeModal('search-people-modal');
 
-                    // Генерируем ID комнаты на основе хешей UID
-                    const rId = targetUid < myUid ? `${targetUid}_${myUid}` : `${myUid}_${targetUid}`;
-                    
-                    // Добавляем контакт обоим
+                    // Генерируем уникальный, строго упорядоченный RoomID для исключения дубликатов
+                    const rId = [myUid, targetUid].sort().join("_");
+                    const targetCombinedName = prof.name + (prof.lastname ? " " + prof.lastname : "");
+
+                    // Добавляем запись в чаты инициатору
                     await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${targetUid}`), {
-                        name: prof.name + (prof.lastname ? " " + prof.lastname : ""),
+                        name: targetCombinedName,
                         avatar: prof.avatar || "",
                         roomId: rId
                     });
                     
-                    // Подтягиваем данные отправителя для второй стороны
-                    const myProfSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
-                    const myProf = myProfSnap.val();
+                    // Добавляем запись в чаты получателю
                     await window.fb.set(window.fb.ref(window.fb.db, `users/${targetUid}/chats/${myUid}`), {
-                        name: myProf.name + (myProf.lastname ? " " + myProf.lastname : ""),
-                        avatar: myProf.avatar || "",
+                        name: myNameCombined,
+                        avatar: "",
                         roomId: rId
                     });
 
-                    alert("Диалог успешно создан!");
-                    openChatWindow(targetUid, prof.name + (prof.lastname ? " " + prof.lastname : ""), prof.avatar, rId);
+                    alert(`Пользователь ${targetCombinedName} найден! Чат создан.`);
+                    openChatWindow(targetUid, targetCombinedName, prof.avatar, rId);
                 }
             } else {
-                alert("Котик с таким ником не зарегистрирован!");
+                alert("Пользователь с таким ником не найден!");
             }
         }
 
-        function toggleEncryptionState() {
-            const isEnc = localStorage.getItem(`enc_state_${currentPeer}`) !== "false";
-            localStorage.setItem(`enc_state_${currentPeer}`, !isEnc);
-            document.getElementById('e2e-lock-btn').innerText = !isEnc ? "🔒" : "🔓";
-            alert(!isEnc ? "Шифрование чата активировано!" : "Шифрование чата отключено!");
-        }
-
-        // Вспомогательные функции
+        // Вспомогательные утилиты
         function fileToBase64(file) {
             return new Promise((res, rej) => {
                 const r = new FileReader();
@@ -1461,7 +1437,7 @@
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-        // Инициализация базы данных (Новости, группы)
+        // Инициализация базы данных
         async function seedDatabaseIfNeeded() {
             const newsSnap = await window.fb.get(window.fb.ref(window.fb.db, `news`));
             if (!newsSnap.exists()) {
@@ -1474,15 +1450,7 @@
                     image: "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?q=80&w=600&auto=format&fit=crop"
                 });
             }
-            const groupSnap = await window.fb.get(window.fb.ref(window.fb.db, `groups`));
-            if (!groupSnap.exists()) {
-                window.fb.set(window.fb.ref(window.fb.db, `groups/official`), {
-                    name: "Кошачий Мир",
-                    avatar: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=200&auto=format&fit=crop",
-                    description: "Группа любителей пушистых котиков."
-                });
-            }
         }
     </script>
 </body>
-    </html>
+</html>
