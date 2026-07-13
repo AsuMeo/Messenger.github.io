@@ -14,7 +14,7 @@
         import { getDatabase, ref, set, push, onValue, onChildAdded, get, child, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // Твоя конфигурация Firebase
+        // Конфигурация Firebase вашего веб-приложения
         const firebaseConfig = {
           apiKey: "AIzaSyDQMqwnJp34H6I7ragLr14LQ4YszpDFYbg",
           authDomain: "meowmessenger.firebaseapp.com",
@@ -29,8 +29,11 @@
         const db = getDatabase(app);
         const auth = getAuth(app);
 
-        // Экспорт объектов для глобального доступа в классическом JS
-        window.fb = { db, auth, ref, set, push, onValue, onChildAdded, get, child, update };
+        // Экспорт объектов для глобального доступа в классическом JS (ИСПРАВЛЕНО: добавлены функции Auth)
+        window.fb = { 
+            db, auth, ref, set, push, onValue, onChildAdded, get, child, update,
+            createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut 
+        };
     </script>
 
     <style>
@@ -358,7 +361,6 @@
         let isRecording = false;
 
         // --- УТИЛИТЫ КРИПТОГРАФИИ ---
-        // Ключ шифрования - это ID вашей приватной комнаты. Его знают только двое участников.
         function encryptMessage(text, roomId) {
             return CryptoJS.AES.encrypt(text, roomId).toString();
         }
@@ -387,20 +389,20 @@
             }
 
             btn.disabled = true;
-            btn.innerText = "Подключение к сети...";
+            btn.innerText = "Подключение...";
             errDiv.style.display = 'none';
 
             try {
-                // Пытаемся войти
+                // Вход через Firebase Auth
                 await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
             } catch (err) {
-                // Если нет аккаунта — регистрируем новый
-                if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+                // Если аккаунта нет — создаем новый
+                if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/invalid-login-credentials') {
                     try {
                         const credential = await window.fb.createUserWithEmailAndPassword(window.fb.auth, email, password);
                         const user = credential.user;
                         
-                        // Создаем начальный дефолтный профиль
+                        // Задаем уникальный юзернейм по умолчанию
                         const defaultUsername = "id" + Math.floor(100000 + Math.random() * 900000);
                         await window.fb.set(window.fb.ref(window.fb.db, `users/${user.uid}/profile`), {
                             username: defaultUsername,
@@ -414,7 +416,7 @@
                         btn.innerText = "Войти или Зарегистрироваться";
                     }
                 } else {
-                    showError("Ошибка авторизации: " + err.message);
+                    showError("Ошибка: " + err.message);
                     btn.disabled = false;
                     btn.innerText = "Войти или Зарегистрироваться";
                 }
@@ -435,7 +437,7 @@
                     myEmail = user.email;
                     document.getElementById('login-screen').style.display = 'none';
                     
-                    // Слушаем личный профиль в БД
+                    // Подгружаем личный профиль
                     window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/profile`), (snapshot) => {
                         if (snapshot.exists()) {
                             myProfile = snapshot.val();
@@ -443,15 +445,15 @@
                         }
                     });
 
-                    // Создаем дефолтный чат «Избранное»
+                    // Создаем «Избранное»
                     setupSavedMessages();
-                    // Загружаем список чатов
+                    // Загружаем диалоги
                     loadMyChats();
                 } else {
                     document.getElementById('login-screen').style.display = 'flex';
                 }
             });
-        }, 1200);
+        }, 1000);
 
         function handleLogout() {
             window.fb.signOut(window.fb.auth).then(() => {
@@ -474,34 +476,30 @@
             }
         }
 
-        // --- СОХРАНЕНИЕ ПРОФИЛЯ (С ПРОВЕРКОЙ НА УНИКАЛЬНОСТЬ @USERNAME) ---
+        // --- СОХРАНЕНИЕ ПРОФИЛЯ ---
         async function saveProfileChanges() {
             const newUsername = document.getElementById('profile-username').value.trim().toLowerCase();
             const newBio = document.getElementById('profile-bio').value.trim();
             const avatarInput = document.getElementById('profile-modal-avatar-preview').style.backgroundImage;
             const avatarBase64 = avatarInput.startsWith('url("data:') ? avatarInput.slice(5, -2) : myProfile.avatar;
 
-            // Валидация юзернейма на английские буквы и цифры
             const usernameRegex = /^[a-z0-9_]{3,15}$/;
             if (!usernameRegex.test(newUsername)) {
-                alert("Ошибка! Юзернейм должен быть от 3 до 15 символов, содержать только латинские буквы, цифры и символ подчеркивания.");
+                alert("Ошибка! Юзернейм должен быть от 3 до 15 символов (латиница, цифры, подчёркивание).");
                 return;
             }
 
             try {
-                // Проверяем, свободен ли юзернейм
                 const checkSnap = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${newUsername}`));
                 if (checkSnap.exists() && checkSnap.val() !== myUid) {
-                    alert("Данный юзернейм уже занят другим котиком! Придумайте другой.");
+                    alert("Данный юзернейм уже занят!");
                     return;
                 }
 
-                // Удаляем старый индекс юзернейма, если он изменился
                 if (myProfile.username && myProfile.username !== newUsername) {
                     await window.fb.set(window.fb.ref(window.fb.db, `usernames/${myProfile.username}`), null);
                 }
 
-                // Сохраняем новые данные
                 await window.fb.set(window.fb.ref(window.fb.db, `usernames/${newUsername}`), myUid);
                 await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
                     username: newUsername,
@@ -516,7 +514,6 @@
             }
         }
 
-        // Сжатие загружаемой аватарки через Canvas перед отправкой
         async function handleProfileAvatarUpload(file) {
             if (!file) return;
             const compressedBase64 = await resizeAndCompressImage(file, 200, 200);
@@ -525,12 +522,11 @@
             avatarDiv.innerText = "";
         }
 
-        // --- ГЛОБАЛЬНЫЙ ПОИСК ПО ЮЗЕРНЕЙМУ (@) ИЛИ EMAIL ---
+        // --- ГЛОБАЛЬНЫЙ ПОИСК ПО ЮЗЕРНЕЙМУ (@) ---
         async function handleGlobalSearch() {
             let searchVal = document.getElementById('search-input').value.trim().toLowerCase();
             if (!searchVal) return;
 
-            // Если поиск начинается с @, убираем этот символ для поиска в БД
             if (searchVal.startsWith('@')) {
                 searchVal = searchVal.substring(1);
             }
@@ -538,39 +534,21 @@
             try {
                 let targetUid = null;
 
-                // 1. Пытаемся найти как юзернейм
                 const userSnap = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${searchVal}`));
                 if (userSnap.exists()) {
                     targetUid = userSnap.val();
-                } else {
-                    // 2. Иначе ищем как чистый email, заменив точку на подчеркивание
-                    const cleanEmail = searchVal.replace(/\./g, '_');
-                    const emailSnap = await window.fb.get(window.fb.ref(window.fb.db, `users` /* в продакшене лучше структурировать */));
-                    // Пройдемся по пользователям (упрощенный поиск для демонстрации без сторонних серверов)
-                    if (emailSnap.exists()) {
-                        const users = emailSnap.val();
-                        for (let uid in users) {
-                            if (users[uid].profile && users[uid].profile.username === searchVal) {
-                                targetUid = uid;
-                                break;
-                            }
-                        }
-                    }
                 }
 
                 if (targetUid) {
                     if (targetUid === myUid) {
-                        // Открываем избранное
                         const roomId = "saved_" + myUid;
                         openChatWindow("Избранное", "@избранное", "", roomId, targetUid);
                     } else {
-                        // Получаем данные собеседника
                         const profileSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${targetUid}/profile`));
                         if (profileSnap.exists()) {
                             const prof = profileSnap.val();
                             const roomId = generateRoomId(myUid, targetUid);
                             
-                            // Сохраняем диалог в список чатов обоим
                             await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${targetUid}`), { roomId: roomId, username: prof.username, avatar: prof.avatar });
                             await window.fb.set(window.fb.ref(window.fb.db, `users/${targetUid}/chats/${myUid}`), { roomId: roomId, username: myProfile.username, avatar: myProfile.avatar });
                             
@@ -578,10 +556,10 @@
                         }
                     }
                 } else {
-                    alert("Пользователь с таким @username или email не найден.");
+                    alert("Пользователь с таким @username не найден.");
                 }
             } catch (err) {
-                console.error("Поиск завершился ошибкой: ", err);
+                console.error("Ошибка поиска: ", err);
             }
         }
 
@@ -627,7 +605,7 @@
             });
         }
 
-        // ---ОТКРЫТИЕ ДИАЛОГА ---
+        // --- ОТКРЫТИЕ ДИАЛОГА ---
         function openChatWindow(title, subtitle, avatar, roomId, targetUserId) {
             activeRoomId = roomId;
             activeChatUserId = targetUserId;
@@ -655,7 +633,7 @@
             activeChatUserId = null;
         }
 
-        // --- СООБЩЕНИЯ (E2E AES ШИФРОВАНИЕ И РАСШИФРОВКА) ---
+        // --- СООБЩЕНИЯ (E2E AES ШИФРОВАНИЕ) ---
         function sendPlainMessage() {
             const txtArea = document.getElementById('msg-textarea');
             const text = txtArea.value.trim();
@@ -668,13 +646,12 @@
 
         function pushEncryptedMessage(payload) {
             const rawString = JSON.stringify(payload);
-            // Шифруем данные сообщения перед отправкой в Firebase!
             const encryptedData = encryptMessage(rawString, activeRoomId);
 
             const dbMsgPacket = {
                 sender: myUid,
                 senderEmail: myEmail,
-                payload: encryptedData, // На сервере будет лежать только зашифрованная строка!
+                payload: encryptedData,
                 time: Date.now()
             };
 
@@ -690,7 +667,6 @@
                 if (activeRoomId !== roomId) return;
                 const dbMsg = snapshot.val();
                 
-                // Расшифровываем полученную строку на клиенте
                 const decryptedStr = decryptMessage(dbMsg.payload, roomId);
                 let messagePayload = { text: "[Не удалось расшифровать]" };
                 try {
@@ -700,7 +676,6 @@
                 const bubble = document.createElement('div');
                 bubble.className = `bubble ${dbMsg.sender === myUid ? 'out' : 'in'}`;
 
-                // Рендер картинки или видео
                 if (messagePayload.fileData) {
                     if (messagePayload.fileType.startsWith('image/')) {
                         bubble.innerHTML += `<img src="${messagePayload.fileData}" onclick="window.open('${messagePayload.fileData}')">`;
@@ -711,7 +686,6 @@
                     }
                 }
 
-                // Рендер текста
                 if (messagePayload.text && messagePayload.text !== "[Медиа]") {
                     const textDiv = document.createElement('div');
                     textDiv.innerText = messagePayload.text;
@@ -728,18 +702,16 @@
             });
         }
 
-        // --- РАБОТА С МЕДИАФАЙЛАМИ (СЖАТИЕ НА КЛИЕНТЕ И БЕСПЛАТНАЯ ОТПРАВКА) ---
+        // --- РАБОТА С МЕДИАФАЙЛАМИ (СЖАТИЕ И ОТПРАВКА) ---
         async function uploadMediaFile(file) {
             if (!file || !activeRoomId) return;
 
             let fileDataUrl = "";
             if (file.type.startsWith('image/')) {
-                // Картинку сжимаем до 1000px для экономии места
                 fileDataUrl = await resizeAndCompressImage(file, 1000, 1000);
             } else {
-                // Видео или аудио кодируем в Base64 напрямую
-                if (file.size > 8 * 1024 * 1024) { // Ограничение в 8MB
-                    alert("Слишком большой файл! Размер видео/файла не должен превышать 8 МБ.");
+                if (file.size > 8 * 1024 * 1024) {
+                    alert("Слишком большой файл! Максимум — 8 МБ.");
                     return;
                 }
                 fileDataUrl = await fileToBase64(file);
@@ -790,7 +762,6 @@
                 isRecording = true;
                 voiceSeconds = 0;
 
-                // UI
                 document.getElementById('msg-textarea').style.display = 'none';
                 document.getElementById('voice-record-ui').style.display = 'flex';
                 document.getElementById('voice-btn').innerText = "🛑";
@@ -820,7 +791,6 @@
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
             }
 
-            // Возвращаем UI
             document.getElementById('msg-textarea').style.display = 'block';
             document.getElementById('voice-record-ui').style.display = 'none';
             document.getElementById('voice-btn').innerText = "🎤";
@@ -828,7 +798,7 @@
             document.getElementById('voice-timer').innerText = "0:00";
         }
 
-        // --- УТИЛИТЫ И ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+        // --- УТИЛИТЫ ---
         function fileToBase64(file) {
             return new Promise((res, rej) => {
                 const r = new FileReader();
@@ -838,7 +808,6 @@
             });
         }
 
-        // Функция ресайза и сжатия картинок на Canvas (сохраняет качество при уменьшении веса в 10 раз!)
         function resizeAndCompressImage(file, maxWidth, maxHeight) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -861,7 +830,7 @@
                         canvas.height = h;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Кодируем в JPEG с качеством 70%
+                        resolve(canvas.toDataURL('image/jpeg', 0.7));
                     }
                 }
             });
