@@ -1228,64 +1228,72 @@
             return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
-        // --- ИНИЦИАЛИЗАЦИЯ (МГНОВЕННАЯ, БЕЗ ЛИШНИХ ЗАДЕРЖЕК) ---
+        // --- ИНИЦИАЛИЗАЦИЯ (МГНОВЕННАЯ, БЕЗ ЛИШНИХ ЗАДЕРЖЕК И СО СТРОГОЙ ОБРАБОТКОЙ ОШИБОК) ---
         window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             if (user) {
                 myUid = user.uid;
                 myEmail = user.email;
                 document.getElementById('login-screen').style.display = 'none';
                 
-                const myPresenceRef = window.fb.ref(window.fb.db, `users/${myUid}/presence`);
-                window.fb.onDisconnect(myPresenceRef).set({
-                    status: "offline",
-                    lastSeen: Date.now()
-                }).then(() => {
-                    window.fb.set(myPresenceRef, {
-                        status: "online",
+                try {
+                    const myPresenceRef = window.fb.ref(window.fb.db, `users/${myUid}/presence`);
+                    window.fb.onDisconnect(myPresenceRef).set({
+                        status: "offline",
                         lastSeen: Date.now()
+                    }).then(() => {
+                        window.fb.set(myPresenceRef, {
+                            status: "online",
+                            lastSeen: Date.now()
+                        });
                     });
-                });
 
-                await initE2EE();
+                    await initE2EE();
 
-                const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
-                if (profSnap.exists()) {
-                    const prof = profSnap.val();
-                    const decryptedName = decryptField(prof.name);
-                    const decryptedLastname = decryptField(prof.lastname);
-                    const decryptedBio = decryptField(prof.bio);
-                    
-                    document.getElementById('setting-name').value = decryptedName || "";
-                    document.getElementById('setting-lastname').value = decryptedLastname || "";
-                    document.getElementById('setting-username').value = prof.username ? prof.username : "";
-                    document.getElementById('setting-bio').value = decryptedBio || "";
-                    myNameCombined = (decryptedName || "Без имени") + (decryptedLastname ? " " + decryptedLastname : "");
-                    
-                    tempProfileAvatarBase64 = decryptField(prof.avatar) || "";
-                    myProfileAvatarFetched = tempProfileAvatarBase64;
-                    const myAvEl = document.getElementById('my-profile-avatar');
-                    if (tempProfileAvatarBase64) {
-                        myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
-                        myAvEl.innerText = "";
+                    const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
+                    if (profSnap.exists()) {
+                        const prof = profSnap.val();
+                        const decryptedName = decryptField(prof.name);
+                        const decryptedLastname = decryptField(prof.lastname);
+                        const decryptedBio = decryptField(prof.bio);
+                        
+                        document.getElementById('setting-name').value = decryptedName || "";
+                        document.getElementById('setting-lastname').value = decryptedLastname || "";
+                        document.getElementById('setting-username').value = prof.username ? prof.username : "";
+                        document.getElementById('setting-bio').value = decryptedBio || "";
+                        myNameCombined = (decryptedName || "Без имени") + (decryptedLastname ? " " + decryptedLastname : "");
+                        
+                        tempProfileAvatarBase64 = decryptField(prof.avatar) || "";
+                        myProfileAvatarFetched = tempProfileAvatarBase64;
+                        const myAvEl = document.getElementById('my-profile-avatar');
+                        if (tempProfileAvatarBase64) {
+                            myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
+                            myAvEl.innerText = "";
+                        } else {
+                            myAvEl.style.backgroundImage = "none";
+                            myAvEl.innerText = myNameCombined[0].toUpperCase();
+                        }
                     } else {
-                        myAvEl.style.backgroundImage = "none";
-                        myAvEl.innerText = myNameCombined[0].toUpperCase();
+                        const fallbackNick = "id_" + Math.floor(1000 + Math.random() * 9000);
+                        myNameCombined = user.email.split('@')[0];
+                        await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
+                            name: encryptField(myNameCombined),
+                            lastname: encryptField(""),
+                            username: fallbackNick,
+                            bio: encryptField(""),
+                            avatar: encryptField("")
+                        });
+                        await window.fb.set(window.fb.ref(window.fb.db, `usernames/${fallbackNick}`), myUid);
                     }
-                } else {
-                    const fallbackNick = "id_" + Math.floor(1000 + Math.random() * 9000);
-                    myNameCombined = user.email.split('@')[0];
-                    await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
-                        name: encryptField(myNameCombined),
-                        lastname: encryptField(""),
-                        username: fallbackNick,
-                        bio: encryptField(""),
-                        avatar: encryptField("")
-                    });
-                    await window.fb.set(window.fb.ref(window.fb.db, `usernames/${fallbackNick}`), myUid);
-                }
 
-                seedDatabaseIfNeeded();
-                switchTab(0);
+                    seedDatabaseIfNeeded();
+                    switchTab(0);
+                } catch (initErr) {
+                    console.error("Initialization error after login:", initErr);
+                    // Force logout and show an error to the user
+                    alert("Ошибка инициализации приложения после входа: " + initErr.message + ". Попробуйте снова.");
+                    window.fb.signOut(window.fb.auth); 
+                    document.getElementById('login-screen').style.display = 'flex';
+                }
             } else {
                 document.getElementById('login-screen').style.display = 'flex';
             }
@@ -1296,7 +1304,13 @@
             const password = document.getElementById('login-password').value.trim();
             const errDiv = document.getElementById('auth-error');
 
-            if (!email || !password) return;
+            errDiv.style.display = 'none'; // Скрываем предыдущие ошибки
+
+            if (!email || !password) {
+                errDiv.innerText = "Пожалуйста, введите почту и пароль.";
+                errDiv.style.display = 'block';
+                return;
+            }
 
             try {
                 await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
