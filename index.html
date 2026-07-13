@@ -217,6 +217,7 @@
             color: white;
             position: relative;
             flex-shrink: 0;
+            image-rendering: -webkit-optimize-contrast;
         }
 
         .online-dot {
@@ -306,8 +307,8 @@
         }
 
         .chat-header-avatar {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             background-size: cover;
             background-position: center;
@@ -316,6 +317,7 @@
             justify-content: center;
             font-weight: bold;
             flex-shrink: 0;
+            image-rendering: -webkit-optimize-contrast;
         }
 
         .chat-header-info {
@@ -404,7 +406,6 @@
             border: none;
         }
 
-        /* Стиль для сгорающих сообщений */
         .msg-bubble.is-burning {
             border: 1px dashed var(--burn) !important;
             box-shadow: 0 0 10px rgba(255, 149, 0, 0.2) !important;
@@ -435,6 +436,7 @@
             max-height: 240px;
             display: block;
             object-fit: cover;
+            image-rendering: -webkit-optimize-contrast;
         }
 
         .msg-text {
@@ -626,49 +628,6 @@
             margin-top: 15px;
         }
 
-        .post-card {
-            background: #161618;
-            border-radius: 16px;
-            padding: 14px;
-            margin: 12px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.02);
-        }
-
-        .post-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .post-author-av {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-size: cover;
-        }
-
-        .post-author-info {
-            margin-left: 10px;
-        }
-
-        .menu-btn {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            background: #2C2C2E;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            text-align: center;
-            transition: background 0.2s;
-        }
-        .menu-btn:hover { background: #3A3A3C; }
-        .menu-btn.danger { background: var(--error); color: white; }
-        .menu-btn.danger:hover { background: #E0241B; }
-
         .secure-badge {
             display: flex;
             align-items: center;
@@ -682,65 +641,6 @@
             border-radius: 10px;
             border: 1px dashed rgba(0, 199, 129, 0.3);
             margin-top: 15px;
-        }
-
-        .forward-list-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-bottom: 6px;
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .forward-list-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .modern-checkbox-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 12px 16px;
-            border-radius: 14px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            cursor: pointer;
-        }
-
-        .modern-checkbox-label {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .modern-checkbox {
-            appearance: none;
-            width: 22px;
-            height: 22px;
-            border: 2px solid var(--text-muted);
-            border-radius: 6px;
-            outline: none;
-            cursor: pointer;
-            position: relative;
-            transition: background 0.2s, border-color 0.2s;
-        }
-
-        .modern-checkbox:checked {
-            background-color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        .modern-checkbox:checked::after {
-            content: "✓";
-            position: absolute;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
         }
 
         /* Стиль для кнопки сгорания */
@@ -999,6 +899,8 @@
 
         let objectUrlCache = {};
         let derivedKeysCache = {};
+        
+        let profileCache = {};
 
         let unsubDialogs = null;
         let unsubChatMessages = null;
@@ -1196,7 +1098,7 @@
                     myUid = user.uid;
                     myEmail = user.email;
                     document.getElementById('login-screen').style.display = 'none';
-                    
+
                     const myPresenceRef = window.fb.ref(window.fb.db, `users/${myUid}/presence`);
                     window.fb.onDisconnect(myPresenceRef).set({
                         status: "offline",
@@ -1223,6 +1125,7 @@
                         document.getElementById('setting-lastname').value = decLast || "";
                         document.getElementById('setting-username').value = prof.username ? prof.username : "";
                         document.getElementById('setting-bio').value = decBio || "";
+
                         myNameCombined = (decName || "Без имени") + (decLast ? " " + decLast : "");
                         
                         tempProfileAvatarBase64 = decAvatar || "";
@@ -1313,11 +1216,11 @@
                 const img = new Image();
                 img.src = event.target.result;
                 img.onload = () => {
-                    canvas.width = 120;
-                    canvas.height = 120;
+                    canvas.width = 320;
+                    canvas.height = 320;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, 120, 120);
-                    tempProfileAvatarBase64 = canvas.toDataURL('image/jpeg', 0.5);
+                    ctx.drawImage(img, 0, 0, 320, 320);
+                    tempProfileAvatarBase64 = canvas.toDataURL('image/jpeg', 0.90);
                     
                     const myAvEl = document.getElementById('my-profile-avatar');
                     myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
@@ -1363,6 +1266,27 @@
             switchTab(0);
         }
 
+        function getCachedProfile(peerId, callback) {
+            if (profileCache[peerId]) {
+                callback(profileCache[peerId]);
+                return;
+            }
+            window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/profile`), (profSnap) => {
+                if (profSnap.exists()) {
+                    const prof = profSnap.val();
+                    const p = {
+                        name: decryptProfileData(prof.name),
+                        lastname: decryptProfileData(prof.lastname),
+                        avatar: decryptProfileData(prof.avatar),
+                        bio: decryptProfileData(prof.bio),
+                        username: prof.username
+                    };
+                    profileCache[peerId] = p;
+                    callback(p);
+                }
+            });
+        }
+
         function loadDialogs() {
             if (unsubDialogs) unsubDialogs();
             Object.values(activePresenceListeners).forEach(un => un());
@@ -1380,19 +1304,6 @@
                 cloudRow.className = "chat-row";
                 cloudRow.id = `chat-row-${myUid}`;
                 
-                let cloudPressTimer;
-                const startCloudPress = () => {
-                    cloudPressTimer = setTimeout(() => {
-                        triggerChatDeletion(myUid);
-                    }, 800);
-                };
-                const endCloudPress = () => clearTimeout(cloudPressTimer);
-                cloudRow.addEventListener('mousedown', startCloudPress);
-                cloudRow.addEventListener('mouseup', endCloudPress);
-                cloudRow.addEventListener('mouseleave', endCloudPress);
-                cloudRow.addEventListener('touchstart', startCloudPress);
-                cloudRow.addEventListener('touchend', endCloudPress);
-
                 cloudRow.onclick = (e) => {
                     if (e.target.classList.contains('chat-avatar')) {
                         e.stopPropagation();
@@ -1444,19 +1355,6 @@
                     row.className = "chat-row";
                     row.id = `chat-row-${peerId}`;
 
-                    let pressTimer;
-                    const startPress = () => {
-                        pressTimer = setTimeout(() => {
-                            triggerChatDeletion(peerId);
-                        }, 800);
-                    };
-                    const endPress = () => clearTimeout(pressTimer);
-                    row.addEventListener('mousedown', startPress);
-                    row.addEventListener('mouseup', endPress);
-                    row.addEventListener('mouseleave', endPress);
-                    row.addEventListener('touchstart', startPress);
-                    row.addEventListener('touchend', endPress);
-
                     row.onclick = (e) => {
                         if (e.target.classList.contains('chat-avatar')) {
                             e.stopPropagation();
@@ -1483,33 +1381,23 @@
                     `;
                     container.appendChild(row);
 
-                    activePresenceListeners[peerId + "_profile"] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/profile`), (profSnap) => {
+                    getCachedProfile(peerId, (cached) => {
                         const nameEl = document.getElementById(`name-${peerId}`);
                         const avEl = document.getElementById(`avatar-${peerId}`);
-                        if (profSnap.exists()) {
-                            const prof = profSnap.val();
-                            
-                            const decName = decryptProfileData(prof.name);
-                            const decLast = decryptProfileData(prof.lastname);
-                            const decAvatar = decryptProfileData(prof.avatar);
-
-                            const freshName = (decName || "Без имени") + (decLast ? " " + decLast : "");
-                            if (nameEl) nameEl.innerText = freshName;
-                            
-                            if (avEl) {
-                                if (decAvatar) {
-                                    avEl.style.backgroundImage = `url(${decAvatar})`;
-                                    avEl.innerText = "";
-                                    avEl.style.backgroundColor = "transparent";
-                                } else {
-                                    avEl.style.backgroundImage = "none";
-                                    avEl.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
-                                    avEl.innerText = freshName[0].toUpperCase();
-                                }
+                        const freshName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
+                        if (nameEl) nameEl.innerText = freshName;
+                        if (avEl) {
+                            if (cached.avatar) {
+                                avEl.style.backgroundImage = `url(${cached.avatar})`;
+                                avEl.innerText = "";
+                                avEl.style.backgroundColor = "transparent";
+                            } else {
+                                avEl.style.backgroundImage = "none";
+                                avEl.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
+                                avEl.innerText = freshName[0].toUpperCase();
                             }
-
-                            getDerivedSharedKey(peerId);
                         }
+                        getDerivedSharedKey(peerId);
                     });
 
                     activePresenceListeners[peerId + "_presence"] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (pSnap) => {
@@ -1627,26 +1515,19 @@
                 }
                 headerStatus.innerText = "персональное защищенное хранилище";
             } else {
-                unsubHeaderPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/profile`), (snap) => {
-                    if (snap.exists()) {
-                        const prof = snap.val();
-                        const decName = decryptProfileData(prof.name);
-                        const decLast = decryptProfileData(prof.lastname);
-                        const decAvatar = decryptProfileData(prof.avatar);
+                getCachedProfile(peerId, (cached) => {
+                    const displayName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
+                    headerTitle.innerHTML = `${displayName} <span style="color: var(--secure); font-size: 14px;" title="Сквозное шифрование">🔒</span>`;
 
-                        const displayName = (decName || "Без имени") + (decLast ? " " + decLast : "");
-                        headerTitle.innerHTML = `${displayName} <span style="color: var(--secure); font-size: 14px;" title="Сквозное шифрование">🔒</span>`;
-
-                        if (decAvatar) {
-                            headerAv.style.backgroundImage = `url(${decAvatar})`;
-                            headerAv.innerText = "";
-                            headerAv.style.backgroundColor = "transparent";
-                        } else {
-                            headerAv.style.backgroundImage = "none";
-                            let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
-                            headerAv.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
-                            headerAv.innerText = displayName[0].toUpperCase();
-                        }
+                    if (cached.avatar) {
+                        headerAv.style.backgroundImage = `url(${cached.avatar})`;
+                        headerAv.innerText = "";
+                        headerAv.style.backgroundColor = "transparent";
+                    } else {
+                        headerAv.style.backgroundImage = "none";
+                        let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+                        headerAv.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
+                        headerAv.innerText = displayName[0].toUpperCase();
                     }
                 });
 
@@ -1667,9 +1548,7 @@
                     restorePresenceStatus();
                 });
 
-                const oldUnsubHeader = unsubHeaderPresence;
                 unsubHeaderPresence = () => {
-                    if (oldUnsubHeader) oldUnsubHeader();
                     unsubPresence();
                 };
 
@@ -1714,10 +1593,9 @@
                         return;
                     }
 
-                    // Моментальная отправка флага read на сервер, если сообщение получено и не прочитано
+                    // Чтение на лету
                     if (m.sender !== myUid && m.read !== true) {
-                        window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), { read: true })
-                            .catch(err => console.error("Ошибка прочтения:", err));
+                        window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), { read: true });
                     }
 
                     const messageDateStr = new Date(m.time).toDateString();
@@ -1741,7 +1619,6 @@
                     } catch (e) {}
 
                     if (container) {
-                        // Динамическое обновление галочек на лету в реальном времени!
                         const ticksSpan = container.querySelector('.ticks-status');
                         if (ticksSpan && m.sender === myUid) {
                             ticksSpan.innerHTML = m.read ? `<span style="color: #64B5F6; font-weight: bold;">✓✓</span>` : `<span>✓</span>`;
@@ -2078,7 +1955,7 @@
                             const canvas = document.createElement('canvas');
                             let width = img.width;
                             let height = img.height;
-                            const maxSide = 800; 
+                            const maxSide = 1600; 
 
                             if (width > height) {
                                 if (width > maxSide) {
@@ -2097,7 +1974,7 @@
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
                             
-                            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.88); 
                             await transmitDirectMedia(compressedBase64, 'image/jpeg');
                             
                             clipBtn.innerText = "📎";
@@ -2106,7 +1983,7 @@
                     };
                 } else if (file.type.startsWith('video/')) {
                     if (file.size > 1.5 * 1024 * 1024) {
-                        alert("Размер видео превышает 1.5 МБ. Пожалуйста, отправляйте ролики меньшей длительности!");
+                        alert("Размер видео превышает 1.5 МБ.");
                         clipBtn.innerText = "📎";
                         sendBtn.innerText = "➤";
                         return;
@@ -2212,27 +2089,20 @@
                     for (let [peerId, meta] of Object.entries(chats)) {
                         if (peerId === myUid) continue;
                         
-                        const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`));
-                        if (profSnap.exists()) {
-                            const prof = profSnap.val();
-                            
-                            const decName = decryptProfileData(prof.name);
-                            const decLast = decryptProfileData(prof.lastname);
-                            const decAvatar = decryptProfileData(prof.avatar);
-
-                            const name = (decName || "Без имени") + (decLast ? " " + decLast : "");
+                        getCachedProfile(peerId, (prof) => {
+                            const name = (prof.name || "Без имени") + (prof.lastname ? " " + prof.lastname : "");
                             const item = document.createElement('div');
                             item.className = "forward-list-item";
                             item.onclick = () => executeForward(peerId, meta.roomId);
                             
                             item.innerHTML = `
-                                <div class="chat-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;${decAvatar ? `background-image:url(${decAvatar})` : `background-color:var(--accent)`}">
-                                    ${decAvatar ? '' : name[0].toUpperCase()}
+                                <div class="chat-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;${prof.avatar ? `background-image:url(${prof.avatar})` : `background-color:var(--accent)`}">
+                                    ${prof.avatar ? '' : name[0].toUpperCase()}
                                 </div>
                                 <div style="font-weight:bold;font-size:14px;">${name}</div>
                             `;
                             listContainer.appendChild(item);
-                        }
+                        });
                     }
                 }
             });
@@ -2355,30 +2225,21 @@
                 return;
             }
 
-            const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`));
-            if (profSnap.exists()) {
-                const p = profSnap.val();
-                
-                const decName = decryptProfileData(p.name);
-                const decLast = decryptProfileData(p.lastname);
-                const decBio = decryptProfileData(p.bio);
-                const decAvatar = decryptProfileData(p.avatar);
-
-                const displayName = (decName || "Без имени") + (decLast ? " " + decLast : "");
-                
+            getCachedProfile(peerId, (cached) => {
+                const displayName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
                 nameEl.innerText = displayName;
-                userEl.innerText = p.username ? "@" + p.username : "нет никнейма";
-                bioEl.innerText = decBio || "Описание не указано.";
+                userEl.innerText = cached.username ? "@" + cached.username : "нет никнейма";
+                bioEl.innerText = cached.bio || "Описание не указано.";
 
-                if (decAvatar) {
-                    avEl.style.backgroundImage = `url(${decAvatar})`;
+                if (cached.avatar) {
+                    avEl.style.backgroundImage = `url(${cached.avatar})`;
                     avEl.innerText = "";
                 } else {
                     let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
                     avEl.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
                     avEl.innerText = displayName[0].toUpperCase();
                 }
-            }
+            });
 
             openModal('peer-profile-modal');
         }
