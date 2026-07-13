@@ -5,31 +5,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>MeowMail Cloud (Firebase)</title>
     
-    <!-- Подключаем Firebase SDK -->
+    <!-- Подключаем Firebase SDK через CDN -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, onChildAdded, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // --- ВАШИ ДАННЫЕ ИЗ КОНСОЛИ FIREBASE ---
-        // (ЗАМЕНЕНО НА ДАННЫЕ, ПРЕДОСТАВЛЕННЫЕ ПОЛЬЗОВАТЕЛЕМ)
-        const firebaseConfig = { 
-          apiKey : "AIzaSyDQMqwnJp34H6I7ragLr14LQ4YszpDFYbg" , 
-          authDomain : "meowmessenger.firebaseapp.com" , 
-          databaseURL : "https://meowmessenger-default-rtdb.europe-west1.firebasedatabase.app" , 
-          projectId : "meowmessenger" , 
-          storageBucket : "meowmessenger.firebasestorage.app" , 
-          messagingSenderId : "906512822162" , 
-          appId : "1:906512822162:web:a868af851cec5a3381db4b" 
+        // Конфигурация Firebase вашего веб-приложения
+        const firebaseConfig = {
+          apiKey: "AIzaSyDQMqwnJp34H6I7ragLr14LQ4YszpDFYbg",
+          authDomain: "meowmessenger.firebaseapp.com",
+          databaseURL: "https://meowmessenger-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "meowmessenger",
+          storageBucket: "meowmessenger.firebasestorage.app",
+          messagingSenderId: "906512822162",
+          appId: "1:906512822162:web:a868af851cec5a3381db4b"
         };
 
         // Инициализация
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        const db = getDatabase(app, firebaseConfig.databaseURL);
         const auth = getAuth(app);
 
-        // Экспорт в глобальную область видимости
-        window.fb = { db, auth, ref, set, push, onValue, onChildAdded, get };
+        // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
+        let currentUser = null;
+        let activeChatEmail = null;
+        let activeRoomId = null;
+
+        // --- ФУНКЦИИ ВХОДА ---
+        window.authAction = async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('login-btn');
+            const errDiv = document.getElementById('auth-error');
+            
+            btn.disabled = true;
+            btn.innerText = "Минутку...";
+            errDiv.innerText = "";
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (err) {
+                try {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                } catch (regErr) {
+                    errDiv.innerText = "Ошибка: " + regErr.message;
+                    btn.disabled = false;
+                    btn.innerText = "Войти / Создать аккаунт";
+                }
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('login-screen').style.display = 'none';
+                loadMyChats();
+            }
+        });
+
+        // --- РАБОТА С ЧАТАМИ ---
+        window.createNewChat = async () => {
+            const peerEmail = document.getElementById('new-chat-email').value.trim().toLowerCase();
+            if (!peerEmail || peerEmail === currentUser.email) return;
+
+            const roomId = await generateRoomId(currentUser.email, peerEmail);
+            const myClean = currentUser.email.replace(/\./g, '_');
+            const peerClean = peerEmail.replace(/\./g, '_');
+
+            await set(ref(db, `users/${myClean}/contacts/${peerClean}`), { email: peerEmail, roomId: roomId });
+            await set(ref(db, `users/${peerClean}/contacts/${myClean}`), { email: currentUser.email, roomId: roomId });
+
+            document.getElementById('new-chat-modal').classList.remove('active');
+            openChat(peerEmail, roomId);
+        };
+
+        function loadMyChats() {
+            const myClean = currentUser.email.replace(/\./g, '_');
+            onValue(ref(db, `users/${myClean}/contacts`), (snapshot) => {
+                const list = document.getElementById('chats-list');
+                list.innerHTML = '';
+                const contacts = snapshot.val();
+                if (contacts) {
+                    Object.values(contacts).forEach(c => {
+                        const div = document.createElement('div');
+                        div.className = `chat-item ${activeChatEmail === c.email ? 'active' : ''}`;
+                        div.innerHTML = `<div class="avatar">${c.email[0].toUpperCase()}</div><div><b>${c.email}</b></div>`;
+                        div.onclick = () => openChat(c.email, c.roomId);
+                        list.appendChild(div);
+                    });
+                }
+            });
+        }
+
+        window.openChat = (email, roomId) => {
+            activeChatEmail = email;
+            activeRoomId = roomId;
+            document.body.classList.add('chat-open');
+            document.getElementById('chat-header-name').innerText = email;
+            document.getElementById('chat-header-avatar').innerText = email[0].toUpperCase();
+            document.getElementById('input-bar').style.display = 'flex';
+            loadMessages(roomId);
+        };
+
+        // --- СООБЩЕНИЯ (ТЕКСТ + ФАЙЛЫ) ---
+        window.sendTextMessage = () => {
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if (text) pushMessage({ text });
+            input.value = ''; input.style.height = 'auto';
+        };
+
+        window.handleFileUpload = async (file) => {
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) return alert("Файл слишком большой (макс 10МБ)");
+            
+            const base64 = await fileToBase64(file);
+            pushMessage({
+                text: "[Медиа]",
+                fileData: base64,
+                fileType: file.type
+            });
+        };
+
+        function pushMessage(payload) {
+            if (!activeRoomId) return;
+            const msgData = {
+                sender: currentUser.email,
+                timestamp: Date.now(),
+                ...payload
+            };
+            const msgRef = push(ref(db, `messages/${activeRoomId}`));
+            set(msgRef, msgData);
+        }
+
+        function loadMessages(roomId) {
+            const feed = document.getElementById('messages-feed');
+            feed.innerHTML = '';
+            
+            onChildAdded(ref(db, `messages/${roomId}`), (snap) => {
+                if (activeRoomId !== roomId) return;
+                const m = snap.val();
+                const b = document.createElement('div');
+                b.className = `bubble ${m.sender === currentUser.email ? 'out' : 'in'}`;
+
+                if (m.fileData) {
+                    if (m.fileType.startsWith('image/')) {
+                        b.innerHTML = `<img src="${m.fileData}">`;
+                    } else if (m.fileType.startsWith('video/')) {
+                        b.innerHTML = `<video src="${m.fileData}" controls></video>`;
+                    }
+                } else {
+                    b.innerText = m.text;
+                }
+                
+                feed.appendChild(b);
+                feed.scrollTop = feed.scrollHeight;
+            });
+        }
+
+        // Вспомогательные функции
+        function fileToBase64(file) {
+            return new Promise((res, rej) => {
+                const r = new FileReader();
+                r.readAsDataURL(file);
+                r.onload = () => res(r.result);
+                r.onerror = e => rej(e);
+            });
+        }
+
+        async function generateRoomId(e1, e2) {
+            const s = [e1, e2].sort().join('|');
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+            return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('').slice(0,20);
+        }
     </script>
     
     <style>
@@ -37,7 +186,7 @@
             --bg-dark: #0a0a0a;
             --bg-surface: #1a1a1c;
             --bg-input: #2c2c2e;
-            --accent: #ff9f0a; /* Оранжевый "мяу" стиль */
+            --accent: #ff9f0a;
             --text-main: #ffffff;
             --text-muted: #8e8e93;
             --msg-in: #2c2c2e;
@@ -48,24 +197,20 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
         body { background: var(--bg-dark); color: var(--text-main); height: 100dvh; display: flex; overflow: hidden; }
 
-        /* Экран входа */
         #login-screen {
             position: fixed; inset: 0; background: radial-gradient(circle, #2c2c2e 0%, #000 100%);
             display: flex; align-items: center; justify-content: center; z-index: 1000;
         }
         .login-card { width: 90%; max-width: 380px; background: var(--bg-surface); padding: 40px; border-radius: 30px; text-align: center; border: 1px solid var(--border); }
         .login-input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-input); color: #fff; margin-bottom: 12px; outline: none; }
-        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); }
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-weight: 700; cursor: pointer; }
 
-        /* Основной интерфейс */
-        .sidebar { width: 350px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: var(--bg-dark); }
+        .sidebar { width: 350px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .chat-window { flex: 1; display: flex; flex-direction: column; background: #000; }
         
         .header { height: 70px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); border-bottom: 1px solid var(--border); }
         .chats-list { flex: 1; overflow-y: auto; }
-        .chat-item { padding: 15px 20px; border-bottom: 1px solid #222; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
-        .chat-item:hover { background: #222; }
+        .chat-item { padding: 15px 20px; border-bottom: 1px solid #222; cursor: pointer; display: flex; align-items: center; gap: 12px; }
         .chat-item.active { background: #2c2c2e; }
 
         .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: #000; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
@@ -76,8 +221,8 @@
         .bubble.out { align-self: flex-end; background: var(--msg-out); color: #000; border-bottom-right-radius: 4px; }
         .bubble img, .bubble video { max-width: 100%; border-radius: 12px; display: block; margin-top: 5px; }
 
-        .input-bar { padding: 15px; background: var(--bg-surface); display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--border); }
-        .input-bar textarea { flex: 1; background: var(--bg-input); border: none; border-radius: 20px; color: #fff; padding: 12px 18px; resize: none; outline: none; max-height: 100px; }
+        .input-bar { padding: 15px; background: var(--bg-surface); display: flex; gap: 10px; align-items: center; }
+        .input-bar textarea { flex: 1; background: var(--bg-input); border: none; border-radius: 20px; color: #fff; padding: 12px 18px; resize: none; outline: none; }
         
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; }
         .modal.active { display: flex; }
@@ -97,18 +242,18 @@
     <div id="login-screen">
         <div class="login-card">
             <div style="font-size: 50px; margin-bottom: 10px;">🐾</div>
-            <h1 style="margin-bottom: 20px;">MeowMail Cloud</h1>
+            <h1>MeowMail Cloud</h1>
+            <p style="color:var(--text-muted); margin-bottom:20px; font-size:14px;">Firebase Edition</p>
             <input type="email" id="email" class="login-input" placeholder="Email">
             <input type="password" id="password" class="login-input" placeholder="Пароль">
-            <button class="btn" id="login-btn" onclick="authAction()">Войти / Создать аккаунт</button>
+            <button class="btn" id="login-btn" onclick="authAction()">Войти / Регистрация</button>
             <div id="auth-error" style="color: var(--error); margin-top: 15px; font-size: 13px;"></div>
         </div>
     </div>
 
-    <!-- ГЛАВНЫЙ ЭКРАН -->
     <div class="sidebar">
         <div class="header">
-            <div style="font-weight: 900; color: var(--accent);">🐾 MEOWMAIL</div>
+            <div style="font-weight: 900; color: var(--accent);">🐾 MEOW</div>
             <button onclick="document.getElementById('new-chat-modal').classList.add('active')" style="background:none; border:none; color:var(--accent); font-size:28px; cursor:pointer;">+</button>
         </div>
         <div class="chats-list" id="chats-list"></div>
@@ -120,188 +265,23 @@
             <div id="chat-header-name" style="flex:1; margin-left:15px; font-weight:bold;">Выберите чат</div>
             <div class="avatar" id="chat-header-avatar">?</div>
         </div>
-        <div class="messages-feed" id="messages-feed">
-            <div style="margin:auto; color:var(--text-muted); text-align:center; padding:20px;">
-                Начните новый диалог, нажав на плюс в меню слева.
-            </div>
-        </div>
+        <div class="messages-feed" id="messages-feed"></div>
         <div class="input-bar" id="input-bar" style="display:none;">
             <input type="file" id="file-picker" style="display:none" accept="image/*,video/*" onchange="handleFileUpload(this.files[0])">
             <button onclick="document.getElementById('file-picker').click()" style="background:none; border:none; font-size:22px; cursor:pointer;">📎</button>
-            <textarea id="msg-input" placeholder="Сообщение..." rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'"></textarea>
+            <textarea id="msg-input" placeholder="Мяу..." rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'"></textarea>
             <button class="btn" onclick="sendTextMessage()" style="width:50px; height:40px; padding:0;">🐾</button>
         </div>
     </div>
 
-    <!-- МОДАЛКА -->
     <div class="modal" id="new-chat-modal">
         <div class="modal-content">
             <h3 style="margin-bottom: 15px;">Новый чат</h3>
-            <input type="email" id="new-chat-email" class="login-input" placeholder="Email друга">
-            <div style="display: flex; gap: 10px;">
-                <button class="btn" onclick="createNewChat()">Начать</button>
-                <button class="btn" style="background:#444; color:#fff;" onclick="this.closest('.modal').classList.remove('active')">Отмена</button>
-            </div>
+            <input type="email" id="new-chat-email" class="login-input" placeholder="Email собеседника">
+            <button class="btn" onclick="createNewChat()">Начать</button>
+            <button class="btn" style="background:#444; color:#fff; margin-top:10px;" onclick="this.closest('.modal').classList.remove('active')">Отмена</button>
         </div>
     </div>
 
-    <script>
-        let currentUser = null;
-        let activeChatEmail = null;
-        let activeRoomId = null;
-
-        // --- АВТОРИЗАЦИЯ ---
-        function authAction() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('login-btn');
-            btn.disabled = true; btn.innerText = "Минутку...";
-
-            window.fb.auth.signInWithEmailAndPassword(email, password)
-                .catch(() => window.fb.auth.createUserWithEmailAndPassword(email, password))
-                .catch(err => {
-                    document.getElementById('auth-error').innerText = "Ошибка: " + err.message;
-                    btn.disabled = false; btn.innerText = "Войти / Создать аккаунт";
-                });
-        }
-
-        // Проверка входа
-        setTimeout(() => {
-            window.fb.auth.onAuthStateChanged(user => {
-                if (user) {
-                    currentUser = user;
-                    document.getElementById('login-screen').style.display = 'none';
-                    loadMyChats();
-                }
-            });
-        }, 1200);
-
-        // --- ЛОГИКА ЧАТОВ ---
-        async function createNewChat() {
-            const peerEmail = document.getElementById('new-chat-email').value.trim().toLowerCase();
-            if (!peerEmail || peerEmail === currentUser.email) return;
-
-            const roomId = await generateRoomId(currentUser.email, peerEmail);
-            const myClean = currentUser.email.replace(/\./g, '_');
-            const peerClean = peerEmail.replace(/\./g, '_');
-
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${myClean}/contacts/${peerClean}`), { email: peerEmail, roomId: roomId });
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${peerClean}/contacts/${myClean}`), { email: currentUser.email, roomId: roomId });
-
-            document.getElementById('new-chat-modal').classList.remove('active');
-            openChat(peerEmail, roomId);
-        }
-
-        function loadMyChats() {
-            const myClean = currentUser.email.replace(/\./g, '_');
-            window.fb.onValue(window.fb.ref(window.fb.db, `users/${myClean}/contacts`), (snapshot) => {
-                const list = document.getElementById('chats-list');
-                list.innerHTML = '';
-                const contacts = snapshot.val();
-                if (contacts) {
-                    Object.values(contacts).forEach(c => {
-                        const div = document.createElement('div');
-                        div.className = `chat-item ${activeChatEmail === c.email ? 'active' : ''}`;
-                        div.innerHTML = `<div class="avatar">${c.email[0].toUpperCase()}</div><div><b>${c.email}</b></div>`;
-                        div.onclick = () => openChat(c.email, c.roomId);
-                        list.appendChild(div);
-                    });
-                }
-            });
-        }
-
-        function openChat(email, roomId) {
-            activeChatEmail = email;
-            activeRoomId = roomId;
-            document.body.classList.add('chat-open');
-            document.getElementById('chat-header-name').innerText = email;
-            document.getElementById('chat-header-avatar').innerText = email[0].toUpperCase();
-            document.getElementById('input-bar').style.display = 'flex';
-            loadMessages(roomId);
-        }
-
-        // --- СООБЩЕНИЯ (ТЕКСТ + ФАЙЛЫ) ---
-        function sendTextMessage() {
-            const input = document.getElementById('msg-input');
-            const text = input.value.trim();
-            if (text) pushMessage({ text });
-            input.value = ''; input.style.height = 'auto';
-        }
-
-        async function handleFileUpload(file) {
-            if (!file) return;
-            if (file.size > 10 * 1024 * 1024) { // Ограничение в 10МБ на файл
-                alert("Файл слишком большой (максимум 10МБ).");
-                return;
-            }
-            
-            const base64 = await fileToBase64(file);
-            pushMessage({
-                text: "[Медиа]", // Текстовая заглушка для файла
-                fileData: base64,
-                fileType: file.type
-            });
-        }
-
-        function pushMessage(payload) {
-            if (!activeRoomId) return;
-            const msgData = {
-                sender: currentUser.email,
-                timestamp: Date.now(),
-                ...payload
-            };
-            const msgRef = window.fb.push(window.fb.ref(window.fb.db, `messages/${activeRoomId}`));
-            window.fb.set(msgRef, msgData);
-        }
-
-        function loadMessages(roomId) {
-            const feed = document.getElementById('messages-feed');
-            feed.innerHTML = ''; // Очищаем ленту при открытии нового чата
-            
-            // Важно: Отписывайтесь от предыдущих слушателей, чтобы избежать дублирования
-            // Для упрощения и текущей демонстрации, предполагается, что слушатель на комнату один.
-            // В продакшене лучше использовать .off() перед .onChildAdded()
-
-            window.fb.onChildAdded(window.fb.ref(window.fb.db, `messages/${roomId}`), (snap) => {
-                if (activeRoomId !== roomId) return; // Убедиться, что это сообщения для текущей комнаты
-                const m = snap.val();
-                const b = document.createElement('div');
-                b.className = `bubble ${m.sender === currentUser.email ? 'out' : 'in'}`;
-
-                if (m.fileData) {
-                    if (m.fileType.startsWith('image/')) {
-                        b.innerHTML = `<img src="${m.fileData}">`;
-                    } else if (m.fileType.startsWith('video/')) {
-                        b.innerHTML = `<video src="${m.fileData}" controls></video>`;
-                    } else { // Для других типов файлов, например, аудио
-                        b.innerHTML = `<a href="${m.fileData}" download="${m.fileName || 'file'}" style="color:white;">📎 ${m.text || "Файл"}</a>`;
-                    }
-                } else {
-                    b.innerText = m.text;
-                }
-                
-                feed.appendChild(b);
-                feed.scrollTop = feed.scrollHeight;
-            });
-        }
-
-        // --- ВСПОМОГАТЕЛЬНОЕ ---
-        function fileToBase64(file) {
-            return new Promise((res, rej) => {
-                const r = new FileReader();
-                r.readAsDataURL(file);
-                r.onload = () => res(r.result);
-                r.onerror = e => rej(e);
-            });
-        }
-
-        async function generateRoomId(e1, e2) {
-            // Создаем стабильный ID комнаты из двух email-адресов
-            const s = [e1, e2].sort().join('|'); // Сортируем, чтобы порядок не влиял
-            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-            // Берем первые 20 символов SHA-256 хэша для компактности
-            return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('').slice(0,20);
-        }
-    </script>
 </body>
 </html>
