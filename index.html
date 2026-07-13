@@ -7,28 +7,6 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, get, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-        const firebaseConfig = {
-          apiKey: "AIzaSyDQMqwnJp34H6I7ragLr14LQ4YszpDFYbg",
-          authDomain: "meowmessenger.firebaseapp.com",
-          databaseURL: "https://meowmessenger-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "meowmessenger",
-          storageBucket: "meowmessenger.firebasestorage.app",
-          messagingSenderId: "906512822162",
-          appId: "1:906512822162:web:a868af851cec5a3381db4b"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const auth = getAuth(app);
-
-        window.fb = { db, auth, ref, set, push, onValue, get, update, remove, onDisconnect, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut };
-    </script>
-
     <style>
         :root {
             --bg-dark: #020204;
@@ -63,6 +41,21 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+        }
+
+        /* Дорогой скроллбар */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .header-bar {
@@ -989,7 +982,26 @@
         <div id="media-viewer-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"></div>
     </div>
 
-    <script>
+    <!-- ВСЯ ЛОГИКА В ЕДИНОМ МОЛНИЕНОСНОМ СТАБИЛЬНОМ МОДУЛЕ -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, get, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyDQMqwnJp34H6I7ragLr14LQ4YszpDFYbg",
+          authDomain: "meowmessenger.firebaseapp.com",
+          databaseURL: "https://meowmessenger-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "meowmessenger",
+          storageBucket: "meowmessenger.firebasestorage.app",
+          messagingSenderId: "906512822162",
+          appId: "1:906512822162:web:a868af851cec5a3381db4b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
         const TG_AVATAR_COLORS = ["#E17076", "#FAA774", "#A695E7", "#34C759", "#6EC9CB", "#1F80E0"];
         const BASE_AES_KEY = "12345678901234567890123456789012";
 
@@ -1026,12 +1038,12 @@
         let activeLastMsgListeners = {};
         
         let typingTimeout = null;
-        let activeBurnTime = 0; // 0 - выключено
+        let activeBurnTime = 0; 
         const burnTimes = [0, 5, 10, 30];
         let burnIndex = 0;
         let peerLastReadTimestamp = 0;
 
-        // --- УЛЬТРА-БЕЗОПАСНОЕ ШИФРОВАНИЕ ПРОФИЛЕЙ (Клиентский Нулевой Разглашающий) ---
+        // --- УЛЬТРА-БЕЗОПАСНОЕ КЛИЕНТСКОЕ ШИФРОВАНИЕ ДЛЯ БД ---
         function encryptField(text) {
             if (!text) return "";
             return "[MEOW]" + aesEncrypt(text, BASE_AES_KEY);
@@ -1042,10 +1054,9 @@
             if (cipher.startsWith("[MEOW]")) {
                 return aesDecrypt(cipher.substring(6), BASE_AES_KEY);
             }
-            return cipher; // обратная совместимость
+            return cipher;
         }
 
-        // --- КРИПТОГРАФИЯ (AES-256 с исправлением переполнения стека) ---
         function aesEncrypt(text, keyString) {
             const key = CryptoJS.enc.Utf8.parse(keyString.padEnd(32, '0').slice(0, 32));
             const iv = CryptoJS.lib.WordArray.random(16);
@@ -1097,7 +1108,7 @@
                 pubJwk = JSON.stringify(pub);
             }
             
-            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
+            await update(ref(db, `users/${myUid}/profile`), {
                 publicKey: pubJwk
             });
         }
@@ -1113,7 +1124,7 @@
                     return hash;
                 }
                 
-                const peerProfSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile/publicKey`));
+                const peerProfSnap = await get(ref(db, `users/${peerId}/profile/publicKey`));
                 if (!peerProfSnap.exists()) {
                     return null;
                 }
@@ -1190,13 +1201,10 @@
             if (!timestamp) return "офлайн";
             const date = new Date(timestamp);
             const now = new Date();
-            
             const isToday = date.toDateString() === now.toDateString();
-            
             const yesterday = new Date();
             yesterday.setDate(now.getDate() - 1);
             const isYesterday = date.toDateString() === yesterday.toDateString();
-            
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
             if (isToday) {
@@ -1214,34 +1222,27 @@
         function getFriendlyDateSeparator(timestamp) {
             const date = new Date(timestamp);
             const now = new Date();
-            
-            if (date.toDateString() === now.toDateString()) {
-                return "Сегодня";
-            }
-            
+            if (date.toDateString() === now.toDateString()) return "Сегодня";
             const yesterday = new Date();
             yesterday.setDate(now.getDate() - 1);
-            if (date.toDateString() === yesterday.toDateString()) {
-                return "Вчера";
-            }
-            
+            if (date.toDateString() === yesterday.toDateString()) return "Вчера";
             return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
-        // --- ИНИЦИАЛИЗАЦИЯ (МГНОВЕННАЯ, БЕЗ ЛИШНИХ ЗАДЕРЖЕК И СО СТРОГОЙ ОБРАБОТКОЙ ОШИБОК) ---
-        window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
+        // --- ИНИЦИАЛИЗАЦИЯ И ОТСЛЕЖИВАНИЕ СТАТУСА ---
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 myUid = user.uid;
                 myEmail = user.email;
                 document.getElementById('login-screen').style.display = 'none';
                 
                 try {
-                    const myPresenceRef = window.fb.ref(window.fb.db, `users/${myUid}/presence`);
-                    window.fb.onDisconnect(myPresenceRef).set({
+                    const myPresenceRef = ref(db, `users/${myUid}/presence`);
+                    onDisconnect(myPresenceRef).set({
                         status: "offline",
                         lastSeen: Date.now()
                     }).then(() => {
-                        window.fb.set(myPresenceRef, {
+                        set(myPresenceRef, {
                             status: "online",
                             lastSeen: Date.now()
                         });
@@ -1249,7 +1250,7 @@
 
                     await initE2EE();
 
-                    const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
+                    const profSnap = await get(ref(db, `users/${myUid}/profile`));
                     if (profSnap.exists()) {
                         const prof = profSnap.val();
                         const decryptedName = decryptField(prof.name);
@@ -1275,23 +1276,22 @@
                     } else {
                         const fallbackNick = "id_" + Math.floor(1000 + Math.random() * 9000);
                         myNameCombined = user.email.split('@')[0];
-                        await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
+                        await set(ref(db, `users/${myUid}/profile`), {
                             name: encryptField(myNameCombined),
                             lastname: encryptField(""),
                             username: fallbackNick,
                             bio: encryptField(""),
                             avatar: encryptField("")
                         });
-                        await window.fb.set(window.fb.ref(window.fb.db, `usernames/${fallbackNick}`), myUid);
+                        await set(ref(db, `usernames/${fallbackNick}`), myUid);
                     }
 
                     seedDatabaseIfNeeded();
                     switchTab(0);
                 } catch (initErr) {
-                    console.error("Initialization error after login:", initErr);
-                    // Force logout and show an error to the user
-                    alert("Ошибка инициализации приложения после входа: " + initErr.message + ". Попробуйте снова.");
-                    window.fb.signOut(window.fb.auth); 
+                    console.error("Initialization error:", initErr);
+                    alert("Ошибка инициализации приложения: " + initErr.message);
+                    signOut(auth); 
                     document.getElementById('login-screen').style.display = 'flex';
                 }
             } else {
@@ -1303,8 +1303,7 @@
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value.trim();
             const errDiv = document.getElementById('auth-error');
-
-            errDiv.style.display = 'none'; // Скрываем предыдущие ошибки
+            errDiv.style.display = 'none';
 
             if (!email || !password) {
                 errDiv.innerText = "Пожалуйста, введите почту и пароль.";
@@ -1313,10 +1312,10 @@
             }
 
             try {
-                await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
+                await signInWithEmailAndPassword(auth, email, password);
             } catch (err) {
                 try {
-                    await window.fb.createUserWithEmailAndPassword(window.fb.auth, email, password);
+                    await createUserWithEmailAndPassword(auth, email, password);
                 } catch (regErr) {
                     errDiv.innerText = regErr.message;
                     errDiv.style.display = 'block';
@@ -1325,12 +1324,12 @@
         }
 
         function logoutAction() {
-            const myPresenceRef = window.fb.ref(window.fb.db, `users/${myUid}/presence`);
-            window.fb.set(myPresenceRef, {
+            const myPresenceRef = ref(db, `users/${myUid}/presence`);
+            set(myPresenceRef, {
                 status: "offline",
                 lastSeen: Date.now()
             }).then(() => {
-                window.fb.signOut(window.fb.auth).then(() => {
+                signOut(auth).then(() => {
                     location.reload();
                 });
             });
@@ -1365,7 +1364,6 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, 120, 120);
                     tempProfileAvatarBase64 = canvas.toDataURL('image/jpeg', 0.5);
-                    
                     const myAvEl = document.getElementById('my-profile-avatar');
                     myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
                     myAvEl.innerText = "";
@@ -1373,7 +1371,6 @@
             };
         }
 
-        // --- УНИКАЛЬНЫЕ ЮЗЕРНЕЙМЫ (ПРОВЕРКА) ---
         async function saveProfileSettings() {
             const name = document.getElementById('setting-name').value.trim();
             const lastname = document.getElementById('setting-lastname').value.trim();
@@ -1385,27 +1382,25 @@
                 return;
             }
 
-            // ПРОВЕРКА НА ЗАНЯТОСТЬ НИКНЕЙМА
-            const nameCheck = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${username}`));
+            const nameCheck = await get(ref(db, `usernames/${username}`));
             if (nameCheck.exists() && nameCheck.val() !== myUid) {
                 alert("Данный никнейм уже занят!");
                 return;
             }
 
-            const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
+            const profSnap = await get(ref(db, `users/${myUid}/profile`));
             if (profSnap.exists() && profSnap.val().username !== username) {
-                await window.fb.remove(window.fb.ref(window.fb.db, `usernames/${profSnap.val().username}`));
+                await remove(ref(db, `usernames/${profSnap.val().username}`));
             }
 
-            // Запись зашифрованных полей
-            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
+            await update(ref(db, `users/${myUid}/profile`), {
                 name: encryptField(name),
                 lastname: encryptField(lastname),
                 bio: encryptField(bio),
                 username: username,
                 avatar: encryptField(tempProfileAvatarBase64)
             });
-            await window.fb.set(window.fb.ref(window.fb.db, `usernames/${username}`), myUid);
+            await set(ref(db, `usernames/${username}`), myUid);
 
             myNameCombined = name + (lastname ? " " + lastname : "");
             myProfileAvatarFetched = tempProfileAvatarBase64;
@@ -1413,7 +1408,6 @@
             switchTab(0);
         }
 
-        // --- СПИСОК ЧАТОВ ---
         function loadDialogs() {
             if (unsubDialogs) unsubDialogs();
             Object.values(activePresenceListeners).forEach(un => un());
@@ -1424,7 +1418,7 @@
             const container = document.getElementById('chats-list-container');
             container.innerHTML = "";
 
-            unsubDialogs = window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/chats`), (snap) => {
+            unsubDialogs = onValue(ref(db, `users/${myUid}/chats`), (snap) => {
                 container.innerHTML = "";
                 
                 const cloudRow = document.createElement('div');
@@ -1462,7 +1456,7 @@
                     }
                 }
 
-                activeLastMsgListeners[myUid] = window.fb.onValue(window.fb.ref(window.fb.db, `messages/saved_${myUid}/list`), (mSnap) => {
+                activeLastMsgListeners[myUid] = onValue(ref(db, `messages/saved_${myUid}/list`), (mSnap) => {
                     const msgBox = document.getElementById(`last-msg-${myUid}`);
                     if (mSnap.exists() && msgBox) {
                         const list = Object.values(mSnap.val());
@@ -1521,8 +1515,7 @@
                     `;
                     container.appendChild(row);
 
-                    // Реалтайм-слушатель дешифрованного профиля собеседника
-                    activePresenceListeners[peerId + "_profile"] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/profile`), (profSnap) => {
+                    activePresenceListeners[peerId + "_profile"] = onValue(ref(db, `users/${peerId}/profile`), (profSnap) => {
                         const nameEl = document.getElementById(`name-${peerId}`);
                         const avEl = document.getElementById(`avatar-${peerId}`);
                         if (profSnap.exists()) {
@@ -1545,7 +1538,7 @@
                         }
                     });
 
-                    activePresenceListeners[peerId + "_presence"] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (pSnap) => {
+                    activePresenceListeners[peerId + "_presence"] = onValue(ref(db, `users/${peerId}/presence`), (pSnap) => {
                         const dot = document.getElementById(`dot-${peerId}`);
                         const timeText = document.getElementById(`time-${peerId}`);
                         if (pSnap.exists() && dot && timeText) {
@@ -1562,7 +1555,7 @@
                         }
                     });
 
-                    activeLastMsgListeners[peerId] = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${chatMeta.roomId}/list`), (mSnap) => {
+                    activeLastMsgListeners[peerId] = onValue(ref(db, `messages/${chatMeta.roomId}/list`), (mSnap) => {
                         const msgBox = document.getElementById(`last-msg-${peerId}`);
                         if (mSnap.exists() && msgBox) {
                             const list = Object.values(mSnap.val());
@@ -1605,13 +1598,11 @@
             openChatWindow(myUid, cloudRoom);
         }
 
-        // --- СТАТУС ПЕЧАТАЕТ (ДЕБАУНС) ---
         function setTypingStatus(isTyping) {
             if (!currentRoomId || !myUid || currentPeer === myUid) return;
-            window.fb.set(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${myUid}`), isTyping);
+            set(ref(db, `typing/${currentRoomId}/${myUid}`), isTyping);
         }
 
-        // --- ОКНО ЧАТА И ИСТОРИЯ ---
         async function openChatWindow(peerId, roomId) {
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
@@ -1620,7 +1611,6 @@
             currentRoomId = roomId;
 
             document.getElementById('chat-window').classList.add('active');
-            
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:20px;">🛡️ Сборка ключей E2EE...</div>`;
 
@@ -1636,7 +1626,6 @@
             const headerTitle = document.getElementById('chat-header-title');
             const headerStatus = document.getElementById('chat-header-status');
 
-            // Слушатель набора текста
             document.getElementById('message-input').addEventListener('input', () => {
                 setTypingStatus(true);
                 clearTimeout(typingTimeout);
@@ -1660,7 +1649,7 @@
             } else {
                 let statusText = "офлайн";
                 
-                unsubHeaderPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/profile`), (snap) => {
+                unsubHeaderPresence = onValue(ref(db, `users/${peerId}/profile`), (snap) => {
                     if (snap.exists()) {
                         const prof = snap.val();
                         const displayName = (decryptField(prof.name) || "Без имени") + (prof.lastname ? " " + decryptField(prof.lastname) : "");
@@ -1680,7 +1669,7 @@
                     }
                 });
 
-                const unsubPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (snap) => {
+                const unsubPresence = onValue(ref(db, `users/${peerId}/presence`), (snap) => {
                     if (snap.exists() && snap.val().status === "online") {
                         statusText = "в сети";
                         headerStatus.innerText = statusText;
@@ -1695,7 +1684,7 @@
                     }
                 });
 
-                const unsubTyping = window.fb.onValue(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${currentPeer}`), (snap) => {
+                const unsubTyping = onValue(ref(db, `typing/${currentRoomId}/${currentPeer}`), (snap) => {
                     if (snap.exists() && snap.val() === true) {
                         headerStatus.innerText = "печатает... ✍️";
                         headerStatus.style.color = "var(--secure)";
@@ -1713,19 +1702,16 @@
                 };
             }
 
-            // Подписка на статус "Прочитано" собеседника
-            const unsubRead = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/read/${currentPeer}`), (snap) => {
+            const unsubRead = onValue(ref(db, `messages/${currentRoomId}/read/${currentPeer}`), (snap) => {
                 peerLastReadTimestamp = snap.exists() ? snap.val() : 0;
             });
 
             const oldUnsubChatMessages = unsubChatMessages;
-            unsubChatMessages = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), async (snapshot) => {
+            unsubChatMessages = onValue(ref(db, `messages/${currentRoomId}/list`), async (snapshot) => {
                 const messages = snapshot.val() || {};
-                
-                // Ставим отметку о прочтении при получении новых сообщений
-                window.fb.set(window.fb.ref(window.fb.db, `messages/${currentRoomId}/read/${myUid}`), Date.now());
+                set(ref(db, `messages/${currentRoomId}/read/${myUid}`), Date.now());
 
-                const localDeletedSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/deletedMessages/${currentRoomId}`));
+                const localDeletedSnap = await get(ref(db, `users/${myUid}/deletedMessages/${currentRoomId}`));
                 const localDeleted = localDeletedSnap.exists() ? localDeletedSnap.val() : {};
 
                 if (Object.keys(messages).length === 0) {
@@ -1746,7 +1732,6 @@
                 });
 
                 feed.querySelectorAll('.date-separator').forEach(el => el.remove());
-
                 let lastMessageDateStr = "";
 
                 Object.entries(messages).forEach(([msgId, m]) => {
@@ -1762,7 +1747,6 @@
                     }
 
                     let container = document.getElementById(`msg-${msgId}`);
-                    
                     let raw = m.text || "";
                     if (raw.startsWith("[MEOW]")) {
                         raw = aesDecrypt(raw.substring(6), activeRoomSharedKey);
@@ -1772,10 +1756,9 @@
                         messageObject = JSON.parse(raw);
                     } catch (e) {}
 
-                    // СГОРАЮЩИЕ СООБЩЕНИЯ (ЗАПУСК ТАЙМЕРА ПРИ ОТКРЫТИИ ПОЛУЧАТЕЛЕМ)
                     if (messageObject.burnTime && !m.burnStarted) {
                         if (m.sender !== myUid || isCloud) {
-                            window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), {
+                            update(ref(db, `messages/${currentRoomId}/list/${msgId}`), {
                                 burnStarted: Date.now()
                             });
                         }
@@ -1807,10 +1790,8 @@
                         };
 
                         const timeString = new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
                         let bubbleHtml = `<div class="msg-bubble ${messageObject.fileData ? 'has-media' : ''}">`;
                         
-                        // Добавляем эффект сгорания
                         if (messageObject.burnTime) {
                             bubbleHtml += `<div class="burning-overlay"></div>`;
                         }
@@ -1836,7 +1817,6 @@
                             `;
                         } else if (messageObject.fileData) {
                             const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
-                            
                             if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
                                 bubbleHtml += `<div class="msg-media" onclick="event.stopPropagation(); viewMediaFull('${blobUrl}', true)"><video src="${blobUrl}" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
                             } else {
@@ -1848,13 +1828,11 @@
                             bubbleHtml += `<div class="msg-text">${messageObject.text}</div>`;
                         }
                         
-                        // Проверка на сгорание на экране
                         let burnCounterHtml = "";
                         if (messageObject.burnTime) {
                             burnCounterHtml = `<span id="burn-timer-${msgId}" style="color: #FF453A; font-weight: bold; margin-right: 6px;">🔥 ⏳</span>`;
                         }
 
-                        // Логика чекбоксов прочитано/непрочитано (2 галочки ✓✓)
                         let checkmarks = "";
                         if (m.sender === myUid && !isCloud) {
                             const isRead = m.time <= peerLastReadTimestamp;
@@ -1875,14 +1853,13 @@
                         feed.appendChild(container);
                     }
 
-                    // Активный таймер сгорания сообщения в реальном времени
                     if (messageObject.burnTime && m.burnStarted) {
                         const elapsed = Math.floor((Date.now() - m.burnStarted) / 1000);
                         const remaining = messageObject.burnTime - elapsed;
                         const timerEl = document.getElementById(`burn-timer-${msgId}`);
 
                         if (remaining <= 0) {
-                            window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`));
+                            remove(ref(db, `messages/${currentRoomId}/list/${msgId}`));
                         } else {
                             if (timerEl) timerEl.innerText = `🔥 ${remaining}с`;
                             const burnInterval = setInterval(() => {
@@ -1891,7 +1868,7 @@
                                 const dynamicTimerEl = document.getElementById(`burn-timer-${msgId}`);
                                 if (currentRemaining <= 0) {
                                     clearInterval(burnInterval);
-                                    window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`));
+                                    remove(ref(db, `messages/${currentRoomId}/list/${msgId}`));
                                 } else if (dynamicTimerEl) {
                                     dynamicTimerEl.innerText = `🔥 ${currentRemaining}с`;
                                 }
@@ -1910,7 +1887,6 @@
             };
         }
 
-        // --- ПЕРЕКЛЮЧАТЕЛЬ СГОРАЮЩИХ СООБЩЕНИЙ ---
         function toggleBurnTime() {
             burnIndex = (burnIndex + 1) % burnTimes.length;
             activeBurnTime = burnTimes[burnIndex];
@@ -2000,7 +1976,7 @@
                 replyTargetSenderName = "Вы";
                 setupReplyUI();
             } else {
-                window.fb.get(window.fb.ref(window.fb.db, `users/${senderId}/profile/name`)).then(snap => {
+                get(ref(db, `users/${senderId}/profile/name`)).then(snap => {
                     replyTargetSenderName = snap.exists() ? decryptField(snap.val()) : "Собеседник";
                     setupReplyUI();
                 });
@@ -2050,13 +2026,12 @@
                 time: Date.now()
             };
 
-            await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+            await push(ref(db, `messages/${currentRoomId}/list`), dbPacket);
             input.value = "";
             input.style.height = "auto";
             setTypingStatus(false);
         }
 
-        // --- УМНОЕ СЖАТИЕ АУДИО (Битрейт 16000 BPS - Speech Optimized) ---
         async function handleVoiceRecordClick() {
             const recBtn = document.getElementById('voice-record-btn');
             
@@ -2075,10 +2050,9 @@
                         options = { mimeType: 'audio/mp4' };
                     }
 
-                    // НАСТРОЙКА БИТРЕЙТА ДЛЯ ОПТИМАЛЬНОГО СЖАТИЯ
                     audioRecorder = new MediaRecorder(stream, {
                         mimeType: options.mimeType,
-                        audioBitsPerSecond: 16000 // Сжатие до 16 kbps
+                        audioBitsPerSecond: 16000 
                     });
 
                     audioRecorder.ondataavailable = (e) => {
@@ -2108,7 +2082,7 @@
                             time: Date.now()
                         };
 
-                        await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+                        await push(ref(db, `messages/${currentRoomId}/list`), dbPacket);
                         stream.getTracks().forEach(track => track.stop());
                     };
 
@@ -2132,7 +2106,6 @@
 
             const clipBtn = document.getElementById('clip-btn');
             const sendBtn = document.getElementById('send-btn');
-            
             clipBtn.innerText = "⏳";
             sendBtn.innerText = "⏳";
 
@@ -2216,7 +2189,7 @@
                 time: Date.now()
             };
 
-            await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+            await push(ref(db, `messages/${currentRoomId}/list`), dbPacket);
         }
 
         function fileToBase64(file) {
@@ -2265,7 +2238,7 @@
             listContainer.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;">Загрузка списка диалогов...</div>`;
             openModal('forward-select-modal');
 
-            window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/chats`)).then(async (snap) => {
+            get(ref(db, `users/${myUid}/chats`)).then(async (snap) => {
                 listContainer.innerHTML = "";
                 
                 const cloudItem = document.createElement('div');
@@ -2282,7 +2255,7 @@
                     for (let [peerId, meta] of Object.entries(chats)) {
                         if (peerId === myUid) continue;
                         
-                        const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`));
+                        const profSnap = await get(ref(db, `users/${peerId}/profile`));
                         if (profSnap.exists()) {
                             const prof = profSnap.val();
                             const name = (decryptField(prof.name) || "Без имени") + (prof.lastname ? " " + decryptField(prof.lastname) : "");
@@ -2326,7 +2299,7 @@
                 time: Date.now()
             };
 
-            await window.fb.push(window.fb.ref(window.fb.db, `messages/${targetRoomId}/list`), dbPacket);
+            await push(ref(db, `messages/${targetRoomId}/list`), dbPacket);
             alert("Сообщение успешно переслано!");
         }
 
@@ -2342,9 +2315,9 @@
             const deleteForBoth = document.getElementById('delete-both-checkbox').checked;
 
             if (deleteForBoth) {
-                await window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${selectedMsgIdToDelete}`));
+                await remove(ref(db, `messages/${currentRoomId}/list/${selectedMsgIdToDelete}`));
             } else {
-                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/deletedMessages/${currentRoomId}/${selectedMsgIdToDelete}`), true);
+                await set(ref(db, `users/${myUid}/deletedMessages/${currentRoomId}/${selectedMsgIdToDelete}`), true);
             }
 
             closeModal('delete-msg-modal');
@@ -2360,28 +2333,27 @@
         async function deleteChatConfirm() {
             if (!selectedChatIdToDelete) return;
             const deleteForBoth = document.getElementById('delete-chat-both-checkbox').checked;
-            
             const pId = selectedChatIdToDelete;
 
             if (pId === myUid) {
                 if (deleteForBoth) {
-                    await window.fb.remove(window.fb.ref(window.fb.db, `messages/saved_${myUid}`));
+                    await remove(ref(db, `messages/saved_${myUid}`));
                 } else {
                     alert("Локальное удаление Избранного недоступно. Вы можете очистить его для всех.");
                     closeModal('delete-chat-modal');
                     return;
                 }
             } else {
-                const chatSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pId}`));
+                const chatSnap = await get(ref(db, `users/${myUid}/chats/${pId}`));
                 if (!chatSnap.exists()) return;
                 const rId = chatSnap.val().roomId;
 
                 if (deleteForBoth) {
-                    await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pId}`));
-                    await window.fb.remove(window.fb.ref(window.fb.db, `users/${pId}/chats/${myUid}`));
-                    await window.fb.remove(window.fb.ref(window.fb.db, `messages/${rId}`));
+                    await remove(ref(db, `users/${myUid}/chats/${pId}`));
+                    await remove(ref(db, `users/${pId}/chats/${myUid}`));
+                    await remove(ref(db, `messages/${rId}`));
                 } else {
-                    await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pId}`));
+                    await remove(ref(db, `users/${myUid}/chats/${pId}`));
                 }
             }
 
@@ -2420,14 +2392,13 @@
                 return;
             }
 
-            const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`));
+            const profSnap = await get(ref(db, `users/${peerId}/profile`));
             if (profSnap.exists()) {
                 const p = profSnap.val();
                 const decryptedName = decryptField(p.name);
                 const decryptedLastname = decryptField(p.lastname);
                 const decryptedBio = decryptField(p.bio);
                 const decryptedAvatar = decryptField(p.avatar);
-
                 const displayName = (decryptedName || "Без имени") + (decryptedLastname ? " " + decryptedLastname : "");
                 
                 nameEl.innerText = displayName;
@@ -2457,25 +2428,24 @@
             let target = document.getElementById('search-by-username').value.trim().toLowerCase().replace('@', '');
             if (!target) return;
 
-            const myUserSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
+            const myUserSnap = await get(ref(db, `users/${myUid}/profile`));
             const myProf = myUserSnap.val();
             if (target === myProf.username) {
                 alert("Это ваш собственный никнейм!");
                 return;
             }
 
-            const snap = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${target}`));
+            const snap = await get(ref(db, `usernames/${target}`));
             if (snap.exists()) {
                 const targetUid = snap.val();
                 closeModal('search-people-modal');
-
                 const rId = [myUid, targetUid].sort().join("_");
 
-                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${targetUid}`), {
+                await set(ref(db, `users/${myUid}/chats/${targetUid}`), {
                     roomId: rId
                 });
                 
-                await window.fb.set(window.fb.ref(window.fb.db, `users/${targetUid}/chats/${myUid}`), {
+                await set(ref(db, `users/${targetUid}/chats/${myUid}`), {
                     roomId: rId
                 });
 
@@ -2490,7 +2460,7 @@
             const container = document.getElementById('news-container');
             container.innerHTML = "";
 
-            window.fb.onValue(window.fb.ref(window.fb.db, `news`), (snap) => {
+            onValue(ref(db, `news`), (snap) => {
                 container.innerHTML = "";
                 if (!snap.exists()) return;
                 const news = snap.val();
@@ -2516,7 +2486,6 @@
             });
         }
 
-        function updateSendButton() {}
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
@@ -2529,9 +2498,9 @@
         }
 
         async function seedDatabaseIfNeeded() {
-            const newsSnap = await window.fb.get(window.fb.ref(window.fb.db, `news`));
+            const newsSnap = await get(ref(db, `news`));
             if (!newsSnap.exists()) {
-                window.fb.set(window.fb.ref(window.fb.db, `news/post1`), {
+                set(ref(db, `news/post1`), {
                     authorName: "VK Meow Team",
                     authorAvatar: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=200&auto=format&fit=crop",
                     text: "Мяу! Добро пожаловать в обновленное приложение. Все ваши сообщения и профили шифруются по протоколу AES-256.",
@@ -2539,6 +2508,35 @@
                 });
             }
         }
+
+        // --- ЭКСПОРТ ВСЕХ ФУНКЦИЙ В WINDOW ДЛЯ КНОПОК HTML ---
+        window.authAction = authAction;
+        window.logoutAction = logoutAction;
+        window.switchTab = switchTab;
+        window.compressAndSetProfileAvatar = compressAndSetProfileAvatar;
+        window.saveProfileSettings = saveProfileSettings;
+        window.openCloudChat = openCloudChat;
+        window.closeChat = closeChat;
+        window.toggleBurnTime = toggleBurnTime;
+        window.handleSendClick = handleSendClick;
+        window.handleVoiceRecordClick = handleVoiceRecordClick;
+        window.compressAndSendMedia = compressAndSendMedia;
+        window.showActivePeerProfile = showActivePeerProfile;
+        window.showE2EEVerification = showE2EEVerification;
+        window.triggerReplyFromMenu = triggerReplyFromMenu;
+        window.triggerForwardFromMenu = triggerForwardFromMenu;
+        window.triggerDeleteFromMenu = triggerDeleteFromMenu;
+        window.deleteMessageConfirm = deleteMessageConfirm;
+        window.deleteChatConfirm = deleteChatConfirm;
+        window.searchPeople = searchPeople;
+        window.closeMediaViewer = closeMediaViewer;
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.filterDialogs = filterDialogs;
+        window.toggleVoicePlayback = toggleVoicePlayback;
+        window.seekVoice = seekVoice;
+        window.scrollToMessage = scrollToMessage;
+        window.viewMediaFull = viewMediaFull;
     </script>
 </body>
 </html>
