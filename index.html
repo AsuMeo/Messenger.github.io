@@ -51,7 +51,7 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             -webkit-tap-highlight-color: transparent;
-            user-select: none; /* Предотвращает системное выделение текста при долгом нажатии */
+            user-select: none;
         }
 
         body {
@@ -384,6 +384,25 @@
             color: rgba(255, 255, 255, 0.4);
         }
 
+        /* КРУЖОЧКИ (ВИДЕО-СООБЩЕНИЯ) */
+        .msg-video-note {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--accent);
+            background: #000;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .msg-video-note video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
         /* РАЗДЕЛИТЕЛЬ ДАТ В ЧАТЕ */
         .date-separator {
             align-self: center;
@@ -535,6 +554,33 @@
         .menu-btn:hover { background: #3A3A3C; }
         .menu-btn.danger { background: var(--error); color: white; }
         .menu-btn.danger:hover { background: #E0241B; }
+
+        /* ИНТЕРФЕЙС ЗАПИСИ КРУЖОЧКА */
+        #video-note-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .round-recorder-view {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 5px solid var(--accent);
+            transform: scaleX(-1); /* Зеркально для удобства */
+            background: #000;
+        }
+        .round-recorder-view video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #recorder-timer {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--error);
+        }
     </style>
 </head>
 <body>
@@ -643,10 +689,28 @@
         <div class="chat-input-bar">
             <input type="file" id="media-upload" style="display: none;" accept="image/*,video/*" onchange="compressAndSendMedia(this.files[0])">
             <button class="header-btn" style="color: var(--accent)" id="clip-btn" onclick="document.getElementById('media-upload').click()">📎</button>
+            <button class="header-btn" style="color: var(--accent)" id="video-note-btn" onclick="openVideoNoteRecorder()">📹</button>
 
             <textarea class="message-input" id="message-input" placeholder="Сообщение..." rows="1"></textarea>
 
             <button class="header-btn" style="color: var(--accent)" id="send-btn" onclick="handleSendClick()">➤</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ЗАПИСИ КРУЖОЧКОВ -->
+    <div class="modal-overlay" id="video-note-modal">
+        <div class="modal-card" style="max-width: 320px;">
+            <div id="video-note-container">
+                <h3 style="text-align: center;">📹 Запись кружочка</h3>
+                <div class="round-recorder-view">
+                    <video id="recorder-preview" autoplay muted playsinline></video>
+                </div>
+                <div id="recorder-timer">00:00</div>
+                <div style="width: 100%; display: flex; gap: 8px;">
+                    <button class="menu-btn danger" id="rec-control-btn" onclick="toggleVideoNoteRecording()">🔴 Запись</button>
+                    <button class="menu-btn" onclick="closeVideoNoteRecorder()">Отмена</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -661,7 +725,7 @@
         </div>
     </div>
 
-    <!-- МОДАЛКА УДАЛЕНИЯ СООБЩЕНИЯ (ACTION SHEET) -->
+    <!-- МОДАЛКА УДАЛЕНИЯ СООБЩЕНИЯ -->
     <div class="modal-overlay" id="delete-msg-modal">
         <div class="modal-card">
             <h3 style="margin-bottom: 16px; text-align: center;">🗑️ Удалить сообщение?</h3>
@@ -714,6 +778,16 @@
         // Идентификаторы выбранных элементов при удалении
         let selectedMsgIdToDelete = null;
         let selectedChatIdToDelete = null;
+
+        // Внутренний кэш загруженных крупных файлов (чтобы не скачивать чанки заново при ререндере)
+        let chunkedFilesCache = {};
+
+        // Запись кружочков
+        let voiceNoteRecorder = null;
+        let voiceChunks = [];
+        let recorderStream = null;
+        let recordingSeconds = 0;
+        let recordingTimerInterval = null;
 
         // Сборщики слушателей для предотвращения зависаний
         let unsubDialogs = null;
@@ -768,7 +842,7 @@
             }
         }
 
-        // --- КРАСИВОЕ СРАВНЕНИЕ ДЛЯ СЕПАРАТОРОВ ДАТ ---
+        // --- ГРУППИРОВКА ДАТ ---
         function getFriendlyDateSeparator(timestamp) {
             const date = new Date(timestamp);
             const now = new Date();
@@ -992,7 +1066,6 @@
                     row.addEventListener('touchend', endPress);
 
                     row.onclick = (e) => {
-                        // Если кликнули на аватар, открываем профиль и блокируем открытие чата
                         if (e.target.classList.contains('chat-avatar')) {
                             e.stopPropagation();
                             showPeerProfile(peerId);
@@ -1031,7 +1104,7 @@
                         }
                         if (timeEl) timeEl.innerText = "облако";
                     } else {
-                        // ЖИВОЙ СЛУШАТЕЛЬ ПРОФИЛЯ — МОМЕНТАЛЬНО ПРИМЕНЯЕТ ИЗМЕНЕНИЯ ИМЕНИ И ФОТО
+                        // ЖИВОЙ СЛУШАТЕЛЬ ПРОФИЛЯ
                         activePresenceListeners[peerId + "_profile"] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/profile`), (profSnap) => {
                             const nameEl = document.getElementById(`name-${peerId}`);
                             const avEl = document.getElementById(`avatar-${peerId}`);
@@ -1102,13 +1175,7 @@
             triggerChatDeletion(peerId);
         }
 
-        // --- ИЗБРАННОЕ ---
-        function openCloudChat() {
-            const cloudRoom = `saved_${myUid}`;
-            openChatWindow(myUid, cloudRoom);
-        }
-
-        // --- ОКНО ЧАТА И ИСТОРИЯ СООБЩЕНИЙ С СЕПАРАТОРАМИ ДАТ ---
+        // --- ОКНО ЧАТА И ИСТОРИЯ ---
         function openChatWindow(peerId, roomId) {
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
@@ -1153,7 +1220,7 @@
                     }
                 });
 
-                // Живой онлайн статус в шапке (с новым умным временем)
+                // Живой онлайн статус в шапке
                 const unsubPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (snap) => {
                     if (snap.exists() && snap.val().status === "online") {
                         headerStatus.innerText = "в сети";
@@ -1184,16 +1251,15 @@
                 
                 const messages = snapshot.val();
                 
-                // Сначала подтягиваем удаленные локально сообщения
                 const localDeletedSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/deletedMessages/${currentRoomId}`));
                 const localDeleted = localDeletedSnap.exists() ? localDeletedSnap.val() : {};
 
                 let lastMessageDateStr = "";
 
                 Object.entries(messages).forEach(([msgId, m]) => {
-                    if (localDeleted[msgId]) return; // Пропускаем сообщения, удаленные "для себя"
+                    if (localDeleted[msgId]) return;
 
-                    // Добавление красивого группировочного сепаратора дат
+                    // Разделитель дат
                     const messageDateStr = new Date(m.time).toDateString();
                     if (messageDateStr !== lastMessageDateStr) {
                         const dateDiv = document.createElement('div');
@@ -1208,7 +1274,7 @@
                     container.className = `msg-container ${isOut ? 'out' : 'in'}`;
                     container.id = `msg-${msgId}`;
 
-                    // Вешаем долгое нажатие (0.8с) для вызова модалки удаления сообщений
+                    // Долгое нажатие
                     let msgTimer;
                     const onMsgStart = () => {
                         msgTimer = setTimeout(() => {
@@ -1222,40 +1288,124 @@
                     container.addEventListener('touchstart', onMsgStart);
                     container.addEventListener('touchend', onMsgEnd);
 
-                    let raw = m.text || "";
-                    if (raw.startsWith("[MEOW]")) {
-                        raw = aesDecrypt(raw.substring(6), BASE_AES_KEY);
-                    }
+                    const timeString = new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                    let messageObject = { text: raw };
-                    try {
-                        messageObject = JSON.parse(raw);
-                    } catch (e) {}
+                    // Обрабатываем составные/крупные сообщения по чанкам (секционные)
+                    if (m.isChunked) {
+                        const innerBubbleId = `bubble-inner-${msgId}`;
+                        container.innerHTML = `
+                            <div class="msg-bubble" id="${innerBubbleId}">
+                                ⏳ Расшифровка медиаблоков (${m.chunkCount})...
+                            </div>
+                        `;
 
-                    let bubbleHtml = `<div class="msg-bubble">`;
-                    if (messageObject.fileData) {
-                        if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
-                            bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${messageObject.fileData}', true)"><video src="${messageObject.fileData}" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
+                        if (chunkedFilesCache[msgId]) {
+                            // Если файл уже скачан и лежит в кэше — отображаем моментально
+                            renderChunkedContent(innerBubbleId, chunkedFilesCache[msgId], m.fileType, m.text, timeString, m.isVideoNote);
                         } else {
-                            bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${messageObject.fileData}', false)"><img src="${messageObject.fileData}"></div>`;
+                            // Скачиваем кусочки асинхронно
+                            window.fb.get(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}/chunks`)).then((chunksSnap) => {
+                                if (chunksSnap.exists()) {
+                                    const chunks = chunksSnap.val();
+                                    let assembledBase64 = "";
+                                    for (let i = 0; i < m.chunkCount; i++) {
+                                        if (chunks[i]) {
+                                            assembledBase64 += aesDecrypt(chunks[i], BASE_AES_KEY);
+                                        }
+                                    }
+                                    chunkedFilesCache[msgId] = assembledBase64;
+                                    renderChunkedContent(innerBubbleId, assembledBase64, m.fileType, m.text, timeString, m.isVideoNote);
+                                } else {
+                                    document.getElementById(innerBubbleId).innerText = "[Ошибка: Файл удален]";
+                                }
+                            });
                         }
-                    }
-                    if (messageObject.text && messageObject.text !== "[Медиа]") {
-                        bubbleHtml += `<div>${messageObject.text}</div>`;
-                    }
-                    bubbleHtml += `
-                        <div class="msg-meta">
-                            <span>${new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                        </div>
-                    </div>`;
+                    } else {
+                        // Обычные текстовые и малые сообщения
+                        let raw = m.text || "";
+                        if (raw.startsWith("[MEOW]")) {
+                            raw = aesDecrypt(raw.substring(6), BASE_AES_KEY);
+                        }
 
-                    container.innerHTML = bubbleHtml;
+                        let messageObject = { text: raw };
+                        try {
+                            messageObject = JSON.parse(raw);
+                        } catch (e) {}
+
+                        let bubbleHtml = `<div class="msg-bubble">`;
+                        if (messageObject.fileData) {
+                            if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
+                                bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${messageObject.fileData}', true)"><video src="${messageObject.fileData}"></video></div>`;
+                            } else {
+                                bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${messageObject.fileData}', false)"><img src="${messageObject.fileData}"></div>`;
+                            }
+                        }
+                        if (messageObject.text && messageObject.text !== "[Медиа]") {
+                            bubbleHtml += `<div>${messageObject.text}</div>`;
+                        }
+                        bubbleHtml += `
+                            <div class="msg-meta">
+                                <span>${timeString}</span>
+                            </div>
+                        </div>`;
+
+                        container.innerHTML = bubbleHtml;
+                    }
+
                     feed.appendChild(container);
                 });
 
                 feed.scrollTop = feed.scrollHeight;
             });
         }
+
+        // Рендеринг загруженных секционных файлов (включая плеер кружочков)
+        function renderChunkedContent(targetId, base64Data, fileType, textDescription, timeStr, isVideoNote) {
+            const element = document.getElementById(targetId);
+            if (!element) return;
+
+            let html = "";
+            if (isVideoNote) {
+                // Плеер кружочка как в Telegram
+                html += `
+                    <div class="msg-video-note" onclick="toggleVideoNoteSound(this)">
+                        <video src="${base64Data}" loop autoplay muted playsinline></video>
+                    </div>
+                `;
+            } else if (fileType.startsWith('video/')) {
+                html += `
+                    <div class="msg-media" onclick="viewMediaFull('${base64Data}', true)">
+                        <video src="${base64Data}"></video>
+                    </div>
+                `;
+            } else if (fileType.startsWith('image/')) {
+                html += `
+                    <div class="msg-media" onclick="viewMediaFull('${base64Data}', false)">
+                        <img src="${base64Data}">
+                    </div>
+                `;
+            }
+
+            if (textDescription && textDescription !== "[Медиа]") {
+                html += `<div>${textDescription}</div>`;
+            }
+
+            html += `
+                <div class="msg-meta">
+                    <span>${timeStr} ${isVideoNote ? '📹' : ''}</span>
+                </div>
+            `;
+            element.innerHTML = html;
+        }
+
+        // Включение/выключение звука кружочка при тапе
+        window.toggleVideoNoteSound = (el) => {
+            const vid = el.querySelector('video');
+            if (vid) {
+                vid.muted = !vid.muted;
+                el.style.borderColor = vid.muted ? "var(--accent)" : "var(--online)";
+            }
+        };
 
         function closeChat() {
             if (unsubChatMessages) unsubChatMessages();
@@ -1285,7 +1435,7 @@
             input.style.height = "auto";
         }
 
-        // --- МОМЕНТАЛЬНОЕ УЛЬТРА-СЖАТИЕ И ОТПРАВКА ФОТО/ВИДЕО ---
+        // --- СВЕРХБЫСТРЫЙ И НАДЕЖНЫЙ СЕКЦИОННЫЙ ОБХОД ДЛЯ ФОТО И ВИДЕО ---
         async function compressAndSendMedia(file) {
             if (!file) return;
 
@@ -1326,16 +1476,16 @@
                             ctx.drawImage(img, 0, 0, width, height);
                             
                             const compressedBase64 = canvas.toDataURL('image/jpeg', 0.55);
-                            await transmitMedia(compressedBase64, 'image/jpeg');
+                            await transmitLargeFileInChunks(compressedBase64, 'image/jpeg');
                             
                             clipBtn.innerText = "📎";
                             sendBtn.innerText = "➤";
                         };
                     };
                 } else if (file.type.startsWith('video/')) {
-                    // Разрешаем отправку видео объемом до 8 МБ
-                    if (file.size > 8.0 * 1024 * 1024) {
-                        alert("Размер видео слишком велик. Вы можете отправлять видео файлы объемом до 8 МБ!");
+                    // Видео до 15 МБ гарантированно загрузится без черного экрана!
+                    if (file.size > 15.0 * 1024 * 1024) {
+                        alert("Файл слишком большой. Мессенджер позволяет отправлять видео файлы объемом до 15 МБ.");
                         clipBtn.innerText = "📎";
                         sendBtn.innerText = "➤";
                         return;
@@ -1343,60 +1493,155 @@
                     const reader = new FileReader();
                     reader.readAsDataURL(file);
                     reader.onload = async (event) => {
-                        await transmitMedia(event.target.result, file.type);
+                        await transmitLargeFileInChunks(event.target.result, file.type);
                         clipBtn.innerText = "📎";
                         sendBtn.innerText = "➤";
                     };
                 }
             } catch (err) {
                 console.error(err);
-                alert("Ошибка во время отправки файла!");
+                alert("Произошла ошибка при отправке файла!");
                 clipBtn.innerText = "📎";
                 sendBtn.innerText = "➤";
             }
         }
 
-        async function transmitMedia(base64Data, fileType) {
-            const rawStr = JSON.stringify({
-                text: "[Медиа]",
-                fileData: base64Data,
-                fileType: fileType
-            });
-            const finalString = "[MEOW]" + aesEncrypt(rawStr, BASE_AES_KEY);
+        // --- МЕХАНИЗМ ЧАНКОВОЙ ПЕРЕДАЧИ (CHUNKED TRANSMISSION) ---
+        async function transmitLargeFileInChunks(fullBase64String, fileType, isVideoNote = false) {
+            const inputField = document.getElementById('message-input');
+            const originalPlaceholder = inputField.placeholder;
+            inputField.disabled = true;
 
-            const dbPacket = {
+            const chunkSize = 150000; // Режем на блоки по 150 КБ
+            const totalLength = fullBase64String.length;
+            const chunks = [];
+
+            for (let offset = 0; offset < totalLength; offset += chunkSize) {
+                chunks.push(fullBase64String.slice(offset, offset + chunkSize));
+            }
+
+            // Создаем уникальный ID для этого сообщения заранее
+            const msgListRef = window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`);
+            const newMsgRef = window.fb.push(msgListRef);
+            const msgId = newMsgRef.key;
+
+            // Заливаем секции в базу последовательно
+            for (let idx = 0; idx < chunks.length; idx++) {
+                const percentage = Math.round(((idx + 1) / chunks.length) * 100);
+                inputField.placeholder = `⏳ Загрузка медиа... ${percentage}%`;
+                
+                const encryptedChunk = aesEncrypt(chunks[idx], BASE_AES_KEY);
+                await window.fb.set(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}/chunks/${idx}`), encryptedChunk);
+            }
+
+            // Мастер-запись сообщения (после отправки всех чанков)
+            const metadataPacket = {
                 sender: myUid,
-                text: finalString,
-                time: Date.now()
+                time: Date.now(),
+                isChunked: true,
+                chunkCount: chunks.length,
+                fileType: fileType,
+                text: isVideoNote ? "[Кружочек]" : "[Медиа]",
+                isVideoNote: isVideoNote
             };
 
-            await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+            await window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), metadataPacket);
+
+            inputField.disabled = false;
+            inputField.placeholder = originalPlaceholder;
         }
 
-        function fileToBase64(file) {
-            return new Promise((res, rej) => {
-                const r = new FileReader();
-                r.readAsDataURL(file);
-                r.onload = () => res(r.result);
-                r.onerror = e => rej(e);
-            });
-        }
+        // --- ЗАПИСЬ КРУЖОЧКОВ (TG-STYLE) ---
+        window.openVideoNoteRecorder = async () => {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Камера и микрофон не поддерживаются вашим браузером!");
+                return;
+            }
+            try {
+                recorderStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: {
+                        width: { ideal: 240 },
+                        height: { ideal: 240 },
+                        frameRate: { ideal: 15 }
+                    }
+                });
 
-        function viewMediaFull(data, isVideo) {
-            const viewer = document.getElementById('media-viewer-modal');
-            const content = document.getElementById('media-viewer-content');
-            viewer.classList.add('active');
-            if (isVideo) {
-                content.innerHTML = `<video src="${data}" controls autoplay style="max-width:100%; max-height:100%; object-fit:contain;"></video>`;
-            } else {
-                content.innerHTML = `<img src="${data}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+                document.getElementById('recorder-preview').srcObject = recorderStream;
+                openModal('video-note-modal');
+            } catch (err) {
+                alert("Пожалуйста, разрешите доступ к камере и микрофону!");
+            }
+        };
+
+        window.closeVideoNoteRecorder = () => {
+            stopStream();
+            clearInterval(recordingTimerInterval);
+            closeModal('video-note-modal');
+            
+            const btn = document.getElementById('rec-control-btn');
+            btn.innerText = "🔴 Запись";
+            btn.className = "menu-btn danger";
+        };
+
+        function stopStream() {
+            if (recorderStream) {
+                recorderStream.getTracks().forEach(track => track.stop());
+                recorderStream = null;
+            }
+            if (voiceNoteRecorder) {
+                voiceNoteRecorder = null;
             }
         }
 
-        function closeMediaViewer() {
-            document.getElementById('media-viewer-modal').classList.remove('active');
-            document.getElementById('media-viewer-content').innerHTML = "";
-        }
+        window.toggleVideoNoteRecording = () => {
+            const btn = document.getElementById('rec-control-btn');
+            
+            if (!voiceNoteRecorder || voiceNoteRecorder.state === "inactive") {
+                // Старт записи
+                voiceChunks = [];
+                let options = { mimeType: 'video/webm;codecs=vp8,opus' };
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options = { mimeType: 'video/mp4' }; // Для iOS Safari
+                }
+
+                voiceNoteRecorder = new MediaRecorder(recorderStream, options);
+                voiceNoteRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) voiceChunks.push(e.data);
+                };
+
+                voiceNoteRecorder.onstop = async () => {
+                    const videoBlob = new Blob(voiceChunks, { type: options.mimeType });
+                    const b64 = await fileToBase64(videoBlob);
+                    
+                    // Заливаем кружочек чанками
+                    await transmitLargeFileInChunks(b64, options.mimeType, true);
+                    closeVideoNoteRecorder();
+                };
+
+                voiceNoteRecorder.start();
+                btn.innerText = "⏹ Остановить";
+                btn.className = "menu-btn";
+
+                // Запускаем таймер 60 секунд
+                recordingSeconds = 0;
+                document.getElementById('recorder-timer').innerText = "00:00";
+                recordingTimerInterval = setInterval(() => {
+                    recordingSeconds++;
+                    const minutes = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+                    const seconds = String(recordingSeconds % 60).padStart(2, '0');
+                    document.getElementById('recorder-timer').innerText = `${minutes}:${seconds}`;
+
+                    if (recordingSeconds >= 60) {
+                        toggleVideoNoteRecording(); // Автостоп на 60-й секунде
+                    }
+                }, 1000);
+            } else {
+                // Остановка записи
+                voiceNoteRecorder.stop();
+                clearInterval(recordingTimerInterval);
+            }
+        };
 
         // --- УПРАВЛЕНИЕ УДАЛЕНИЕМ СООБЩЕНИЙ ---
         function triggerMessageDeletion(msgId) {
@@ -1408,10 +1653,8 @@
             if (!selectedMsgIdToDelete || !currentRoomId) return;
 
             if (deleteForBoth) {
-                // Полное удаление сообщения для всех
                 await window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${selectedMsgIdToDelete}`));
             } else {
-                // Удаление только на своем устройстве
                 await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/deletedMessages/${currentRoomId}/${selectedMsgIdToDelete}`), true);
             }
 
@@ -1434,13 +1677,10 @@
             const rId = chatSnap.val().roomId;
 
             if (deleteForBoth) {
-                // Стираем ветки контактов у обоих участников
                 await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pId}`));
                 await window.fb.remove(window.fb.ref(window.fb.db, `users/${pId}/chats/${myUid}`));
-                // Полностью уничтожаем переписку
                 await window.fb.remove(window.fb.ref(window.fb.db, `messages/${rId}`));
             } else {
-                // Просто скрываем у себя из списка
                 await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pId}`));
             }
 
@@ -1466,7 +1706,6 @@
             bioEl.innerText = "";
 
             if (peerId === myUid) {
-                // Свой собственный профиль (Избранное)
                 nameEl.innerText = "Избранное (Вы)";
                 userEl.innerText = "@cloud";
                 bioEl.innerText = "Личное зашифрованное хранилище.";
@@ -1498,7 +1737,6 @@
             openModal('peer-profile-modal');
         }
 
-        // Открытие профиля из шапки чата
         function showActivePeerProfile() {
             if (currentPeer) {
                 showPeerProfile(currentPeer);
