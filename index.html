@@ -3,1543 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MeowMail P2P Messenger</title>
+    <title>MeowMail Cloud (Firebase)</title>
     
-    <!-- Подключаем децентрализованную P2P базу данных GunDB и модуль шифрования SEA -->
-    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+    <!-- Подключаем Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, onChildAdded, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // --- ВСТАВЬТЕ СВОИ ДАННЫЕ ИЗ КОНСОЛИ FIREBASE НИЖЕ ---
+        const firebaseConfig = {
+            apiKey: "ВАШ_API_KEY",
+            authDomain: "ВАШ_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://ВАШ_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "ВАШ_PROJECT_ID",
+            storageBucket: "ВАШ_PROJECT_ID.appspot.com",
+            messagingSenderId: "ВАШ_SENDER_ID",
+            appId: "ВАШ_APP_ID"
+        };
+
+        // Инициализация
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        // Экспорт в глобальную область видимости
+        window.fb = { db, auth, ref, set, push, onValue, onChildAdded, get };
+    </script>
     
     <style>
         :root {
-            --bg-dark: #000000;
-            --bg-surface: #1c1c1e;
+            --bg-dark: #0a0a0a;
+            --bg-surface: #1a1a1c;
             --bg-input: #2c2c2e;
-            --accent: #2f80ed;
-            --accent-hover: #4f9bfd;
-            --text-main: #f5f5f7;
+            --accent: #ff9f0a; /* Оранжевый "мяу" стиль */
+            --text-main: #ffffff;
             --text-muted: #8e8e93;
             --msg-in: #2c2c2e;
-            --msg-out: #2f80ed;
-            --error: #ff453a;
-            --success: #30d158;
-            --warning: #ff9f0a;
-            --border-color: #38383a;
+            --msg-out: #ff9f0a;
+            --border: #38383a;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
+        body { background: var(--bg-dark); color: var(--text-main); height: 100dvh; display: flex; overflow: hidden; }
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            height: 100vh;
-            height: 100dvh;
-            display: flex;
-            overflow: hidden;
-            position: relative;
-        }
-
+        /* Экран входа */
         #login-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, var(--bg-surface) 0%, var(--bg-dark) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            transition: all 0.4s ease;
+            position: fixed; inset: 0; background: radial-gradient(circle, #2c2c2e 0%, #000 100%);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
         }
-
-        .login-card {
-            width: 95%;
-            max-width: 420px;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            padding: 40px 30px;
-            border-radius: 28px;
-            text-align: center;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9);
-        }
-
-        .login-logo {
-            font-size: 72px;
-            margin-bottom: 15px;
-            display: inline-block;
-            animation: float 4s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .login-card h1 {
-            font-size: 26px;
-            font-weight: 850;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .login-card p {
-            color: var(--text-muted);
-            font-size: 14px;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 16px 20px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-input);
-            color: white;
-            font-size: 15px;
-            outline: none;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-        }
-
-        .login-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 16px rgba(47, 128, 237, 0.2);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 16px;
-            border-radius: 16px;
-            border: none;
-            background: var(--accent);
-            color: white;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn:hover { background: var(--accent-hover); }
+        .login-card { width: 90%; max-width: 380px; background: var(--bg-surface); padding: 40px; border-radius: 30px; text-align: center; border: 1px solid var(--border); }
+        .login-input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-input); color: #fff; margin-bottom: 12px; outline: none; }
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .btn:active { transform: scale(0.98); }
 
-        .wrapper {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
+        /* Основной интерфейс */
+        .sidebar { width: 350px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: var(--bg-dark); }
+        .chat-window { flex: 1; display: flex; flex-direction: column; background: #000; }
+        
+        .header { height: 70px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); border-bottom: 1px solid var(--border); }
+        .chats-list { flex: 1; overflow-y: auto; }
+        .chat-item { padding: 15px 20px; border-bottom: 1px solid #222; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
+        .chat-item:hover { background: #222; }
+        .chat-item.active { background: #2c2c2e; }
 
-        .sidebar {
-            width: 360px;
-            background: var(--bg-dark);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
+        .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: #000; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
 
-        .bot-header {
-            padding: 15px 20px;
-            height: 75px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--bg-surface);
-        }
+        .messages-feed { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; word-wrap: break-word; }
+        .bubble.in { align-self: flex-start; background: var(--msg-in); border-bottom-left-radius: 4px; }
+        .bubble.out { align-self: flex-end; background: var(--msg-out); color: #000; border-bottom-right-radius: 4px; }
+        .bubble img, .bubble video { max-width: 100%; border-radius: 12px; display: block; margin-top: 5px; }
 
-        .brand-title {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .profile-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px;
-            transition: color 0.2s;
-        }
-
-        .profile-btn:hover { color: white; }
-
-        .search-area {
-            padding: 14px 20px 8px 20px;
-            display: flex;
-            gap: 8px;
-        }
-
-        .search-field {
-            flex: 1;
-            padding: 12px 18px;
-            border-radius: 22px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-input);
-            color: white;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .add-chat-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: var(--accent);
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .add-chat-btn:hover { background: var(--accent-hover); }
-
-        .chats-container {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .chat-row {
-            display: flex;
-            align-items: center;
-            padding: 14px 20px;
-            cursor: pointer;
-            transition: background 0.2s;
-            border-bottom: 1px solid rgba(255,255,255,0.01);
-        }
-
-        .chat-row:hover { background: rgba(255, 255, 255, 0.02); }
-        .chat-row.active { background: var(--bg-surface); }
-
-        .avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: var(--accent);
-            color: white;
-            font-weight: 700;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            background-size: cover;
-            background-position: center;
-            flex-shrink: 0;
-            position: relative;
-        }
-
-        .chat-details {
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .chat-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-
-        .chat-title {
-            font-weight: 700;
-            font-size: 14.5px;
-            color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .chat-last-message {
-            font-size: 13px;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .chat-window {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--bg-dark);
-            min-width: 0;
-            position: relative;
-        }
-
-        .chat-window-header {
-            height: 75px;
-            padding: 10px 24px;
-            display: flex;
-            align-items: center;
-            background: var(--bg-surface);
-            border-bottom: 1px solid var(--border-color);
-            z-index: 10;
-        }
-
-        .back-btn {
-            display: none;
-            font-size: 22px;
-            color: var(--accent);
-            cursor: pointer;
-            margin-right: 15px;
-            width: 36px; height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: var(--bg-input);
-        }
-
-        .chat-feed {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            scroll-behavior: smooth;
-        }
-
-        /* Красивая инструкция на главном экране */
-        .instruction-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 24px;
-            text-align: left;
-            max-width: 500px;
-            margin: auto;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .instruction-card h3 {
-            margin-bottom: 14px;
-            color: var(--accent-hover);
-            font-size: 18px;
-            text-align: center;
-        }
-
-        .instruction-step {
-            margin-bottom: 12px;
-            font-size: 13.5px;
-            line-height: 1.5;
-        }
-
-        .instruction-step strong {
-            color: var(--text-main);
-        }
-
-        .empty-placeholder {
-            margin: auto;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 14px;
-            max-width: 500px;
-            line-height: 1.5;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .bubble {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 20px;
-            font-size: 14.5px;
-            line-height: 1.45;
-            word-wrap: break-word;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            animation: bubbleIntro 0.12s cubic-bezier(0.1, 0.9, 0.2, 1);
-        }
-
-        @keyframes bubbleIntro {
-            from { opacity: 0; transform: translateY(8px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .bubble.in {
-            align-self: flex-start;
-            background-color: var(--msg-in);
-            border-bottom-left-radius: 4px;
-        }
-
-        .bubble.out {
-            align-self: flex-end;
-            background-color: var(--msg-out);
-            border-bottom-right-radius: 4px;
-        }
-
-        .bubble-time {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.4);
-            margin-top: 5px;
-            align-self: flex-end;
-        }
-
-        .bubble-media {
-            max-width: 100%;
-            border-radius: 14px;
-            margin-bottom: 6px;
-            display: block;
-            cursor: pointer;
-            object-fit: cover;
-            max-height: 280px;
-        }
-
-        .bubble audio {
-            max-width: 100%;
-            margin-bottom: 4px;
-            outline: none;
-            border-radius: 10px;
-        }
-
-        .chat-input-bar {
-            padding: 12px 16px;
-            background: var(--bg-surface);
-            display: flex;
-            align-items: flex-end;
-            gap: 10px;
-            border-top: 1px solid var(--border-color);
-            width: 100%;
-            flex-shrink: 0;
-        }
-
-        .input-box-container {
-            flex: 1;
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            display: flex;
-            align-items: flex-end;
-            padding: 4px 10px;
-            min-width: 0;
-        }
-
-        .input-side-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 20px;
-            padding: 8px;
-            cursor: pointer;
-            transition: color 0.2s;
-            flex-shrink: 0;
-        }
-
-        .input-side-btn:hover { color: white; }
-        #toggle-crypt-btn.active { color: var(--success); }
-        #toggle-crypt-btn.inactive { color: var(--error); }
-
-        .textarea-message {
-            flex: 1;
-            background: none;
-            border: none;
-            outline: none;
-            color: white;
-            font-size: 15px;
-            padding: 10px 6px;
-            resize: none;
-            max-height: 120px;
-            min-height: 40px;
-            line-height: 1.4;
-            min-width: 0;
-        }
-
-        .action-round-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: var(--accent);
-            color: white;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            flex-shrink: 0;
-        }
-
-        .action-round-btn:hover { background: var(--accent-hover); }
-        .action-round-btn:active { transform: scale(0.95); }
-
-        .file-upload-input { display: none; }
-
-        .file-preview-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(47, 128, 237, 0.1);
-            padding: 8px 12px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            font-size: 13px;
-            border: 1px solid rgba(47, 128, 237, 0.3);
-            color: var(--text-main);
-        }
-
-        /* Стилизация диктофона */
-        #voice-record-indicator {
-            display: none;
-            align-items: center;
-            gap: 10px;
-            color: var(--error);
-            font-size: 14px;
-            font-weight: 700;
-            padding: 10px;
-            flex: 1;
-        }
-
-        .recording-dot {
-            width: 10px;
-            height: 10px;
-            background: var(--error);
-            border-radius: 50%;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1100;
-            backdrop-filter: blur(10px);
-        }
-
-        .modal-overlay.active { display: flex; }
-
-        .modal {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            width: 90%;
-            max-width: 400px;
-            border-radius: 28px;
-            padding: 30px;
-        }
-
-        .modal-header {
-            font-size: 20px;
-            font-weight: 800;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .modal-desc {
-            font-size: 14px;
-            color: var(--text-muted);
-            line-height: 1.5;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .status-badge {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 8px;
-            display: inline-block;
-        }
-        .status-badge.secure { background: rgba(48, 209, 88, 0.15); color: var(--success); }
-        .status-badge.unsecure { background: rgba(255, 69, 58, 0.15); color: var(--error); }
-        .status-badge.waiting { background: rgba(255, 159, 10, 0.15); color: var(--warning); }
+        .input-bar { padding: 15px; background: var(--bg-surface); display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--border); }
+        .input-bar textarea { flex: 1; background: var(--bg-input); border: none; border-radius: 20px; color: #fff; padding: 12px 18px; resize: none; outline: none; max-height: 100px; }
+        
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--bg-surface); padding: 30px; border-radius: 25px; width: 90%; max-width: 400px; }
 
         @media (max-width: 768px) {
             .sidebar { width: 100%; }
-            body.chat-opened .sidebar { display: none !important; }
-            .chat-window { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 500; }
-            body.chat-opened .chat-window { display: flex !important; }
-            .back-btn { display: flex; }
+            body.chat-open .sidebar { display: none; }
+            .chat-window { display: none; }
+            body.chat-open .chat-window { display: flex; position: fixed; inset: 0; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Экран Входа -->
+    <!-- ВХОД -->
     <div id="login-screen">
         <div class="login-card">
-            <div class="login-logo">🐾</div>
-            <h1>MeowMail P2P</h1>
-            <p>100% бесплатный децентрализованный E2EE мессенджер без серверов.</p>
-            
-            <input type="text" id="login-email" class="login-input" placeholder="Никнейм или Почта">
-            <input type="password" id="login-password" class="login-input" placeholder="Пароль">
-            
-            <button class="btn" id="login-action-btn" onclick="handleLogin()">
-                Войти / Создать аккаунт
-            </button>
-            <div id="login-error" style="color:var(--error); margin-top:15px; font-size:13px; display:none;"></div>
+            <div style="font-size: 50px; margin-bottom: 10px;">🐾</div>
+            <h1 style="margin-bottom: 20px;">MeowMail Cloud</h1>
+            <input type="email" id="email" class="login-input" placeholder="Email">
+            <input type="password" id="password" class="login-input" placeholder="Пароль">
+            <button class="btn" id="login-btn" onclick="authAction()">Войти / Создать аккаунт</button>
+            <div id="auth-error" style="color: var(--error); margin-top: 15px; font-size: 13px;"></div>
         </div>
     </div>
 
-    <!-- Основной Интерфейс -->
-    <div class="wrapper">
-        <div class="sidebar">
-            <div class="bot-header">
-                <div class="brand-title">🐾 MeowMail P2P</div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="font-size: 11px; color: var(--warning)" id="p2p-status">Подключение...</div>
-                    <button class="profile-btn" onclick="openProfileSettings()" title="Профиль">⚙️</button>
-                </div>
-            </div>
+    <!-- ГЛАВНЫЙ ЭКРАН -->
+    <div class="sidebar">
+        <div class="header">
+            <div style="font-weight: 900; color: var(--accent);">🐾 MEOWMAIL</div>
+            <button onclick="document.getElementById('new-chat-modal').classList.add('active')" style="background:none; border:none; color:var(--accent); font-size:28px; cursor:pointer;">+</button>
+        </div>
+        <div class="chats-list" id="chats-list"></div>
+    </div>
 
-            <div class="search-area">
-                <input type="text" id="search-input" class="search-field" placeholder="Поиск диалогов..." oninput="renderChats()">
-                <button class="add-chat-btn" onclick="openNewChatPrompt()" title="Начать новый чат">+</button>
-            </div>
-
-            <div class="chats-container" id="chats-list">
-                <div class="empty-placeholder">У вас пока нет активных диалогов. Нажмите «+», чтобы начать.</div>
+    <div class="chat-window">
+        <div class="header">
+            <button onclick="document.body.classList.remove('chat-open')" style="background:none; border:none; color:var(--accent); font-size:20px; font-weight:bold;">←</button>
+            <div id="chat-header-name" style="flex:1; margin-left:15px; font-weight:bold;">Выберите чат</div>
+            <div class="avatar" id="chat-header-avatar">?</div>
+        </div>
+        <div class="messages-feed" id="messages-feed">
+            <div style="margin:auto; color:var(--text-muted); text-align:center; padding:20px;">
+                Начните новый диалог, нажав на плюс в меню слева.
             </div>
         </div>
-
-        <div class="chat-window" id="chat-window-pane">
-            <div class="chat-window-header">
-                <div class="back-btn" onclick="backToSidebar()">←</div>
-                <div class="avatar" id="active-chat-avatar">?</div>
-                <div class="chat-details" style="flex:1;">
-                    <div class="chat-title" id="active-chat-name">Выберите чат</div>
-                    <div id="active-chat-status-badge" style="margin-top: 2px;"></div>
-                </div>
-                <button class="btn" id="crypt-action-btn" style="width: auto; padding: 8px 16px; font-size: 13px; display:none;" onclick="openCryptSettingsModal()">Ключи</button>
-            </div>
-
-            <div class="chat-feed" id="messages-feed">
-                <!-- Сюда вставляется инструкция при отсутствии активного чата -->
-                <div class="empty-placeholder" id="welcome-placeholder">
-                    <div class="instruction-card">
-                        <h3>⚡️ Как подключиться на расстоянии 1000 км?</h3>
-                        <div class="instruction-step">
-                            1. 🐾 <strong>Создайте аккаунты:</strong> Вы и ваш друг заходите на этот сайт с любых устройств (хоть с разных концов планеты). Зарегистрируйтесь с уникальными никами (например, <code>cat_alice</code> и <code>cat_bob</code>).
-                        </div>
-                        <div class="instruction-step">
-                            2. ➕ <strong>Добавьте друг друга:</strong> Нажмите на «+» в левом углу. Вы должны ввести ник друга (<code>cat_bob</code>), а ваш друг в этот же момент должен нажать «+» и ввести ваш ник (<code>cat_alice</code>).
-                        </div>
-                        <div class="instruction-step">
-                            3. 🔑 <strong>Авто-обмен ключами:</strong> Как только вы оба добавите друг друга, децентрализованные реле-ноды GunDB мгновенно найдут ваши устройства и обменяются ключами шифрования. Статус сменится на <span class="status-badge secure">🔒 E2EE защищен</span>.
-                        </div>
-                        <div class="instruction-step">
-                            4. 🗣 <strong>Полная анонимность:</strong> Ваши сообщения, файлы и голосовые сообщения шифруются прямо в браузере (E2EE) и идут напрямую через P2P-сеть. Ни один сервер не может прочесть вашу переписку!
-                        </div>
-                        <div class="instruction-step" style="margin-bottom:0; font-size:12px; color:var(--text-muted); text-align:center;">
-                            <em>Если статус шифрования долго горит жёлтым («Ожидание...»), просто нажмите кнопку «Ключи» вверху чата и выберите «Обновить ключи».</em>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="chat-input-bar" id="chat-input-bar" style="display: none;">
-                <div class="input-box-container">
-                    <button class="input-side-btn" id="attach-btn" onclick="triggerFileInput()" title="Прикрепить фото/видео">📎</button>
-                    <input type="file" id="file-input" class="file-upload-input" accept="image/*,video/*" onchange="handleFileChange(event)">
-                    
-                    <button class="input-side-btn" id="toggle-crypt-btn" onclick="toggleCryptForCurrentChat()" title="Шифрование">🔒</button>
-                    
-                    <!-- Кнопка голосового сообщения -->
-                    <button class="input-side-btn" id="voice-rec-btn" onclick="toggleVoiceRecord()" title="Голосовое сообщение" style="color: var(--text-muted);">🎤</button>
-
-                    <div class="input-controls" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
-                        <!-- Превью файлов -->
-                        <div id="file-preview" class="file-preview-container" style="display: none;">
-                            <span id="file-name" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
-                            <span style="color:var(--error); cursor:pointer; font-weight: bold; padding: 0 5px;" onclick="removeFile()">×</span>
-                        </div>
-                        
-                        <!-- Индикатор записи голоса -->
-                        <div id="voice-record-indicator">
-                            <span class="recording-dot"></span>
-                            <span id="voice-duration">0:00</span>
-                            <span id="cancel-voice-btn" style="color: var(--error); margin-left: auto; cursor: pointer; font-size: 13px; font-weight: normal;" onclick="cancelVoiceRecord()">Отмена ×</span>
-                        </div>
-
-                        <!-- Поле ввода текста -->
-                        <textarea id="message-text" class="textarea-message" placeholder="Написать сообщение..." rows="1" onkeydown="handleInputKey(event)" oninput="handleTypingEffect()"></textarea>
-                    </div>
-                </div>
-
-                <button class="action-round-btn" id="action-btn" onclick="sendChatMessage()">🐾</button>
-            </div>
+        <div class="input-bar" id="input-bar" style="display:none;">
+            <input type="file" id="file-picker" style="display:none" accept="image/*,video/*" onchange="handleFileUpload(this.files[0])">
+            <button onclick="document.getElementById('file-picker').click()" style="background:none; border:none; font-size:22px; cursor:pointer;">📎</button>
+            <textarea id="msg-input" placeholder="Сообщение..." rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'"></textarea>
+            <button class="btn" onclick="sendTextMessage()" style="width:50px; height:40px; padding:0;">🐾</button>
         </div>
     </div>
 
-    <!-- Модалки -->
-    <div class="modal-overlay" id="crypt-settings-modal">
-        <div class="modal">
-            <div class="modal-header">Управление ключами E2EE</div>
-            <div class="modal-desc">
-                Вы можете принудительно запросить публичные ключи собеседника из P2P-сети для возобновления и исправления ошибок шифрования.
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                <button class="btn" onclick="forceE2EKeyExchange()">Принудительно обновить ключи</button>
-                <button class="btn" onclick="closeModal('crypt-settings-modal')" style="background:var(--bg-input); color:white;">Закрыть</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="new-chat-modal">
-        <div class="modal">
-            <div class="modal-header">Новый диалог</div>
-            <div class="modal-desc">Введите никнейм или Email собеседника, чтобы начать диалог.</div>
-            <input type="text" id="new-chat-email" class="login-input" placeholder="например: cat_bob" style="margin-bottom:15px;">
-            <div style="display: flex; gap: 12px;">
-                <button class="btn" onclick="createNewChat()" style="flex:1;">Начать</button>
-                <button class="btn" onclick="closeModal('new-chat-modal')" style="background:var(--bg-input); color:white; flex:1;">Отмена</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модалка Настройки Профиля -->
-    <div class="modal-overlay" id="profile-settings-modal">
-        <div class="modal">
-            <div class="modal-header">Настройки Профиля</div>
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 20px;">
-                <div class="avatar" id="profile-modal-avatar" style="width: 80px; height: 80px; font-size: 28px; margin-right: 0; cursor: pointer;" onclick="triggerAvatarUpload()">?</div>
-                <input type="file" id="avatar-input" class="file-upload-input" accept="image/*" onchange="handleAvatarChange(event)">
-                <span style="font-size: 12px; color: var(--accent); cursor: pointer;" onclick="triggerAvatarUpload()">Загрузить фото</span>
-            </div>
-            <input type="text" id="profile-display-name" class="login-input" placeholder="Ваше отображаемое имя">
-            <div style="display: flex; gap: 12px;">
-                <button class="btn" onclick="saveProfileSettings()" style="flex:1;">Сохранить</button>
-                <button class="btn" onclick="closeModal('profile-settings-modal')" style="background:var(--bg-input); color:white; flex:1;">Закрыть</button>
+    <!-- МОДАЛКА -->
+    <div class="modal" id="new-chat-modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 15px;">Новый чат</h3>
+            <input type="email" id="new-chat-email" class="login-input" placeholder="Email друга">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="createNewChat()">Начать</button>
+                <button class="btn" style="background:#444; color:#fff;" onclick="this.closest('.modal').classList.remove('active')">Отмена</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Глобальный отказоустойчивый пул dApp реле-серверов GunDB
-        const gunPeers = [
-    'https://relay.peer.ooo/gun',
-    'https://gun-rs.herokuapp.com/gun',
-    'https://www.rayjson.com/gun'
-];
-        
-        const gun = Gun({ peers: gunPeers });
-        const user = gun.user().recall({sessionStorage: true});
+        let currentUser = null;
+        let activeChatEmail = null;
+        let activeRoomId = null;
 
-        let myEmail = "";
-        let chats = {};
-        let currentChatId = null; 
-        let selectedFile = null;
-        let peerProfiles = {}; // Кэш профилей собеседников (имя, аватар)
-        let activeRoomSubscriptions = {}; // Чтобы не вешать дублирующих слушателей на комнаты
+        // --- АВТОРИЗАЦИЯ ---
+        function authAction() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true; btn.innerText = "Минутку...";
 
-        // Переменные аудиорекордера
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let isRecording = false;
-        let recordingTimer = null;
-        let recordingSeconds = 0;
-
-        const safeStorage = {
-            get(key) { try { return localStorage.getItem(key); } catch(e) { return null; } },
-            set(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
-        };
-
-        async function sha256(message) {
-            const msgBuffer = new TextEncoder().encode(message);
-            const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        async function getRoomKey(email1, email2) {
-            const sorted = [email1.toLowerCase().trim(), email2.toLowerCase().trim()].sort().join('_');
-            return 'meowroom_' + (await sha256(sorted));
-        }
-
-        // Автологин при запуске
-        window.onload = function() {
-            const savedEmail = safeStorage.get("meow_p2p_email");
-            const savedPass = safeStorage.get("meow_p2p_pass");
-
-            gun.on('auth', () => {
-                document.getElementById('p2p-status').innerText = "Подключен (P2P)";
-                document.getElementById('p2p-status').style.color = "var(--success)";
-            });
-
-            if (savedEmail && savedPass) {
-                user.auth(savedEmail, savedPass, (ack) => {
-                    if (!ack.err) {
-                        myEmail = savedEmail;
-                        completeLogin();
-                    }
+            signInWithEmailAndPassword(window.fb.auth, email, password)
+                .catch(() => createUserWithEmailAndPassword(window.fb.auth, email, password))
+                .catch(err => {
+                    document.getElementById('auth-error').innerText = "Ошибка: " + err.message;
+                    btn.disabled = false; btn.innerText = "Войти / Создать аккаунт";
                 });
-            }
-        };
+        }
 
-        // Логин/Регистрация
-        function handleLogin() {
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const pass = document.getElementById('login-password').value.trim();
-            const btn = document.getElementById('login-action-btn');
-
-            if (!email || !pass) {
-                showLoginError("Пожалуйста, заполните все поля.");
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "Подключение...";
-
-            user.auth(email, pass, async function(ack) {
-                if (ack.err) {
-                    user.create(email, pass, function(regAck) {
-                        if (regAck.err) {
-                            showLoginError("Ошибка регистрации: " + regAck.err);
-                            btn.disabled = false;
-                            btn.innerText = "Войти / Создать аккаунт";
-                        } else {
-                            user.auth(email, pass, async function() {
-                                myEmail = email;
-                                safeStorage.set("meow_p2p_email", email);
-                                safeStorage.set("meow_p2p_pass", pass);
-                                await initMyProfileOnRegistration();
-                                completeLogin();
-                            });
-                        }
-                    });
-                } else {
-                    myEmail = email;
-                    safeStorage.set("meow_p2p_email", email);
-                    safeStorage.set("meow_p2p_pass", pass);
-                    completeLogin();
+        // Проверка входа
+        setTimeout(() => {
+            window.fb.auth.onAuthStateChanged(user => {
+                if (user) {
+                    currentUser = user;
+                    document.getElementById('login-screen').style.display = 'none';
+                    loadMyChats();
                 }
             });
-        }
+        }, 1200);
 
-        async function initMyProfileOnRegistration() {
-            gun.get('meow_p2p_profiles').get(myEmail).put({
-                name: myEmail,
-                avatar: ""
-            });
-        }
-
-        function showLoginError(msg) {
-            const errDiv = document.getElementById('login-error');
-            errDiv.innerText = msg;
-            errDiv.style.display = "block";
-        }
-
-        function completeLogin() {
-            document.getElementById('login-screen').style.display = 'none';
-
-            const savedChats = safeStorage.get("meow_p2p_chats_" + myEmail);
-            if (savedChats) {
-                try { chats = JSON.parse(savedChats); } catch(e) {}
-            }
-            renderChats();
-
-            gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').map().on(async (roomKey, peerEmail) => {
-                if (!peerEmail) return;
-
-                if (!chats[peerEmail]) {
-                    chats[peerEmail] = { id: peerEmail, name: peerEmail, messages: [] };
-                    renderChats();
-                }
-
-                subscribeToPeerProfile(peerEmail);
-
-                if (roomKey) {
-                    subscribeToRoom(roomKey, peerEmail);
-                }
-            });
-        }
-
-        function subscribeToPeerProfile(peerEmail) {
-            gun.get('meow_p2p_profiles').get(peerEmail).on((data) => {
-                if (data) {
-                    peerProfiles[peerEmail] = {
-                        name: data.name || peerEmail,
-                        avatar: data.avatar || ""
-                    };
-                    renderChats();
-                    if (currentChatId === peerEmail) {
-                        document.getElementById('active-chat-name').innerText = data.name || peerEmail;
-                        const headerAvatar = document.getElementById('active-chat-avatar');
-                        if (data.avatar) {
-                            headerAvatar.style.backgroundImage = `url(${data.avatar})`;
-                            headerAvatar.innerText = "";
-                        } else {
-                            headerAvatar.style.backgroundImage = "";
-                            headerAvatar.innerText = peerEmail[0].toUpperCase();
-                        }
-                    }
-                }
-            });
-        }
-
-        async function subscribeToRoom(roomKey, peerEmail) {
-            if (activeRoomSubscriptions[roomKey]) return;
-            activeRoomSubscriptions[roomKey] = true;
-
-            const room = gun.get(roomKey);
-
-            room.get('keys').get(myEmail).put({
-                pub: user.is.pub,
-                epub: user._.sea.epub
-            });
-
-            room.get('keys').get(peerEmail).on((data) => {
-                if (data && data.epub) {
-                    safeStorage.set("meow_epub_" + peerEmail, data.epub);
-                    safeStorage.set("meow_pub_" + peerEmail, data.pub);
-                    updateCryptStatusDisplay();
-                    decryptAllMessages(peerEmail); 
-                }
-            });
-
-            room.get('messages').map().on(async (encryptedPacket, msgId) => {
-                if (!encryptedPacket) return;
-
-                if (!chats[peerEmail]) {
-                    chats[peerEmail] = { id: peerEmail, name: peerEmail, messages: [] };
-                }
-
-                if (chats[peerEmail].messages.some(m => m.id === msgId)) return;
-
-                const packet = typeof encryptedPacket === 'string' ? JSON.parse(encryptedPacket) : encryptedPacket;
-
-                let messageItem = {
-                    id: msgId,
-                    time: packet.time,
-                    out: packet.sender === myEmail,
-                    text: "", 
-                    rawPacket: packet, 
-                    fileUrl: null,
-                    fileType: null,
-                    fileName: null,
-                    encrypted: packet.encrypted,
-                    decrypted: false
-                };
-
-                chats[peerEmail].messages.push(messageItem);
-                chats[peerEmail].messages.sort((a, b) => a.time - b.time);
-
-                await tryDecryptMessage(messageItem, peerEmail);
-
-                if (currentChatId === peerEmail) {
-                    await renderMessages();
-                }
-                renderChats();
-                saveState();
-            });
-        }
-
-        async function tryDecryptMessage(msg, peerEmail) {
-            if (!msg.encrypted) {
-                if (typeof msg.rawPacket.content === 'object') {
-                    msg.text = msg.rawPacket.content.text || "";
-                    if (msg.rawPacket.content.fileB64) {
-                        msg.fileUrl = `data:${msg.rawPacket.content.fileType};base64,${msg.rawPacket.content.fileB64}`;
-                        msg.fileType = msg.rawPacket.content.fileType;
-                        msg.fileName = msg.rawPacket.content.fileName;
-                    }
-                } else {
-                    msg.text = msg.rawPacket.content;
-                }
-                msg.decrypted = true;
-                return;
-            }
-
-            if (msg.decrypted) return;
-
-            const peerEpub = safeStorage.get("meow_epub_" + peerEmail);
-            if (!peerEpub) {
-                msg.text = "[Ожидание обмена P2P ключами шифрования...]";
-                return;
-            }
-
-            try {
-                const sharedSecret = await SEA.secret(peerEpub, user._.sea);
-                const dec = await SEA.decrypt(msg.rawPacket.content, sharedSecret);
-                
-                if (dec) {
-                    if (typeof dec === 'object') {
-                        msg.text = dec.text || "";
-                        if (dec.fileB64) {
-                            msg.fileUrl = `data:${dec.fileType};base64,${dec.fileB64}`;
-                            msg.fileType = dec.fileType;
-                            msg.fileName = dec.fileName;
-                        }
-                    } else {
-                        msg.text = dec;
-                    }
-                    msg.decrypted = true;
-                } else {
-                    msg.text = "[Ошибка дешифрования: неверные ключи]";
-                }
-            } catch (e) {
-                msg.text = "[Ошибка расшифровки]";
-            }
-        }
-
-        async function decryptAllMessages(peerEmail) {
-            if (!chats[peerEmail]) return;
-            for (let msg of chats[peerEmail].messages) {
-                await tryDecryptMessage(msg, peerEmail);
-            }
-            if (currentChatId === peerEmail) {
-                await renderMessages();
-            }
-        }
-
-        async function forceE2EKeyExchange() {
-            if (!currentChatId) return;
-            const peerEmail = currentChatId;
-            const roomKey = await getRoomKey(myEmail, peerEmail);
-            const room = gun.get(roomKey);
-
-            room.get('keys').get(myEmail).put({
-                pub: user.is.pub,
-                epub: user._.sea.epub
-            });
-
-            room.get('keys').get(peerEmail).once((data) => {
-                if (data && data.epub) {
-                    safeStorage.set("meow_epub_" + peerEmail, data.epub);
-                    safeStorage.set("meow_pub_" + peerEmail, data.pub);
-                    decryptAllMessages(peerEmail);
-                    alert("Ключи шифрования обновлены!");
-                } else {
-                    alert("Собеседник еще не в сети. Подождите, пока он откроет чат.");
-                }
-            });
-            closeModal('crypt-settings-modal');
-        }
-
-        // --- УПРАВЛЕНИЕ ПРОФИЛЕМ ---
-
-        function openProfileSettings() {
-            gun.get('meow_p2p_profiles').get(myEmail).once((data) => {
-                if (data) {
-                    document.getElementById('profile-display-name').value = data.name || myEmail;
-                    if (data.avatar) {
-                        document.getElementById('profile-modal-avatar').style.backgroundImage = `url(${data.avatar})`;
-                        document.getElementById('profile-modal-avatar').innerText = "";
-                    } else {
-                        document.getElementById('profile-modal-avatar').style.backgroundImage = "";
-                        document.getElementById('profile-modal-avatar').innerText = "?";
-                    }
-                }
-            });
-            openModal('profile-settings-modal');
-        }
-
-        function triggerAvatarUpload() {
-            document.getElementById('avatar-input').click();
-        }
-
-        async function handleAvatarChange(event) {
-            if (event.target.files.length > 0) {
-                const file = event.target.files[0];
-                const base64 = await fileToBase64(file);
-                const fullBase64 = `data:${file.type};base64,${base64}`;
-                document.getElementById('profile-modal-avatar').style.backgroundImage = `url(${fullBase64})`;
-                document.getElementById('profile-modal-avatar').innerText = "";
-                
-                document.getElementById('profile-modal-avatar').dataset.tempAvatar = fullBase64;
-            }
-        }
-
-        function saveProfileSettings() {
-            const newName = document.getElementById('profile-display-name').value.trim() || myEmail;
-            const newAvatar = document.getElementById('profile-modal-avatar').dataset.tempAvatar || "";
-
-            gun.get('meow_p2p_profiles').get(myEmail).put({
-                name: newName,
-                avatar: newAvatar
-            }, () => {
-                alert("Профиль успешно сохранен!");
-                closeModal('profile-settings-modal');
-            });
-        }
-
-        // --- ЗАПИСЬ ГОЛОСОВЫХ СООБЩЕНИЙ ---
-
-        async function toggleVoiceRecord() {
-            if (isRecording) {
-                stopVoiceRecording(true);
-            } else {
-                startVoiceRecording();
-            }
-        }
-
-        async function startVoiceRecording() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert("Ваш браузер не поддерживает запись аудио.");
-                return;
-            }
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
-                    }
-                };
-
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    
-                    // Если запись не была отменена
-                    if (audioChunks.length > 0) {
-                        selectedFile = new File([audioBlob], `voice_${Date.now()}.webm`, { type: 'audio/webm' });
-                        document.getElementById('file-name').innerText = "🎤 Голосовое сообщение";
-                        document.getElementById('file-preview').style.display = 'flex';
-                        
-                        // Мгновенная автоматическая отправка
-                        await sendChatMessage();
-                    }
-                };
-
-                mediaRecorder.start();
-                isRecording = true;
-                recordingSeconds = 0;
-                
-                // Переключение UI на режим записи
-                document.getElementById('message-text').style.display = 'none';
-                document.getElementById('attach-btn').style.display = 'none';
-                document.getElementById('toggle-crypt-btn').style.display = 'none';
-                document.getElementById('voice-record-indicator').style.display = 'flex';
-                document.getElementById('voice-rec-btn').innerText = "🛑";
-                document.getElementById('voice-rec-btn').style.color = "var(--error)";
-
-                recordingTimer = setInterval(() => {
-                    recordingSeconds++;
-                    const mins = Math.floor(recordingSeconds / 60);
-                    const secs = recordingSeconds % 60;
-                    document.getElementById('voice-duration').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
-                }, 1000);
-
-            } catch (err) {
-                alert("Не удалось получить доступ к микрофону: " + err.message);
-            }
-        }
-
-        function stopVoiceRecording(save) {
-            if (!isRecording) return;
-            clearInterval(recordingTimer);
-            isRecording = false;
-
-            if (!save) {
-                audioChunks = []; // Очищаем массив, чтобы пропустить отправку
-            }
-
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-                // Выключаем треки микрофона
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
-            }
-
-            // Возврат UI к стандартному виду
-            document.getElementById('message-text').style.display = 'block';
-            document.getElementById('attach-btn').style.display = 'block';
-            document.getElementById('toggle-crypt-btn').style.display = 'block';
-            document.getElementById('voice-record-indicator').style.display = 'none';
-            document.getElementById('voice-rec-btn').innerText = "🎤";
-            document.getElementById('voice-rec-btn').style.color = "var(--text-muted)";
-            document.getElementById('voice-duration').innerText = "0:00";
-        }
-
-        function cancelVoiceRecord() {
-            stopVoiceRecording(false);
-        }
-
-        // --- ОТПРАВКА СООБЩЕНИЙ ---
-
-        async function sendChatMessage() {
-            const textarea = document.getElementById('message-text');
-            const text = textarea.value.trim();
-            const targetEmail = currentChatId;
-
-            if (!text && !selectedFile) return;
-
-            // Блокируем ввод на время отправки во избежание багов
-            textarea.value = "";
-            textarea.style.height = "auto";
-            handleTypingEffect();
-
-            const isEncrypted = loadChatEncryptState(targetEmail);
-            const msgId = 'msg-' + Math.random().toString(36).substring(2, 11);
-            const msgTime = Date.now();
-
-            const tempMessage = {
-                id: msgId,
-                time: msgTime,
-                out: true,
-                text: text,
-                encrypted: isEncrypted,
-                decrypted: true
-            };
-
-            let fileObjectUrl = null;
-            if (selectedFile) {
-                fileObjectUrl = URL.createObjectURL(selectedFile);
-                tempMessage.fileUrl = fileObjectUrl;
-                tempMessage.fileType = selectedFile.type;
-                tempMessage.fileName = selectedFile.name;
-            }
-
-            chats[targetEmail].messages.push(tempMessage);
-            await renderMessages();
-
-            try {
-                const roomKey = await getRoomKey(myEmail, targetEmail);
-                let contentToSend = "";
-
-                if (isEncrypted) {
-                    const peerEpub = safeStorage.get("meow_epub_" + targetEmail);
-                    if (!peerEpub) {
-                        throw new Error("E2EE_NOT_ESTABLISHED");
-                    }
-
-                    const payload = { text: text };
-                    if (selectedFile) {
-                        payload.fileB64 = await fileToBase64(selectedFile);
-                        payload.fileType = selectedFile.type;
-                        payload.fileName = selectedFile.name;
-                    }
-
-                    const sharedSecret = await SEA.secret(peerEpub, user._.sea);
-                    contentToSend = await SEA.encrypt(payload, sharedSecret);
-                } else {
-                    if (selectedFile) {
-                        contentToSend = {
-                            text: text,
-                            fileB64: await fileToBase64(selectedFile),
-                            fileType: selectedFile.type,
-                            fileName: selectedFile.name
-                        };
-                    } else {
-                        contentToSend = text;
-                    }
-                }
-
-                const packet = {
-                    sender: myEmail,
-                    time: msgTime,
-                    encrypted: isEncrypted,
-                    content: contentToSend
-                };
-
-                gun.get(roomKey).get('messages').get(msgId).put(JSON.stringify(packet));
-
-                gun.get('meowmail_p2p_registry').get(targetEmail).get('rooms').get(myEmail).put(roomKey);
-                gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').get(targetEmail).put(roomKey);
-
-                removeFile();
-                saveState();
-            } catch (e) {
-                console.error(e);
-                chats[targetEmail].messages = chats[targetEmail].messages.filter(m => m.id !== msgId);
-                await renderMessages();
-
-                if (e.message === "E2EE_NOT_ESTABLISHED") {
-                    alert("Шифрование E2EE включено, но ключи еще не установлены. Отключите замок (🔓) для отправки открытых сообщений.");
-                } else {
-                    alert("Ошибка отправки: " + e.message);
-                }
-            }
-        }
-
-        async function renderMessages() {
-            const container = document.getElementById('messages-feed');
-            const chat = chats[currentChatId];
-            if (!chat) return;
-
-            container.innerHTML = "";
-
-            if (chat.messages.length === 0) {
-                container.innerHTML = `<div class="empty-placeholder">Нет сообщений. Напишите первое P2P сообщение!</div>`;
-                return;
-            }
-
-            chat.messages.forEach(msg => {
-                const div = document.createElement('div');
-                div.className = `bubble ${msg.out ? 'out' : 'in'}`;
-
-                if (msg.fileUrl) {
-                    if (msg.fileType.startsWith('image/')) {
-                        const img = document.createElement('img');
-                        img.src = msg.fileUrl;
-                        img.className = 'bubble-media';
-                        img.onclick = () => window.open(msg.fileUrl, '_blank');
-                        div.appendChild(img);
-                    } else if (msg.fileType.startsWith('video/')) {
-                        const video = document.createElement('video');
-                        video.src = msg.fileUrl;
-                        video.className = 'bubble-media';
-                        video.controls = true;
-                        div.appendChild(video);
-                    } else if (msg.fileType.startsWith('audio/')) {
-                        const audio = document.createElement('audio');
-                        audio.src = msg.fileUrl;
-                        audio.controls = true;
-                        div.appendChild(audio);
-                    }
-                }
-
-                if (msg.text) {
-                    const textSpan = document.createElement('div');
-                    textSpan.className = 'bubble-text';
-                    textSpan.innerHTML = escapeHtml(msg.text);
-                    div.appendChild(textSpan);
-                }
-
-                const timeSpan = document.createElement('div');
-                timeSpan.className = 'bubble-time';
-                timeSpan.innerText = new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + (msg.encrypted ? ' 🔒' : ' 🔓');
-                div.appendChild(timeSpan);
-
-                container.appendChild(div);
-            });
-
-            container.scrollTop = container.scrollHeight;
-        }
-
-        // --- УПРАВЛЕНИЕ ДИАЛОГАМИ ---
-
-        function openNewChatPrompt() {
-            openModal('new-chat-modal');
-        }
-
+        // --- ЛОГИКА ЧАТОВ ---
         async function createNewChat() {
-            const emailInput = document.getElementById('new-chat-email');
-            const email = emailInput.value.trim().toLowerCase();
-            if (!email) {
-                alert("Укажите корректный никнейм или Email.");
-                return;
-            }
+            const peerEmail = document.getElementById('new-chat-email').value.trim().toLowerCase();
+            if (!peerEmail || peerEmail === currentUser.email) return;
 
-            if (!chats[email]) {
-                chats[email] = {
-                    id: email,
-                    name: email,
-                    messages: []
-                };
-            }
+            const roomId = await generateRoomId(currentUser.email, peerEmail);
+            const myClean = currentUser.email.replace(/\./g, '_');
+            const peerClean = peerEmail.replace(/\./g, '_');
 
-            const roomKey = await getRoomKey(myEmail, email);
-            gun.get('meowmail_p2p_registry').get(email).get('rooms').get(myEmail).put(roomKey);
-            gun.get('meowmail_p2p_registry').get(myEmail).get('rooms').get(email).put(roomKey);
+            await window.fb.set(window.fb.ref(window.fb.db, `users/${myClean}/contacts/${peerClean}`), { email: peerEmail, roomId: roomId });
+            await window.fb.set(window.fb.ref(window.fb.db, `users/${peerClean}/contacts/${myClean}`), { email: currentUser.email, roomId: roomId });
 
-            emailInput.value = "";
-            closeModal('new-chat-modal');
-            renderChats();
-            await openChat(email);
+            document.getElementById('new-chat-modal').classList.remove('active');
+            openChat(peerEmail, roomId);
         }
 
-        function renderChats() {
-            const container = document.getElementById('chats-list');
-            const searchVal = document.getElementById('search-input').value.toLowerCase();
-            container.innerHTML = "";
-
-            const activeChats = Object.values(chats).filter(c => {
-                return !searchVal || c.name.toLowerCase().includes(searchVal);
+        function loadMyChats() {
+            const myClean = currentUser.email.replace(/\./g, '_');
+            window.fb.onValue(window.fb.ref(window.fb.db, `users/${myClean}/contacts`), (snapshot) => {
+                const list = document.getElementById('chats-list');
+                list.innerHTML = '';
+                const contacts = snapshot.val();
+                if (contacts) {
+                    Object.values(contacts).forEach(c => {
+                        const div = document.createElement('div');
+                        div.className = `chat-item ${activeChatEmail === c.email ? 'active' : ''}`;
+                        div.innerHTML = `<div class="avatar">${c.email[0].toUpperCase()}</div><div><b>${c.email}</b></div>`;
+                        div.onclick = () => openChat(c.email, c.roomId);
+                        list.appendChild(div);
+                    });
+                }
             });
+        }
 
-            if (activeChats.length === 0) {
-                container.innerHTML = `<div class="empty-placeholder">Активных диалогов нет.</div>`;
-                return;
-            }
+        function openChat(email, roomId) {
+            activeChatEmail = email;
+            activeRoomId = roomId;
+            document.body.classList.add('chat-open');
+            document.getElementById('chat-header-name').innerText = email;
+            document.getElementById('chat-header-avatar').innerText = email[0].toUpperCase();
+            document.getElementById('input-bar').style.display = 'flex';
+            loadMessages(roomId);
+        }
 
-            activeChats.forEach(chat => {
-                const item = document.createElement('div');
-                item.className = `chat-row ${currentChatId === chat.id ? 'active' : ''}`;
-                item.onclick = () => openChat(chat.id);
+        // --- СООБЩЕНИЯ (ТЕКСТ + ФАЙЛЫ) ---
+        function sendTextMessage() {
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if (text) pushMessage({ text });
+            input.value = ''; input.style.height = 'auto';
+        }
 
-                const lastMsg = chat.messages[chat.messages.length - 1];
-                let displayLast = "Нет сообщений";
-                if (lastMsg) {
-                    if (lastMsg.fileType && lastMsg.fileType.startsWith('audio/')) {
-                        displayLast = "🎤 Голосовое сообщение";
-                    } else {
-                        displayLast = lastMsg.text || "📎 Медиафайл";
+        async function handleFileUpload(file) {
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) return alert("Файл слишком большой (макс 10МБ)");
+            
+            const base64 = await fileToBase64(file);
+            pushMessage({
+                text: "[Медиа]",
+                fileData: base64,
+                fileType: file.type
+            });
+        }
+
+        function pushMessage(payload) {
+            if (!activeRoomId) return;
+            const msgData = {
+                sender: currentUser.email,
+                timestamp: Date.now(),
+                ...payload
+            };
+            const msgRef = window.fb.push(window.fb.ref(window.fb.db, `messages/${activeRoomId}`));
+            window.fb.set(msgRef, msgData);
+        }
+
+        function loadMessages(roomId) {
+            const feed = document.getElementById('messages-feed');
+            feed.innerHTML = '';
+            
+            // Отписываемся от предыдущих слушателей, если нужно (упрощено)
+            window.fb.onChildAdded(window.fb.ref(window.fb.db, `messages/${roomId}`), (snap) => {
+                if (activeRoomId !== roomId) return;
+                const m = snap.val();
+                const b = document.createElement('div');
+                b.className = `bubble ${m.sender === currentUser.email ? 'out' : 'in'}`;
+
+                if (m.fileData) {
+                    if (m.fileType.startsWith('image/')) {
+                        b.innerHTML = `<img src="${m.fileData}">`;
+                    } else if (m.fileType.startsWith('video/')) {
+                        b.innerHTML = `<video src="${m.fileData}" controls></video>`;
                     }
-                }
-
-                const profile = peerProfiles[chat.id] || { name: chat.name, avatar: "" };
-
-                item.innerHTML = `
-                    <div class="avatar" style="${profile.avatar ? `background-image:url(${profile.avatar})` : ''}">
-                        ${profile.avatar ? '' : profile.name[0].toUpperCase()}
-                    </div>
-                    <div class="chat-details">
-                        <div class="chat-meta">
-                            <div class="chat-title">${escapeHtml(profile.name)}</div>
-                        </div>
-                        <div class="chat-last-message">${escapeHtml(displayLast)}</div>
-                    </div>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        async function openChat(peerEmail) {
-            currentChatId = peerEmail;
-            const chat = chats[peerEmail];
-            
-            subscribeToPeerProfile(peerEmail);
-            const profile = peerProfiles[peerEmail] || { name: chat.name, avatar: "" };
-
-            document.body.classList.add('chat-opened');
-            document.getElementById('active-chat-name').innerText = profile.name;
-            document.getElementById('chat-input-bar').style.display = 'flex';
-            document.getElementById('crypt-action-btn').style.display = 'block';
-
-            const chatHeaderAvatar = document.getElementById('active-chat-avatar');
-            if (profile.avatar) {
-                chatHeaderAvatar.style.backgroundImage = `url(${profile.avatar})`;
-                chatHeaderAvatar.innerText = "";
-            } else {
-                chatHeaderAvatar.style.backgroundImage = "";
-                chatHeaderAvatar.innerText = profile.name[0].toUpperCase();
-            }
-
-            updateCryptStatusDisplay();
-            await renderMessages();
-            renderChats();
-
-            const roomKey = await getRoomKey(myEmail, peerEmail);
-            subscribeToRoom(roomKey, peerEmail);
-        }
-
-        function updateCryptStatusDisplay() {
-            const badge = document.getElementById('active-chat-status-badge');
-            const toggleBtn = document.getElementById('toggle-crypt-btn');
-            
-            const isEncrypted = loadChatEncryptState(currentChatId);
-            const peerPub = safeStorage.get("meow_epub_" + currentChatId);
-
-            if (isEncrypted) {
-                if (peerPub) {
-                    badge.innerHTML = `<span class="status-badge secure">🔒 Канал E2EE настроен и защищен</span>`;
                 } else {
-                    badge.innerHTML = `<span class="status-badge waiting">⏳ Ожидание ключей E2EE...</span>`;
+                    b.innerText = m.text;
                 }
-                toggleBtn.className = "input-side-btn active";
-                toggleBtn.innerHTML = "🔒";
-            } else {
-                badge.innerHTML = `<span class="status-badge unsecure">🔓 Без шифрования (Открытый P2P поток)</span>`;
-                toggleBtn.className = "input-side-btn inactive";
-                toggleBtn.innerHTML = "🔓";
-            }
-        }
-
-        function loadChatEncryptState(peerId) {
-            const val = safeStorage.get("meow_p2p_crypt_state_" + peerId);
-            return val === null ? true : val === "true"; 
-        }
-
-        function toggleCryptForCurrentChat() {
-            if (!currentChatId) return;
-            const currentSetting = loadChatEncryptState(currentChatId);
-            safeStorage.set("meow_p2p_crypt_state_" + currentChatId, !currentSetting);
-            updateCryptStatusDisplay();
-        }
-
-        // --- ДОПОЛНИТЕЛЬНЫЕ ИНСТРУМЕНТЫ ---
-
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
+                
+                feed.appendChild(b);
+                feed.scrollTop = feed.scrollHeight;
             });
         }
 
-        function triggerFileInput() {
-            document.getElementById('file-input').click();
+        // --- ВСПОМОГАТЕЛЬНОЕ ---
+        function fileToBase64(file) {
+            return new Promise((res, rej) => {
+                const r = new FileReader();
+                r.readAsDataURL(file);
+                r.onload = () => res(r.result);
+                r.onerror = e => rej(e);
+            });
         }
 
-        function handleFileChange(event) {
-            if (event.target.files.length > 0) {
-                selectedFile = event.target.files[0];
-                document.getElementById('file-name').innerText = selectedFile.name;
-                document.getElementById('file-preview').style.display = 'flex';
-                handleTypingEffect();
-            }
-        }
-
-        function removeFile() {
-            selectedFile = null;
-            document.getElementById('file-input').value = '';
-            document.getElementById('file-preview').style.display = 'none';
-            handleTypingEffect();
-        }
-
-        function handleTypingEffect() {
-            const textarea = document.getElementById('message-text');
-            textarea.style.height = "auto";
-            textarea.style.height = textarea.scrollHeight + "px";
-        }
-
-        function handleInputKey(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendChatMessage();
-            }
-        }
-
-        function escapeHtml(text) {
-            if (!text) return "";
-            return String(text).replace(/[&<>"']/g, tag => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-            }[tag] || tag));
-        }
-
-        function openModal(id) {
-            document.getElementById(id).classList.add('active');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        function openCryptSettingsModal() {
-            openModal('crypt-settings-modal');
-        }
-
-        function saveState() {
-            safeStorage.set("meow_p2p_chats_" + myEmail, JSON.stringify(chats));
-        }
-
-        function backToSidebar() {
-            document.body.classList.remove('chat-opened');
-            currentChatId = null;
+        async function generateRoomId(e1, e2) {
+            const s = [e1, e2].sort().join('|');
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+            return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('').slice(0,20);
         }
     </script>
 </body>
 </html>
-<!-- мяу -->
