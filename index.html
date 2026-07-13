@@ -166,9 +166,10 @@
             height: 44px;
             border-radius: 12px;
             border: 1px solid #2C2C2E;
-            background: #1C1C1E;
+            background: #1C1C1E url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238E8E93'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") no-repeat 12px center;
+            background-size: 18px;
             color: white;
-            padding: 0 16px;
+            padding: 0 16px 0 38px;
             outline: none;
             font-size: 15px;
             user-select: text;
@@ -195,7 +196,7 @@
             align-items: center;
             padding: 12px 16px;
             cursor: pointer;
-            border-bottom: 1px solid #0A0A0C;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             transition: background 0.2s;
         }
 
@@ -361,10 +362,19 @@
         .msg-container {
             display: flex;
             flex-direction: column;
-            max-width: 75%;
             margin-bottom: 2px;
             position: relative;
             transition: transform 0.2s;
+        }
+
+        /* Тонкие текстовые сообщения в стиле Telegram */
+        .msg-container.is-text-container {
+            max-width: 65%;
+        }
+
+        /* Фотографии во всю стандартную ширину */
+        .msg-container.has-media-container {
+            max-width: 75%;
         }
 
         .msg-container.out {
@@ -382,6 +392,7 @@
             display: flex;
             flex-direction: column;
             border: 1px solid rgba(255, 255, 255, 0.02);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
         }
 
         .msg-container.out .msg-bubble {
@@ -577,6 +588,20 @@
             user-select: text;
         }
 
+        /* Круглая кнопка отправки в стиле Telegram iOS */
+        #send-btn {
+            background: var(--accent);
+            color: white !important;
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
         #login-screen {
             position: fixed;
             inset: 0;
@@ -655,6 +680,83 @@
             from { box-shadow: 0 0 4px rgba(255, 149, 0, 0.3); }
             to { box-shadow: 0 0 10px rgba(255, 149, 0, 0.6); }
         }
+
+        .forward-list-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 6px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .forward-list-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .modern-checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px 16px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+        }
+
+        .modern-checkbox-label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .modern-checkbox {
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--text-muted);
+            border-radius: 6px;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .modern-checkbox:checked {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .modern-checkbox:checked::after {
+            content: "✓";
+            position: absolute;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .menu-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: #2C2C2E;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s;
+        }
+        .menu-btn:hover { background: #3A3A3C; }
+        .menu-btn.danger { background: var(--error); color: white; }
+        .menu-btn.danger:hover { background: #E0241B; }
     </style>
 </head>
 <body>
@@ -676,7 +778,7 @@
     <div class="header-bar" id="app-header">
         <div class="header-title" id="header-main-title">VK Meow</div>
         <div class="header-buttons">
-            <button class="header-btn" title="Избранное (Облако)" onclick="openCloudChat()">☁️</button>
+            <button class="header-btn" title="Избранное" onclick="openCloudChat()">☁️</button>
             <button class="header-btn" title="Выйти" onclick="logoutAction()">🚪</button>
         </div>
     </div>
@@ -691,11 +793,7 @@
             <div class="chats-list" id="chats-list-container"></div>
         </div>
 
-        <div class="tab-panel" id="tab-1">
-            <div id="news-container"></div>
-        </div>
-
-        <div class="tab-panel" id="tab-2" style="padding: 20px 16px;">
+        <div class="tab-panel" id="tab-1" style="padding: 20px 16px;">
             <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Настройки профиля</h2>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Имя, аватарка и описание полностью зашифрованы ключом E2EE</p>
             
@@ -728,22 +826,19 @@
 
     </div>
 
+    <!-- Две главные вкладки (Чаты и Профиль) -->
     <div class="bottom-bar" id="app-bottom-bar">
         <div class="tab-button active" onclick="switchTab(0)">
             <div class="tab-icon">💬</div>
             <div class="tab-label">Чаты</div>
         </div>
         <div class="tab-button" onclick="switchTab(1)">
-            <div class="tab-icon">📰</div>
-            <div class="tab-label">Новости</div>
-        </div>
-        <div class="tab-button" onclick="switchTab(2)">
             <div class="tab-icon">⚙️</div>
             <div class="tab-label">Профиль</div>
         </div>
     </div>
 
-    <!-- Шапка чата в стиле Telegram iOS (Аватарка и имя отцентрированы) -->
+    <!-- Шапка чата в стиле Telegram iOS -->
     <div class="chat-window" id="chat-window">
         <div class="chat-header">
             <button class="header-btn" onclick="closeChat()">⬅</button>
@@ -780,10 +875,11 @@
 
             <textarea class="message-input" id="message-input" placeholder="Зашифрованное E2EE сообщение..." rows="1"></textarea>
 
-            <button class="header-btn" style="color: var(--accent)" id="send-btn" onclick="handleSendClick()">➤</button>
+            <button class="header-btn" id="send-btn" onclick="handleSendClick()">➤</button>
         </div>
     </div>
 
+    <!-- Модальные окна -->
     <div class="modal-overlay" id="peer-profile-modal">
         <div class="modal-card" style="text-align: center;">
             <div class="chat-avatar" id="peer-profile-av" style="width: 100px; height: 100px; font-size: 36px; margin: 0 auto 16px auto; background-color: var(--accent);">?</div>
@@ -939,6 +1035,34 @@
                 return aesDecrypt(cipher.substring(10), PROFILE_ENC_KEY);
             }
             return cipher;
+        }
+
+        // Умное форматирование времени последнего сообщения (Telegram iOS style)
+        function formatDialogTime(timestamp) {
+            if (!timestamp) return "";
+            const date = new Date(timestamp);
+            const now = new Date();
+            
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            
+            const diffTime = today - msgDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                // Сегодня
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } else if (diffDays === 1) {
+                // Вчера
+                return "вчера";
+            } else if (diffDays < 7) {
+                // На этой неделе (короткий день недели)
+                const days = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+                return days[date.getDay()];
+            } else {
+                // Более недели назад (день и короткий месяц)
+                return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '');
+            }
         }
 
         async function initE2EE() {
@@ -1202,8 +1326,6 @@
 
             if (index === 0) {
                 loadDialogs();
-            } else if (index === 1) {
-                loadNews();
             }
         }
 
@@ -1319,8 +1441,8 @@
                     </div>
                     <div class="chat-info">
                         <div class="chat-name-row">
-                            <div class="chat-row-name">Избранное (Облако)</div>
-                            <div class="chat-row-time">хранилище</div>
+                            <div class="chat-row-name">Избранное</div>
+                            <div class="chat-row-time" id="time-${myUid}"></div>
                         </div>
                         <div class="chat-row-msg" id="last-msg-${myUid}">🛡️ Нажмите, чтобы открыть</div>
                     </div>
@@ -1337,10 +1459,14 @@
 
                 activeLastMsgListeners[myUid] = window.fb.onValue(window.fb.ref(window.fb.db, `messages/saved_${myUid}/list`), (mSnap) => {
                     const msgBox = document.getElementById(`last-msg-${myUid}`);
+                    const timeBox = document.getElementById(`time-${myUid}`);
                     if (mSnap.exists() && msgBox) {
                         const list = Object.values(mSnap.val());
                         const lastMsg = list[list.length - 1];
                         decryptAndRenderLastMsg(myUid, lastMsg.text, msgBox);
+                        if (timeBox && lastMsg.time) {
+                            timeBox.innerText = formatDialogTime(lastMsg.time);
+                        }
                     }
                 });
 
@@ -1402,29 +1528,29 @@
 
                     activePresenceListeners[peerId + "_presence"] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (pSnap) => {
                         const dot = document.getElementById(`dot-${peerId}`);
-                        const timeText = document.getElementById(`time-${peerId}`);
-                        if (pSnap.exists() && dot && timeText) {
+                        if (pSnap.exists() && dot) {
                             const p = pSnap.val();
                             if (p.status === "online") {
                                 dot.style.display = "block";
-                                timeText.innerText = "в сети";
-                                timeText.style.color = "var(--online)";
                             } else {
                                 dot.style.display = "none";
-                                timeText.innerText = formatFriendlyLastSeen(p.lastSeen).replace("был(а) в сети ", "");
-                                timeText.style.color = "var(--text-muted)";
                             }
                         }
                     });
 
                     activeLastMsgListeners[peerId] = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${chatMeta.roomId}/list`), (mSnap) => {
                         const msgBox = document.getElementById(`last-msg-${peerId}`);
+                        const timeBox = document.getElementById(`time-${peerId}`);
                         if (mSnap.exists() && msgBox) {
                             const list = Object.values(mSnap.val());
                             const lastMsg = list[list.length - 1];
                             decryptAndRenderLastMsg(peerId, lastMsg.text, msgBox);
+                            if (timeBox && lastMsg.time) {
+                                timeBox.innerText = formatDialogTime(lastMsg.time);
+                            }
                         } else if (msgBox) {
                             msgBox.innerText = "Нет сообщений";
+                            if (timeBox) timeBox.innerText = "";
                         }
                     });
                 });
@@ -1503,7 +1629,7 @@
             let restorePresenceStatus = () => {};
 
             if (isCloud) {
-                headerTitle.innerHTML = "Избранное (Облако) <span style='color: var(--secure); font-size: 13px;'>🔒</span>";
+                headerTitle.innerHTML = "Избранное <span style='color: var(--secure); font-size: 13px;'>🔒</span>";
                 if (myProfileAvatarFetched) {
                     headerAv.style.backgroundImage = `url(${myProfileAvatarFetched})`;
                     headerAv.innerText = "";
@@ -1593,7 +1719,6 @@
                         return;
                     }
 
-                    // Чтение на лету
                     if (m.sender !== myUid && m.read !== true) {
                         window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), { read: true });
                     }
@@ -1626,20 +1751,58 @@
                         feed.appendChild(container);
                     } else {
                         container = document.createElement('div');
-                        container.className = `msg-container ${m.sender === myUid ? 'out' : 'in'}`;
+                        
+                        // Умное распределение ширины
+                        const isMediaOrVoice = messageObject.fileData || messageObject.isVoice;
+                        container.className = `msg-container ${m.sender === myUid ? 'out' : 'in'} ${isMediaOrVoice ? 'has-media-container' : 'is-text-container'}`;
                         container.id = `msg-${msgId}`;
 
+                        // Двунаправленный жест свайпа для ответа + Срабатывание удержания (Long Press) на смартфонах
                         let startX = 0;
+                        let startY = 0;
+                        let msgPressTimer = null;
+
                         container.addEventListener('touchstart', (e) => {
                             startX = e.touches[0].clientX;
+                            startY = e.touches[0].clientY;
+                            
+                            // Запускаем таймер долгого нажатия
+                            msgPressTimer = setTimeout(() => {
+                                activeMenuMsgId = msgId;
+                                activeMenuMsgObj = messageObject;
+                                openModal('msg-options-modal');
+                            }, 550);
+                        }, { passive: true });
+
+                        container.addEventListener('touchmove', (e) => {
+                            let diffX = startX - e.touches[0].clientX;
+                            let diffY = Math.abs(startY - e.touches[0].clientY);
+                            
+                            // Если пользователь начал листать чат, а не удерживать палец — сбрасываем таймер удаления
+                            if (Math.abs(diffX) > 10 || diffY > 10) {
+                                clearTimeout(msgPressTimer);
+                            }
                         }, { passive: true });
 
                         container.addEventListener('touchend', (e) => {
+                            clearTimeout(msgPressTimer);
                             let diffX = startX - e.changedTouches[0].clientX;
                             if (diffX > 60) {
                                 initiateReply(msgId, messageObject.text || (messageObject.isVoice ? "Голосовое сообщение" : "[Медиа]"), m.sender);
                             }
                         }, { passive: true });
+
+                        // Поддержка долгого нажатия мышью на ПК
+                        container.addEventListener('mousedown', (e) => {
+                            msgPressTimer = setTimeout(() => {
+                                activeMenuMsgId = msgId;
+                                activeMenuMsgObj = messageObject;
+                                openModal('msg-options-modal');
+                            }, 550);
+                        });
+
+                        container.addEventListener('mouseup', () => clearTimeout(msgPressTimer));
+                        container.addEventListener('mouseleave', () => clearTimeout(msgPressTimer));
 
                         container.onclick = () => {
                             activeMenuMsgId = msgId;
@@ -2080,7 +2243,7 @@
                 cloudItem.onclick = () => executeForward(myUid, `saved_${myUid}`);
                 cloudItem.innerHTML = `
                     <div class="chat-avatar" style="width:36px;height:36px;font-size:14px;background-color:var(--accent);margin-right:12px;">☁️</div>
-                    <div style="font-weight:bold;font-size:14px;">Избранное (Облако)</div>
+                    <div style="font-weight:bold;font-size:14px;">Избранное</div>
                 `;
                 listContainer.appendChild(cloudItem);
 
@@ -2283,36 +2446,6 @@
             }
         }
 
-        function loadNews() {
-            const container = document.getElementById('news-container');
-            container.innerHTML = "";
-
-            window.fb.onValue(window.fb.ref(window.fb.db, `news`), (snap) => {
-                container.innerHTML = "";
-                if (!snap.exists()) return;
-                const news = snap.val();
-
-                for (let nId in news) {
-                    const post = news[nId];
-                    const card = document.createElement('div');
-                    card.className = "post-card";
-
-                    card.innerHTML = `
-                        <div class="post-header">
-                            <div class="post-author-av" style="background-image:url(${post.authorAvatar})"></div>
-                            <div class="post-author-info">
-                                <div style="font-weight:700; font-size:14px;">${post.authorName}</div>
-                                <div style="font-size:11px; color:var(--text-muted);">${new Date(post.date).toLocaleDateString()}</div>
-                            </div>
-                        </div>
-                        <p style="font-size:14px; line-height:1.4; margin-bottom:10px;">${post.text}</p>
-                        ${post.image ? `<div class="msg-media" style="width:100%; height:200px;" onclick="viewMediaFull('${post.image}', false)"><img src="${post.image}"></div>` : ''}
-                    `;
-                    container.appendChild(card);
-                }
-            });
-        }
-
         function updateSendButton() {}
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
@@ -2325,17 +2458,7 @@
             });
         }
 
-        async function seedDatabaseIfNeeded() {
-            const newsSnap = await window.fb.get(window.fb.ref(window.fb.db, `news`));
-            if (!newsSnap.exists()) {
-                window.fb.set(window.fb.ref(window.fb.db, `news/post1`), {
-                    authorName: "VK Meow Team",
-                    authorAvatar: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=200&auto=format&fit=crop",
-                    text: "Мяу! Добро пожаловать в обновленное приложение. Все ваши сообщения шифруются по протоколу AES-256.",
-                    date: Date.now()
-                });
-            }
-        }
+        async function seedDatabaseIfNeeded() {}
     </script>
 </body>
 </html>
