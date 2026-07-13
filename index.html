@@ -491,7 +491,7 @@
             margin-bottom: 4px;
         }
 
-        .msg-media img {
+        .msg-media img, .msg-media video {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -503,7 +503,7 @@
     <!-- ЭКРАН ВХОДА -->
     <div id="login-screen">
         <div class="login-card">
-            <div style="font-size: 50px; margin-bottom: 10px;">🐾</div>
+            <div style="font-size: 50px; margin-bottom: 10px;"&gt;🐾&lt;/div&gt;
             <h1 style="font-size: 24px; margin-bottom: 6px;">VK Meow</h1>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Безопасный мессенджер нового поколения</p>
             
@@ -592,10 +592,10 @@
         <div class="chat-feed" id="chat-feed"></div>
 
         <div class="chat-input-bar">
-            <input type="file" id="media-upload" style="display: none;" accept="image/*" onchange="uploadMedia(this.files[0])">
+            <input type="file" id="media-upload" style="display: none;" accept="image/*,video/*" onchange="compressAndSendMedia(this.files[0])">
             <button class="header-btn" style="color: var(--accent)" onclick="document.getElementById('media-upload').click()">📎</button>
 
-            <textarea class="message-input" id="message-input" placeholder="Сообщение..." rows="1" oninput="updateSendButton()"></textarea>
+            <textarea class="message-input" id="message-input" placeholder="Сообщение..." rows="1"></textarea>
 
             <button class="header-btn" style="color: var(--accent)" id="send-btn" onclick="handleSendClick()">➤</button>
         </div>
@@ -612,7 +612,7 @@
         </div>
     </div>
 
-    <!-- МОДАЛКА ПРОСМОТРА КАРТИНОК -->
+    <!-- МОДАЛКА ПРОСМОТРА КАРТИНОК И ВИДЕО -->
     <div class="modal-overlay" id="media-viewer-modal" style="background: black;">
         <span style="position: absolute; top: 20px; left: 20px; font-size: 30px; cursor: pointer; z-index: 10;" onclick="closeMediaViewer()">✕</span>
         <div id="media-viewer-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"></div>
@@ -784,7 +784,6 @@
 
         // --- СПИСОК ДИАЛОГОВ (УСТОЙЧИВЫЙ И ЧИСТЫЙ) ---
         function loadDialogs() {
-            // Отписываемся от прошлых слушателей
             if (unsubDialogs) unsubDialogs();
             Object.values(activePresenceListeners).forEach(un => un());
             Object.values(activeLastMsgListeners).forEach(un => un());
@@ -800,27 +799,24 @@
                     container.innerHTML = `<div style="text-align:center; color: var(--text-muted); margin-top:40px; font-size:14px;">Список диалогов пуст. Найдите собеседника по нику!</div>`;
                     return;
                 }
-                const chats = snap.val();
+                const chatsObj = snap.val();
 
-                for (let peerId in chats) {
-                    const chatMeta = chats[peerId];
-                    if (!chatMeta || !chatMeta.roomId) continue; // Защита от битых полей в БД
+                for (let peerId in chatsObj) {
+                    const chatMeta = chatsObj[peerId];
+                    if (!chatMeta || !chatMeta.roomId) continue;
 
                     const isCloud = (peerId === myUid);
                     const row = document.createElement('div');
                     row.className = "chat-row";
                     
-                    // Повышенная безопасность для имен
-                    let peerDisplayName = chatMeta.name;
-                    if (!peerDisplayName || peerDisplayName === "undefined") {
-                        peerDisplayName = "Пользователь (" + peerId.substring(0,6) + ")";
-                    }
+                    let initialName = isCloud ? "Избранное (Облако)" : (chatMeta.name || "Загрузка...");
+                    if (initialName === "undefined") initialName = "Пользователь";
 
-                    row.onclick = () => openChatWindow(peerId, peerDisplayName, chatMeta.avatar, chatMeta.roomId);
+                    row.onclick = () => openChatWindow(peerId, initialName, chatMeta.avatar, chatMeta.roomId);
 
                     let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
                     let avStyle = chatMeta.avatar ? `background-image:url(${chatMeta.avatar})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`;
-                    let letter = isCloud ? "☁️" : peerDisplayName[0].toUpperCase();
+                    let letter = isCloud ? "☁️" : initialName[0].toUpperCase();
 
                     row.innerHTML = `
                         <div class="chat-avatar" id="avatar-${peerId}" style="${avStyle}">
@@ -829,7 +825,7 @@
                         </div>
                         <div class="chat-info">
                             <div class="chat-name-row">
-                                <div class="chat-row-name">${isCloud ? "Избранное (Облако)" : peerDisplayName}</div>
+                                <div class="chat-row-name" id="name-${peerId}">${isCloud ? "Избранное (Облако)" : initialName}</div>
                                 <div class="chat-row-time" id="time-${peerId}"></div>
                             </div>
                             <div class="chat-row-msg" id="last-msg-${peerId}">Загрузка сообщений...</div>
@@ -838,13 +834,27 @@
                     `;
                     container.appendChild(row);
 
-                    // Самовосстановление имен из живого профиля если в чат-листе undefined
-                    if (!isCloud && (!chatMeta.name || chatMeta.name === "undefined")) {
-                        window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`)).then((uSnap) => {
-                            if (uSnap.exists()) {
-                                const live = uSnap.val();
-                                const freshName = live.name + (live.lastname ? " " + live.lastname : "");
-                                window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${peerId}`), { name: freshName });
+                    // МОМЕНТАЛЬНЫЙ И БЕЗОШИБОЧНЫЙ СЛУШАТЕЛЬ ПРОФИЛЯ ДЛЯ ИЗБЕЖАНИЯ undefined
+                    if (!isCloud) {
+                        activePresenceListeners[peerId + "_profile"] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/profile`), (profSnap) => {
+                            const pEl = document.getElementById(`name-${peerId}`);
+                            const avEl = document.getElementById(`avatar-${peerId}`);
+                            if (profSnap.exists()) {
+                                const prof = profSnap.val();
+                                const freshName = (prof.name || "Без имени") + (prof.lastname ? " " + prof.lastname : "");
+                                
+                                if (pEl) pEl.innerText = freshName;
+                                if (avEl) {
+                                    if (prof.avatar) {
+                                        avEl.style.backgroundImage = `url(${prof.avatar})`;
+                                        avEl.innerText = "";
+                                        avEl.style.backgroundColor = "transparent";
+                                    } else {
+                                        avEl.style.backgroundImage = "none";
+                                        avEl.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
+                                        avEl.innerText = freshName[0].toUpperCase();
+                                    }
+                                }
                             }
                         });
                     }
@@ -872,7 +882,7 @@
                         if (timeText) timeText.innerText = "облако";
                     }
 
-                    // Слушатель и расшифровка последнего сообщения
+                    // Слушатель последнего сообщения
                     activeLastMsgListeners[peerId] = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${chatMeta.roomId}/list`), (mSnap) => {
                         const msgBox = document.getElementById(`last-msg-${peerId}`);
                         if (mSnap.exists() && msgBox) {
@@ -923,7 +933,6 @@
 
         // --- ОКНО ЧАТА И ИСТОРИЯ ---
         function openChatWindow(peerId, name, avatar, roomId) {
-            // Сброс старых подписок чата
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
 
@@ -997,7 +1006,11 @@
 
                     let bubbleHtml = `<div class="msg-bubble">`;
                     if (messageObject.fileData) {
-                        bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${messageObject.fileData}')"><img src="${messageObject.fileData}"></div>`;
+                        if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
+                            bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${messageObject.fileData}', true)"><video src="${messageObject.fileData}" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
+                        } else {
+                            bubbleHtml += `<div class="msg-media" onclick="viewMediaFull('${messageObject.fileData}', false)"><img src="${messageObject.fileData}"></div>`;
+                        }
                     }
                     if (messageObject.text && messageObject.text !== "[Медиа]") {
                         bubbleHtml += `<div>${messageObject.text}</div>`;
@@ -1044,13 +1057,64 @@
             input.style.height = "auto";
         }
 
-        // --- МЕДИАФАЙЛЫ (КАРТИНКИ) ---
-        async function uploadMedia(file) {
+        // --- МЕДИАФАЙЛЫ (КАРТИНКИ И ВИДЕО С СЖАТИЕМ) ---
+        async function compressAndSendMedia(file) {
             if (!file) return;
-            const base64 = await fileToBase64(file);
+
+            if (file.type.startsWith('image/')) {
+                // Моментальное сжатие картинок через холст Canvas
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = async () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const maxSide = 800; // Оптимальный лимит для быстрой P2P передачи
+
+                        if (width > height) {
+                            if (width > maxSide) {
+                                height = Math.round((height * maxSide) / width);
+                                width = maxSide;
+                            }
+                        } else {
+                            if (height > maxSide) {
+                                width = Math.round((width * maxSide) / height);
+                                height = maxSide;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Сжимаем в jpeg до 70% веса
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                        await transmitMedia(compressedBase64, 'image/jpeg');
+                    };
+                };
+            } else if (file.type.startsWith('video/')) {
+                // Ограничиваем видео до 2.5 МБ
+                if (file.size > 2.5 * 1024 * 1024) {
+                    alert("Размер видео превышает 2.5 МБ. Пожалуйста, отправляйте более короткие ролики!");
+                    return;
+                }
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = async (event) => {
+                    await transmitMedia(event.target.result, file.type);
+                };
+            }
+        }
+
+        async function transmitMedia(base64Data, fileType) {
             const rawStr = JSON.stringify({
                 text: "[Медиа]",
-                fileData: base64
+                fileData: base64Data,
+                fileType: fileType
             });
             const finalString = "[MEOW]" + aesEncrypt(rawStr, BASE_AES_KEY);
 
@@ -1072,15 +1136,20 @@
             });
         }
 
-        function viewMediaFull(data) {
+        function viewMediaFull(data, isVideo) {
             const viewer = document.getElementById('media-viewer-modal');
             const content = document.getElementById('media-viewer-content');
             viewer.classList.add('active');
-            content.innerHTML = `<img src="${data}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+            if (isVideo) {
+                content.innerHTML = `<video src="${data}" controls autoplay style="max-width:100%; max-height:100%; object-fit:contain;"></video>`;
+            } else {
+                content.innerHTML = `<img src="${data}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+            }
         }
 
         function closeMediaViewer() {
             document.getElementById('media-viewer-modal').classList.remove('active');
+            document.getElementById('media-viewer-content').innerHTML = "";
         }
 
         // --- ПОИСК СОБЕСЕДНИКА ПО НИКУ ---
@@ -1104,7 +1173,6 @@
                     const prof = profSnap.val();
                     closeModal('search-people-modal');
 
-                    // Строгий и чистый Room ID во избежание раздвоений переписки
                     const rId = [myUid, targetUid].sort().join("_");
                     const targetCombinedName = (prof.name || "Без имени") + (prof.lastname ? " " + prof.lastname : "");
 
@@ -1118,7 +1186,7 @@
                     // Добавляем чат получателю
                     await window.fb.set(window.fb.ref(window.fb.db, `users/${targetUid}/chats/${myUid}`), {
                         name: myNameCombined,
-                        avatar: "",
+                        avatar: myProf.avatar || "",
                         roomId: rId
                     });
 
@@ -1154,7 +1222,7 @@
                             </div>
                         </div>
                         <p style="font-size:14px; line-height:1.4; margin-bottom:10px;">${post.text}</p>
-                        ${post.image ? `<div class="msg-media" style="width:100%; height:200px;" onclick="viewMediaFull('${post.image}')"><img src="${post.image}"></div>` : ''}
+                        ${post.image ? `<div class="msg-media" style="width:100%; height:200px;" onclick="viewMediaFull('${post.image}', false)"><img src="${post.image}"></div>` : ''}
                     `;
                     container.appendChild(card);
                 }
@@ -1187,3 +1255,4 @@
     </script>
 </body>
 </html>
+<!-- мяу -->
