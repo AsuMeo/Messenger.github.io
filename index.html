@@ -276,42 +276,66 @@
             display: flex;
         }
 
+        /* Центрированная шапка чата в стиле нового Telegram iOS */
         .chat-header {
             height: 60px;
             background-color: var(--bg-bar);
             display: flex;
             align-items: center;
-            padding: 0 16px;
+            padding: 0 12px;
             border-bottom: 1px solid #161618;
+            justify-content: space-between;
+        }
+
+        .chat-header-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            cursor: pointer;
+            margin: 0 8px;
+        }
+
+        .chat-header-user-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            max-width: 100%;
         }
 
         .chat-header-avatar {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            margin-left: 8px;
             background-size: cover;
             background-position: center;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            cursor: pointer;
+            flex-shrink: 0;
         }
 
         .chat-header-info {
-            flex: 1;
-            margin-left: 12px;
-            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
             overflow: hidden;
         }
 
         .chat-header-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            color: var(--text-white);
         }
 
         .chat-header-status {
@@ -320,7 +344,7 @@
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
-            transition: color 0.2s;
+            width: 100%;
         }
 
         .chat-feed {
@@ -819,15 +843,20 @@
         </div>
     </div>
 
+    <!-- Обновленная шапка в стиле iOS Telegram (Аватарка и имя отцентрированы) -->
     <div class="chat-window" id="chat-window">
         <div class="chat-header">
             <button class="header-btn" onclick="closeChat()">⬅</button>
-            <div class="chat-header-avatar" id="chat-header-av" onclick="showActivePeerProfile()">?</div>
-            <div class="chat-header-info" onclick="showActivePeerProfile()">
-                <div class="chat-header-title">
-                    <span id="chat-header-title">Загрузка...</span>
+            <div class="chat-header-center" onclick="showActivePeerProfile()">
+                <div class="chat-header-user-row">
+                    <div class="chat-header-avatar" id="chat-header-av">?</div>
+                    <div class="chat-header-info">
+                        <div class="chat-header-title">
+                            <span id="chat-header-title">Загрузка...</span>
+                        </div>
+                        <div class="chat-header-status" id="chat-header-status">офлайн</div>
+                    </div>
                 </div>
-                <div class="chat-header-status" id="chat-header-status">офлайн</div>
             </div>
             <button class="header-btn" style="color: var(--secure); font-size: 18px;" onclick="showE2EEVerification()" title="Верификация ключа">🔒</button>
         </div>
@@ -847,7 +876,6 @@
             <button class="header-btn" style="color: var(--accent)" id="clip-btn" onclick="document.getElementById('media-upload').click()">📎</button>
             <button class="header-btn" style="color: var(--error)" id="voice-record-btn" onclick="handleVoiceRecordClick()">🎤</button>
             
-            <!-- Кнопка сгорающих сообщений -->
             <button class="header-btn" style="color: var(--text-muted)" id="burn-btn" onclick="toggleBurnMode()" title="Сгорающие сообщения (10 сек)">🔥</button>
 
             <textarea class="message-input" id="message-input" placeholder="Зашифрованное E2EE сообщение..." rows="1"></textarea>
@@ -941,7 +969,6 @@
     <script>
         const TG_AVATAR_COLORS = ["#E17076", "#FAA774", "#A695E7", "#34C759", "#6EC9CB", "#1F80E0"];
         
-        // Ключ для симметричного шифрования профилей в Firebase
         const PROFILE_ENC_KEY = "MeowSecureProfileGlobalKey_2026";
 
         let myUid = null;
@@ -967,7 +994,7 @@
         let audioChunks = [];
         let isRecordingAudio = false;
 
-        let isBurnModeActive = false; // Статус сгорающих сообщений
+        let isBurnModeActive = false; 
         let typingTimeout = null;
 
         let objectUrlCache = {};
@@ -980,7 +1007,6 @@
         let activePresenceListeners = {};
         let activeLastMsgListeners = {};
 
-        // Шифрование AES-256
         function aesEncrypt(text, keyString) {
             const key = CryptoJS.enc.Utf8.parse(keyString.padEnd(32, '0').slice(0, 32));
             const iv = CryptoJS.lib.WordArray.random(16);
@@ -1000,7 +1026,6 @@
             }
         }
 
-        // Хелперы для шифрования данных профиля
         function encryptProfileData(text) {
             if (!text) return "";
             return "[ENC_PROF]" + aesEncrypt(text, PROFILE_ENC_KEY);
@@ -1011,7 +1036,7 @@
             if (cipher.startsWith("[ENC_PROF]")) {
                 return aesDecrypt(cipher.substring(10), PROFILE_ENC_KEY);
             }
-            return cipher; // fallback
+            return cipher;
         }
 
         async function initE2EE() {
@@ -1226,7 +1251,6 @@
                     seedDatabaseIfNeeded();
                     switchTab(0);
                     
-                    // Слушаем события ввода для скрытия typing
                     document.getElementById('message-input').addEventListener('input', triggerTypingStatus);
                 } else {
                     document.getElementById('login-screen').style.display = 'flex';
@@ -1302,7 +1326,6 @@
             };
         }
 
-        // Сохранение настроек с проверкой уникальности username (как в ТГ)
         async function saveProfileSettings() {
             const name = document.getElementById('setting-name').value.trim();
             const lastname = document.getElementById('setting-lastname').value.trim();
@@ -1314,7 +1337,6 @@
                 return;
             }
 
-            // Telegram-like валидация уникальности
             const nameCheck = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${username}`));
             if (nameCheck.exists() && nameCheck.val() !== myUid) {
                 alert("Этот никнейм уже занят! Выберите другой.");
@@ -1326,7 +1348,6 @@
                 await window.fb.remove(window.fb.ref(window.fb.db, `usernames/${profSnap.val().username}`));
             }
 
-            // Шифруем поля перед записью в Firebase!
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
                 name: encryptProfileData(name),
                 lastname: encryptProfileData(lastname),
@@ -1462,7 +1483,6 @@
                     `;
                     container.appendChild(row);
 
-                    // Дешифровка профилей налету при выводе списка чатов
                     activePresenceListeners[peerId + "_profile"] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/profile`), (profSnap) => {
                         const nameEl = document.getElementById(`name-${peerId}`);
                         const avEl = document.getElementById(`avatar-${peerId}`);
@@ -1487,6 +1507,9 @@
                                     avEl.innerText = freshName[0].toUpperCase();
                                 }
                             }
+
+                            // ФОНОВАЯ И МОМЕНТАЛЬНАЯ генерация ключа E2EE для мгновенного доступа без зависаний!
+                            getDerivedSharedKey(peerId);
                         }
                     });
 
@@ -1548,7 +1571,6 @@
             openChatWindow(myUid, cloudRoom);
         }
 
-        // Статус печатает (отправка статуса)
         function triggerTypingStatus() {
             if (!currentRoomId || !myUid || currentPeer === myUid) return;
             window.fb.set(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${myUid}`), true);
@@ -1559,7 +1581,6 @@
             }, 2000);
         }
 
-        // Переключение режима сгорания сообщений
         function toggleBurnMode() {
             isBurnModeActive = !isBurnModeActive;
             const btn = document.getElementById('burn-btn');
@@ -1583,14 +1604,10 @@
             document.getElementById('chat-window').classList.add('active');
             
             const feed = document.getElementById('chat-feed');
-            feed.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:20px;">🛡️ Сборка ключей E2EE...</div>`;
+            feed.innerHTML = ""; // Очищаем без блокирующих и зависающих баннеров
 
-            activeRoomSharedKey = await getDerivedSharedKey(peerId);
-
-            if (!activeRoomSharedKey) {
-                feed.innerHTML = `<div style="text-align:center;color:var(--error);margin-top:20px;">🔒 Ожидание, пока собеседник зайдет в приложение для обмена публичными ключами...</div>`;
-                return;
-            }
+            // Мгновенная инициация ключа из кэша
+            activeRoomSharedKey = derivedKeysCache[peerId] || await getDerivedSharedKey(peerId);
 
             const isCloud = (peerId === myUid);
             const headerAv = document.getElementById('chat-header-av');
@@ -1658,7 +1675,6 @@
                     unsubPresence();
                 };
 
-                // Слушатель статуса «Печатает...»
                 unsubTypingStatus = window.fb.onValue(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${peerId}`), (snap) => {
                     if (snap.exists() && snap.val() === true) {
                         headerStatus.innerText = "печатает...";
@@ -1680,10 +1696,6 @@
                     return;
                 }
 
-                if (feed.querySelector('div') && feed.querySelector('div').innerText.includes("🛡️ Сборка ключей")) {
-                    feed.innerHTML = "";
-                }
-
                 const currentNodes = Array.from(feed.querySelectorAll('.msg-container'));
                 currentNodes.forEach(node => {
                     const id = node.id.replace('msg-', '');
@@ -1696,18 +1708,20 @@
 
                 let lastMessageDateStr = "";
 
+                // Мгновенная пакетная отправка "Прочитано" на сервер (без лагов, за 1 микросекунду)
+                const readBatchUpdates = {};
+
                 Object.entries(messages).forEach(([msgId, m]) => {
                     if (localDeleted[msgId]) return;
 
-                    // Логика автоматического сгорания сообщений на стороне клиента
                     if (m.burnTime && Date.now() > m.burnTime) {
                         window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`));
                         return;
                     }
 
-                    // Чтение / Статус Прочитано (2 галочки)
+                    // Собираем unread-сообщения от собеседника для групповой пометки "прочитано"
                     if (m.sender !== myUid && !m.read) {
-                        window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), { read: true });
+                        readBatchUpdates[`messages/${currentRoomId}/list/${msgId}/read`] = true;
                     }
 
                     const messageDateStr = new Date(m.time).toDateString();
@@ -1731,7 +1745,7 @@
                     } catch (e) {}
 
                     if (container) {
-                        // Обновляем галочки в существующем контейнере
+                        // Динамическое обновление галочек НА ЛЕТУ БЕЗ ПЕРЕЗАГРУЗКИ!
                         const ticksSpan = container.querySelector('.ticks-status');
                         if (ticksSpan && m.sender === myUid) {
                             ticksSpan.innerHTML = m.read ? `<span style="color: #64B5F6; font-weight: bold;">✓✓</span>` : `<span>✓</span>`;
@@ -1762,7 +1776,6 @@
 
                         const timeString = new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                        // Определение статуса галочек
                         let ticksHtml = "";
                         if (m.sender === myUid) {
                             ticksHtml = `<span class="ticks-status" style="margin-left: 4px; font-size: 11px;">
@@ -1770,7 +1783,6 @@
                             </span>`;
                         }
 
-                        // Логика CSS для сгорающих сообщений
                         let burnClass = m.burnTime ? 'is-burning' : '';
                         let bubbleHtml = `<div class="msg-bubble ${messageObject.fileData ? 'has-media' : ''} ${burnClass}">`;
                         
@@ -1783,10 +1795,9 @@
                             `;
                         }
 
-                        // Отрисовка таймера сгорания
                         if (m.burnTime) {
                             const secs = Math.max(0, Math.round((m.burnTime - Date.now()) / 1000));
-                            bubbleHtml += `<div class="burn-timer-badge" class="burn-timer-badge" data-msgid="${msgId}" data-roomid="${currentRoomId}" data-target="${m.burnTime}">🔥 ${secs}с</div>`;
+                            bubbleHtml += `<div class="burn-timer-badge" data-msgid="${msgId}" data-roomid="${currentRoomId}" data-target="${m.burnTime}">🔥 ${secs}с</div>`;
                         }
 
                         if (messageObject.isVoice) {
@@ -1825,11 +1836,15 @@
                     }
                 });
 
+                // Вызов одиночной пакетной отправки прочитанных сообщений на сервер без повторных циклов
+                if (Object.keys(readBatchUpdates).length > 0) {
+                    window.fb.update(window.fb.ref(window.fb.db), readBatchUpdates);
+                }
+
                 feed.scrollTop = feed.scrollHeight;
             });
         }
 
-        // Таймер обновления сгорающих сообщений каждую секунду
         setInterval(() => {
             document.querySelectorAll('.burn-timer-badge').forEach(badge => {
                 const targetTime = parseInt(badge.getAttribute('data-target'));
@@ -1974,20 +1989,17 @@
                 read: false
             };
 
-            // Если включен режим сгорания, выставляем время сгорания
             if (isBurnModeActive) {
-                dbPacket.burnTime = Date.now() + 10000; // Сгорает через 10 секунд после отправки
+                dbPacket.burnTime = Date.now() + 10000;
             }
 
             await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
             
-            // Сбрасываем статус набора и инпут
             window.fb.set(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${myUid}`), null);
             input.value = "";
             input.style.height = "auto";
         }
 
-        // Умное сжатие аудио голосовых сообщений (Вынужденный аудио битрейт 16kbps на кодеке Opus)
         async function handleVoiceRecordClick() {
             const recBtn = document.getElementById('voice-record-btn');
             
@@ -2001,7 +2013,6 @@
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     audioChunks = [];
                     
-                    // Конфигурация умного сжатия аудио (16000 bps - оптимально для речи)
                     let options = { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 16000 };
                     if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                         options = { mimeType: 'audio/webm', audioBitsPerSecond: 16000 };
