@@ -11,15 +11,16 @@
         import { getDatabase, ref, set, push, onValue, onChildAdded, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // --- ВСТАВЬТЕ СВОИ ДАННЫЕ ИЗ КОНСОЛИ FIREBASE НИЖЕ ---
-        const firebaseConfig = {
-            apiKey: "ВАШ_API_KEY",
-            authDomain: "ВАШ_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://ВАШ_PROJECT_ID-default-rtdb.firebaseio.com",
-            projectId: "ВАШ_PROJECT_ID",
-            storageBucket: "ВАШ_PROJECT_ID.appspot.com",
-            messagingSenderId: "ВАШ_SENDER_ID",
-            appId: "ВАШ_APP_ID"
+        // --- ВАШИ ДАННЫЕ ИЗ КОНСОЛИ FIREBASE ---
+        // (ЗАМЕНЕНО НА ДАННЫЕ, ПРЕДОСТАВЛЕННЫЕ ПОЛЬЗОВАТЕЛЕМ)
+        const firebaseConfig = { 
+          apiKey : "AIzaSyDQMqwnJp34H6I7ragLr14LQ4YszpDFYbg" , 
+          authDomain : "meowmessenger.firebaseapp.com" , 
+          databaseURL : "https://meowmessenger-default-rtdb.europe-west1.firebasedatabase.app" , 
+          projectId : "meowmessenger" , 
+          storageBucket : "meowmessenger.firebasestorage.app" , 
+          messagingSenderId : "906512822162" , 
+          appId : "1:906512822162:web:a868af851cec5a3381db4b" 
         };
 
         // Инициализация
@@ -156,8 +157,8 @@
             const btn = document.getElementById('login-btn');
             btn.disabled = true; btn.innerText = "Минутку...";
 
-            signInWithEmailAndPassword(window.fb.auth, email, password)
-                .catch(() => createUserWithEmailAndPassword(window.fb.auth, email, password))
+            window.fb.auth.signInWithEmailAndPassword(email, password)
+                .catch(() => window.fb.auth.createUserWithEmailAndPassword(email, password))
                 .catch(err => {
                     document.getElementById('auth-error').innerText = "Ошибка: " + err.message;
                     btn.disabled = false; btn.innerText = "Войти / Создать аккаунт";
@@ -229,11 +230,14 @@
 
         async function handleFileUpload(file) {
             if (!file) return;
-            if (file.size > 10 * 1024 * 1024) return alert("Файл слишком большой (макс 10МБ)");
+            if (file.size > 10 * 1024 * 1024) { // Ограничение в 10МБ на файл
+                alert("Файл слишком большой (максимум 10МБ).");
+                return;
+            }
             
             const base64 = await fileToBase64(file);
             pushMessage({
-                text: "[Медиа]",
+                text: "[Медиа]", // Текстовая заглушка для файла
                 fileData: base64,
                 fileType: file.type
             });
@@ -252,11 +256,14 @@
 
         function loadMessages(roomId) {
             const feed = document.getElementById('messages-feed');
-            feed.innerHTML = '';
+            feed.innerHTML = ''; // Очищаем ленту при открытии нового чата
             
-            // Отписываемся от предыдущих слушателей, если нужно (упрощено)
+            // Важно: Отписывайтесь от предыдущих слушателей, чтобы избежать дублирования
+            // Для упрощения и текущей демонстрации, предполагается, что слушатель на комнату один.
+            // В продакшене лучше использовать .off() перед .onChildAdded()
+
             window.fb.onChildAdded(window.fb.ref(window.fb.db, `messages/${roomId}`), (snap) => {
-                if (activeRoomId !== roomId) return;
+                if (activeRoomId !== roomId) return; // Убедиться, что это сообщения для текущей комнаты
                 const m = snap.val();
                 const b = document.createElement('div');
                 b.className = `bubble ${m.sender === currentUser.email ? 'out' : 'in'}`;
@@ -266,6 +273,8 @@
                         b.innerHTML = `<img src="${m.fileData}">`;
                     } else if (m.fileType.startsWith('video/')) {
                         b.innerHTML = `<video src="${m.fileData}" controls></video>`;
+                    } else { // Для других типов файлов, например, аудио
+                        b.innerHTML = `<a href="${m.fileData}" download="${m.fileName || 'file'}" style="color:white;">📎 ${m.text || "Файл"}</a>`;
                     }
                 } else {
                     b.innerText = m.text;
@@ -287,8 +296,10 @@
         }
 
         async function generateRoomId(e1, e2) {
-            const s = [e1, e2].sort().join('|');
+            // Создаем стабильный ID комнаты из двух email-адресов
+            const s = [e1, e2].sort().join('|'); // Сортируем, чтобы порядок не влиял
             const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+            // Берем первые 20 символов SHA-256 хэша для компактности
             return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('').slice(0,20);
         }
     </script>
