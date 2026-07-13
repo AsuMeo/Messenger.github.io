@@ -503,7 +503,7 @@
     <!-- ЭКРАН ВХОДА -->
     <div id="login-screen">
         <div class="login-card">
-            <div style="font-size: 50px; margin-bottom: 10px;"&gt;🐾&lt;/div&gt;
+            <div style="font-size: 50px; margin-bottom: 10px;">🐾</div>
             <h1 style="font-size: 24px; margin-bottom: 6px;">VK Meow</h1>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Безопасный мессенджер нового поколения</p>
             
@@ -546,6 +546,13 @@
             <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Настройки профиля</h2>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Ваша почта полностью скрыта и защищена от посторонних глаз</p>
             
+            <!-- Добавили круглый выбор фото профиля в настройки -->
+            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
+                <div class="chat-avatar" id="my-profile-avatar" style="width: 80px; height: 80px; font-size: 24px; cursor: pointer; background-color: var(--accent);" onclick="document.getElementById('profile-avatar-upload').click()">?</div>
+                <input type="file" id="profile-avatar-upload" style="display: none;" accept="image/*" onchange="compressAndSetProfileAvatar(this.files[0])">
+                <span style="font-size: 12px; color: var(--accent); cursor: pointer; margin-top: 8px;" onclick="document.getElementById('profile-avatar-upload').click()">Изменить фото</span>
+            </div>
+
             <div class="profile-form">
                 <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ИМЯ</label>
                 <input type="text" id="setting-name" class="search-bar" placeholder="Введите имя">
@@ -584,7 +591,7 @@
             <button class="header-btn" onclick="closeChat()">⬅</button>
             <div class="chat-header-avatar" id="chat-header-av">?</div>
             <div class="chat-header-info">
-                <div class="chat-header-title" id="chat-header-title">Имя</div>
+                <div class="chat-header-title" id="chat-header-title">Загрузка...</div>
                 <div class="chat-header-status" id="chat-header-status">офлайн</div>
             </div>
         </div>
@@ -593,7 +600,7 @@
 
         <div class="chat-input-bar">
             <input type="file" id="media-upload" style="display: none;" accept="image/*,video/*" onchange="compressAndSendMedia(this.files[0])">
-            <button class="header-btn" style="color: var(--accent)" onclick="document.getElementById('media-upload').click()">📎</button>
+            <button class="header-btn" style="color: var(--accent)" id="clip-btn" onclick="document.getElementById('media-upload').click()">📎</button>
 
             <textarea class="message-input" id="message-input" placeholder="Сообщение..." rows="1"></textarea>
 
@@ -628,8 +635,9 @@
         let myNameCombined = "";
         let currentPeer = null; 
         let currentRoomId = null;
+        let tempProfileAvatarBase64 = ""; // Временный контейнер фото профиля
 
-        // Переменные для удаления утечек слушателей Firebase
+        // Сборщики слушателей для предотвращения зависаний
         let unsubDialogs = null;
         let unsubChatMessages = null;
         let unsubHeaderPresence = null;
@@ -674,6 +682,16 @@
                         document.getElementById('setting-lastname').value = prof.lastname || "";
                         document.getElementById('setting-username').value = prof.username ? prof.username : "";
                         myNameCombined = (prof.name || "Без имени") + (prof.lastname ? " " + prof.lastname : "");
+                        
+                        tempProfileAvatarBase64 = prof.avatar || "";
+                        const myAvEl = document.getElementById('my-profile-avatar');
+                        if (tempProfileAvatarBase64) {
+                            myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
+                            myAvEl.innerText = "";
+                        } else {
+                            myAvEl.style.backgroundImage = "none";
+                            myAvEl.innerText = myNameCombined[0].toUpperCase();
+                        }
                     } else {
                         const fallbackNick = "id_" + Math.floor(1000 + Math.random() * 9000);
                         myNameCombined = user.email.split('@')[0];
@@ -748,6 +766,30 @@
             }
         }
 
+        // --- СЖАТИЕ ФОТО ДЛЯ СВОЕГО ПРОФИЛЯ ---
+        async function compressAndSetProfileAvatar(file) {
+            if (!file) return;
+            const canvas = document.createElement('canvas');
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    // Аватарка 120x120 и качество 0.5 гарантирует размер до 3 КБ!
+                    canvas.width = 120;
+                    canvas.height = 120;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, 120, 120);
+                    tempProfileAvatarBase64 = canvas.toDataURL('image/jpeg', 0.5);
+                    
+                    const myAvEl = document.getElementById('my-profile-avatar');
+                    myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
+                    myAvEl.innerText = "";
+                };
+            };
+        }
+
         // --- СОХРАНЕНИЕ ПРОФИЛЯ ---
         async function saveProfileSettings() {
             const name = document.getElementById('setting-name').value.trim();
@@ -770,10 +812,12 @@
                 await window.fb.remove(window.fb.ref(window.fb.db, `usernames/${profSnap.val().username}`));
             }
 
+            // Запись в базу ОДИН раз — моментально обновится у всех друзей
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
                 name: name,
                 lastname: lastname,
-                username: username
+                username: username,
+                avatar: tempProfileAvatarBase64
             });
             await window.fb.set(window.fb.ref(window.fb.db, `usernames/${username}`), myUid);
 
@@ -782,7 +826,7 @@
             switchTab(0);
         }
 
-        // --- СПИСОК ДИАЛОГОВ (УСТОЙЧИВЫЙ И ЧИСТЫЙ) ---
+        // --- СПИСОК ДИАЛОГОВ (РЕАКТИВНЫЙ И ЧИСТЫЙ) ---
         function loadDialogs() {
             if (unsubDialogs) unsubDialogs();
             Object.values(activePresenceListeners).forEach(un => un());
@@ -793,7 +837,7 @@
             const container = document.getElementById('chats-list-container');
             container.innerHTML = "";
 
-            unsubDialogs = window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/chats`), async (snap) => {
+            unsubDialogs = window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/chats`), (snap) => {
                 container.innerHTML = "";
                 if (!snap.exists()) {
                     container.innerHTML = `<div style="text-align:center; color: var(--text-muted); margin-top:40px; font-size:14px;">Список диалогов пуст. Найдите собеседника по нику!</div>`;
@@ -801,31 +845,26 @@
                 }
                 const chatsObj = snap.val();
 
-                for (let peerId in chatsObj) {
-                    const chatMeta = chatsObj[peerId];
-                    if (!chatMeta || !chatMeta.roomId) continue;
+                Object.entries(chatsObj).forEach(([peerId, chatMeta]) => {
+                    if (!chatMeta || !chatMeta.roomId) return;
 
                     const isCloud = (peerId === myUid);
                     const row = document.createElement('div');
                     row.className = "chat-row";
-                    
-                    let initialName = isCloud ? "Избранное (Облако)" : (chatMeta.name || "Загрузка...");
-                    if (initialName === "undefined") initialName = "Пользователь";
+                    row.id = `chat-row-${peerId}`;
 
-                    row.onclick = () => openChatWindow(peerId, initialName, chatMeta.avatar, chatMeta.roomId);
+                    row.onclick = () => openChatWindow(peerId, chatMeta.roomId);
 
                     let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
-                    let avStyle = chatMeta.avatar ? `background-image:url(${chatMeta.avatar})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`;
-                    let letter = isCloud ? "☁️" : initialName[0].toUpperCase();
 
                     row.innerHTML = `
-                        <div class="chat-avatar" id="avatar-${peerId}" style="${avStyle}">
-                            ${chatMeta.avatar ? '' : letter}
+                        <div class="chat-avatar" id="avatar-${peerId}" style="background-color: ${TG_AVATAR_COLORS[colorIndex]}">
+                            ?
                             <div class="online-dot" id="dot-${peerId}"></div>
                         </div>
                         <div class="chat-info">
                             <div class="chat-name-row">
-                                <div class="chat-row-name" id="name-${peerId}">${isCloud ? "Избранное (Облако)" : initialName}</div>
+                                <div class="chat-row-name" id="name-${peerId}">Загрузка...</div>
                                 <div class="chat-row-time" id="time-${peerId}"></div>
                             </div>
                             <div class="chat-row-msg" id="last-msg-${peerId}">Загрузка сообщений...</div>
@@ -834,16 +873,27 @@
                     `;
                     container.appendChild(row);
 
-                    // МОМЕНТАЛЬНЫЙ И БЕЗОШИБОЧНЫЙ СЛУШАТЕЛЬ ПРОФИЛЯ ДЛЯ ИЗБЕЖАНИЯ undefined
-                    if (!isCloud) {
+                    if (isCloud) {
+                        const nameEl = document.getElementById(`name-${peerId}`);
+                        const avEl = document.getElementById(`avatar-${peerId}`);
+                        const timeEl = document.getElementById(`time-${peerId}`);
+                        if (nameEl) nameEl.innerText = "Избранное (Облако)";
+                        if (avEl) {
+                            avEl.style.backgroundImage = "none";
+                            avEl.style.backgroundColor = "var(--accent)";
+                            avEl.innerText = "☁️";
+                        }
+                        if (timeEl) timeEl.innerText = "облако";
+                    } else {
+                        // ЖИВОЙ СЛУШАТЕЛЬ ПРОФИЛЯ — МОМЕНТАЛЬНО ПРИМЕНЯЕТ ИЗМЕНЕНИЯ ИМЕНИ И ФОТО
                         activePresenceListeners[peerId + "_profile"] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/profile`), (profSnap) => {
-                            const pEl = document.getElementById(`name-${peerId}`);
+                            const nameEl = document.getElementById(`name-${peerId}`);
                             const avEl = document.getElementById(`avatar-${peerId}`);
                             if (profSnap.exists()) {
                                 const prof = profSnap.val();
                                 const freshName = (prof.name || "Без имени") + (prof.lastname ? " " + prof.lastname : "");
+                                if (nameEl) nameEl.innerText = freshName;
                                 
-                                if (pEl) pEl.innerText = freshName;
                                 if (avEl) {
                                     if (prof.avatar) {
                                         avEl.style.backgroundImage = `url(${prof.avatar})`;
@@ -857,11 +907,9 @@
                                 }
                             }
                         });
-                    }
 
-                    // Слушатель онлайна
-                    if (!isCloud) {
-                        activePresenceListeners[peerId] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (pSnap) => {
+                        // Живой статус
+                        activePresenceListeners[peerId + "_presence"] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (pSnap) => {
                             const dot = document.getElementById(`dot-${peerId}`);
                             const timeText = document.getElementById(`time-${peerId}`);
                             if (pSnap.exists() && dot && timeText) {
@@ -877,12 +925,9 @@
                                 }
                             }
                         });
-                    } else {
-                        const timeText = document.getElementById(`time-${peerId}`);
-                        if (timeText) timeText.innerText = "облако";
                     }
 
-                    // Слушатель последнего сообщения
+                    // Живой слушатель последнего сообщения
                     activeLastMsgListeners[peerId] = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${chatMeta.roomId}/list`), (mSnap) => {
                         const msgBox = document.getElementById(`last-msg-${peerId}`);
                         if (mSnap.exists() && msgBox) {
@@ -902,7 +947,7 @@
                             msgBox.innerText = "Нет сообщений";
                         }
                     });
-                }
+                });
             });
         }
 
@@ -928,11 +973,11 @@
         // --- ИЗБРАННОЕ ---
         function openCloudChat() {
             const cloudRoom = `saved_${myUid}`;
-            openChatWindow(myUid, "Избранное (Облако)", "", cloudRoom);
+            openChatWindow(myUid, cloudRoom);
         }
 
         // --- ОКНО ЧАТА И ИСТОРИЯ ---
-        function openChatWindow(peerId, name, avatar, roomId) {
+        function openChatWindow(peerId, roomId) {
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
 
@@ -945,42 +990,59 @@
             feed.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:20px;">Загрузка истории...</div>`;
 
             const isCloud = (peerId === myUid);
-            document.getElementById('chat-header-title').innerText = isCloud ? "Избранное (Облако)" : name;
-
             const headerAv = document.getElementById('chat-header-av');
-            let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+            const headerTitle = document.getElementById('chat-header-title');
+            const headerStatus = document.getElementById('chat-header-status');
+
             if (isCloud) {
+                headerTitle.innerText = "Избранное (Облако)";
                 headerAv.style.backgroundImage = "none";
                 headerAv.style.backgroundColor = "var(--accent)";
                 headerAv.innerText = "☁️";
-            } else if (avatar) {
-                headerAv.style.backgroundImage = `url(${avatar})`;
-                headerAv.innerText = "";
+                headerStatus.innerText = "персональное хранилище";
             } else {
-                headerAv.style.backgroundImage = "none";
-                headerAv.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
-                headerAv.innerText = name[0].toUpperCase();
-            }
+                // ЖИВОЙ СЛУШАТЕЛЬ ДЛЯ ШАПКИ ЧАТА
+                unsubHeaderPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/profile`), (snap) => {
+                    if (snap.exists()) {
+                        const prof = snap.val();
+                        const displayName = (prof.name || "Без имени") + (prof.lastname ? " " + prof.lastname : "");
+                        headerTitle.innerText = displayName;
 
-            // Наблюдение онлайна собеседника в шапке
-            if (isCloud) {
-                document.getElementById('chat-header-status').innerText = "персональное хранилище";
-            } else {
-                unsubHeaderPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (snap) => {
-                    const status = document.getElementById('chat-header-status');
-                    if (snap.exists() && snap.val().status === "online") {
-                        status.innerText = "в сети";
-                        status.style.color = "var(--online)";
-                    } else if (snap.exists()) {
-                        status.innerText = `был(а) в сети ${formatTimeDiff(snap.val().lastSeen)}`;
-                        status.style.color = "var(--text-muted)";
-                    } else {
-                        status.innerText = "офлайн";
+                        if (prof.avatar) {
+                            headerAv.style.backgroundImage = `url(${prof.avatar})`;
+                            headerAv.innerText = "";
+                            headerAv.style.backgroundColor = "transparent";
+                        } else {
+                            headerAv.style.backgroundImage = "none";
+                            let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+                            headerAv.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
+                            headerAv.innerText = displayName[0].toUpperCase();
+                        }
                     }
                 });
+
+                // Живой онлайн статус в шапке
+                const unsubPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (snap) => {
+                    if (snap.exists() && snap.val().status === "online") {
+                        headerStatus.innerText = "в сети";
+                        headerStatus.style.color = "var(--online)";
+                    } else if (snap.exists()) {
+                        headerStatus.innerText = `был(а) в сети ${formatTimeDiff(snap.val().lastSeen)}`;
+                        headerStatus.style.color = "var(--text-muted)";
+                    } else {
+                        headerStatus.innerText = "офлайн";
+                        headerStatus.style.color = "var(--text-muted)";
+                    }
+                });
+
+                const oldUnsubHeader = unsubHeaderPresence;
+                unsubHeaderPresence = () => {
+                    if (oldUnsubHeader) oldUnsubHeader();
+                    unsubPresence();
+                };
             }
 
-            // ЗАГРУЗКА ИСТОРИИ СООБЩЕНИЙ ЧЕРЕЗ ОДИН НАДЕЖНЫЙ СЛУШАТЕЛЬ VALUE
+            // Загрузка переписки
             unsubChatMessages = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), (snapshot) => {
                 feed.innerHTML = "";
                 if (!snapshot.exists()) {
@@ -1039,7 +1101,7 @@
 
         // --- ОТПРАВКА СООБЩЕНИЙ ---
         async function handleSendClick() {
-            const input = document.getElementById('message-input');
+            const input = document.getElementById('message-text');
             const txt = input.value.trim();
             if (!txt) return;
 
@@ -1057,56 +1119,78 @@
             input.style.height = "auto";
         }
 
-        // --- МЕДИАФАЙЛЫ (КАРТИНКИ И ВИДЕО С СЖАТИЕМ) ---
+        // --- МОМЕНТАЛЬНОЕ УЛЬТРА-СЖАТИЕ И ОТПРАВКА ФОТО/ВИДЕО ---
         async function compressAndSendMedia(file) {
             if (!file) return;
 
-            if (file.type.startsWith('image/')) {
-                // Моментальное сжатие картинок через холст Canvas
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = async () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        const maxSide = 800; // Оптимальный лимит для быстрой P2P передачи
+            const clipBtn = document.getElementById('clip-btn');
+            const sendBtn = document.getElementById('send-btn');
+            
+            // Включаем визуальный индикатор отправки
+            clipBtn.innerText = "⏳";
+            sendBtn.innerText = "⏳";
 
-                        if (width > height) {
-                            if (width > maxSide) {
-                                height = Math.round((height * maxSide) / width);
-                                width = maxSide;
-                            }
-                        } else {
-                            if (height > maxSide) {
-                                width = Math.round((width * maxSide) / height);
-                                height = maxSide;
-                            }
-                        }
+            try {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.src = event.target.result;
+                        img.onload = async () => {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+                            
+                            // 500px макс сторона — идеальное мобильное качество без лишнего веса!
+                            const maxSide = 500; 
 
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        // Сжимаем в jpeg до 70% веса
-                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                        await transmitMedia(compressedBase64, 'image/jpeg');
+                            if (width > height) {
+                                if (width > maxSide) {
+                                    height = Math.round((height * maxSide) / width);
+                                    width = maxSide;
+                                }
+                            } else {
+                                if (height > maxSide) {
+                                    width = Math.round((width * maxSide) / height);
+                                    height = maxSide;
+                                }
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            // Качество 0.55 ужимает размер фото до 12-25 КБ! Передается секунда в секунду!
+                            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.55);
+                            await transmitMedia(compressedBase64, 'image/jpeg');
+                            
+                            clipBtn.innerText = "📎";
+                            sendBtn.innerText = "➤";
+                        };
                     };
-                };
-            } else if (file.type.startsWith('video/')) {
-                // Ограничиваем видео до 2.5 МБ
-                if (file.size > 2.5 * 1024 * 1024) {
-                    alert("Размер видео превышает 2.5 МБ. Пожалуйста, отправляйте более короткие ролики!");
-                    return;
+                } else if (file.type.startsWith('video/')) {
+                    // Ограничиваем видео до 1.5 МБ
+                    if (file.size > 1.5 * 1024 * 1024) {
+                        alert("Размер видео превышает 1.5 МБ. Пожалуйста, отправляйте более короткие ролики!");
+                        clipBtn.innerText = "📎";
+                        sendBtn.innerText = "➤";
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = async (event) => {
+                        await transmitMedia(event.target.result, file.type);
+                        clipBtn.innerText = "📎";
+                        sendBtn.innerText = "➤";
+                    };
                 }
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = async (event) => {
-                    await transmitMedia(event.target.result, file.type);
-                };
+            } catch (err) {
+                console.error(err);
+                alert("Ошибка во время отправки файла!");
+                clipBtn.innerText = "📎";
+                sendBtn.innerText = "➤";
             }
         }
 
@@ -1167,32 +1251,23 @@
             const snap = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${target}`));
             if (snap.exists()) {
                 const targetUid = snap.val();
-                const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${targetUid}/profile`));
+                closeModal('search-people-modal');
+
+                // Исключительно чистый Room ID без дублирования мутабельных полей
+                const rId = [myUid, targetUid].sort().join("_");
+
+                // Добавляем чат инициатору
+                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${targetUid}`), {
+                    roomId: rId
+                });
                 
-                if (profSnap.exists()) {
-                    const prof = profSnap.val();
-                    closeModal('search-people-modal');
+                // Добавляем чат получателю
+                await window.fb.set(window.fb.ref(window.fb.db, `users/${targetUid}/chats/${myUid}`), {
+                    roomId: rId
+                });
 
-                    const rId = [myUid, targetUid].sort().join("_");
-                    const targetCombinedName = (prof.name || "Без имени") + (prof.lastname ? " " + prof.lastname : "");
-
-                    // Добавляем чат инициатору
-                    await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${targetUid}`), {
-                        name: targetCombinedName,
-                        avatar: prof.avatar || "",
-                        roomId: rId
-                    });
-                    
-                    // Добавляем чат получателю
-                    await window.fb.set(window.fb.ref(window.fb.db, `users/${targetUid}/chats/${myUid}`), {
-                        name: myNameCombined,
-                        avatar: myProf.avatar || "",
-                        roomId: rId
-                    });
-
-                    alert("Диалог начат!");
-                    openChatWindow(targetUid, targetCombinedName, prof.avatar, rId);
-                }
+                alert("Диалог начат!");
+                openChatWindow(targetUid, rId);
             } else {
                 alert("Пользователь с таким никнеймом не найден!");
             }
