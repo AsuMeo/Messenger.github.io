@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>VK Meow Messenger</title>
     
-    <!-- Подключаем CryptoJS для PBKDF2 и fallback-шифрования -->
+    <!-- CryptoJS для базового AES-шифрования -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
     <!-- Инициализация Firebase SDK -->
@@ -14,6 +14,7 @@
         import { getDatabase, ref, set, push, onValue, onChildAdded, get, child, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+        // Твой конфиг Firebase
         const firebaseConfig = {
           apiKey: "AIzaSyDQMqwnJp34H6I7ragLr14LQ4YszpDFYbg",
           authDomain: "meowmessenger.firebaseapp.com",
@@ -91,7 +92,6 @@
             align-items: center;
             justify-content: center;
             font-size: 20px;
-            box-shadow: 0 2px 8px rgba(31, 128, 224, 0.4);
         }
 
         .header-title {
@@ -283,6 +283,7 @@
             bottom: 0;
             right: 0;
             border: 2px solid var(--bg-dark);
+            display: none;
         }
 
         .chat-info {
@@ -316,17 +317,6 @@
             text-overflow: ellipsis;
         }
 
-        .badge {
-            background: var(--accent);
-            color: white;
-            font-size: 11px;
-            font-weight: bold;
-            border-radius: 10px;
-            padding: 2px 6px;
-            min-width: 18px;
-            text-align: center;
-        }
-
         /* ОКНО ЧАТА */
         .chat-window {
             position: fixed;
@@ -349,7 +339,7 @@
             display: flex;
             align-items: center;
             padding: 0 16px;
-            border-bottom: 1px solid #101924;
+            border-bottom: 1px solid #1a1a1c;
         }
 
         .chat-header-avatar {
@@ -451,7 +441,7 @@
         }
 
         .voice-bubble {
-            width: 260px;
+            width: 240px;
             padding: 8px 12px;
             border-radius: 18px;
             display: flex;
@@ -505,7 +495,7 @@
         #login-screen {
             position: fixed;
             inset: 0;
-            background: radial-gradient(circle at center, #17212b 0%, #000 100%);
+            background: #000;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -539,28 +529,12 @@
         }
 
         .modal-card {
-            background: var(--second);
+            background: #161618;
             border-radius: 20px;
             width: 90%;
             max-width: 400px;
             padding: 24px;
             border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        /* МУЗЫКА */
-        .music-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            border-bottom: 1px solid #161618;
-            cursor: pointer;
-        }
-
-        .music-meta {
-            flex: 1;
-            margin-right: 12px;
-            overflow: hidden;
         }
 
         /* НОВОСТИ */
@@ -636,6 +610,7 @@
         </div>
         <div class="header-buttons">
             <button class="header-btn" onclick="openCloudChat()">☁️</button>
+            <button class="header-btn" onclick="openModal('profile-settings-modal')">⚙️</button>
             <button class="header-btn" onclick="openModal('background-modal')">🎨</button>
             <button class="header-btn" onclick="logoutAction()">🚪</button>
         </div>
@@ -651,39 +626,20 @@
                 <div class="segment-btn" id="seg-groups" onclick="switchSegment(1)">Группы</div>
             </div>
             <div class="search-row">
-                <input type="text" id="chat-search" class="search-bar" placeholder="Поиск котиков..." oninput="filterDialogs(this.value)">
+                <input type="text" id="chat-search" class="search-bar" placeholder="Поиск диалогов..." oninput="filterDialogs(this.value)">
                 <button class="search-action-btn" style="background: #1C1C1E;" onclick="openModal('search-people-modal')">👤</button>
-                <button class="search-action-btn" style="background: #1C1C1E;" onclick="openModal('search-video-modal')">🎥</button>
             </div>
             <div class="chats-list" id="chats-list-container"></div>
         </div>
 
-        <!-- ВКЛАДКА 1: МУЗЫКА -->
+        <!-- ВКЛАДКА 1: НОВОСТИ -->
         <div class="tab-panel" id="tab-1">
-            <div class="search-row">
-                <input type="text" id="music-search" class="search-bar" placeholder="Поиск музыки...">
-                <button class="search-action-btn" onclick="searchMusic()">🔍</button>
-            </div>
-            <div id="music-list-container"></div>
-        </div>
-
-        <!-- ВКЛАДКА 2: НОВОСТИ -->
-        <div class="tab-panel" id="tab-2">
             <div id="news-container"></div>
         </div>
 
-        <!-- ВКЛАДКА 3: АНИМЕ -->
-        <div class="tab-panel" id="tab-3">
+        <!-- ВКЛАДКА 2: АНИМЕ -->
+        <div class="tab-panel" id="tab-2">
             <iframe src="https://notanime.ru" class="anime-frame"></iframe>
-        </div>
-
-        <!-- ВКЛАДКА 4: ВИДЕО -->
-        <div class="tab-panel" id="tab-4">
-            <div class="search-row">
-                <input type="text" id="video-search-tab" class="search-bar" placeholder="Поиск видео...">
-                <button class="search-action-btn" onclick="searchTabVideo()">🔍</button>
-            </div>
-            <div id="video-tab-results" class="post-images-grid" style="padding: 16px; grid-template-columns: repeat(2, 1fr);"></div>
         </div>
 
     </div>
@@ -695,20 +651,12 @@
             <div class="tab-label">Диалоги</div>
         </div>
         <div class="tab-button" onclick="switchTab(1)">
-            <div class="tab-pill">🎵</div>
-            <div class="tab-label">Музыка</div>
-        </div>
-        <div class="tab-button" onclick="switchTab(2)">
             <div class="tab-pill">📰</div>
             <div class="tab-label">Новости</div>
         </div>
-        <div class="tab-button" onclick="switchTab(3)">
+        <div class="tab-button" onclick="switchTab(2)">
             <div class="tab-pill">⛩️</div>
             <div class="tab-label">Аниме</div>
-        </div>
-        <div class="tab-button" onclick="switchTab(4)">
-            <div class="tab-pill">📹</div>
-            <div class="tab-label">Видео</div>
         </div>
     </div>
 
@@ -721,7 +669,6 @@
                 <div class="chat-header-title" id="chat-header-title">Имя пользователя</div>
                 <div class="chat-header-status" id="chat-header-status">офлайн</div>
             </div>
-            <button class="header-btn" onclick="openChatCryptoSettings()">⚙️</button>
         </div>
         
         <div class="chat-feed" id="chat-feed"></div>
@@ -729,8 +676,7 @@
         <div class="chat-input-bar">
             <input type="file" id="media-upload" style="display: none;" accept="image/*,video/*" onchange="uploadMedia(this.files[0])">
             <button class="header-btn" style="color: var(--accent)" onclick="document.getElementById('media-upload').click()">📎</button>
-            
-            <button class="header-btn" id="e2e-lock-btn" onclick="toggleEncryptionState()">🔓</button>
+            <button class="header-btn" id="e2e-lock-btn" onclick="toggleEncryptionState()">🔒</button>
 
             <div class="input-container-inner">
                 <textarea class="message-input" id="message-input" placeholder="Сообщение..." rows="1" oninput="adjustInputHeight(this)"></textarea>
@@ -745,14 +691,16 @@
         </div>
     </div>
 
-    <!-- МОДАЛКА НАСТРОЕК ШИФРОВАНИЯ ЧАТА -->
-    <div class="modal-overlay" id="crypto-settings-modal">
+    <!-- МОДАЛКА НАСТРОЕК ПРОФИЛЯ -->
+    <div class="modal-overlay" id="profile-settings-modal">
         <div class="modal-card">
-            <h3 style="margin-bottom: 15px; text-align: center;">⚙️ Пароли чата</h3>
-            <input type="text" id="pass-out" class="search-bar" style="width: 100%; margin-bottom: 10px;" placeholder="Ваш пароль (исходящие)">
-            <input type="text" id="pass-in" class="search-bar" style="width: 100%; margin-bottom: 15px;" placeholder="Пароль собеседника (входящие)">
-            <button class="search-action-btn" style="width: 100%; background: var(--accent); color: white; margin-bottom: 8px;" onclick="saveCryptoSettings()">Сохранить</button>
-            <button class="search-action-btn" style="width: 100%; background: #2C2C2E; color: white;" onclick="closeModal('crypto-settings-modal')">Отмена</button>
+            <h3 style="margin-bottom: 15px; text-align: center;">⚙️ Настройки профиля</h3>
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; text-align: center;">Почта скрыта и не видна другим пользователям</div>
+            <input type="text" id="setting-name" class="search-bar" style="width: 100%; margin-bottom: 10px;" placeholder="Имя">
+            <input type="text" id="setting-lastname" class="search-bar" style="width: 100%; margin-bottom: 10px;" placeholder="Фамилия (необязательно)">
+            <input type="text" id="setting-username" class="search-bar" style="width: 100%; margin-bottom: 15px;" placeholder="@username">
+            <button class="search-action-btn" style="width: 100%; background: var(--accent); color: white; margin-bottom: 8px;" onclick="saveProfileSettings()">Сохранить</button>
+            <button class="search-action-btn" style="width: 100%; background: #2C2C2E; color: white;" onclick="closeModal('profile-settings-modal')">Отмена</button>
         </div>
     </div>
 
@@ -768,98 +716,45 @@
         </div>
     </div>
 
-    <!-- МОДАЛКА ПРОФИЛЯ ПОЛЬЗОВАТЕЛЯ -->
-    <div class="modal-overlay" id="profile-modal">
-        <div class="modal-card" style="text-align: center;">
-            <div id="profile-avatar" style="width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 10px auto; background-size: cover;"></div>
-            <h3 id="profile-name" style="margin-bottom: 5px;">Имя Фамилия</h3>
-            <p id="profile-online" style="font-size: 13px; margin-bottom: 15px; color: var(--text-muted);">офлайн</p>
-            <p id="profile-bio" style="font-size: 14px; margin-bottom: 15px; font-style: italic;">Описание отсутствует.</p>
-            <div style="text-align: left; margin-bottom: 15px; font-size: 13px;">
-                <div style="margin-bottom: 5px;">📍 Город: <span id="profile-city" style="color: var(--text-muted)">Не указан</span></div>
-                <div style="margin-bottom: 5px;">🍰 Дата рождения: <span id="profile-bday" style="color: var(--text-muted)">Скрыта</span></div>
-            </div>
-            <button id="add-friend-btn" class="search-action-btn" style="width: 100%; background: var(--accent); color: white; margin-bottom: 8px;">Добавить в друзья</button>
-            <button class="search-action-btn" style="width: 100%; background: #2C2C2E; color: white;" onclick="closeModal('profile-modal')">Закрыть</button>
-        </div>
-    </div>
-
-    <!-- МОДАЛКА ПОИСКА КОТИКОВ -->
+    <!-- МОДАЛКА ПОИСКА ПОЛЬЗОВАТЕЛЕЙ -->
     <div class="modal-overlay" id="search-people-modal">
         <div class="modal-card">
-            <h3 style="margin-bottom: 15px; text-align: center;">👤 Поиск людей</h3>
-            <input type="text" id="search-by-username" class="search-bar" style="width: 100%; margin-bottom: 12px;" placeholder="@username или email">
+            <h3 style="margin-bottom: 15px; text-align: center;">👤 Найти котика по нику</h3>
+            <input type="text" id="search-by-username" class="search-bar" style="width: 100%; margin-bottom: 12px;" placeholder="@username">
             <button class="search-action-btn" style="width: 100%; background: var(--accent); color: white; margin-bottom: 8px;" onclick="searchPeople()">Найти</button>
             <button class="search-action-btn" style="width: 100%; background: #2C2C2E; color: white;" onclick="closeModal('search-people-modal')">Закрыть</button>
         </div>
     </div>
 
-    <!-- МОДАЛКА ПРОСМОТРА МЕДИА -->
+    <!-- МОДАЛКА ПРОСМОТРА КАРТИНКИ / ВИДЕО -->
     <div class="modal-overlay" id="media-viewer-modal" style="background: black;">
         <span style="position: absolute; top: 20px; left: 20px; font-size: 30px; cursor: pointer; z-index: 10;" onclick="closeMediaViewer()">✕</span>
         <div id="media-viewer-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"></div>
     </div>
 
-    <!-- ВКЛАДКА ПОИСКА ВИДЕО -->
-    <div class="modal-overlay" id="search-video-modal">
-        <div class="modal-card">
-            <h3 style="margin-bottom: 15px; text-align: center;">🎥 Поиск видео</h3>
-            <input type="text" id="search-video-input" class="search-bar" style="width: 100%; margin-bottom: 12px;" placeholder="Название видео...">
-            <button class="search-action-btn" style="width: 100%; background: var(--accent); color: white; margin-bottom: 8px;" onclick="performVideoSearch()">Найти</button>
-            <button class="search-action-btn" style="width: 100%; background: #2C2C2E; color: white;" onclick="closeModal('search-video-modal')">Закрыть</button>
-        </div>
-    </div>
-
-    <!-- ПЛЕЕР ГОЛОСОВЫХ И МЕДИА КЛАССЫ -->
+    <!-- ЛОГИКА ПРИЛОЖЕНИЯ -->
     <script>
-        // Константы
         const TG_AVATAR_COLORS = ["#E17076", "#FAA774", "#A695E7", "#34C759", "#6EC9CB", "#1F80E0"];
         const BASE_AES_KEY = "12345678901234567890123456789012";
 
-        // Глобальные переменные сессии
         let myUid = null;
         let myEmail = null;
-        let myUsername = "";
-        let currentPeer = null; // Текущий собеседник
+        let currentPeer = null; 
         let currentRoomId = null;
         let currentSegment = 0; // 0 = Чаты, 1 = Группы
         let activeTab = 0;
 
-        let myKeyPair = null; // ECDH пара ключей
-        let peerPublicKey = null; // Публичный ключ собеседника
+        let myKeyPair = null;
+        let peerPublicKey = null;
 
-        // Запись звука
         let mediaRecorder = null;
         let voiceChunks = [];
         let recordInterval = null;
         let recordDuration = 0;
         let isRecording = false;
-
-        // Плеер музыки
         let currentAudio = null;
 
-        // --- ИНИЦИАЛИЗАЦИЯ И РЕГИСТРАЦИЯ ECDH ---
-        async function initCrypto() {
-            try {
-                myKeyPair = await window.crypto.subtle.generateKey(
-                    { name: "ECDH", namedCurve: "P-256" },
-                    true,
-                    ["deriveKey", "deriveBits"]
-                );
-            } catch (err) {
-                console.error("WebCrypto не поддерживается, fallback CryptoJS");
-            }
-        }
-        initCrypto();
-
-        // Экспорт публичного ключа
-        async function exportMyPublicKey() {
-            if(!myKeyPair) return null;
-            const exported = await window.crypto.subtle.exportKey("spki", myKeyPair.publicKey);
-            return btoa(String.fromCharCode(...new Uint8Array(exported)));
-        }
-
-        // --- AES ШИФРОВАНИЕ/РАСШИФРОВКА КОРЯМЕ СИСТЕМА ---
+        // --- CRYPTO (AES-GCM Fallback на CryptoJS CBC) ---
         function aesEncrypt(text, keyString) {
             const key = CryptoJS.enc.Utf8.parse(keyString.padEnd(32, '0').slice(0, 32));
             const iv = CryptoJS.lib.WordArray.random(16);
@@ -879,7 +774,7 @@
             }
         }
 
-        // --- ДЕЙСТВИЯ АВТОРИЗАЦИИ ---
+        // --- УПРАВЛЕНИЕ АВТОРИЗАЦИЕЙ ---
         setTimeout(() => {
             window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                 if (user) {
@@ -887,34 +782,29 @@
                     myEmail = user.email;
                     document.getElementById('login-screen').style.display = 'none';
                     
-                    // Обновляем статус онлайн
-                    window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/presence`), {
-                        status: "online",
-                        lastSeen: Date.now()
-                    });
+                    // Обновляем присутствие в сети
+                    updatePresence("online");
 
-                    // Создаем базовые новости и группы при первом входе, если БД пуста
-                    seedDatabaseIfNeeded();
-
-                    // Загружаем профиль
+                    // Подтягиваем данные профиля в настройки
                     const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
-                    if (!profSnap.exists()) {
-                        const defaultUsername = "id" + Math.floor(100000 + Math.random() * 900000);
-                        myUsername = defaultUsername;
-                        await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
-                            username: defaultUsername,
-                            name: user.email.split('@')[0],
-                            bio: "Всем привет в VK Meow!",
-                            avatar: "",
-                            city: "Не указан",
-                            bday: "Скрыта",
-                            sex: 1
-                        });
-                        await window.fb.set(window.fb.ref(window.fb.db, `usernames/${defaultUsername}`), myUid);
+                    if (profSnap.exists()) {
+                        const prof = profSnap.val();
+                        document.getElementById('setting-name').value = prof.name || "";
+                        document.getElementById('setting-lastname').value = prof.lastname || "";
+                        document.getElementById('setting-username').value = prof.username ? "@" + prof.username : "";
                     } else {
-                        myUsername = profSnap.val().username;
+                        // Значения по умолчанию
+                        const fallbackNick = "user_" + Math.floor(1000 + Math.random() * 9000);
+                        await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
+                            name: user.email.split('@')[0],
+                            lastname: "",
+                            username: fallbackNick,
+                            avatar: ""
+                        });
+                        await window.fb.set(window.fb.ref(window.fb.db, `usernames/${fallbackNick}`), myUid);
                     }
 
+                    seedDatabaseIfNeeded();
                     switchTab(0);
                 } else {
                     document.getElementById('login-screen').style.display = 'flex';
@@ -942,14 +832,23 @@
         }
 
         function logoutAction() {
-            window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/presence`), {
-                status: "offline",
-                lastSeen: Date.now()
-            });
+            updatePresence("offline");
             window.fb.signOut(window.fb.auth).then(() => {
                 location.reload();
             });
         }
+
+        function updatePresence(status) {
+            if (!myUid) return;
+            window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/presence`), {
+                status: status,
+                lastSeen: Date.now()
+            });
+        }
+
+        window.addEventListener('beforeunload', () => {
+            updatePresence("offline");
+        });
 
         // --- ВКЛАДКИ НАВИГАЦИИ ---
         function switchTab(index) {
@@ -964,8 +863,6 @@
             if (index === 0) {
                 loadDialogs();
             } else if (index === 1) {
-                loadMusic();
-            } else if (index === 2) {
                 loadNews();
             }
         }
@@ -977,20 +874,59 @@
             loadDialogs();
         }
 
-        // --- ДИАЛОГИ, ЧАТЫ И ПОИСК ---
+        // --- СОХРАНЕНИЕ ПРОФИЛЯ ---
+        async function saveProfileSettings() {
+            const name = document.getElementById('setting-name').value.trim();
+            const lastname = document.getElementById('setting-lastname').value.trim();
+            let username = document.getElementById('setting-username').value.trim().replace('@', '').toLowerCase();
+
+            if (!name || !username) {
+                alert("Имя и @username обязательны к заполнению!");
+                return;
+            }
+
+            // Проверка уникальности username
+            const nameCheck = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${username}`));
+            if (nameCheck.exists() && nameCheck.val() !== myUid) {
+                alert("Данный @username уже занят другим пользователем!");
+                return;
+            }
+
+            // Получаем старый ник, чтобы удалить из индекса usernames
+            const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
+            if (profSnap.exists() && profSnap.val().username !== username) {
+                await window.fb.remove(window.fb.ref(window.fb.db, `usernames/${profSnap.val().username}`));
+            }
+
+            // Пишем в БД
+            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
+                name: name,
+                lastname: lastname,
+                username: username
+            });
+            await window.fb.set(window.fb.ref(window.fb.db, `usernames/${username}`), myUid);
+
+            closeModal('profile-settings-modal');
+            alert("Профиль успешно обновлен!");
+            loadDialogs();
+        }
+
+        // --- ЗАГРУЗКА РЕАЛЬНЫХ ДИАЛОГОВ (КАК В ORIGINAL) ---
         function loadDialogs() {
             const container = document.getElementById('chats-list-container');
             container.innerHTML = "";
 
             if (currentSegment === 0) {
-                // Загрузка приватных чатов
+                // Выкачиваем ветку контактов пользователя
                 window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/chats`), async (snap) => {
                     container.innerHTML = "";
                     if (!snap.exists()) return;
                     const chats = snap.val();
-                    
+
                     for (let peerId in chats) {
                         const chatMeta = chats[peerId];
+                        
+                        // Получаем онлайн-статус и время захода пользователя в реальном времени
                         const row = document.createElement('div');
                         row.className = "chat-row";
                         row.onclick = () => openChatWindow(peerId, chatMeta.name, chatMeta.avatar, chatMeta.roomId);
@@ -1000,20 +936,61 @@
                         let letter = chatMeta.name ? chatMeta.name[0].toUpperCase() : "🐾";
 
                         row.innerHTML = `
-                            <div class="chat-avatar" style="${avStyle}">${chatMeta.avatar ? '' : letter}</div>
+                            <div class="chat-avatar" id="avatar-${peerId}" style="${avStyle}">${chatMeta.avatar ? '' : letter}<div class="online-dot" id="dot-${peerId}"></div></div>
                             <div class="chat-info">
                                 <div class="chat-name-row">
-                                    <div class="chat-row-name">${chatMeta.name || "Котик"}</div>
-                                    <div class="chat-row-time">Meow</div>
+                                    <div class="chat-row-name">${chatMeta.name}</div>
+                                    <div class="chat-row-time" id="time-${peerId}">Meow</div>
                                 </div>
-                                <div class="chat-row-msg">Нажмите, чтобы войти в диалог</div>
+                                <div class="chat-row-msg" id="last-msg-${peerId}">Загрузка сообщений...</div>
                             </div>
                         `;
                         container.appendChild(row);
+
+                        // Слушаем статус присутствия
+                        window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (pSnap) => {
+                            const dot = document.getElementById(`dot-${peerId}`);
+                            const timeText = document.getElementById(`time-${peerId}`);
+                            if (pSnap.exists() && dot) {
+                                const presence = pSnap.val();
+                                if (presence.status === "online") {
+                                    dot.style.display = "block";
+                                    timeText.innerText = "в сети";
+                                    timeText.style.color = "var(--online)";
+                                } else {
+                                    dot.style.display = "none";
+                                    timeText.innerText = formatTimeDiff(presence.lastSeen);
+                                    timeText.style.color = "var(--text-muted)";
+                                }
+                            }
+                        });
+
+                        // Получаем последнее сообщение
+                        window.fb.onValue(window.fb.ref(window.fb.db, `messages/${chatMeta.roomId}/list`), (mSnap) => {
+                            const msgBox = document.getElementById(`last-msg-${peerId}`);
+                            if (mSnap.exists() && msgBox) {
+                                const messages = Object.values(mSnap.val());
+                                const lastM = messages[messages.length - 1];
+                                
+                                // Расшифровываем
+                                let decrypted = lastM.text;
+                                if (decrypted.startsWith("[MEOW]")) {
+                                    decrypted = aesDecrypt(decrypted.substring(6), BASE_AES_KEY);
+                                }
+                                try {
+                                    const parsed = JSON.parse(decrypted);
+                                    msgBox.innerText = parsed.text || "[Медиа]";
+                                } catch (e) {
+                                    msgBox.innerText = decrypted;
+                                }
+                            } else if (msgBox) {
+                                msgBox.innerText = "Нет сообщений";
+                            }
+                        });
                     }
                 });
             } else {
-                // Загрузка групп / каналов
+                // Вкладка Группы/Каналы
                 window.fb.onValue(window.fb.ref(window.fb.db, `groups`), (snap) => {
                     container.innerHTML = "";
                     if (!snap.exists()) return;
@@ -1040,12 +1017,24 @@
             }
         }
 
-        async function openCloudChat() {
+        function formatTimeDiff(timestamp) {
+            if (!timestamp) return "офлайн";
+            const diff = Date.now() - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            if (minutes < 1) return "только что";
+            if (minutes < 60) return `${minutes}м назад`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}ч назад`;
+            return new Date(timestamp).toLocaleDateString();
+        }
+
+        // --- ОТКРЫТИЕ ИЗБРАННОГО ---
+        function openCloudChat() {
             const cloudRoom = `saved_${myUid}`;
             openChatWindow(myUid, "Избранное (Облако)", "", cloudRoom);
         }
 
-        // --- ОКНО ЧАТА СИСТЕМА ---
+        // --- ОКНО ЧАТА ---
         async function openChatWindow(peerId, name, avatar, roomId) {
             currentPeer = peerId;
             currentRoomId = roomId;
@@ -1064,27 +1053,21 @@
                 headerAv.innerText = name[0].toUpperCase();
             }
 
-            // Наблюдаем статус собеседника
-            window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (snap) => {
-                const statusDiv = document.getElementById('chat-header-status');
-                if (snap.exists() && snap.val().status === "online") {
-                    statusDiv.innerText = "в сети";
-                    statusDiv.style.color = "var(--online)";
-                } else {
-                    statusDiv.innerText = "офлайн";
-                    statusDiv.style.color = "var(--text-muted)";
-                }
-            });
-
-            // Обмен ключами по E2EE
-            if (myKeyPair) {
-                const myPub = await exportMyPublicKey();
-                window.fb.set(window.fb.ref(window.fb.db, `messages/${currentRoomId}/key_exchange/${myUid}`), myPub);
-                
-                // Слушаем ключ собеседника
-                window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/key_exchange/${peerId}`), (snap) => {
-                    if (snap.exists()) {
-                        peerPublicKey = snap.val();
+            // Статус онлайн в шапке
+            if (peerId === myUid) {
+                document.getElementById('chat-header-status').innerText = "персональное облако";
+            } else {
+                window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (snap) => {
+                    const statusDiv = document.getElementById('chat-header-status');
+                    if (snap.exists() && snap.val().status === "online") {
+                        statusDiv.innerText = "в сети";
+                        statusDiv.style.color = "var(--online)";
+                    } else if (snap.exists()) {
+                        statusDiv.innerText = `был(а) в сети ${formatTimeDiff(snap.val().lastSeen)}`;
+                        statusDiv.style.color = "var(--text-muted)";
+                    } else {
+                        statusDiv.innerText = "офлайн";
+                        statusDiv.style.color = "var(--text-muted)";
                     }
                 });
             }
@@ -1098,7 +1081,7 @@
             currentRoomId = null;
         }
 
-        // --- СООБЩЕНИЯ & ДЕШИФРОВАНИЕ ---
+        // --- КАТАЛОГ СИСТЕМЫ СООБЩЕНИЙ ---
         function loadMessages() {
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = "";
@@ -1111,19 +1094,10 @@
                 const container = document.createElement('div');
                 container.className = `msg-container ${isOut ? 'out' : 'in'}`;
 
-                // Дешифровка payload
-                let decryptedPayload = null;
-                const rawText = m.text || "";
-
-                if (rawText.startsWith("[MEOW_SECURE]")) {
-                    const cleanCipher = rawText.substring(13);
-                    const localInPass = localStorage.getItem(`pass_in_${currentPeer}`) || "";
-                    decryptedPayload = aesDecrypt(cleanCipher, localInPass || BASE_AES_KEY);
-                } else if (rawText.startsWith("[MEOW]")) {
-                    const cleanCipher = rawText.substring(6);
-                    decryptedPayload = aesDecrypt(cleanCipher, BASE_AES_KEY);
-                } else {
-                    decryptedPayload = rawText;
+                // Расшифровка
+                let decryptedPayload = m.text || "";
+                if (decryptedPayload.startsWith("[MEOW]")) {
+                    decryptedPayload = aesDecrypt(decryptedPayload.substring(6), BASE_AES_KEY);
                 }
 
                 let messageObject = { text: decryptedPayload };
@@ -1131,7 +1105,7 @@
                     messageObject = JSON.parse(decryptedPayload);
                 } catch (e) {}
 
-                let bubbleHtml = `<div class="msg-bubble" onlongpress="openMessageContext('${messageObject.text}')">`;
+                let bubbleHtml = `<div class="msg-bubble">`;
                 
                 if (messageObject.fileData) {
                     if (messageObject.fileType.startsWith('image/')) {
@@ -1167,7 +1141,6 @@
             });
         }
 
-        // --- ОТПРАВКА СООБЩЕНИЙ ---
         async function handleSendClick() {
             const txtArea = document.getElementById('message-input');
             const txt = txtArea.value.trim();
@@ -1190,17 +1163,12 @@
 
             let finalString = rawStr;
             if (isEncState) {
-                const localOutPass = localStorage.getItem(`pass_out_${currentPeer}`) || "";
-                if (localOutPass) {
-                    finalString = "[MEOW_SECURE]" + aesEncrypt(rawStr, localOutPass);
-                } else {
-                    finalString = "[MEOW]" + aesEncrypt(rawStr, BASE_AES_KEY);
-                }
+                finalString = "[MEOW]" + aesEncrypt(rawStr, BASE_AES_KEY);
             }
 
             const dbPacket = {
                 sender: myUid,
-                senderEmail: myEmail,
+                senderEmail: "hidden@meow.safe",
                 text: finalString,
                 time: Date.now()
             };
@@ -1208,7 +1176,7 @@
             window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
         }
 
-        // --- ГОЛОСОВЫЕ СООБЩЕНИЯ ---
+        // --- ГОЛОСОВЫЕ ЗАПИСИ ---
         async function startVoiceRecord() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 alert("Микрофон недоступен!");
@@ -1274,15 +1242,11 @@
         }
 
         function playVoiceMessage(base64, playBtn) {
-            if (currentAudio) {
-                currentAudio.pause();
-            }
+            if (currentAudio) currentAudio.pause();
             currentAudio = new Audio(base64);
             currentAudio.play();
             playBtn.innerText = "⏸️";
-            currentAudio.onended = () => {
-                playBtn.innerText = "▶️";
-            };
+            currentAudio.onended = () => { playBtn.innerText = "▶️"; };
         }
 
         function toggleVoiceSpeed(btn) {
@@ -1299,20 +1263,13 @@
             }
         }
 
-        // --- МЕДИА ФАЙЛЫ (КАРТИНКИ И ВИДЕО) ---
+        // --- МЕДИАФАЙЛЫ (ОТПРАВКА & ПОЛНОЭКРАННЫЙ РЕЖИМ) ---
         async function uploadMedia(file) {
             if (!file) return;
-
-            let fileDataUrl = "";
-            if (file.type.startsWith('image/')) {
-                fileDataUrl = await resizeAndCompressImage(file, 1000, 1000);
-            } else {
-                fileDataUrl = await fileToBase64(file);
-            }
-
+            const base64 = await fileToBase64(file);
             sendSecurePayload({
                 text: "[Медиа]",
-                fileData: fileDataUrl,
+                fileData: base64,
                 fileType: file.type
             });
         }
@@ -1334,7 +1291,7 @@
             document.getElementById('media-viewer-content').innerHTML = "";
         }
 
-        // --- ТЕМА И ОФОРМЛЕНИЕ ---
+        // --- ТЕМЫ И ОФОРМЛЕНИЕ ---
         function toggleTransparentTheme() {
             const isTrans = localStorage.getItem('trans_theme') === "true";
             localStorage.setItem('trans_theme', !isTrans);
@@ -1381,56 +1338,6 @@
         }
         updateUITheme();
 
-        // --- МУЗЫКАЛЬНЫЙ ПЛЕЕР VK MEOW ---
-        const sampleTracks = [
-            { id: 1, title: "Кискис Мяу", artist: "Meow Band", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
-            { id: 2, title: "Майский Мур", artist: "Cat DJ", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
-            { id: 3, title: "Кошачий Вальс", artist: "Amadeus", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" }
-        ];
-
-        function loadMusic() {
-            const container = document.getElementById('music-list-container');
-            container.innerHTML = "";
-
-            sampleTracks.forEach(t => {
-                const row = document.createElement('div');
-                row.className = "music-item";
-                row.onclick = () => playMusicTrack(t);
-                row.innerHTML = `
-                    <div class="music-meta">
-                        <div style="font-weight:bold;">${t.title}</div>
-                        <div style="font-size:12px; color:var(--text-muted);">${t.artist}</div>
-                    </div>
-                    <div style="font-size:20px;">🎵</div>
-                `;
-                container.appendChild(row);
-            });
-        }
-
-        function playMusicTrack(track) {
-            if (currentAudio) {
-                currentAudio.pause();
-            }
-
-            currentAudio = new Audio(track.url);
-            currentAudio.play();
-
-            // Интеграция с MediaSession API (кнопки в шторке смартфона / на клавиатуре ПК)
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: track.title,
-                    artist: track.artist,
-                    album: "Meow Messenger",
-                    artwork: [{ src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100' height='100' fill='%231F80E0'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='50'>🐾</text></svg>", sizes: "96x96", type: "image/png" }]
-                });
-
-                navigator.mediaSession.setActionHandler('play', () => currentAudio.play());
-                navigator.mediaSession.setActionHandler('pause', () => currentAudio.pause());
-            }
-
-            alert(`Воспроизведение: ${track.artist} - ${track.title}`);
-        }
-
         // --- НОВОСТНАЯ ЛЕНТА ---
         function loadNews() {
             const container = document.getElementById('news-container');
@@ -1469,30 +1376,6 @@
             window.fb.set(window.fb.ref(window.fb.db, `news/${postId}/likes`), currentLikes + 1);
         }
 
-        // --- ВИДЕО ТАБ И ПОИСК ---
-        function performVideoSearch() {
-            const q = document.getElementById('search-video-input').value.trim();
-            alert("Поиск видео: " + q);
-            closeModal('search-video-modal');
-        }
-
-        function searchTabVideo() {
-            const q = document.getElementById('video-search-tab').value.trim();
-            const results = document.getElementById('video-tab-results');
-            results.innerHTML = "";
-
-            // Заглушка видео результатов в стиле ТГ
-            for (let i = 1; i <= 4; i++) {
-                const cell = document.createElement('div');
-                cell.className = "msg-media";
-                cell.style.width = "100%";
-                cell.innerHTML = `
-                    <video src="https://www.w3schools.com/html/mov_bbb.mp4" poster="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100' height='100' fill='%23111'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='10' fill='white'>Видеоклип ${i}</text></svg>" preload="none" onclick="viewMediaFull('https://www.w3schools.com/html/mov_bbb.mp4', 'video')"></video>
-                `;
-                results.appendChild(cell);
-            }
-        }
-
         // --- ВСПЛЫВАЮЩИЙ ПЕРЕВОДЧИК ---
         async function translateTextBubble(btn, text) {
             try {
@@ -1505,72 +1388,46 @@
             }
         }
 
-        // --- ПОИСК ЛЮДЕЙ И СВЯЗЬ ---
+        // --- ПОИСК КОТИКОВ ПО НИКУ ---
         async function searchPeople() {
-            const target = document.getElementById('search-by-username').value.trim().toLowerCase();
+            let target = document.getElementById('search-by-username').value.trim().toLowerCase().replace('@', '');
             if (!target) return;
 
-            const snap = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${target.replace('@', '')}`));
+            const snap = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${target}`));
             if (snap.exists()) {
                 const targetUid = snap.val();
+                
+                // Получаем профиль
                 const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${targetUid}/profile`));
                 if (profSnap.exists()) {
                     const prof = profSnap.val();
                     closeModal('search-people-modal');
-                    openProfileModal(targetUid, prof);
+
+                    // Генерируем ID комнаты на основе хешей UID
+                    const rId = targetUid < myUid ? `${targetUid}_${myUid}` : `${myUid}_${targetUid}`;
+                    
+                    // Добавляем контакт обоим
+                    await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${targetUid}`), {
+                        name: prof.name + (prof.lastname ? " " + prof.lastname : ""),
+                        avatar: prof.avatar || "",
+                        roomId: rId
+                    });
+                    
+                    // Подтягиваем данные отправителя для второй стороны
+                    const myProfSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
+                    const myProf = myProfSnap.val();
+                    await window.fb.set(window.fb.ref(window.fb.db, `users/${targetUid}/chats/${myUid}`), {
+                        name: myProf.name + (myProf.lastname ? " " + myProf.lastname : ""),
+                        avatar: myProf.avatar || "",
+                        roomId: rId
+                    });
+
+                    alert("Диалог успешно создан!");
+                    openChatWindow(targetUid, prof.name + (prof.lastname ? " " + prof.lastname : ""), prof.avatar, rId);
                 }
             } else {
-                alert("Котик не найден!");
+                alert("Котик с таким ником не зарегистрирован!");
             }
-        }
-
-        function openProfileModal(uid, prof) {
-            const modal = document.getElementById('profile-modal');
-            modal.classList.add('active');
-
-            document.getElementById('profile-name').innerText = prof.name;
-            document.getElementById('profile-bio').innerText = prof.bio;
-            document.getElementById('profile-city').innerText = prof.city || "Не указан";
-            document.getElementById('profile-bday').innerText = prof.bday || "Скрыта";
-
-            const av = document.getElementById('profile-avatar');
-            if (prof.avatar) {
-                av.style.backgroundImage = `url(${prof.avatar})`;
-                av.innerText = "";
-            } else {
-                av.style.backgroundImage = "none";
-                av.style.backgroundColor = "var(--accent)";
-                av.innerText = "🐾";
-            }
-
-            document.getElementById('add-friend-btn').onclick = async () => {
-                const rId = uid < myUid ? `${uid}_${myUid}` : `${myUid}_${uid}`;
-                // Добавляем обоим в контакты
-                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${uid}`), { name: prof.name, avatar: prof.avatar || "", roomId: rId });
-                await window.fb.set(window.fb.ref(window.fb.db, `users/${uid}/chats/${myUid}`), { name: myUsername, avatar: "", roomId: rId });
-                closeModal('profile-modal');
-                alert("Диалог начат!");
-                openChatWindow(uid, prof.name, prof.avatar, rId);
-            };
-        }
-
-        // --- НАСТРОЙКИ СЕКРЕТНОГО ЧАТА ---
-        function openChatCryptoSettings() {
-            openModal('crypto-settings-modal');
-            document.getElementById('pass-out').value = localStorage.getItem(`pass_out_${currentPeer}`) || "";
-            document.getElementById('pass-in').value = localStorage.getItem(`pass_in_${currentPeer}`) || "";
-        }
-
-        function saveCryptoSettings() {
-            const outVal = document.getElementById('pass-out').value.trim();
-            const inVal = document.getElementById('pass-in').value.trim();
-
-            localStorage.setItem(`pass_out_${currentPeer}`, outVal);
-            localStorage.setItem(`pass_in_${currentPeer}`, inVal);
-            
-            closeModal('crypto-settings-modal');
-            alert("Пароли чата успешно сохранены!");
-            loadMessages(); // Перезапуск ленты с новыми паролями
         }
 
         function toggleEncryptionState() {
@@ -1580,50 +1437,13 @@
             alert(!isEnc ? "Шифрование чата активировано!" : "Шифрование чата отключено!");
         }
 
-        // --- ЭМУЛЯЦИЯ ФОНОВОЙ СЛУЖБЫ MEOWSERVICE ---
-        setInterval(async () => {
-            if (myUid) {
-                // Пинг базы данных для удержания сессии
-                window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/presence`), {
-                    status: "online",
-                    lastSeen: Date.now()
-                });
-            }
-        }, 15000);
-
-        // Вспомогательные утилиты обработки медиа файлов
+        // Вспомогательные функции
         function fileToBase64(file) {
             return new Promise((res, rej) => {
                 const r = new FileReader();
                 r.readAsDataURL(file);
                 r.onload = () => res(r.result);
                 r.onerror = e => rej(e);
-            });
-        }
-
-        function resizeAndCompressImage(file, maxWidth, maxHeight) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = function (e) {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = function () {
-                        let w = img.width;
-                        let h = img.height;
-                        if (w > h) {
-                            if (w > maxWidth) { h *= maxWidth / w; w = maxWidth; }
-                        } else {
-                            if (h > maxHeight) { w *= maxHeight / h; h = maxHeight; }
-                        }
-                        const canvas = document.createElement('canvas');
-                        canvas.width = w;
-                        canvas.height = h;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7));
-                    }
-                }
             });
         }
 
@@ -1641,14 +1461,14 @@
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-        // БД фиды инициализация
+        // Инициализация базы данных (Новости, группы)
         async function seedDatabaseIfNeeded() {
             const newsSnap = await window.fb.get(window.fb.ref(window.fb.db, `news`));
             if (!newsSnap.exists()) {
                 window.fb.set(window.fb.ref(window.fb.db, `news/post1`), {
                     authorName: "VK Meow Official",
                     authorAvatar: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=200&auto=format&fit=crop",
-                    text: "Добро пожаловать в VK Meow! Все ваши переписки защищены криптографией прямо на клиенте.",
+                    text: "Мяу! Все ваши сообщения шифруются по стандарту AES-256 прямо на вашем устройстве.",
                     date: Date.now(),
                     likes: 5,
                     image: "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?q=80&w=600&auto=format&fit=crop"
@@ -1665,4 +1485,4 @@
         }
     </script>
 </body>
-                </html>
+    </html>
