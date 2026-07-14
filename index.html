@@ -336,6 +336,8 @@
             overflow: hidden;
             text-overflow: ellipsis;
             transition: color 0.15s;
+            display: flex;
+            align-items: center;
         }
 
         .chat-row-msg.typing-status {
@@ -453,7 +455,7 @@
             padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 10px;
             position: relative;
             background: transparent !important;
             z-index: 5;
@@ -473,7 +475,7 @@
         .msg-container {
             display: flex;
             flex-direction: column;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
             position: relative;
             z-index: 10;
         }
@@ -494,8 +496,9 @@
             align-self: flex-start;
         }
 
+        /* Оптимизация компактности пузырей под стиль Telegram */
         .msg-bubble {
-            border-radius: 18px;
+            border-radius: 16px;
             position: relative;
             overflow: visible;
             display: flex;
@@ -518,7 +521,7 @@
         }
 
         .msg-bubble:not(.has-media) {
-            padding: 8px 12px;
+            padding: 6px 12px 5px 12px;
         }
 
         .msg-bubble.has-media {
@@ -562,21 +565,26 @@
             image-rendering: -webkit-optimize-contrast;
         }
 
+        /* Избавление от лишнего уплотнения */
         .msg-text {
-            padding: 6px 10px 4px 10px;
+            padding: 0;
             font-size: 15px;
             word-wrap: break-word;
+            line-height: 1.35;
         }
 
         .msg-meta {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: flex-end;
-            padding: 2px 8px 4px 8px;
+            padding: 1px 0 0 8px;
             font-size: 10px;
             color: rgba(255, 255, 255, 0.5);
             align-self: flex-end;
-            gap: 4px;
+            gap: 3px;
+            float: right;
+            margin-top: 2px;
+            margin-left: auto;
         }
 
         .msg-bubble.has-media .msg-meta {
@@ -1175,7 +1183,6 @@
             <div class="tab-label">Настройки</div>
         </div>
         <div class="tab-button" onclick="switchTab(3)">
-            <!-- Аватарка в меню таб-бара вместо иконки -->
             <div class="tab-icon" id="bottom-profile-icon-container">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
@@ -1184,7 +1191,7 @@
     </div>
 
     <div class="chat-window" id="chat-window">
-        <!-- Индивидуальные обои фиксированно лежат ПОД лентой переписки -->
+        <!-- Индивидуальные обои зафиксированы ПОД лентой переписки -->
         <div class="chat-feed-wallpaper-overlay" id="chat-feed-wallpaper"></div>
 
         <div class="chat-header">
@@ -1398,6 +1405,24 @@
         <div class="cropper-workspace" id="cropper-workspace">
             <img id="cropper-image" src="" alt="Редактируемое фото">
             <div class="cropper-mask"></div>
+            <!-- Интерактивный оверлей живого чата поверх холста -->
+            <div id="cropper-mock-ui-overlay" style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; z-index: 10;">
+                <!-- Mock Header -->
+                <div style="height: 50px; background: rgba(10,10,12,0.85); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 12px; backdrop-filter: blur(5px);">
+                    <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--accent); margin-right: 8px;"></div>
+                    <div style="font-weight: bold; font-size: 13px;">Диалог (Предпросмотр)</div>
+                </div>
+                <!-- Mock Feed -->
+                <div style="flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 8px; justify-content: flex-end;">
+                    <div style="align-self: flex-start; background: var(--msg-in); padding: 6px 10px; border-radius: 12px; font-size: 12px; max-width: 70%; border: 1px solid rgba(255,255,255,0.02);">Так будут выглядеть входящие сообщения...</div>
+                    <div style="align-self: flex-end; background: var(--msg-out); padding: 6px 10px; border-radius: 12px; font-size: 12px; max-width: 70%; border: 1px solid rgba(255,255,255,0.02);">А так ваши ответы! Красиво, правда?</div>
+                </div>
+                <!-- Mock Input -->
+                <div style="height: 48px; background: rgba(10,10,12,0.85); border-top: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 10px; backdrop-filter: blur(5px);">
+                    <div style="flex: 1; height: 32px; background: #1C1C1E; border-radius: 16px; margin-right: 8px;"></div>
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent);"></div>
+                </div>
+            </div>
         </div>
         <div class="cropper-controls">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1974,8 +1999,13 @@
                     
                     if (msgBox && msgBox.classList.contains('typing-status')) {
                         msgBox.classList.remove('typing-status');
+                        const originalHtml = msgBox.getAttribute('data-last-msg-html');
                         const original = msgBox.getAttribute('data-last-msg') || "Сообщение";
-                        msgBox.innerText = original;
+                        if (originalHtml) {
+                            msgBox.innerHTML = originalHtml;
+                        } else {
+                            msgBox.innerText = original;
+                        }
                     }
                 }
             }
@@ -2075,9 +2105,12 @@
                 document.getElementById('semi-transparent-dialogs').checked = semiTrans;
                 toggleSemiTransparentDialogs(semiTrans);
 
-                const wall = decryptProfileData(privacy.globalWallpaper);
+                const wall = privacy.globalWallpaper ? decryptProfileData(privacy.globalWallpaper) : "";
                 if (wall) {
                     globalWallpaperData = wall;
+                    applyGlobalWallpaperUI();
+                } else {
+                    globalWallpaperData = "";
                     applyGlobalWallpaperUI();
                 }
             }
@@ -2090,13 +2123,14 @@
             const avatar = document.getElementById('privacy-avatar').value;
             const messages = document.getElementById('privacy-messages').value;
             const semiTrans = document.getElementById('semi-transparent-dialogs').checked;
+            const wallVal = globalWallpaperData ? encryptProfileData(globalWallpaperData) : "";
 
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), {
                 lastSeen: encryptProfileData(lastSeen),
                 avatar: encryptProfileData(avatar),
                 messages: encryptProfileData(messages),
                 semiTransparentDialogs: encryptProfileData(semiTrans),
-                globalWallpaper: encryptProfileData(globalWallpaperData)
+                globalWallpaper: wallVal
             });
         }
 
@@ -2214,10 +2248,11 @@
                     const msgBox = document.getElementById(`last-msg-${myUid}`);
                     const timeBox = document.getElementById(`time-${myUid}`);
                     if (mSnap.exists() && msgBox) {
-                        const list = Object.values(mSnap.val());
-                        const lastMsg = list[list.length - 1];
-                        decryptAndRenderLastMsg(myUid, lastMsg.text, msgBox).then(decrypted => {
+                        const entries = Object.entries(mSnap.val());
+                        const [lastMsgId, lastMsg] = entries[entries.length - 1];
+                        decryptAndRenderLastMsg(myUid, lastMsg.text, msgBox, lastMsgId).then(decrypted => {
                             msgBox.setAttribute('data-last-msg', decrypted);
+                            msgBox.setAttribute('data-last-msg-html', msgBox.innerHTML);
                         });
                         if (timeBox && lastMsg.time) {
                             timeBox.innerText = formatDialogTime(lastMsg.time);
@@ -2321,13 +2356,14 @@
                         const msgBox = document.getElementById(`last-msg-${peerId}`);
                         const timeBox = document.getElementById(`time-val-${peerId}`);
                         if (mSnap.exists() && msgBox) {
-                            const list = Object.values(mSnap.val());
-                            const lastMsg = list[list.length - 1];
+                            const entries = Object.entries(mSnap.val());
+                            const [lastMsgId, lastMsg] = entries[entries.length - 1];
                             
-                            decryptAndRenderLastMsg(peerId, lastMsg.text, msgBox).then(decrypted => {
+                            decryptAndRenderLastMsg(peerId, lastMsg.text, msgBox, lastMsgId).then(decrypted => {
                                 msgBox.setAttribute('data-last-msg', decrypted);
-                                if (!msgBox.classList.contains('typing-status')) {
-                                    msgBox.innerText = decrypted;
+                                msgBox.setAttribute('data-last-msg-html', msgBox.innerHTML);
+                                if (msgBox.classList.contains('typing-status')) {
+                                    msgBox.innerText = "печатает...";
                                 }
                             });
                             
@@ -2336,6 +2372,7 @@
                             }
                         } else if (msgBox) {
                             msgBox.setAttribute('data-last-msg', "Сообщение");
+                            msgBox.removeAttribute('data-last-msg-html');
                             if (!msgBox.classList.contains('typing-status')) {
                                 msgBox.innerText = "Сообщение";
                             }
@@ -3485,7 +3522,10 @@
             });
         }
 
-        async function decryptAndRenderLastMsg(peerId, rawText, element) {
+        // =========================================================================
+        // ДЕШИФРОВАНИЕ И ФОРМАТИРОВАНИЕ ПОСЛЕДНЕГО СООБЩЕНИЯ (TELEGRAM СТИЛЬ ПРЕДПРОСМОТРА)
+        // =========================================================================
+        async function decryptAndRenderLastMsg(peerId, rawText, element, msgId) {
             const key = await getDerivedSharedKey(peerId);
             if (!key) {
                 element.innerText = "Сообщение";
@@ -3496,17 +3536,54 @@
                 raw = aesDecrypt(raw.substring(6), key);
             }
             let displayText = raw;
+            let isImage = false;
+            let isVideo = false;
+            let isVoice = false;
+            let fileData = "";
+
             try {
                 const parsed = JSON.parse(raw);
                 if (parsed.isVoice) {
+                    isVoice = true;
                     displayText = "🎤 Голосовое сообщение";
+                } else if (parsed.fileData) {
+                    fileData = parsed.fileData;
+                    if (parsed.fileType && parsed.fileType.startsWith('video/')) {
+                        isVideo = true;
+                        displayText = "Видео";
+                    } else {
+                        isImage = true;
+                        displayText = "Фотография";
+                    }
                 } else {
-                    displayText = parsed.text || "[Файл]";
+                    displayText = parsed.text || "Сообщение";
                 }
             } catch (e) {
                 displayText = raw;
             }
-            element.innerText = displayText;
+
+            if (element) {
+                if (isImage && fileData && msgId) {
+                    const blobUrl = getCachedObjectUrl(msgId, fileData);
+                    element.innerHTML = `
+                        <span style="display: inline-flex; align-items: center; gap: 6px; vertical-align: middle;">
+                            <img src="${blobUrl}" style="width: 16px; height: 16px; border-radius: 3px; object-fit: cover; filter: blur(0.6px); border: 1px solid rgba(255,255,255,0.15); flex-shrink: 0;" />
+                            <span style="color: #64B5F6; font-weight: 500;">Фотография</span>
+                        </span>
+                    `;
+                } else if (isVideo && fileData && msgId) {
+                    element.innerHTML = `
+                        <span style="display: inline-flex; align-items: center; gap: 6px; vertical-align: middle;">
+                            <span style="width: 16px; height: 16px; border-radius: 3px; background: #2C2C2E; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10" style="color: #64B5F6;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                            </span>
+                            <span style="color: #64B5F6; font-weight: 500;">Видео</span>
+                        </span>
+                    `;
+                } else {
+                    element.innerText = displayText;
+                }
+            }
             return displayText;
         }
 
@@ -3685,7 +3762,7 @@
                 feedWallpaper.style.backgroundImage = `url(${globalWallpaperData})`;
                 feedWallpaper.style.opacity = "0.35";
             } else {
-                feedWallpaper.style.backgroundImage = "none";
+                feedWallpaper.style.backgroundImage = "";
                 feedWallpaper.style.opacity = "0";
             }
         }
@@ -3699,7 +3776,7 @@
                 feedWallpaper.style.backgroundImage = `url(${globalWallpaperData})`;
                 feedWallpaper.style.opacity = "0.35";
             } else {
-                feedWallpaper.style.backgroundImage = "none";
+                feedWallpaper.style.backgroundImage = "";
                 feedWallpaper.style.opacity = "0";
             }
         }
@@ -3952,6 +4029,7 @@
                 const myAvEl = document.getElementById('my-profile-avatar');
                 myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
                 myAvEl.innerText = "";
+                updateBottomProfileTabIcon();
             } catch (e) {
                 alert("Ошибка во время выбора аватарки.");
             }
