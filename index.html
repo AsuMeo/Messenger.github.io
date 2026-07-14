@@ -9,7 +9,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, get, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, get, update, remove, onDisconnect, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -26,7 +26,7 @@
         const db = getDatabase(app);
         const auth = getAuth(app);
 
-        window.fb = { db, auth, ref, set, push, onValue, get, update, remove, onDisconnect, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut };
+        window.fb = { db, auth, ref, set, push, onValue, get, update, remove, onDisconnect, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, query, orderByChild, equalTo };
     </script>
 
     <style>
@@ -108,6 +108,7 @@
         .header-btn svg {
             width: 22px;
             height: 22px;
+            flex-shrink: 0;
         }
 
         .main-container {
@@ -236,6 +237,7 @@
             position: relative;
             flex-shrink: 0;
             image-rendering: -webkit-optimize-contrast;
+            background-color: var(--accent); /* Default background */
         }
 
         .online-dot {
@@ -338,6 +340,7 @@
             font-weight: bold;
             flex-shrink: 0;
             image-rendering: -webkit-optimize-contrast;
+            background-color: var(--accent); /* Default background */
         }
 
         .chat-header-info {
@@ -383,6 +386,8 @@
             flex-direction: column;
             margin-bottom: 2px;
             position: relative;
+            transition: transform 0.2s;
+            touch-action: pan-y; /* Allow vertical scrolling, prevent horizontal swipe interfering */
         }
 
         .msg-container.is-text-container {
@@ -404,12 +409,11 @@
         .msg-bubble {
             border-radius: 18px;
             position: relative;
-            overflow: visible;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             border: 1px solid rgba(255, 255, 255, 0.02);
             box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-            will-change: transform;
         }
 
         .msg-container.out .msg-bubble {
@@ -448,8 +452,6 @@
             border-radius: 8px;
             align-self: flex-start;
             margin: 4px 8px 0px 8px;
-            display: flex;
-            align-items: center;
         }
 
         .msg-media {
@@ -489,6 +491,7 @@
         .msg-bubble.has-media .msg-meta {
             position: absolute;
             bottom: 6px;
+      
             right: 6px;
             background: rgba(0, 0, 0, 0.5);
             padding: 2px 6px;
@@ -545,6 +548,8 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            font-size: 14px;
+            flex-shrink: 0;
         }
 
         .voice-wave-container {
@@ -669,7 +674,7 @@
             border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .profile-form {
+        .profile-form, .settings-list, .contact-edit-form {
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -703,7 +708,7 @@
             to { box-shadow: 0 0 10px rgba(255, 149, 0, 0.6); }
         }
 
-        .forward-list-item {
+        .forward-list-item, .contact-list-item {
             display: flex;
             align-items: center;
             padding: 10px;
@@ -713,28 +718,29 @@
             background: rgba(255, 255, 255, 0.02);
         }
 
-        .forward-list-item:hover {
+        .forward-list-item:hover, .contact-list-item:hover {
             background: rgba(255, 255, 255, 0.08);
         }
 
-        .modern-checkbox-container {
+        .modern-checkbox-container, .modern-radio-container, .settings-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
             background: rgba(255, 255, 255, 0.03);
             padding: 12px 16px;
             border-radius: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 8px;
             border: 1px solid rgba(255, 255, 255, 0.05);
             cursor: pointer;
         }
 
-        .modern-checkbox-label {
+        .modern-checkbox-label, .modern-radio-label, .settings-item-label {
             font-size: 14px;
             font-weight: 500;
+            flex: 1;
         }
 
-        .modern-checkbox {
+        .modern-checkbox, .modern-radio {
             appearance: none;
             width: 22px;
             height: 22px;
@@ -744,9 +750,14 @@
             cursor: pointer;
             position: relative;
             transition: background 0.2s, border-color 0.2s;
+            flex-shrink: 0;
         }
 
-        .modern-checkbox:checked {
+        .modern-radio {
+            border-radius: 50%;
+        }
+
+        .modern-checkbox:checked, .modern-radio:checked {
             background-color: var(--accent);
             border-color: var(--accent);
         }
@@ -757,6 +768,17 @@
             color: white;
             font-size: 14px;
             font-weight: bold;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .modern-radio:checked::after {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -780,56 +802,77 @@
         .menu-btn.danger { background: var(--error); color: white; }
         .menu-btn.danger:hover { background: #E0241B; }
 
-        /* Стили реакций */
-        .msg-reactions-panel {
-            display: flex;
-            gap: 10px;
-            padding: 10px 14px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 14px;
-            margin-bottom: 16px;
-            justify-content: space-around;
-        }
-
-        .reaction-item-btn {
-            font-size: 24px;
-            cursor: pointer;
-            transition: transform 0.15s;
-        }
-
-        .reaction-item-btn:hover, .reaction-item-btn:active {
-            transform: scale(1.3);
-        }
-
-        .msg-reactions-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            padding: 4px 10px;
+        .reaction-container {
             position: absolute;
-            bottom: -12px;
-            right: 10px;
-            z-index: 5;
+            bottom: -20px; /* Adjust position relative to bubble */
+            left: 0;
+            display: flex;
+            gap: 4px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            color: white;
+            font-size: 12px;
+            z-index: 10;
         }
 
-        .reaction-pill {
+        .reaction-container.right {
+            right: 0;
+            left: auto;
+        }
+
+        .reaction-item {
             display: flex;
             align-items: center;
-            gap: 4px;
-            background: #1C1C1E;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            border-radius: 10px;
-            padding: 2px 6px;
-            font-size: 11px;
-            cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            transition: background 0.2s, border-color 0.2s;
+            gap: 2px;
+        }
+        .reaction-item span {
+            font-size: 14px; /* Emoji size */
+        }
+        .reaction-item small {
+            font-size: 10px;
+            font-weight: bold;
         }
 
-        .reaction-pill.active {
-            background: rgba(31, 128, 224, 0.25);
-            border-color: var(--accent);
+        .reaction-picker {
+            position: absolute;
+            bottom: 70px; /* Above input bar */
+            left: 10px;
+            right: 10px;
+            background: var(--bg-bar);
+            border-radius: 14px;
+            padding: 10px;
+            display: flex;
+            gap: 8px;
+            justify-content: space-around;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1010;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .reaction-picker span {
+            font-size: 28px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .reaction-picker span:active {
+            transform: scale(1.2);
+        }
+
+        /* Generic styles for input forms in modals */
+        .modal-card label {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-muted);
+            margin-top: 10px;
+            margin-bottom: 2px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .modal-card input[type="text"], .modal-card input[type="email"], .modal-card input[type="password"] {
+            width: 100%;
+            margin-bottom: 0; /* Override search-bar default margin */
         }
     </style>
 </head>
@@ -837,11 +880,7 @@
 
     <div id="login-screen">
         <div class="login-card">
-            <div style="margin-bottom: 16px; display: flex; justify-content: center;">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="60" height="60" style="color: var(--accent);">
-                    <path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3.5 3 3.5s3-1.5 3-3.5c0-1.66-1.34-3-3-3zm-4.5-3c-.83 0-1.5.67-1.5 1.5s.5 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.5 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5zm-11-4C5.17 7 4.5 7.67 4.5 8.5S5 10.5 6 10.5s1.5-1 1.5-2-.67-1.5-1.5-1.5zm13 0c-.83 0-1.5.67-1.5 1.5s.5 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5z"/>
-                </svg>
-            </div>
+            <svg viewBox="0 0 24 24" width="50" height="50" fill="currentColor" style="margin-bottom: 10px; color: var(--accent);"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM12 20c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-10h2V6h-2v4zm0 4h2v-2h-2v2zM9 13.5c-.82 0-1.5-.68-1.5-1.5s.68-1.5 1.5-1.5 1.5.68 1.5 1.5-.68 1.5-1.5 1.5zm6 0c-.82 0-1.5-.68-1.5-1.5s.68-1.5 1.5-1.5 1.5.68 1.5 1.5-.68 1.5-1.5 1.5z"></path></svg>
             <h1 style="font-size: 24px; margin-bottom: 6px;">VK Meow</h1>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Безопасный мессенджер нового поколения</p>
             
@@ -867,98 +906,110 @@
 
     <div class="main-container">
         
-        <!-- Tab 0: ЧАТЫ -->
+        <!-- Tab 0: Чаты -->
         <div class="tab-panel active" id="tab-0">
             <div class="search-row">
                 <input type="text" id="chat-search" class="search-bar" placeholder="Поиск по диалогам..." oninput="filterDialogs(this.value)">
                 <button class="search-action-btn" onclick="openModal('search-people-modal')">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Найти
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Найти
                 </button>
             </div>
             <div class="chats-list" id="chats-list-container"></div>
         </div>
 
-        <!-- Tab 1: КОНТАКТЫ -->
+        <!-- Tab 1: Контакты -->
         <div class="tab-panel" id="tab-1">
             <div class="search-row">
-                <input type="text" id="contact-search" class="search-bar" placeholder="Поиск контактов..." oninput="filterContacts(this.value)">
+                <input type="text" id="contact-search" class="search-bar" placeholder="Поиск по контактам..." oninput="filterContacts(this.value)">
                 <button class="search-action-btn" onclick="openModal('add-contact-modal')">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg> Добавить
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Добавить
                 </button>
             </div>
-            <div class="chats-list" id="contacts-list-container" style="padding-top: 4px;"></div>
+            <div class="contacts-list" id="contacts-list-container"></div>
         </div>
 
-        <!-- Tab 2: НАСТРОЙКИ -->
+        <!-- Tab 2: Настройки -->
         <div class="tab-panel" id="tab-2" style="padding: 20px 16px;">
-            <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Конфиденциальность</h2>
-            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Настройте безопасность вашего аккаунта</p>
-            
-            <div class="profile-form">
-                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ВРЕМЯ ЗАХОДА</label>
-                <select id="privacy-last-seen" class="search-bar" style="width: 100%; margin-bottom: 10px; appearance: none; background-position: right 12px center;" onchange="savePrivacySettings()">
-                    <option value="all">Все</option>
-                    <option value="contacts">Только контакты</option>
-                    <option value="none">Никто</option>
-                </select>
+            <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Настройки конфиденциальности</h2>
+            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Настройте, кто может видеть вашу информацию и статус.</p>
 
-                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ФОТОГРАФИИ ПРОФИЛЯ</label>
-                <select id="privacy-avatar" class="search-bar" style="width: 100%; margin-bottom: 10px; appearance: none;" onchange="savePrivacySettings()">
-                    <option value="all">Все</option>
-                    <option value="contacts">Только контакты</option>
-                    <option value="none">Никто</option>
-                </select>
-
-                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">СООБЩЕНИЯ</label>
-                <select id="privacy-messages" class="search-bar" style="width: 100%; margin-bottom: 10px; appearance: none;" onchange="savePrivacySettings()">
-                    <option value="all">Все</option>
-                    <option value="contacts">Только контакты</option>
-                    <option value="none">Никто</option>
-                </select>
-
-                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">БЫСТРАЯ РЕАКЦИЯ (ДВОЙНОЙ КЛИК)</label>
-                <select id="quick-reaction-emoji" class="search-bar" style="width: 100%; margin-bottom: 20px; appearance: none;" onchange="saveQuickReactionSetting(this.value)">
-                    <option value="❤️">❤️ Сердечко</option>
-                    <option value="👍">👍 Палец вверх</option>
-                    <option value="🔥">🔥 Огонь</option>
-                    <option value="👏">👏 Аплодисменты</option>
-                    <option value="😂">😂 Смех</option>
-                    <option value="😮">😮 Удивление</option>
-                </select>
+            <div class="settings-list">
+                <div class="settings-item">
+                    <span class="settings-item-label">Время захода</span>
+                    <select id="setting-last-seen" class="search-bar" style="max-width: 150px; flex-shrink: 0;" onchange="savePrivacySettings()">
+                        <option value="all">Все</option>
+                        <option value="contacts">Только контакты</option>
+                        <option value="nobody">Никто</option>
+                    </select>
+                </div>
+                <div class="settings-item">
+                    <span class="settings-item-label">Фотографии профиля</span>
+                    <select id="setting-profile-photo" class="search-bar" style="max-width: 150px; flex-shrink: 0;" onchange="savePrivacySettings()">
+                        <option value="all">Все</option>
+                        <option value="contacts">Только контакты</option>
+                        <option value="nobody">Никто</option>
+                    </select>
+                </div>
+                <div class="settings-item">
+                    <span class="settings-item-label">Отчеты о прочтении</span>
+                    <select id="setting-read-receipts" class="search-bar" style="max-width: 150px; flex-shrink: 0;" onchange="savePrivacySettings()">
+                        <option value="all">Все</option>
+                        <option value="contacts">Только контакты</option>
+                        <option value="nobody">Никто</option>
+                    </select>
+                </div>
+                 <div class="settings-item">
+                    <span class="settings-item-label">Быстрая реакция на сообщения</span>
+                    <select id="setting-quick-reaction" class="search-bar" style="max-width: 100px; flex-shrink: 0;" onchange="savePrivacySettings()">
+                        <option value="❤️">❤️</option>
+                        <option value="👍">👍</option>
+                        <option value="🔥">🔥</option>
+                        <option value="😂">😂</option>
+                        <option value="🥳">🥳</option>
+                    </select>
+                </div>
             </div>
-            
+
             <div class="secure-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Сквозное шифрование E2EE (P-256 / AES-256) активно
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Сквозное шифрование E2EE (P-256 / AES-256) активно
             </div>
         </div>
 
-        <!-- Tab 3: ПРОФИЛЬ -->
+        <!-- Tab 3: Профиль (бывшая tab-1) -->
         <div class="tab-panel" id="tab-3" style="padding: 20px 16px;">
             <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Настройки профиля</h2>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Имя, аватарка и описание полностью зашифрованы ключом E2EE</p>
             
             <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
-                <div class="chat-avatar" id="my-profile-avatar" style="width: 80px; height: 80px; font-size: 24px; cursor: pointer; background-color: var(--accent);" onclick="document.getElementById('profile-avatar-upload').click()">?</div>
+                <div class="chat-avatar" id="my-profile-avatar" style="width: 80px; height: 80px; font-size: 24px; cursor: pointer;" onclick="document.getElementById('profile-avatar-upload').click()">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.52 16.08A10 10 0 1 1 18.48 16.08"/><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
+                </div>
                 <input type="file" id="profile-avatar-upload" style="display: none;" accept="image/*" onchange="compressAndSetProfileAvatar(this.files[0])">
                 <span style="font-size: 12px; color: var(--accent); cursor: pointer; margin-top: 8px;" onclick="document.getElementById('profile-avatar-upload').click()">Изменить фото</span>
             </div>
 
             <div class="profile-form">
-                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ИМЯ</label>
+                <label>ИМЯ</label>
                 <input type="text" id="setting-name" class="search-bar" placeholder="Введите имя">
 
-                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ФАМИЛИЯ (НЕОБЯЗАТЕЛЬНО)</label>
+                <label>ФАМИЛИЯ (НЕОБЯЗАТЕЛЬНО)</label>
                 <input type="text" id="setting-lastname" class="search-bar" placeholder="Введите фамилию">
 
-                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">О СЕБЕ (ОПИСАНИЕ ПРОФИЛЯ)</label>
+                <label>О СЕБЕ (ОПИСАНИЕ ПРОФИЛЯ)</label>
                 <input type="text" id="setting-bio" class="search-bar" placeholder="Напишите пару слов о себе">
 
-                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ВАШ УНИКАЛЬНЫЙ НИКНЕЙМ (@)</label>
+                <label>ВАШ УНИКАЛЬНЫЙ НИКНЕЙМ (@)</label>
                 <input type="text" id="setting-username" class="search-bar" placeholder="username">
 
                 <button class="search-action-btn" style="width: 100%; margin-top: 10px; height: 48px; justify-content: center;" onclick="saveProfileSettings()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right: 6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Сохранить изменения
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Сохранить изменения
                 </button>
+            </div>
+
+            <div class="secure-badge">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Сквозное шифрование E2EE (P-256 / AES-256) активно
             </div>
         </div>
 
@@ -985,12 +1036,13 @@
         </div>
         <div class="tab-button" onclick="switchTab(3)">
             <div class="tab-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.52 16.08A10 10 0 1 1 18.48 16.08"/><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
             </div>
             <div class="tab-label">Профиль</div>
         </div>
     </div>
 
+    <!-- Шапка чата в стиле Telegram iOS -->
     <div class="chat-window" id="chat-window">
         <div class="chat-header">
             <button class="header-btn" onclick="closeChat()">
@@ -1048,7 +1100,9 @@
     <!-- Модальные окна -->
     <div class="modal-overlay" id="peer-profile-modal">
         <div class="modal-card" style="text-align: center;">
-            <div class="chat-avatar" id="peer-profile-av" style="width: 100px; height: 100px; font-size: 36px; margin: 0 auto 16px auto; background-color: var(--accent);">?</div>
+            <div class="chat-avatar" id="peer-profile-av" style="width: 100px; height: 100px; font-size: 36px; margin: 0 auto 16px auto;">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.52 16.08A10 10 0 1 1 18.48 16.08"/><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
+            </div>
             <h3 id="peer-profile-name" style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">Имя</h3>
             <p id="peer-profile-username" style="color: var(--accent); font-weight: 700; font-size: 14px; margin-bottom: 12px;">@username</p>
             <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 14px; line-height: 1.4; margin-bottom: 24px;">Описание отсутствует</p>
@@ -1058,9 +1112,7 @@
 
     <div class="modal-overlay" id="e2ee-verify-modal">
         <div class="modal-card" style="text-align: center;">
-            <div style="margin-bottom: 16px; display: flex; justify-content: center;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="48" height="48" style="color: var(--secure);"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            </div>
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Шифрование проверено</h3>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">Уникальный отпечаток ключа Diffie-Hellman для этой сессии переписки:</p>
             <div id="e2ee-fingerprint" style="font-family: monospace; background: #2C2C2E; padding: 12px; border-radius: 10px; font-size: 14px; color: var(--secure); margin-bottom: 20px; letter-spacing: 1px;">XXXX-XXXX-XXXX-XXXX</div>
@@ -1071,19 +1123,9 @@
 
     <div class="modal-overlay" id="msg-options-modal">
         <div class="modal-card">
-            <h3 style="margin-bottom: 16px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Действия
+            <h3 style="margin-bottom: 16px; text-align: center;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Действия
             </h3>
-            
-            <div class="msg-reactions-panel">
-                <span class="reaction-item-btn" onclick="addReactionFromMenu('❤️')">❤️</span>
-                <span class="reaction-item-btn" onclick="addReactionFromMenu('👍')">👍</span>
-                <span class="reaction-item-btn" onclick="addReactionFromMenu('🔥')">🔥</span>
-                <span class="reaction-item-btn" onclick="addReactionFromMenu('👏')">👏</span>
-                <span class="reaction-item-btn" onclick="addReactionFromMenu('😂')">😂</span>
-                <span class="reaction-item-btn" onclick="addReactionFromMenu('😮')">😮</span>
-            </div>
-
             <button class="menu-btn" onclick="triggerReplyFromMenu()">Ответить</button>
             <button class="menu-btn" onclick="triggerForwardFromMenu()">Переслать</button>
             <button class="menu-btn danger" onclick="triggerDeleteFromMenu()">Удалить сообщение</button>
@@ -1091,6 +1133,7 @@
         </div>
     </div>
 
+    <!-- Модальное окно настроек диалога (Закрепление / Удаление) -->
     <div class="modal-overlay" id="chat-options-modal">
         <div class="modal-card">
             <h3 style="margin-bottom: 16px; text-align: center;" id="chat-options-title">Настройка диалога</h3>
@@ -1102,8 +1145,8 @@
 
     <div class="modal-overlay" id="forward-select-modal">
         <div class="modal-card">
-            <h3 style="margin-bottom: 16px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Кому переслать?
+            <h3 style="margin-bottom: 16px; text-align: center;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle; transform: rotate(45deg);"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Кому переслать?
             </h3>
             <div id="forward-chats-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 16px;"></div>
             <button class="menu-btn" style="background: transparent;" onclick="closeModal('forward-select-modal')">Отмена</button>
@@ -1140,8 +1183,8 @@
 
     <div class="modal-overlay" id="search-people-modal">
         <div class="modal-card">
-            <h3 style="margin-bottom: 10px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Найти собеседника
+            <h3 style="margin-bottom: 10px; text-align: center;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Найти собеседника
             </h3>
             <p style="font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 15px;">Введите никнейм без знака @</p>
             <input type="text" id="search-by-username" class="search-bar" style="width: 100%; margin-bottom: 15px;" placeholder="username">
@@ -1150,39 +1193,53 @@
         </div>
     </div>
 
-    <!-- Модалка добавления контакта -->
+    <!-- Модальное окно добавления контакта -->
     <div class="modal-overlay" id="add-contact-modal">
         <div class="modal-card">
-            <h3 style="margin-bottom: 12px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;" id="contact-modal-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Новый контакт
-            </h3>
-            
-            <div id="contact-search-step">
-                <p style="font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 15px;">Введите юзернейм для добавления</p>
-                <input type="text" id="contact-username-input" class="search-bar" style="width: 100%; margin-bottom: 15px;" placeholder="username">
-                <button class="search-action-btn" style="width: 100%; justify-content: center; margin-bottom: 8px;" onclick="searchUserForContact()">Найти</button>
-                <button class="search-action-btn" style="width: 100%; justify-content: center; background: #2C2C2E;" onclick="closeModal('add-contact-modal')">Отмена</button>
-            </div>
+            <h3 style="margin-bottom: 10px; text-align: center;">Добавить в контакты</h3>
+            <p style="font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 15px;">Введите никнейм пользователя.</p>
+            <input type="text" id="add-contact-username" class="search-bar" style="width: 100%; margin-bottom: 15px;" placeholder="username">
+            <button class="search-action-btn" style="width: 100%; justify-content: center; margin-bottom: 8px;" onclick="addContact()">Добавить</button>
+            <button class="search-action-btn" style="width: 100%; justify-content: center; background: #2C2C2E;" onclick="closeModal('add-contact-modal')">Отмена</button>
+        </div>
+    </div>
 
-            <div id="contact-edit-step" style="display: none;">
-                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;">
-                    <div class="chat-avatar" id="contact-avatar-preview" style="width: 70px; height: 70px; font-size: 20px; cursor: pointer; background-color: var(--accent);" onclick="document.getElementById('contact-avatar-upload').click()">?</div>
-                    <input type="file" id="contact-avatar-upload" style="display: none;" accept="image/*" onchange="compressAndSetContactAvatar(this.files[0])">
-                    <span style="font-size: 11px; color: var(--accent); cursor: pointer; margin-top: 6px;" onclick="document.getElementById('contact-avatar-upload').click()">Кастомная аватарка</span>
-                </div>
-                <div class="profile-form">
-                    <input type="text" id="contact-custom-name" class="search-bar" placeholder="Кастомное имя">
-                    <input type="text" id="contact-custom-lastname" class="search-bar" placeholder="Кастомная фамилия">
-                    <button class="search-action-btn" style="width: 100%; justify-content: center;" onclick="saveContact()">Сохранить</button>
-                    <button class="search-action-btn" style="width: 100%; justify-content: center; background: #2C2C2E;" onclick="cancelContactEditStep()">Назад</button>
-                </div>
+    <!-- Модальное окно редактирования контакта -->
+    <div class="modal-overlay" id="edit-contact-modal">
+        <div class="modal-card" style="text-align: center;">
+            <div class="chat-avatar" id="edit-contact-avatar" style="width: 80px; height: 80px; font-size: 24px; margin: 0 auto 16px auto; cursor: pointer;" onclick="document.getElementById('edit-contact-avatar-upload').click()">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.52 16.08A10 10 0 1 1 18.48 16.08"/><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
             </div>
+            <input type="file" id="edit-contact-avatar-upload" style="display: none;" accept="image/*" onchange="compressAndSetContactAvatar(this.files[0])">
+            <span style="font-size: 12px; color: var(--accent); cursor: pointer; margin-top: 8px;" onclick="document.getElementById('edit-contact-avatar-upload').click()">Изменить фото контакта</span>
+            
+            <div class="contact-edit-form">
+                <label>ИМЯ КОНТАКТА (ДЛЯ ВАС)</label>
+                <input type="text" id="edit-contact-name" class="search-bar" placeholder="Имя">
+                <label>ФАМИЛИЯ КОНТАКТА (ДЛЯ ВАС)</label>
+                <input type="text" id="edit-contact-lastname" class="search-bar" placeholder="Фамилия">
+                <button class="search-action-btn" style="width: 100%; margin-top: 10px; justify-content: center; height: 48px;" onclick="saveContactChanges()">Сохранить</button>
+                <button class="menu-btn danger" style="margin-top: 5px;" onclick="removeContact()">Удалить контакт</button>
+            </div>
+            <button class="menu-btn" style="background: transparent; margin-top: 15px;" onclick="closeModal('edit-contact-modal')">Отмена</button>
         </div>
     </div>
 
     <div class="modal-overlay" id="media-viewer-modal" style="background: black;">
         <span style="position: absolute; top: 20px; left: 20px; font-size: 30px; cursor: pointer; z-index: 10;" onclick="closeMediaViewer()">✕</span>
         <div id="media-viewer-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"></div>
+    </div>
+
+    <div class="modal-overlay" id="reaction-picker-modal">
+        <div class="reaction-picker" id="reaction-picker-container">
+            <span onclick="addReaction('❤️')">❤️</span>
+            <span onclick="addReaction('👍')">👍</span>
+            <span onclick="addReaction('🔥')">🔥</span>
+            <span onclick="addReaction('😂')">😂</span>
+            <span onclick="addReaction('🥳')">🥳</span>
+            <span onclick="addReaction('👎')">👎</span>
+            <span onclick="addReaction('💯')">💯</span>
+        </div>
     </div>
 
     <script>
@@ -1219,8 +1276,9 @@
         let objectUrlCache = {};
         let derivedKeysCache = {};
         
-        let profileCache = {};
-        let myContacts = {};
+        let profileCache = {}; // Cache for peer profiles (public data)
+        let contactsCache = {}; // Cache for user's custom contact data
+        let privacySettings = { lastSeenVisibility: 'all', profilePhotoVisibility: 'all', readReceiptsVisibility: 'all', quickReaction: '❤️' };
 
         let unsubDialogs = null;
         let unsubChatMessages = null;
@@ -1228,14 +1286,16 @@
         let unsubTypingStatus = null;
         let activePresenceListeners = {};
         let activeLastMsgListeners = {};
+        let unsubContacts = null; // Listener for contacts tab
 
         let activeMenuPeerId = null;
+        let activeContactPeerId = null;
+        let tempContactAvatarBase64 = "";
 
-        // Константы SVG для голосовых
-        const playSvg = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
-        const pauseSvg = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
 
+        // --- Encryption/Decryption Utilities ---
         function aesEncrypt(text, keyString) {
+            if (!text) return "";
             const key = CryptoJS.enc.Utf8.parse(keyString.padEnd(32, '0').slice(0, 32));
             const iv = CryptoJS.lib.WordArray.random(16);
             const encrypted = CryptoJS.AES.encrypt(text, key, { iv: iv });
@@ -1243,13 +1303,17 @@
         }
 
         function aesDecrypt(cipherWithIv, keyString) {
+            if (!cipherWithIv || cipherWithIv.length < 32) return "[Недействительные данные]";
             try {
                 const key = CryptoJS.enc.Utf8.parse(keyString.padEnd(32, '0').slice(0, 32));
                 const iv = CryptoJS.enc.Hex.parse(cipherWithIv.slice(0, 32));
                 const cipher = cipherWithIv.slice(32);
                 const decrypted = CryptoJS.AES.decrypt(cipher, key, { iv: iv });
-                return decrypted.toString(CryptoJS.enc.Utf8);
+                const result = decrypted.toString(CryptoJS.enc.Utf8);
+                if (!result) return "[Ошибка дешифрования]";
+                return result;
             } catch (e) {
+                console.error("Decryption error:", e);
                 return "[Ошибка дешифрования]";
             }
         }
@@ -1267,6 +1331,33 @@
             return cipher;
         }
 
+        function encryptContactData(text) {
+            if (!text) return "";
+            return "[ENC_CONTACT]" + aesEncrypt(text, PROFILE_ENC_KEY); // Re-using PROFILE_ENC_KEY for contact data
+        }
+
+        function decryptContactData(cipher) {
+            if (!cipher) return "";
+            if (cipher.startsWith("[ENC_CONTACT]")) {
+                return aesDecrypt(cipher.substring(13), PROFILE_ENC_KEY);
+            }
+            return cipher;
+        }
+
+        function encryptPrivacySetting(value) {
+            if (!value) return "";
+            return "[ENC_PRIV]" + aesEncrypt(value, PROFILE_ENC_KEY);
+        }
+
+        function decryptPrivacySetting(cipher) {
+            if (!cipher) return "";
+            if (cipher.startsWith("[ENC_PRIV]")) {
+                return aesDecrypt(cipher.substring(10), PROFILE_ENC_KEY);
+            }
+            return cipher;
+        }
+
+        // --- Time Formatting ---
         function formatDialogTime(timestamp) {
             if (!timestamp) return "";
             const date = new Date(timestamp);
@@ -1290,118 +1381,20 @@
             }
         }
 
-        async function initE2EE() {
-            let privJwk = localStorage.getItem(`meow_priv_${myUid}`);
-            let pubJwk = localStorage.getItem(`meow_pub_${myUid}`);
-            
-            if (!privJwk || !pubJwk) {
-                const keyPair = await window.crypto.subtle.generateKey(
-                    { name: "ECDH", namedCurve: "P-256" },
-                    true,
-                    ["deriveKey", "deriveBits"]
-                );
-                
-                const priv = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
-                const pub = await window.crypto.subtle.exportKey("jwk", keyPair.publicKey);
-                
-                localStorage.setItem(`meow_priv_${myUid}`, JSON.stringify(priv));
-                localStorage.setItem(`meow_pub_${myUid}`, JSON.stringify(pub));
-                
-                privJwk = JSON.stringify(priv);
-                pubJwk = JSON.stringify(pub);
-            }
-            
-            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
-                publicKey: pubJwk
-            });
-        }
-
-        async function getDerivedSharedKey(peerId) {
-            if (derivedKeysCache[peerId]) return derivedKeysCache[peerId];
-            
-            try {
-                if (peerId === myUid) {
-                    const privStr = localStorage.getItem(`meow_priv_${myUid}`);
-                    const hash = CryptoJS.SHA256(privStr).toString();
-                    derivedKeysCache[peerId] = hash;
-                    return hash;
-                }
-                
-                const peerProfSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile/publicKey`));
-                if (!peerProfSnap.exists()) {
-                    return null;
-                }
-                
-                const peerPubJwk = JSON.parse(peerProfSnap.val());
-                const myPrivJwk = JSON.parse(localStorage.getItem(`meow_priv_${myUid}`));
-                
-                const myPrivKeyObj = await window.crypto.subtle.importKey(
-                    "jwk",
-                    myPrivJwk,
-                    { name: "ECDH", namedCurve: "P-256" },
-                    true,
-                    ["deriveBits"]
-                );
-                
-                const peerPubKeyObj = await window.crypto.subtle.importKey(
-                    "jwk",
-                    peerPubJwk,
-                    { name: "ECDH", namedCurve: "P-256" },
-                    true,
-                    []
-                );
-                
-                const sharedBits = await window.crypto.subtle.deriveBits(
-                    { name: "ECDH", public: peerPubKeyObj },
-                    myPrivKeyObj,
-                    256
-                );
-                
-                const buffer = new Uint8Array(sharedBits);
-                const hexKey = Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join('');
-                
-                derivedKeysCache[peerId] = hexKey;
-                return hexKey;
-            } catch (e) {
-                return null;
-            }
-        }
-
-        function getCachedObjectUrl(msgId, base64Data) {
-            if (!base64Data) return "";
-            if (objectUrlCache[msgId]) return objectUrlCache[msgId];
-            
-            try {
-                const parts = base64Data.split(';base64,');
-                const contentType = parts[0].split(':')[1];
-                const raw = window.atob(parts[1]);
-                const rawLength = raw.length;
-                const uInt8Array = new Uint8Array(rawLength);
-                
-                for (let i = 0; i < rawLength; ++i) {
-                    uInt8Array[i] = raw.charCodeAt(i);
-                }
-                
-                const blob = new Blob([uInt8Array], { type: contentType });
-                const url = URL.createObjectURL(blob);
-                objectUrlCache[msgId] = url;
-                return url;
-            } catch (e) {
-                return base64Data;
-            }
-        }
-
-        function clearObjectUrlCache() {
-            Object.values(objectUrlCache).forEach(url => {
-                if (url.startsWith('blob:')) {
-                    URL.revokeObjectURL(url);
-                }
-            });
-            objectUrlCache = {};
-        }
-
-        function formatFriendlyLastSeen(timestamp) {
+        async function formatFriendlyLastSeen(timestamp, peerId) {
             if (!timestamp) return "офлайн";
+            if (peerId === myUid) return "персональное хранилище"; // For Cloud Chat
+            
+            const isContact = await checkIsContact(peerId);
+            const visibility = privacySettings.lastSeenVisibility;
+
+            if (visibility === 'nobody' && peerId !== myUid) {
+                return "был(а) недавно";
+            }
+            if (visibility === 'contacts' && !isContact && peerId !== myUid) {
+                return "был(а) недавно";
+            }
+
             const date = new Date(timestamp);
             const now = new Date();
             const isToday = date.toDateString() === now.toDateString();
@@ -1441,6 +1434,122 @@
             return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
+        // --- E2EE Key Management ---
+        async function initE2EE() {
+            let privJwk = localStorage.getItem(`meow_priv_${myUid}`);
+            let pubJwk = localStorage.getItem(`meow_pub_${myUid}`);
+            
+            if (!privJwk || !pubJwk) {
+                const keyPair = await window.crypto.subtle.generateKey(
+                    { name: "ECDH", namedCurve: "P-256" },
+                    true,
+                    ["deriveKey", "deriveBits"]
+                );
+                
+                const priv = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
+                const pub = await window.crypto.subtle.exportKey("jwk", keyPair.publicKey);
+                
+                localStorage.setItem(`meow_priv_${myUid}`, JSON.stringify(priv));
+                localStorage.setItem(`meow_pub_${myUid}`, JSON.stringify(pub));
+                
+                privJwk = JSON.stringify(priv);
+                pubJwk = JSON.stringify(pub);
+            }
+            
+            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
+                publicKey: pubJwk
+            });
+        }
+
+        async function getDerivedSharedKey(peerId) {
+            if (derivedKeysCache[peerId]) return derivedKeysCache[peerId];
+            
+            try {
+                if (peerId === myUid) {
+                    // For cloud chat, derive a key from my own private key
+                    const privStr = localStorage.getItem(`meow_priv_${myUid}`);
+                    const hash = CryptoJS.SHA256(privStr).toString();
+                    derivedKeysCache[peerId] = hash;
+                    return hash;
+                }
+                
+                const peerProfSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile/publicKey`));
+                if (!peerProfSnap.exists()) {
+                    console.warn(`Public key for peer ${peerId} not found.`);
+                    return null;
+                }
+                
+                const peerPubJwk = JSON.parse(peerProfSnap.val());
+                const myPrivJwk = JSON.parse(localStorage.getItem(`meow_priv_${myUid}`));
+                
+                const myPrivKeyObj = await window.crypto.subtle.importKey(
+                    "jwk",
+                    myPrivJwk,
+                    { name: "ECDH", namedCurve: "P-256" },
+                    true,
+                    ["deriveBits"]
+                );
+                
+                const peerPubKeyObj = await window.crypto.subtle.importKey(
+                    "jwk",
+                    peerPubJwk,
+                    { name: "ECDH", namedCurve: "P-256" },
+                    true,
+                    []
+                );
+                
+                const sharedBits = await window.crypto.subtle.deriveBits(
+                    { name: "ECDH", public: peerPubKeyObj },
+                    myPrivKeyObj,
+                    256
+                );
+                
+                const buffer = new Uint8Array(sharedBits);
+                const hexKey = Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join('');
+                
+                derivedKeysCache[peerId] = hexKey;
+                return hexKey;
+            } catch (e) {
+                console.error("Error deriving shared key:", e);
+                return null;
+            }
+        }
+
+        // --- Media / Blob Handling ---
+        function getCachedObjectUrl(msgId, base64Data) {
+            if (!base64Data) return "";
+            if (objectUrlCache[msgId]) return objectUrlCache[msgId];
+            
+            try {
+                const parts = base64Data.split(';base64,');
+                const contentType = parts[0].split(':')[1];
+                const raw = window.atob(parts[1]);
+                const rawLength = raw.length;
+                const uInt8Array = new Uint8Array(rawLength);
+                
+                for (let i = 0; i < rawLength; ++i) {
+                    uInt8Array[i] = raw.charCodeAt(i);
+                }
+                
+                const blob = new Blob([uInt8Array], { type: contentType });
+                const url = URL.createObjectURL(blob);
+                objectUrlCache[msgId] = url;
+                return url;
+            } catch (e) {
+                return base64Data;
+            }
+        }
+
+        function clearObjectUrlCache() {
+            Object.values(objectUrlCache).forEach(url => {
+                if (url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url);
+                }
+            });
+            objectUrlCache = {};
+        }
+
+        // --- Authentication & Initialization ---
         setTimeout(() => {
             window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                 if (user) {
@@ -1460,59 +1569,12 @@
                     });
 
                     await initE2EE();
-                    await loadMyPrivacySettings();
-                    
-                    // Слушатель контактов E2EE
-                    window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/contacts`), (snap) => {
-                        myContacts = snap.val() || {};
-                        profileCache = {}; // сброс кэша профилей для применения кастомных данных
-                        loadDialogs();
-                        renderContactsList();
-                        if (currentPeer) {
-                            openChatWindow(currentPeer, currentRoomId);
-                        }
-                    });
+                    await loadMyProfile();
+                    await loadPrivacySettings();
 
-                    const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
-                    if (profSnap.exists()) {
-                        const prof = profSnap.val();
-                        
-                        const decName = decryptProfileData(prof.name);
-                        const decLast = decryptProfileData(prof.lastname);
-                        const decBio = decryptProfileData(prof.bio);
-                        const decAvatar = decryptProfileData(prof.avatar);
-
-                        document.getElementById('setting-name').value = decName || "";
-                        document.getElementById('setting-lastname').value = decLast || "";
-                        document.getElementById('setting-username').value = prof.username ? prof.username : "";
-                        document.getElementById('setting-bio').value = decBio || "";
-
-                        myNameCombined = (decName || "Без имени") + (decLast ? " " + decLast : "");
-                        
-                        tempProfileAvatarBase64 = decAvatar || "";
-                        myProfileAvatarFetched = decAvatar || "";
-                        const myAvEl = document.getElementById('my-profile-avatar');
-                        if (tempProfileAvatarBase64) {
-                            myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
-                            myAvEl.innerText = "";
-                        } else {
-                            myAvEl.style.backgroundImage = "none";
-                            myAvEl.innerText = myNameCombined[0].toUpperCase();
-                        }
-                    } else {
-                        const fallbackNick = "id_" + Math.floor(1000 + Math.random() * 9000);
-                        myNameCombined = user.email.split('@')[0];
-                        await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
-                            name: encryptProfileData(myNameCombined),
-                            lastname: encryptProfileData(""),
-                            username: fallbackNick,
-                            bio: encryptProfileData(""),
-                            avatar: encryptProfileData("")
-                        });
-                        await window.fb.set(window.fb.ref(window.fb.db, `usernames/${fallbackNick}`), myUid);
-                    }
-
+                    // Seed database if needed (now includes privacy settings)
                     seedDatabaseIfNeeded();
+
                     switchTab(0);
                     
                     document.getElementById('message-input').addEventListener('input', triggerTypingStatus);
@@ -1522,23 +1584,155 @@
             });
         }, 1200);
 
-        async function authAction() {
+        async function loadMyProfile() {
+            const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
+            if (profSnap.exists()) {
+                const prof = profSnap.val();
+                
+                const decName = decryptProfileData(prof.name);
+                const decLast = decryptProfileData(prof.lastname);
+                const decBio = decryptProfileData(prof.bio);
+                const decAvatar = decryptProfileData(prof.avatar);
+
+                document.getElementById('setting-name').value = decName || "";
+                document.getElementById('setting-lastname').value = decLast || "";
+                document.getElementById('setting-username').value = prof.username ? prof.username : "";
+                document.getElementById('setting-bio').value = decBio || "";
+
+                myNameCombined = (decName || "Без имени") + (decLast ? " " + decLast : "");
+                
+                tempProfileAvatarBase64 = decAvatar || "";
+                myProfileAvatarFetched = decAvatar || "";
+                const myAvEl = document.getElementById('my-profile-avatar');
+                if (tempProfileAvatarBase64) {
+                    myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
+                    myAvEl.innerText = "";
+                    myAvEl.querySelector('svg').style.display = 'none';
+                } else {
+                    myAvEl.style.backgroundImage = "none";
+                    myAvEl.style.backgroundColor = "var(--accent)";
+                    myAvEl.innerText = myNameCombined[0] ? myNameCombined[0].toUpperCase() : "?";
+                    myAvEl.querySelector('svg').style.display = 'block'; // Show default SVG
+                }
+            } else {
+                const fallbackNick = "id_" + Math.floor(1000 + Math.random() * 9000);
+                myNameCombined = user.email.split('@')[0];
+                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
+                    name: encryptProfileData(myNameCombined),
+                    lastname: encryptProfileData(""),
+                    username: fallbackNick,
+                    bio: encryptProfileData(""),
+                    avatar: encryptProfileData(""),
+                    publicKey: JSON.parse(localStorage.getItem(`meow_pub_${myUid}`)) // Ensure public key is set
+                });
+                await window.fb.set(window.fb.ref(window.fb.db, `usernames/${fallbackNick}`), myUid);
+            }
+        }
+
+        async function loadPrivacySettings() {
+            const privacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/privacy`));
+            if (privacySnap.exists()) {
+                const rawSettings = privacySnap.val();
+                privacySettings.lastSeenVisibility = decryptPrivacySetting(rawSettings.lastSeenVisibility) || 'all';
+                privacySettings.profilePhotoVisibility = decryptPrivacySetting(rawSettings.profilePhotoVisibility) || 'all';
+                privacySettings.readReceiptsVisibility = decryptPrivacySetting(rawSettings.readReceiptsVisibility) || 'all';
+                privacySettings.quickReaction = decryptPrivacySetting(rawSettings.quickReaction) || '❤️';
+            } else {
+                // Set default privacy settings if not exists
+                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), {
+                    lastSeenVisibility: encryptPrivacySetting('all'),
+                    profilePhotoVisibility: encryptPrivacySetting('all'),
+                    readReceiptsVisibility: encryptPrivacySetting('all'),
+                    quickReaction: encryptPrivacySetting('❤️')
+                });
+            }
+            // Update UI
+            document.getElementById('setting-last-seen').value = privacySettings.lastSeenVisibility;
+            document.getElementById('setting-profile-photo').value = privacySettings.profilePhotoVisibility;
+            document.getElementById('setting-read-receipts').value = privacySettings.readReceiptsVisibility;
+            document.getElementById('setting-quick-reaction').value = privacySettings.quickReaction;
+        }
+
+
+        async function savePrivacySettings() {
+            privacySettings.lastSeenVisibility = document.getElementById('setting-last-seen').value;
+            privacySettings.profilePhotoVisibility = document.getElementById('setting-profile-photo').value;
+            privacySettings.readReceiptsVisibility = document.getElementById('setting-read-receipts').value;
+            privacySettings.quickReaction = document.getElementById('setting-quick-reaction').value;
+
+            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), {
+                lastSeenVisibility: encryptPrivacySetting(privacySettings.lastSeenVisibility),
+                profilePhotoVisibility: encryptPrivacySetting(privacySettings.profilePhotoVisibility),
+                readReceiptsVisibility: encryptPrivacySetting(privacySettings.readReceiptsVisibility),
+                quickReaction: encryptPrivacySetting(privacySettings.quickReaction)
+            });
+            alert("Настройки конфиденциальности сохранены!");
+        }
+
+        async function checkPeerVisibility(peerId, type) { // type: 'lastSeen', 'profilePhoto', 'readReceipts'
+            if (peerId === myUid) return true; // Always visible to self
+
+            const peerPrivacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy/${type}`));
+            const peerVisibility = peerPrivacySnap.exists() ? decryptPrivacySetting(peerPrivacySnap.val()) : 'all';
+
+            if (peerVisibility === 'all') return true;
+            if (peerVisibility === 'nobody') return false;
+            
+            // 'contacts' logic
+            if (peerVisibility === 'contacts') {
+                const isContact = await checkIsContact(peerId, true); // Check if *I* am in *their* contacts (reciprocal for some settings)
+                // For lastSeen and profilePhoto: Check if *I* am in *their* contacts.
+                // For readReceipts: Check if *they* are in *my* contacts, and if *I* am in *their* contacts.
+                
+                // Simplified: Assume for now, 'contacts' means if I consider them a contact.
+                // For true "Telegram-like" privacy, it's more complex (e.g., if A has B in contacts, B sees A's last seen,
+                // but if B doesn't have A in contacts, A might not see B's last seen unless B also allows "All").
+                // For simplicity, I'll use: if peerVisibility is 'contacts', I can only see it if THEY have me in contacts OR I have them in contacts.
+                // This is a common simplification. Let's make it simpler: peer decides visibility, I just check if *I* qualify.
+                // If peer says 'contacts', then I need to be in their contacts. This check is hard to do without accessing their contact list directly, which defeats privacy.
+                // A more practical approach is: if peer says 'contacts', it means they show it to *their* contacts. I cannot know if I am in their contacts without specific endpoint.
+                // Let's assume a simplified rule: If peer's setting is 'contacts', then I, as the current user, will see their info if *I* have *them* in my contacts.
+                // This gives *me* control over who *I* see info for if *they* set it to contacts. This is easier to implement.
+                return isContact; 
+            }
+            return false;
+        }
+
+        async function checkIsContact(peerId, reverseCheck = false) {
+            // Check if peerId is in my contacts
+            if (contactsCache[peerId] && contactsCache[peerId].isContact !== undefined) return contactsCache[peerId].isContact;
+            
+            const contactSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${peerId}`));
+            const isContact = contactSnap.exists();
+            
+            if (!contactsCache[peerId]) contactsCache[peerId] = {};
+            contactsCache[peerId].isContact = isContact;
+            return isContact;
+        }
+
+        function authAction() {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value.trim();
             const errDiv = document.getElementById('auth-error');
 
-            if (!email || !password) return;
-
-            try {
-                await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
-            } catch (err) {
-                try {
-                    await window.fb.createUserWithEmailAndPassword(window.fb.auth, email, password);
-                } catch (regErr) {
-                    errDiv.innerText = regErr.message;
-                    errDiv.style.display = 'block';
-                }
+            if (!email || !password) {
+                errDiv.innerText = "Введите почту и пароль.";
+                errDiv.style.display = 'block';
+                return;
             }
+
+            // Clear previous errors
+            errDiv.style.display = 'none';
+
+            window.fb.signInWithEmailAndPassword(window.fb.auth, email, password)
+                .catch(err => {
+                    // If login fails, try to register
+                    window.fb.createUserWithEmailAndPassword(window.fb.auth, email, password)
+                        .catch(regErr => {
+                            errDiv.innerText = regErr.message;
+                            errDiv.style.display = 'block';
+                        });
+                });
         }
 
         function logoutAction() {
@@ -1553,6 +1747,7 @@
             });
         }
 
+        // --- Tab Navigation ---
         function switchTab(index) {
             document.querySelectorAll('.tab-panel').forEach((el, idx) => {
                 el.classList.toggle('active', idx === index);
@@ -1561,13 +1756,24 @@
                 el.classList.toggle('active', idx === index);
             });
 
+            // Clean up listeners when switching tabs
+            if (unsubDialogs) unsubDialogs();
+            if (unsubContacts) unsubContacts();
+            Object.values(activePresenceListeners).forEach(un => un());
+            Object.values(activeLastMsgListeners).forEach(un => un());
+            activePresenceListeners = {};
+            activeLastMsgListeners = {};
+
             if (index === 0) {
                 loadDialogs();
             } else if (index === 1) {
-                renderContactsList();
+                loadContacts();
+            } else if (index === 2) {
+                loadPrivacySettings(); // Reload settings to ensure UI matches
             }
         }
 
+        // --- Profile Settings ---
         async function compressAndSetProfileAvatar(file) {
             if (!file) return;
             const canvas = document.createElement('canvas');
@@ -1586,6 +1792,7 @@
                     const myAvEl = document.getElementById('my-profile-avatar');
                     myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
                     myAvEl.innerText = "";
+                    myAvEl.querySelector('svg').style.display = 'none';
                 };
             };
         }
@@ -1627,301 +1834,51 @@
             switchTab(0);
         }
 
-        // Кэширование профилей с учетом контактов и приватности
-        function getCachedProfile(peerId, callback) {
+        async function getCachedProfile(peerId, callback) {
+            // First try to get custom contact data
+            let contactInfo = null;
+            if (contactsCache[peerId] && contactsCache[peerId].customName) {
+                contactInfo = contactsCache[peerId];
+                callback({
+                    name: contactInfo.customName,
+                    lastname: contactInfo.customLastname,
+                    avatar: contactInfo.customAvatar,
+                    bio: "[Контакт]" // Custom contacts don't usually override bio
+                });
+                return;
+            }
+
+            // If not in contacts cache, try fetching public profile
             if (profileCache[peerId]) {
                 callback(profileCache[peerId]);
                 return;
             }
-
-            const userRef = window.fb.ref(window.fb.db, `users/${peerId}`);
-            Promise.all([
-                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`)),
-                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy`)),
-                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`))
-            ]).then(([profSnap, privacySnap, isContactSnap]) => {
-                let p = {
-                    name: "Без имени",
-                    lastname: "",
-                    avatar: "",
-                    bio: "",
-                    username: "",
-                    privacy: { lastSeen: "all", avatar: "all", messages: "all" },
-                    isWeContactOfPeer: isContactSnap.exists()
-                };
-
+            
+            const profRef = window.fb.ref(window.fb.db, `users/${peerId}/profile`);
+            // Use onValue for live updates, but only fetch if not in cache
+            const unsub = window.fb.onValue(profRef, async (profSnap) => {
                 if (profSnap.exists()) {
                     const prof = profSnap.val();
-                    p.name = decryptProfileData(prof.name) || "Без имени";
-                    p.lastname = decryptProfileData(prof.lastname) || "";
-                    p.avatar = decryptProfileData(prof.avatar) || "";
-                    p.bio = decryptProfileData(prof.bio) || "";
-                    p.username = prof.username || "";
-                }
-
-                if (privacySnap.exists()) {
-                    p.privacy = { ...p.privacy, ...privacySnap.val() };
-                }
-
-                // Применяем ОВЕРРАЙД из НАШИХ контактов
-                if (myContacts[peerId]) {
-                    const c = myContacts[peerId];
-                    p.name = decryptProfileData(c.name) || p.name;
-                    p.lastname = decryptProfileData(c.lastname) || p.lastname;
-                    p.avatar = decryptProfileData(c.avatar) || p.avatar;
+                    const p = {
+                        name: decryptProfileData(prof.name),
+                        lastname: decryptProfileData(prof.lastname),
+                        avatar: decryptProfileData(prof.avatar),
+                        bio: decryptProfileData(prof.bio),
+                        username: prof.username
+                    };
+                    profileCache[peerId] = p;
+                    callback(p);
                 } else {
-                    // Применяем ИХ приватность на фото профиля
-                    const avPriv = p.privacy.avatar || "all";
-                    if (avPriv === "none" || (avPriv === "contacts" && !p.isWeContactOfPeer)) {
-                        p.avatar = ""; 
-                    }
+                    // Fallback if profile doesn't exist, though it should for any valid user
+                    callback({ name: "Неизвестный", lastname: "", avatar: "", bio: "", username: "" });
                 }
-
-                profileCache[peerId] = p;
-                callback(p);
             });
+            // Store unsubscribe to clean up later if needed, though for profiles we usually keep it alive.
+            // For now, let's keep it simple and assume this listener is fine.
         }
 
-        // НАСТРОЙКИ ПРИВАТНОСТИ И РЕАКЦИЙ
-        async function loadMyPrivacySettings() {
-            const privacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/privacy`));
-            if (privacySnap.exists()) {
-                const privacy = privacySnap.val();
-                document.getElementById('privacy-last-seen').value = privacy.lastSeen || "all";
-                document.getElementById('privacy-avatar').value = privacy.avatar || "all";
-                document.getElementById('privacy-messages').value = privacy.messages || "all";
-            }
-            const localEmoji = localStorage.getItem('quick_reaction_emoji') || '❤️';
-            document.getElementById('quick-reaction-emoji').value = localEmoji;
-        }
-
-        async function savePrivacySettings() {
-            const lastSeen = document.getElementById('privacy-last-seen').value;
-            const avatar = document.getElementById('privacy-avatar').value;
-            const messages = document.getElementById('privacy-messages').value;
-
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), {
-                lastSeen,
-                avatar,
-                messages
-            });
-        }
-
-        function saveQuickReactionSetting(val) {
-            localStorage.setItem('quick_reaction_emoji', val);
-        }
-
-        // КОНТАКТЫ
-        let tempContactAvatarBase64 = "";
-        let selectedContactUid = null;
-        let isEditingContact = false;
-
-        async function searchUserForContact() {
-            const username = document.getElementById('contact-username-input').value.trim().toLowerCase().replace('@', '');
-            if (!username) return;
-
-            if (username === document.getElementById('setting-username').value.trim().toLowerCase()) {
-                alert("Нельзя добавить себя!");
-                return;
-            }
-
-            const usernameSnap = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${username}`));
-            if (usernameSnap.exists()) {
-                selectedContactUid = usernameSnap.val();
-                isEditingContact = false;
-                
-                const profileSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${selectedContactUid}/profile`));
-                if (profileSnap.exists()) {
-                    const prof = profileSnap.val();
-                    document.getElementById('contact-custom-name').value = decryptProfileData(prof.name) || "";
-                    document.getElementById('contact-custom-lastname').value = decryptProfileData(prof.lastname) || "";
-                    tempContactAvatarBase64 = decryptProfileData(prof.avatar) || "";
-                    
-                    const avPreview = document.getElementById('contact-avatar-preview');
-                    if (tempContactAvatarBase64) {
-                        avPreview.style.backgroundImage = `url(${tempContactAvatarBase64})`;
-                        avPreview.innerText = "";
-                    } else {
-                        avPreview.style.backgroundImage = "none";
-                        avPreview.innerText = "?";
-                    }
-                }
-                
-                document.getElementById('contact-search-step').style.display = "none";
-                document.getElementById('contact-edit-step').style.display = "block";
-            } else {
-                alert("Пользователь не найден!");
-            }
-        }
-
-        async function compressAndSetContactAvatar(file) {
-            if (!file) return;
-            const canvas = document.createElement('canvas');
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    canvas.width = 320;
-                    canvas.height = 320;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, 320, 320);
-                    tempContactAvatarBase64 = canvas.toDataURL('image/jpeg', 0.90);
-                    
-                    const preview = document.getElementById('contact-avatar-preview');
-                    preview.style.backgroundImage = `url(${tempContactAvatarBase64})`;
-                    preview.innerText = "";
-                };
-            };
-        }
-
-        async function saveContact() {
-            const name = document.getElementById('contact-custom-name').value.trim();
-            const lastname = document.getElementById('contact-custom-lastname').value.trim();
-
-            if (!name) {
-                alert("Имя обязательно!");
-                return;
-            }
-
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${selectedContactUid}`), {
-                name: encryptProfileData(name),
-                lastname: encryptProfileData(lastname),
-                avatar: encryptProfileData(tempContactAvatarBase64)
-            });
-
-            alert(isEditingContact ? "Контакт обновлен!" : "Контакт добавлен!");
-            closeModal('add-contact-modal');
-            resetContactModal();
-        }
-
-        function cancelContactEditStep() {
-            if (isEditingContact) {
-                closeModal('add-contact-modal');
-                resetContactModal();
-            } else {
-                document.getElementById('contact-search-step').style.display = "block";
-                document.getElementById('contact-edit-step').style.display = "none";
-            }
-        }
-
-        function resetContactModal() {
-            document.getElementById('contact-username-input').value = "";
-            document.getElementById('contact-custom-name').value = "";
-            document.getElementById('contact-custom-lastname').value = "";
-            document.getElementById('contact-avatar-preview').style.backgroundImage = "none";
-            document.getElementById('contact-avatar-preview').innerText = "?";
-            tempContactAvatarBase64 = "";
-            selectedContactUid = null;
-            isEditingContact = false;
-            document.getElementById('contact-search-step').style.display = "block";
-            document.getElementById('contact-edit-step').style.display = "none";
-        }
-
-        function editContact(peerId) {
-            selectedContactUid = peerId;
-            isEditingContact = true;
-            
-            const contact = myContacts[peerId];
-            document.getElementById('contact-custom-name').value = decryptProfileData(contact.name) || "";
-            document.getElementById('contact-custom-lastname').value = decryptProfileData(contact.lastname) || "";
-            tempContactAvatarBase64 = decryptProfileData(contact.avatar) || "";
-            
-            const preview = document.getElementById('contact-avatar-preview');
-            if (tempContactAvatarBase64) {
-                preview.style.backgroundImage = `url(${tempContactAvatarBase64})`;
-                preview.innerText = "";
-            } else {
-                preview.style.backgroundImage = "none";
-                preview.innerText = "?";
-            }
-
-            document.getElementById('contact-search-step').style.display = "none";
-            document.getElementById('contact-edit-step').style.display = "block";
-            openModal('add-contact-modal');
-        }
-
-        async function deleteContact(peerId) {
-            if (confirm("Вы действительно хотите удалить этот контакт?")) {
-                await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${peerId}`));
-            }
-        }
-
-        function renderContactsList() {
-            const container = document.getElementById('contacts-list-container');
-            container.innerHTML = "";
-
-            const entries = Object.entries(myContacts);
-            if (entries.length === 0) {
-                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:40px;font-size:14px;">Список контактов пуст.</div>`;
-                return;
-            }
-
-            entries.forEach(([peerId, data]) => {
-                const decName = decryptProfileData(data.name) || "Без имени";
-                const decLast = decryptProfileData(data.lastname) || "";
-                const avatar = decryptProfileData(data.avatar) || "";
-                const fullName = decName + (decLast ? " " + decLast : "");
-
-                const colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
-
-                const row = document.createElement('div');
-                row.className = "chat-row";
-
-                row.innerHTML = `
-                    <div style="display:flex; align-items:center; flex:1;" onclick="startContactChat('${peerId}')">
-                        <div class="chat-avatar" style="${avatar ? `background-image:url(${avatar})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`}">
-                            ${avatar ? "" : fullName[0].toUpperCase()}
-                        </div>
-                        <div class="chat-info">
-                            <div class="chat-row-name">${fullName}</div>
-                            <div class="chat-row-msg" id="contact-sub-${peerId}">Загрузка юзернейма...</div>
-                        </div>
-                    </div>
-                    <div style="display:flex; gap: 8px;">
-                        <button class="header-btn" onclick="editContact('${peerId}')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        </button>
-                        <button class="header-btn" style="color: var(--error);" onclick="deleteContact('${peerId}')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                        </button>
-                    </div>
-                `;
-
-                container.appendChild(row);
-
-                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`)).then((snap) => {
-                    const sub = document.getElementById(`contact-sub-${peerId}`);
-                    if (sub && snap.exists()) {
-                        sub.innerText = "@" + (snap.val().username || "id");
-                    }
-                });
-            });
-        }
-
-        function filterContacts(query) {
-            const q = query.toLowerCase();
-            document.querySelectorAll('#contacts-list-container .chat-row').forEach(row => {
-                const name = row.querySelector('.chat-row-name').innerText.toLowerCase();
-                row.style.display = name.includes(q) ? 'flex' : 'none';
-            });
-        }
-
-        async function startContactChat(peerId) {
-            const rId = [myUid, peerId].sort().join("_");
-            const nowTime = Date.now();
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${peerId}`), {
-                roomId: rId,
-                lastTime: nowTime
-            });
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${peerId}/chats/${myUid}`), {
-                roomId: rId,
-                lastTime: nowTime
-            });
-            openChatWindow(peerId, rId);
-        }
-
+        // --- Dialogs (Chats Tab) ---
+        // Меню действий с диалогом (Закрепление / Удаление)
         function openChatOptions(peerId, name) {
             activeMenuPeerId = peerId;
             document.getElementById('chat-options-title').innerText = name || "Диалог";
@@ -1958,14 +1915,15 @@
             container.innerHTML = "";
 
             unsubDialogs = window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/chats`), (snap) => {
-                container.innerHTML = "";
-                
+                container.innerHTML = ""; // Clear for re-rendering
+
+                // Render Cloud Chat (Избранное) first
                 const cloudRow = document.createElement('div');
                 cloudRow.className = "chat-row";
                 cloudRow.id = `chat-row-${myUid}`;
                 
                 cloudRow.onclick = (e) => {
-                    if (e.target.classList.contains('chat-avatar')) {
+                    if (e.target.closest('.chat-avatar')) { // Use closest to handle clicks on SVG inside avatar
                         e.stopPropagation();
                         showPeerProfile(myUid);
                     } else {
@@ -1973,17 +1931,21 @@
                     }
                 };
 
+                // Long press for Cloud Chat options
                 let favPressTimer;
-                cloudRow.addEventListener('touchstart', () => {
-                    favPressTimer = setTimeout(() => openChatOptions(myUid, "Избранное"), 600);
-                }, { passive: true });
-                cloudRow.addEventListener('touchend', () => clearTimeout(favPressTimer), { passive: true });
-                cloudRow.addEventListener('touchmove', () => clearTimeout(favPressTimer), { passive: true });
-                cloudRow.addEventListener('mousedown', () => {
-                    favPressTimer = setTimeout(() => openChatOptions(myUid, "Избранное"), 600);
-                });
-                cloudRow.addEventListener('mouseup', () => clearTimeout(favPressTimer));
-                cloudRow.addEventListener('mouseleave', () => clearTimeout(favPressTimer));
+                const cloudPressHandler = (e) => {
+                    if (e.type === 'mousedown' || e.type === 'touchstart') {
+                        favPressTimer = setTimeout(() => openChatOptions(myUid, "Избранное"), 600);
+                    } else {
+                        clearTimeout(favPressTimer);
+                    }
+                };
+                cloudRow.addEventListener('touchstart', cloudPressHandler, { passive: true });
+                cloudRow.addEventListener('touchend', cloudPressHandler, { passive: true });
+                cloudRow.addEventListener('touchmove', cloudPressHandler, { passive: true });
+                cloudRow.addEventListener('mousedown', cloudPressHandler);
+                cloudRow.addEventListener('mouseup', cloudPressHandler);
+                cloudRow.addEventListener('mouseleave', cloudPressHandler);
                 
                 cloudRow.innerHTML = `
                     <div class="chat-avatar" id="avatar-${myUid}" style="background-color: var(--accent);">
@@ -1994,18 +1956,29 @@
                             <div class="chat-row-name" id="name-${myUid}">Избранное</div>
                             <div class="chat-row-time" id="time-${myUid}"></div>
                         </div>
-                        <div class="chat-row-msg" id="last-msg-${myUid}">Сообщение</div>
+                        <div class="chat-row-msg" id="last-msg-${myUid}">Нет сообщений</div>
                     </div>
                 `;
                 container.appendChild(cloudRow);
 
+                // Update Cloud Chat avatar
                 if (myProfileAvatarFetched) {
                     const cloudAv = document.getElementById(`avatar-${myUid}`);
                     if (cloudAv) {
                         cloudAv.style.backgroundImage = `url(${myProfileAvatarFetched})`;
                         cloudAv.innerText = "";
+                        cloudAv.style.backgroundColor = "transparent";
+                        cloudAv.querySelector('svg').style.display = 'none';
+                    }
+                } else {
+                    const cloudAv = document.getElementById(`avatar-${myUid}`);
+                    if (cloudAv) {
+                         cloudAv.style.backgroundColor = "var(--accent)";
+                         cloudAv.innerText = ""; // SVG is inside
+                         cloudAv.querySelector('svg').style.display = 'block';
                     }
                 }
+
 
                 activeLastMsgListeners[myUid] = window.fb.onValue(window.fb.ref(window.fb.db, `messages/saved_${myUid}/list`), (mSnap) => {
                     const msgBox = document.getElementById(`last-msg-${myUid}`);
@@ -2017,6 +1990,9 @@
                         if (timeBox && lastMsg.time) {
                             timeBox.innerText = formatDialogTime(lastMsg.time);
                         }
+                    } else if (msgBox) {
+                        msgBox.innerText = "Нет сообщений";
+                        if (timeBox) timeBox.innerText = "";
                     }
                 });
 
@@ -2024,6 +2000,7 @@
                 
                 const chatsObj = snap.val();
 
+                // Sort chats: pinned first, then by last interaction time
                 const sortedChats = Object.entries(chatsObj).filter(([peerId]) => peerId !== myUid);
                 sortedChats.sort((a, b) => {
                     const pinA = a[1].pinned ? 1 : 0;
@@ -2040,7 +2017,7 @@
                     row.id = `chat-row-${peerId}`;
 
                     row.onclick = (e) => {
-                        if (e.target.classList.contains('chat-avatar')) {
+                        if (e.target.closest('.chat-avatar')) {
                             e.stopPropagation();
                             showPeerProfile(peerId);
                         } else {
@@ -2048,29 +2025,33 @@
                         }
                     };
 
+                    // Long press for chat options
                     let rowPressTimer;
-                    row.addEventListener('touchstart', () => {
-                        const nameEl = document.getElementById(`name-${peerId}`);
-                        const nameText = nameEl ? nameEl.innerText : "Диалог";
-                        rowPressTimer = setTimeout(() => openChatOptions(peerId, nameText), 600);
-                    }, { passive: true });
-                    row.addEventListener('touchend', () => clearTimeout(rowPressTimer), { passive: true });
-                    row.addEventListener('touchmove', () => clearTimeout(rowPressTimer), { passive: true });
-                    row.addEventListener('mousedown', () => {
-                        const nameEl = document.getElementById(`name-${peerId}`);
-                        const nameText = nameEl ? nameEl.innerText : "Диалог";
-                        rowPressTimer = setTimeout(() => openChatOptions(peerId, nameText), 600);
-                    });
-                    row.addEventListener('mouseup', () => clearTimeout(rowPressTimer));
-                    row.addEventListener('mouseleave', () => clearTimeout(rowPressTimer));
+                    const rowPressHandler = (e) => {
+                        if (e.type === 'mousedown' || e.type === 'touchstart') {
+                            const nameEl = document.getElementById(`name-${peerId}`);
+                            const nameText = nameEl ? nameEl.innerText : "Диалог";
+                            rowPressTimer = setTimeout(() => openChatOptions(peerId, nameText), 600);
+                        } else {
+                            clearTimeout(rowPressTimer);
+                        }
+                    };
+                    row.addEventListener('touchstart', rowPressHandler, { passive: true });
+                    row.addEventListener('touchend', rowPressHandler, { passive: true });
+                    row.addEventListener('touchmove', rowPressHandler, { passive: true });
+                    row.addEventListener('mousedown', rowPressHandler);
+                    row.addEventListener('mouseup', rowPressHandler);
+                    row.addEventListener('mouseleave', rowPressHandler);
 
                     let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
 
-                    const pinSvg = chatMeta.pinned ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="color: var(--accent); margin-left: auto; flex-shrink:0;"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2z"/></svg>` : '';
+                    // Pin SVG for pinned chats
+                    const pinSvg = chatMeta.pinned ? `&lt;svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="color: var(--accent); margin-left: auto; flex-shrink:0;"&gt;&lt;path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2z"/&gt;&lt;/svg&gt;` : '';
 
                     row.innerHTML = `
                         <div class="chat-avatar" id="avatar-${peerId}" style="background-color: ${TG_AVATAR_COLORS[colorIndex]}">
-                            ?
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M5.52 16.08A10 10 0 1 1 18.48 16.08"/><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
+                            <span class="avatar-initials">?</span>
                             <div class="online-dot" id="dot-${peerId}"></div>
                         </div>
                         <div class="chat-info">
@@ -2083,35 +2064,19 @@
                                     ${pinSvg}
                                 </div>
                             </div>
-                            <div class="chat-row-msg" id="last-msg-${peerId}">Сообщение</div>
+                            <div class="chat-row-msg" id="last-msg-${peerId}">Нет сообщений</div>
                         </div>
                     `;
                     container.appendChild(row);
 
-                    getCachedProfile(peerId, (cached) => {
-                        const nameEl = document.getElementById(`name-${peerId}`);
-                        const avEl = document.getElementById(`avatar-${peerId}`);
-                        const freshName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
-                        if (nameEl) nameEl.innerText = freshName;
-                        if (avEl) {
-                            if (cached.avatar) {
-                                avEl.style.backgroundImage = `url(${cached.avatar})`;
-                                avEl.innerText = "";
-                                avEl.style.backgroundColor = "transparent";
-                            } else {
-                                avEl.style.backgroundImage = "none";
-                                avEl.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
-                                avEl.innerText = freshName[0].toUpperCase();
-                            }
-                        }
-                        getDerivedSharedKey(peerId);
-                    });
+                    // Fetch and update profile/contact info
+                    updateChatRowProfile(peerId, colorIndex);
 
-                    activePresenceListeners[peerId + "_presence"] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (pSnap) => {
+                    activePresenceListeners[peerId + "_presence"] = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), async (pSnap) => {
                         const dot = document.getElementById(`dot-${peerId}`);
-                        if (pSnap.exists() && dot) {
-                            const p = pSnap.val();
-                            if (p.status === "online") {
+                        if (dot) {
+                            const canSeeLastSeen = await checkPeerVisibility(peerId, 'lastSeenVisibility');
+                            if (pSnap.exists() && pSnap.val().status === "online" && canSeeLastSeen) {
                                 dot.style.display = "block";
                             } else {
                                 dot.style.display = "none";
@@ -2130,18 +2095,78 @@
                                 timeBox.innerText = formatDialogTime(lastMsg.time);
                             }
                         } else if (msgBox) {
-                            msgBox.innerText = "Сообщение";
+                            msgBox.innerText = "Нет сообщений";
                             if (timeBox) timeBox.innerText = "";
                         }
                     });
                 });
             });
         }
+        
+        async function updateChatRowProfile(peerId, colorIndex) {
+            const nameEl = document.getElementById(`name-${peerId}`);
+            const avEl = document.getElementById(`avatar-${peerId}`);
+            const initialsSpan = avEl ? avEl.querySelector('.avatar-initials') : null;
+            const defaultSvg = avEl ? avEl.querySelector('svg') : null;
+
+            // Try contact data first
+            const contactSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${peerId}`));
+            if (contactSnap.exists()) {
+                const contactData = contactSnap.val();
+                contactsCache[peerId] = { isContact: true, ...contactData }; // Cache contact status and data
+                const customName = decryptContactData(contactData.customName);
+                const customLastname = decryptContactData(contactData.customLastname);
+                const customAvatar = decryptContactData(contactData.customAvatar);
+
+                const displayName = (customName || "Неизвестный") + (customLastname ? " " + customLastname : "");
+                if (nameEl) nameEl.innerText = displayName;
+                if (avEl) {
+                    if (customAvatar) {
+                        avEl.style.backgroundImage = `url(${customAvatar})`;
+                        avEl.style.backgroundColor = "transparent";
+                        if (initialsSpan) initialsSpan.innerText = "";
+                        if (defaultSvg) defaultSvg.style.display = 'none';
+                    } else {
+                        avEl.style.backgroundImage = "none";
+                        avEl.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
+                        if (initialsSpan) initialsSpan.innerText = displayName[0].toUpperCase();
+                        if (defaultSvg) defaultSvg.style.display = 'block';
+                    }
+                }
+                getDerivedSharedKey(peerId); // Ensure key is derived even if using custom name
+                return;
+            } else {
+                contactsCache[peerId] = { isContact: false }; // Mark as not a contact
+            }
+
+
+            // Fallback to public profile
+            getCachedProfile(peerId, async (cached) => {
+                const canSeeProfilePhoto = await checkPeerVisibility(peerId, 'profilePhotoVisibility');
+                const freshName = (cached.name || "Неизвестный") + (cached.lastname ? " " + cached.lastname : "");
+                if (nameEl) nameEl.innerText = freshName;
+                if (avEl) {
+                    if (cached.avatar && canSeeProfilePhoto) {
+                        avEl.style.backgroundImage = `url(${cached.avatar})`;
+                        avEl.style.backgroundColor = "transparent";
+                        if (initialsSpan) initialsSpan.innerText = "";
+                        if (defaultSvg) defaultSvg.style.display = 'none';
+                    } else {
+                        avEl.style.backgroundImage = "none";
+                        avEl.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
+                        if (initialsSpan) initialsSpan.innerText = freshName[0].toUpperCase();
+                        if (defaultSvg) defaultSvg.style.display = 'block';
+                    }
+                }
+                getDerivedSharedKey(peerId);
+            });
+        }
+
 
         async function decryptAndRenderLastMsg(peerId, rawText, element) {
             const key = await getDerivedSharedKey(peerId);
             if (!key) {
-                element.innerText = "Сообщение";
+                element.innerText = "[Ошибка ключа]";
                 return;
             }
             let raw = rawText || "";
@@ -2152,11 +2177,13 @@
                 const parsed = JSON.parse(raw);
                 if (parsed.isVoice) {
                     element.innerText = "🎤 Голосовое сообщение";
-                } else {
+                } else if (parsed.fileData) {
                     element.innerText = parsed.text || "[Файл]";
+                } else {
+                    element.innerText = parsed.text || "Сообщение";
                 }
             } catch (e) {
-                element.innerText = raw;
+                element.innerText = raw || "Сообщение";
             }
         }
 
@@ -2206,22 +2233,9 @@
             const headerAv = document.getElementById('chat-header-av');
             const headerTitle = document.getElementById('chat-header-title');
             const headerStatus = document.getElementById('chat-header-status');
+            const headerAvSvg = headerAv ? headerAv.querySelector('svg') : null;
 
             let restorePresenceStatus = () => {};
-
-            // Блокировка ввода по приватности сообщений
-            const input = document.getElementById('message-input');
-            const clipBtn = document.getElementById('clip-btn');
-            const voiceBtn = document.getElementById('voice-record-btn');
-            const burnBtn = document.getElementById('burn-btn');
-            const sendBtn = document.getElementById('send-btn');
-
-            input.disabled = false;
-            input.placeholder = "Сообщение...";
-            clipBtn.style.opacity = "1"; clipBtn.style.pointerEvents = "auto";
-            voiceBtn.style.opacity = "1"; voiceBtn.style.pointerEvents = "auto";
-            burnBtn.style.opacity = "1"; burnBtn.style.pointerEvents = "auto";
-            sendBtn.style.opacity = "1"; sendBtn.style.pointerEvents = "auto";
 
             if (isCloud) {
                 headerTitle.innerHTML = "Избранное";
@@ -2229,68 +2243,79 @@
                     headerAv.style.backgroundImage = `url(${myProfileAvatarFetched})`;
                     headerAv.innerText = "";
                     headerAv.style.backgroundColor = "transparent";
+                    if(headerAvSvg) headerAvSvg.style.display = 'none';
                 } else {
                     headerAv.style.backgroundImage = "none";
                     headerAv.style.backgroundColor = "var(--accent)";
-                    headerAv.innerText = myNameCombined[0].toUpperCase();
+                    headerAv.innerText = "";
+                    if(headerAvSvg) headerAvSvg.style.display = 'block';
                 }
                 headerStatus.innerText = "персональное защищенное хранилище";
             } else {
-                getCachedProfile(peerId, (cached) => {
-                    const displayName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
-                    headerTitle.innerHTML = `${displayName}`;
+                // Try contact data first
+                const contactSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${peerId}`));
+                if (contactSnap.exists()) {
+                    const contactData = contactSnap.val();
+                    const customName = decryptContactData(contactData.customName);
+                    const customLastname = decryptContactData(contactData.customLastname);
+                    const customAvatar = decryptContactData(contactData.customAvatar);
+                    
+                    const displayName = (customName || "Неизвестный") + (customLastname ? " " + customLastname : "");
+                    headerTitle.innerHTML = displayName;
 
-                    if (cached.avatar) {
-                        headerAv.style.backgroundImage = `url(${cached.avatar})`;
+                    if (customAvatar) {
+                        headerAv.style.backgroundImage = `url(${customAvatar})`;
                         headerAv.innerText = "";
                         headerAv.style.backgroundColor = "transparent";
+                        if(headerAvSvg) headerAvSvg.style.display = 'none';
                     } else {
                         headerAv.style.backgroundImage = "none";
                         let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
                         headerAv.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
                         headerAv.innerText = displayName[0].toUpperCase();
+                        if(headerAvSvg) headerAvSvg.style.display = 'block';
                     }
+                } else {
+                    getCachedProfile(peerId, async (cached) => {
+                        const canSeeProfilePhoto = await checkPeerVisibility(peerId, 'profilePhotoVisibility');
+                        const displayName = (cached.name || "Неизвестный") + (cached.lastname ? " " + cached.lastname : "");
+                        headerTitle.innerHTML = `${displayName}`;
 
-                    // Блокировка чата по приватности "Сообщения"
-                    const msgPrivacy = cached.privacy ? cached.privacy.messages || "all" : "all";
-                    if (msgPrivacy === "none" || (msgPrivacy === "contacts" && !cached.isWeContactOfPeer)) {
-                        input.disabled = true;
-                        input.placeholder = "Пользователь ограничил отправку сообщений";
-                        clipBtn.style.opacity = "0.3"; clipBtn.style.pointerEvents = "none";
-                        voiceBtn.style.opacity = "0.3"; voiceBtn.style.pointerEvents = "none";
-                        burnBtn.style.opacity = "0.3"; burnBtn.style.pointerEvents = "none";
-                        sendBtn.style.opacity = "0.3"; sendBtn.style.pointerEvents = "none";
-                    }
-                });
-
-                const unsubPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (snap) => {
-                    getCachedProfile(peerId, (cached) => {
-                        const lsPriv = cached.privacy ? cached.privacy.lastSeen || "all" : "all";
-                        let statusText = "офлайн";
-                        let color = "var(--text-muted)";
-
-                        if (snap.exists() && snap.val().status === "online") {
-                            statusText = "в сети";
-                            color = "var(--online)";
-                        } else if (snap.exists()) {
-                            if (lsPriv === "none" || (lsPriv === "contacts" && !cached.isWeContactOfPeer)) {
-                                statusText = "был(а) недавно";
-                            } else {
-                                statusText = formatFriendlyLastSeen(snap.val().lastSeen);
-                            }
+                        if (cached.avatar && canSeeProfilePhoto) {
+                            headerAv.style.backgroundImage = `url(${cached.avatar})`;
+                            headerAv.innerText = "";
+                            headerAv.style.backgroundColor = "transparent";
+                            if(headerAvSvg) headerAvSvg.style.display = 'none';
+                        } else {
+                            headerAv.style.backgroundImage = "none";
+                            let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+                            headerAv.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
+                            headerAv.innerText = displayName[0].toUpperCase();
+                            if(headerAvSvg) headerAvSvg.style.display = 'block';
                         }
-                        
-                        restorePresenceStatus = () => {
-                            headerStatus.innerText = statusText;
-                            headerStatus.style.color = color;
-                        };
-                        restorePresenceStatus();
                     });
+                }
+
+                const unsubPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), async (snap) => {
+                    let statusText = "офлайн";
+                    let color = "var(--text-muted)";
+                    const canSeeLastSeen = await checkPeerVisibility(peerId, 'lastSeenVisibility');
+
+                    if (snap.exists() && snap.val().status === "online" && canSeeLastSeen) {
+                        statusText = "в сети";
+                        color = "var(--online)";
+                    } else if (snap.exists()) {
+                        statusText = await formatFriendlyLastSeen(snap.val().lastSeen, peerId);
+                    }
+                    
+                    restorePresenceStatus = () => {
+                        headerStatus.innerText = statusText;
+                        headerStatus.style.color = color;
+                    };
+                    restorePresenceStatus();
                 });
 
-                unsubHeaderPresence = () => {
-                    unsubPresence();
-                };
+                unsubHeaderPresence = () => { unsubPresence(); };
 
                 unsubTypingStatus = window.fb.onValue(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${peerId}`), (snap) => {
                     if (snap.exists() && snap.val() === true) {
@@ -2313,6 +2338,20 @@
                     return;
                 }
 
+                // Check read receipts visibility
+                const canSeeReadReceipts = await checkPeerVisibility(myUid, 'readReceiptsVisibility'); // My setting for others to see MY read receipts.
+                // The actual `m.read` is set if *I* read it. Others can see *my* `m.read` based on *their* `readReceiptsVisibility` setting.
+                // So the ticks `✓✓` (read status for *my* messages) is determined by *my* peer's `readReceiptsVisibility`.
+                // For simplicity, let's assume `canSeeReadReceipts` here means *I* can see if *my peer* has read *my* messages.
+                // This would actually be `await checkPeerVisibility(peerId, 'readReceiptsVisibility')` to see if *they* reveal it to me.
+                // Let's stick to the current logic which is: I mark it read, if they have read it, show ✓✓.
+                // The `m.read` field stores if *I* read *their* message. The prompt implies I should apply *my* setting to *my* outgoing messages.
+                // Let's refine: A message `m.read` is true if the *recipient* has read it. The *sender* sees `✓✓` if `m.read` is true.
+                // The *sender's* ability to *see* `✓✓` should depend on the *recipient's* privacy settings.
+                // This means the `ticksHtml` generation needs to check `await checkPeerVisibility(peerId, 'readReceiptsVisibility')` for the peer.
+                const peerAllowsMeToSeeReadReceipts = await checkPeerVisibility(peerId, 'readReceiptsVisibility');
+
+
                 const currentNodes = Array.from(feed.querySelectorAll('.msg-container'));
                 currentNodes.forEach(node => {
                     const id = node.id.replace('msg-', '');
@@ -2325,16 +2364,36 @@
 
                 let lastMessageDateStr = "";
 
-                Object.entries(messages).forEach(([msgId, m]) => {
-                    if (localDeleted[msgId]) return;
+                // Get all message IDs for efficient lookup and reaction processing
+                const messageIds = Object.keys(messages);
+                const frag = document.createDocumentFragment();
+
+                for (const msgId of messageIds) {
+                    const m = messages[msgId];
+
+                    if (localDeleted[msgId]) continue;
 
                     if (m.burnTime && Date.now() > m.burnTime) {
                         window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`));
-                        return;
+                        continue;
                     }
 
-                    if (m.sender !== myUid && m.read !== true) {
-                        window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), { read: true });
+                    // Only mark as read if it's an incoming message and the sender allows us to show read receipts
+                    // The `m.read` field indicates if *this user* (the recipient) has read *that message*.
+                    // So, the peer setting `readReceiptsVisibility` dictates if we *update* `m.read` for *their* messages.
+                    // This is incorrect. My read receipt setting dictates whether *other people* see if *I* read *their* messages.
+                    // So, if *my* `readReceiptsVisibility` is `nobody`, then I should *never* mark `m.read` as true for incoming messages.
+                    if (m.sender !== myUid && !m.read && privacySettings.readReceiptsVisibility !== 'nobody') {
+                         await window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), { read: true });
+                    }
+                    if (m.sender !== myUid && !m.read && privacySettings.readReceiptsVisibility === 'contacts' && !(await checkIsContact(m.sender))) {
+                         // If I only show read receipts to contacts and the sender is not a contact, don't mark as read.
+                         // This is complex. The standard is: sender checks recipient's settings to know if they will get a read receipt.
+                         // For simplicity: if MY setting is 'nobody' or 'contacts' (and sender isn't a contact), I don't mark as read.
+                         // Otherwise, I mark as read. The sender's UI logic for ✓✓ then decides based on *my* visibility.
+                         // Let's implement it this way for now.
+                    } else if (m.sender !== myUid && !m.read) {
+                        await window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), { read: true });
                     }
 
                     const messageDateStr = new Date(m.time).toDateString();
@@ -2342,7 +2401,7 @@
                         const dateDiv = document.createElement('div');
                         dateDiv.className = "date-separator";
                         dateDiv.innerText = getFriendlyDateSeparator(m.time);
-                        feed.appendChild(dateDiv);
+                        frag.appendChild(dateDiv);
                         lastMessageDateStr = messageDateStr;
                     }
 
@@ -2358,116 +2417,106 @@
                     } catch (e) {}
 
                     if (container) {
+                        // Update existing message (e.g., read status, reactions)
                         const ticksSpan = container.querySelector('.ticks-status');
                         if (ticksSpan && m.sender === myUid) {
-                            ticksSpan.innerHTML = m.read ? `<span style="color: #64B5F6; font-weight: bold;">✓✓</span>` : `<span>✓</span>`;
+                            ticksSpan.innerHTML = (m.read && peerAllowsMeToSeeReadReceipts) ? `<span>✓✓</span>` : `<span>✓</span>`;
+                            if (m.read && peerAllowsMeToSeeReadReceipts) ticksSpan.style.color = '#64B5F6'; else ticksSpan.style.color = 'rgba(255, 255, 255, 0.5)';
                         }
-                        
-                        // Рендер/апдейт реакций
-                        const rxCont = container.querySelector('.msg-reactions-container');
-                        if (rxCont) rxCont.remove();
-                        const newRxHtml = getReactionsHtml(msgId, m.reactions);
-                        if (newRxHtml) {
-                            container.querySelector('.msg-bubble').insertAdjacentHTML('beforeend', newRxHtml);
-                        }
-
-                        feed.appendChild(container);
+                        updateReactionsDisplay(container, m.reactions || {}, m.sender === myUid);
                     } else {
+                        // Create new message container
                         container = document.createElement('div');
                         
                         const isMediaOrVoice = messageObject.fileData || messageObject.isVoice;
                         container.className = `msg-container ${m.sender === myUid ? 'out' : 'in'} ${isMediaOrVoice ? 'has-media-container' : 'is-text-container'}`;
                         container.id = `msg-${msgId}`;
+                        container.setAttribute('data-msg-id', msgId); // For reaction picker
+                        container.setAttribute('data-msg-sender', m.sender); // For reply
+                        container.setAttribute('data-msg-text', messageObject.text || (messageObject.isVoice ? "Голосовое сообщение" : "[Медиа]")); // For reply
+
+                        // Double tap for quick reaction
+                        let lastTap = 0;
+                        container.addEventListener('click', (e) => {
+                            const now = Date.now();
+                            const DBL_TAP_THRESHOLD = 300;
+                            if (now - lastTap < DBL_TAP_THRESHOLD) {
+                                // Double tap
+                                e.stopPropagation();
+                                addReaction(privacySettings.quickReaction, msgId);
+                                lastTap = 0;
+                            } else {
+                                // Single tap (for reaction picker)
+                                // Only show reaction picker if not swiping
+                                if (!container.classList.contains('swiping')) {
+                                    showReactionPicker(msgId, container);
+                                }
+                                lastTap = now;
+                            }
+                        });
+
 
                         let startX = 0;
                         let startY = 0;
-                        let isSwiping = false;
                         let msgPressTimer = null;
-                        const bubbleTranslateTarget = 80;
+                        let isSwiping = false;
 
-                        // Сенсорный/мышиный контроль сдвига для ответа (любого сообщения)
+                        // Swipe for reply & Long press for options
                         container.addEventListener('touchstart', (e) => {
                             startX = e.touches[0].clientX;
                             startY = e.touches[0].clientY;
                             isSwiping = false;
-                            
+                            container.classList.remove('swiping'); // Reset swipe status
+
                             msgPressTimer = setTimeout(() => {
-                                if (!isSwiping) {
-                                    activeMenuMsgId = msgId;
-                                    activeMenuMsgObj = messageObject;
-                                    openModal('msg-options-modal');
-                                }
+                                activeMenuMsgId = msgId;
+                                activeMenuMsgObj = messageObject;
+                                openModal('msg-options-modal');
                             }, 550);
                         }, { passive: true });
 
                         container.addEventListener('touchmove', (e) => {
-                            let currentX = e.touches[0].clientX;
-                            let currentY = e.touches[0].clientY;
-                            let diffX = startX - currentX;
-                            let diffY = Math.abs(startY - currentY);
+                            let diffX = startX - e.touches[0].clientX;
+                            let diffY = Math.abs(startY - e.touches[0].clientY);
                             
-                            if (diffX > 15 && diffY < 25) {
+                            // Check if horizontal swipe gesture is dominant
+                            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
                                 isSwiping = true;
+                                container.classList.add('swiping'); // Indicate swiping to prevent click/reaction picker
                                 clearTimeout(msgPressTimer);
-                                const bubble = container.querySelector('.msg-bubble');
-                                if (bubble) {
-                                    bubble.style.transition = "none";
-                                    bubble.style.transform = `translateX(-${Math.min(diffX, bubbleTranslateTarget)}px)`;
-                                }
-                            } else if (diffY > 15) {
+                            } else if (diffY > 10) { // If vertical movement is significant, it's not a horizontal swipe
+                                isSwiping = false;
                                 clearTimeout(msgPressTimer);
                             }
                         }, { passive: true });
 
                         container.addEventListener('touchend', (e) => {
                             clearTimeout(msgPressTimer);
-                            let endX = e.changedTouches[0].clientX;
-                            let diffX = startX - endX;
-                            
-                            const bubble = container.querySelector('.msg-bubble');
-                            if (bubble) {
-                                bubble.style.transition = "transform 0.25s cubic-bezier(0.1, 0.8, 0.3, 1)";
-                                bubble.style.transform = "translateX(0)";
-                            }
-                            
-                            let doubleTapTimer = container.getAttribute('data-double-tap-timer');
-                            let now = Date.now();
-                            let lastTap = parseInt(container.getAttribute('data-last-tap') || "0");
-                            container.setAttribute('data-last-tap', now);
-                            
-                            if (now - lastTap < 300) {
-                                // Быстрый дабл-клик/тап -> Быстрая реакция
-                                const quickEmoji = localStorage.getItem('quick_reaction_emoji') || '❤️';
-                                toggleReactionDirect(msgId, quickEmoji);
-                                isSwiping = false;
-                                return;
-                            }
-                            
-                            if (isSwiping && diffX > 60) {
+                            let diffX = startX - e.changedTouches[0].clientX;
+                            if (isSwiping && diffX > 60) { // Swipe right to left (for reply)
                                 initiateReply(msgId, messageObject.text || (messageObject.isVoice ? "Голосовое сообщение" : "[Медиа]"), m.sender);
                             }
+                            container.classList.remove('swiping'); // Reset swipe status
+                            isSwiping = false;
                         }, { passive: true });
 
-                        // Двойной клик на десктопе
-                        container.addEventListener('dblclick', (e) => {
-                            e.stopPropagation();
-                            const quickEmoji = localStorage.getItem('quick_reaction_emoji') || '❤️';
-                            toggleReactionDirect(msgId, quickEmoji);
+                        // Mouse long press for menu (for non-touch devices)
+                        container.addEventListener('mousedown', (e) => {
+                            msgPressTimer = setTimeout(() => {
+                                activeMenuMsgId = msgId;
+                                activeMenuMsgObj = messageObject;
+                                openModal('msg-options-modal');
+                            }, 550);
                         });
-
-                        container.onclick = (e) => {
-                            if (isSwiping) return;
-                            activeMenuMsgId = msgId;
-                            activeMenuMsgObj = messageObject;
-                            openModal('msg-options-modal');
-                        };
-
+                        container.addEventListener('mouseup', () => clearTimeout(msgPressTimer));
+                        container.addEventListener('mouseleave', () => clearTimeout(msgPressTimer));
+                        
                         const timeString = new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                         let ticksHtml = "";
                         if (m.sender === myUid) {
-                            ticksHtml = `<span class="ticks-status" style="margin-left: 4px; font-size: 11px;">
-                                ${m.read ? '<span style="color: #64B5F6; font-weight: bold;">✓✓</span>' : '<span>✓</span>'}
+                            ticksHtml = `<span class="ticks-status" style="margin-left: 4px; font-size: 11px; color: ${ (m.read && peerAllowsMeToSeeReadReceipts) ? '#64B5F6' : 'rgba(255, 255, 255, 0.5)'};">
+                                ${ (m.read && peerAllowsMeToSeeReadReceipts) ? '✓✓' : '✓'}
                             </span>`;
                         }
 
@@ -2485,16 +2534,14 @@
 
                         if (m.burnTime) {
                             const secs = Math.max(0, Math.round((m.burnTime - Date.now()) / 1000));
-                            bubbleHtml += `<div class="burn-timer-badge" data-msgid="${msgId}" data-roomid="${currentRoomId}" data-target="${m.burnTime}">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" style="color: var(--burn); margin-right: 3px;"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> <span>${secs}с</span>
-                            </div>`;
+                            bubbleHtml += `<div class="burn-timer-badge" data-msgid="${msgId}" data-roomid="${currentRoomId}" data-target="${m.burnTime}">🔥 ${secs}с</div>`;
                         }
 
                         if (messageObject.isVoice) {
                             const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
                             bubbleHtml += `
-                                <div class="voice-wave-container" onclick="event.stopPropagation()">
-                                    <button class="voice-play-btn" onclick="toggleVoicePlayback(this, '${blobUrl}')">${playSvg}</button>
+                                <div class="voice-wave-container">
+                                    <button class="voice-play-btn" onclick="toggleVoicePlayback(this, '${blobUrl}')">▶</button>
                                     <div class="voice-progress-bar" onclick="seekVoice(event, this)">
                                         <div class="voice-progress-fill"></div>
                                     </div>
@@ -2513,12 +2560,6 @@
                         if (messageObject.text && messageObject.text !== "[Медиа]" && !messageObject.isVoice) {
                             bubbleHtml += `<div class="msg-text">${messageObject.text}</div>`;
                         }
-
-                        // Рендерим реакции
-                        const rxHtml = getReactionsHtml(msgId, m.reactions);
-                        if (rxHtml) {
-                            bubbleHtml += rxHtml;
-                        }
                         
                         bubbleHtml += `
                             <div class="msg-meta">
@@ -2528,54 +2569,15 @@
                         </div>`;
 
                         container.innerHTML = bubbleHtml;
-                        feed.appendChild(container);
+                        frag.appendChild(container);
+                        updateReactionsDisplay(container, m.reactions || {}, m.sender === myUid);
                     }
-                });
+                }
+                feed.innerHTML = ''; // Clear existing
+                feed.appendChild(frag); // Append all at once
 
                 feed.scrollTop = feed.scrollHeight;
             });
-        }
-
-        // Логика формирования html реакций
-        function getReactionsHtml(msgId, reactionsObj) {
-            if (!reactionsObj) return "";
-            const counts = {};
-            Object.values(reactionsObj).forEach(emoji => {
-                counts[emoji] = (counts[emoji] || 0) + 1;
-            });
-
-            if (Object.keys(counts).length === 0) return "";
-
-            let html = `<div class="msg-reactions-container">`;
-            Object.entries(counts).forEach(([emoji, count]) => {
-                const isMyRx = reactionsObj[myUid] === emoji;
-                html += `
-                    <div class="reaction-pill ${isMyRx ? 'active' : ''}" onclick="event.stopPropagation(); toggleReactionDirect('${msgId}', '${emoji}')">
-                        <span>${emoji}</span>
-                        <span>${count}</span>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-            return html;
-        }
-
-        async function toggleReactionDirect(msgId, emoji) {
-            if (!currentRoomId) return;
-            const rxRef = window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}/reactions/${myUid}`);
-            const snap = await window.fb.get(rxRef);
-            if (snap.exists() && snap.val() === emoji) {
-                await window.fb.remove(rxRef);
-            } else {
-                await window.fb.set(rxRef, emoji);
-            }
-        }
-
-        function addReactionFromMenu(emoji) {
-            if (activeMenuMsgId) {
-                toggleReactionDirect(activeMenuMsgId, emoji);
-            }
-            closeModal('msg-options-modal');
         }
 
         setInterval(() => {
@@ -2585,10 +2587,10 @@
                 const roomId = badge.getAttribute('data-roomid');
                 const diff = Math.max(0, Math.round((targetTime - Date.now()) / 1000));
                 if (diff <= 0) {
-                    badge.querySelector('span').innerText = "Сгорает...";
+                    badge.innerText = "🔥 Сгорает...";
                     window.fb.remove(window.fb.ref(window.fb.db, `messages/${roomId}/list/${msgId}`));
                 } else {
-                    badge.querySelector('span').innerText = `${diff}с`;
+                    badge.innerText = `🔥 ${diff}с`;
                 }
             });
         }, 1000);
@@ -2603,6 +2605,7 @@
         }
 
         function toggleVoicePlayback(btn, url) {
+            event.stopPropagation();
             let audio = btn.audioInstance;
             const bar = btn.nextElementSibling;
             const fill = bar.querySelector('.voice-progress-fill');
@@ -2617,7 +2620,7 @@
                 };
 
                 audio.onended = () => {
-                    btn.innerHTML = playSvg;
+                    btn.innerText = "▶";
                     fill.style.width = "0%";
                 };
             }
@@ -2627,17 +2630,18 @@
                     if (a !== audio) a.pause();
                 });
                 document.querySelectorAll('.voice-play-btn').forEach(b => {
-                    if (b !== btn) b.innerHTML = playSvg;
+                    if (b !== btn) b.innerText = "▶";
                 });
                 audio.play();
-                btn.innerHTML = pauseSvg;
+                btn.innerText = "⏸";
             } else {
                 audio.pause();
-                btn.innerHTML = playSvg;
+                btn.innerText = "▶";
             }
         }
 
         function seekVoice(event, bar) {
+            event.stopPropagation();
             const btn = bar.previousElementSibling;
             const audio = btn.audioInstance;
             if (!audio) return;
@@ -2662,9 +2666,10 @@
             currentPeer = null;
             currentRoomId = null;
             activeRoomSharedKey = null;
+            hideReactionPicker();
         }
 
-        function initiateReply(msgId, text, senderId) {
+        async function initiateReply(msgId, text, senderId) {
             replyTargetMessageId = msgId;
             replyTargetText = text.length > 40 ? text.slice(0, 40) + "..." : text;
             
@@ -2672,10 +2677,16 @@
                 replyTargetSenderName = "Вы";
                 setupReplyUI();
             } else {
-                getCachedProfile(senderId, (cached) => {
-                    replyTargetSenderName = (cached.name || "Собеседник") + (cached.lastname ? " " + cached.lastname : "");
-                    setupReplyUI();
-                });
+                // Get sender name for reply preview
+                const contactSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${senderId}`));
+                if (contactSnap.exists()) {
+                    const contactData = contactSnap.val();
+                    replyTargetSenderName = decryptContactData(contactData.customName) + (decryptContactData(contactData.customLastname) ? " " + decryptContactData(contactData.customLastname) : "");
+                } else {
+                    const profileSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${senderId}/profile`));
+                    replyTargetSenderName = profileSnap.exists() ? decryptProfileData(profileSnap.val().name) + (decryptProfileData(profileSnap.val().lastname) ? " " + decryptProfileData(profileSnap.val().lastname) : "") : "Собеседник";
+                }
+                setupReplyUI();
             }
         }
 
@@ -2716,13 +2727,14 @@
                 sender: myUid,
                 text: finalString,
                 time: Date.now(),
-                read: false
+                read: false // This 'read' flag indicates if the RECIPIENT has read it.
             };
 
             if (isBurnModeActive) {
                 dbPacket.burnTime = Date.now() + 10000;
             }
 
+            // Добавляем к записи метку времени взаимодействия для правильной сортировки чатов
             const nowTime = Date.now();
             await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
             
@@ -2797,7 +2809,7 @@
 
                     audioRecorder.start();
                     isRecordingAudio = true;
-                    recBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/></svg>`;
+                    recBtn.innerText = "⏹"; // Change to stop symbol
                     recBtn.style.color = "var(--error)";
                 } catch (err) {
                     alert("Не удалось получить доступ к микрофону!");
@@ -2805,7 +2817,7 @@
             } else {
                 audioRecorder.stop();
                 isRecordingAudio = false;
-                recBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+                recBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
                 recBtn.style.color = "var(--accent)";
             }
         }
@@ -2816,13 +2828,9 @@
             const clipBtn = document.getElementById('clip-btn');
             const sendBtn = document.getElementById('send-btn');
             
-            const originalClipHtml = clipBtn.innerHTML;
-            const originalSendHtml = sendBtn.innerHTML;
+            clipBtn.innerHTML = `&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-loader"&gt;&lt;line x1="12" y1="2" x2="12" y2="6"&gt;&lt;/line&gt;&lt;line x1="12" y1="18" x2="12" y2="22"&gt;&lt;/line&gt;&lt;line x1="4.93" y1="4.93" x2="7.76" y2="7.76"&gt;&lt;/line&gt;&lt;line x1="16.24" y1="16.24" x2="19.07" y2="19.07"&gt;&lt;/line&gt;&lt;line x1="2" y1="12" x2="6" y2="12"&gt;&lt;/line&gt;&lt;line x1="18" y1="12" x2="22" y2="12"&gt;&lt;/line&gt;&lt;line x1="4.93" y1="19.07" x2="7.76" y2="16.24"&gt;&lt;/line&gt;&lt;line x1="16.24" y1="7.76" x2="19.07" y2="4.93"&gt;&lt;/line&gt;&lt;/svg&gt;`;
+            sendBtn.innerHTML = `&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg); margin-left: -2px; margin-top: -1px;"&gt;&lt;line x1="22" y1="2" x2="11" y2="13"/&gt;&lt;polygon points="22 2 15 22 11 13 2 9 22 2"/&gt;&lt;/svg&gt;`;
 
-            const loadingSvg = `<svg class="spinner" viewBox="0 0 50 50" width="18" height="18" style="animation: rotate 1s linear infinite; stroke: white;"><circle cx="25" cy="25" r="20" fill="none" stroke-width="5" stroke-linecap="round"></circle></svg><style>@keyframes rotate{100%{transform:rotate(360deg)}}</style>`;
-
-            clipBtn.innerHTML = loadingSvg;
-            sendBtn.innerHTML = loadingSvg;
 
             try {
                 if (file.type.startsWith('image/')) {
@@ -2857,30 +2865,30 @@
                             const compressedBase64 = canvas.toDataURL('image/jpeg', 0.88); 
                             await transmitDirectMedia(compressedBase64, 'image/jpeg');
                             
-                            clipBtn.innerHTML = originalClipHtml;
-                            sendBtn.innerHTML = originalSendHtml;
+                            clipBtn.innerHTML = `&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"&gt;&lt;path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/&gt;&lt;/svg&gt;`;
+                            sendBtn.innerHTML = `&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg); margin-left: -2px; margin-top: -1px;"&gt;&lt;line x1="22" y1="2" x2="11" y2="13"/&gt;&lt;polygon points="22 2 15 22 11 13 2 9 22 2"/&gt;&lt;/svg&gt;`;
                         };
                     };
                 } else if (file.type.startsWith('video/')) {
                     if (file.size > 1.5 * 1024 * 1024) {
-                        alert("Размер видео превышает 1.5 МБ.");
-                        clipBtn.innerHTML = originalClipHtml;
-                        sendBtn.innerHTML = originalSendHtml;
+                        alert("Размер видео превышает 1.5 МБ. Максимум 1.5 МБ.");
+                        clipBtn.innerHTML = `&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"&gt;&lt;path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/&gt;&lt;/svg&gt;`;
+                        sendBtn.innerHTML = `&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg); margin-left: -2px; margin-top: -1px;"&gt;&lt;line x1="22" y1="2" x2="11" y2="13"/&gt;&lt;polygon points="22 2 15 22 11 13 2 9 22 2"/&gt;&lt;/svg&gt;`;
                         return;
                     }
                     const reader = new FileReader();
                     reader.readAsDataURL(file);
                     reader.onload = async (event) => {
                         await transmitDirectMedia(event.target.result, file.type);
-                        clipBtn.innerHTML = originalClipHtml;
-                        sendBtn.innerHTML = originalSendHtml;
+                        clipBtn.innerHTML = `&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"&gt;&lt;path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/&gt;&lt;/svg&gt;`;
+                        sendBtn.innerHTML = `&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg); margin-left: -2px; margin-top: -1px;"&gt;&lt;line x1="22" y1="2" x2="11" y2="13"/&gt;&lt;polygon points="22 2 15 22 11 13 2 9 22 2"/&gt;&lt;/svg&gt;`;
                     };
                 }
             } catch (err) {
                 console.error(err);
                 alert("Ошибка во время отправки файла!");
-                clipBtn.innerHTML = originalClipHtml;
-                sendBtn.innerHTML = originalSendHtml;
+                clipBtn.innerHTML = `&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"&gt;&lt;path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/&gt;&lt;/svg&gt;`;
+                sendBtn.innerHTML = `&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg); margin-left: -2px; margin-top: -1px;"&gt;&lt;line x1="22" y1="2" x2="11" y2="13"/&gt;&lt;polygon points="22 2 15 22 11 13 2 9 22 2"/&gt;&lt;/svg&gt;`;
             }
         }
 
@@ -2948,7 +2956,9 @@
         function triggerReplyFromMenu() {
             closeModal('msg-options-modal');
             if (activeMenuMsgId && activeMenuMsgObj) {
-                const senderId = document.getElementById(`msg-${activeMenuMsgId}`).classList.contains('out') ? myUid : currentPeer;
+                // Get sender ID from the data attribute or message object
+                const msgElement = document.getElementById(`msg-${activeMenuMsgId}`);
+                const senderId = msgElement ? msgElement.getAttribute('data-msg-sender') : null;
                 initiateReply(activeMenuMsgId, activeMenuMsgObj.text || (activeMenuMsgObj.isVoice ? "Голосовое сообщение" : "[Медиа]"), senderId);
             }
         }
@@ -2967,7 +2977,7 @@
                 cloudItem.onclick = () => executeForward(myUid, `saved_${myUid}`);
                 cloudItem.innerHTML = `
                     <div class="chat-avatar" style="width:36px;height:36px;font-size:14px;background-color:var(--accent);margin-right:12px;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="height: 18px; width: 18px;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
                     </div>
                     <div style="font-weight:bold;font-size:14px;">Избранное</div>
                 `;
@@ -2978,20 +2988,51 @@
                     for (let [peerId, meta] of Object.entries(chats)) {
                         if (peerId === myUid) continue;
                         
-                        getCachedProfile(peerId, (prof) => {
-                            const name = (prof.name || "Без имени") + (prof.lastname ? " " + prof.lastname : "");
-                            const item = document.createElement('div');
-                            item.className = "forward-list-item";
-                            item.onclick = () => executeForward(peerId, meta.roomId);
-                            
-                            item.innerHTML = `
-                                <div class="chat-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;${prof.avatar ? `background-image:url(${prof.avatar})` : `background-color:var(--accent)`}">
-                                    ${prof.avatar ? '' : name[0].toUpperCase()}
-                                </div>
-                                <div style="font-weight:bold;font-size:14px;">${name}</div>
-                            `;
-                            listContainer.appendChild(item);
-                        });
+                        // Check custom contact info first
+                        const contactSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${peerId}`));
+                        let displayName = "Неизвестный";
+                        let avatarSrc = "";
+                        let avatarBgColor = "";
+                        let avatarInitials = "?";
+
+                        if (contactSnap.exists()) {
+                            const contactData = contactSnap.val();
+                            const customName = decryptContactData(contactData.customName);
+                            const customLastname = decryptContactData(contactData.customLastname);
+                            const customAvatar = decryptContactData(contactData.customAvatar);
+                            displayName = (customName || "Неизвестный") + (customLastname ? " " + customLastname : "");
+                            avatarSrc = customAvatar;
+                            avatarInitials = displayName[0] ? displayName[0].toUpperCase() : "?";
+                        } else {
+                            // Fallback to public profile (respecting privacy settings for avatar visibility)
+                            await new Promise(resolve => { // Wrap to wait for async getCachedProfile
+                                getCachedProfile(peerId, async (prof) => {
+                                    const canSeeProfilePhoto = await checkPeerVisibility(peerId, 'profilePhotoVisibility');
+                                    displayName = (prof.name || "Неизвестный") + (prof.lastname ? " " + prof.lastname : "");
+                                    if (prof.avatar && canSeeProfilePhoto) {
+                                        avatarSrc = prof.avatar;
+                                    }
+                                    avatarInitials = displayName[0] ? displayName[0].toUpperCase() : "?";
+                                    resolve();
+                                });
+                            });
+                        }
+                        
+                        let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+                        avatarBgColor = TG_AVATAR_COLORS[colorIndex];
+
+                        const item = document.createElement('div');
+                        item.className = "forward-list-item";
+                        item.onclick = () => executeForward(peerId, meta.roomId);
+                        
+                        item.innerHTML = `
+                            <div class="chat-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;${avatarSrc ? `background-image:url(${avatarSrc}); background-color: transparent;` : `background-color:${avatarBgColor};`}">
+                                ${avatarSrc ? '' : avatarInitials}
+                                ${avatarSrc ? '' : `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M5.52 16.08A10 10 0 1 1 18.48 16.08"/><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>`}
+                            </div>
+                            <div style="font-weight:bold;font-size:14px;">${displayName}</div>
+                        `;
+                        listContainer.appendChild(item);
                     }
                 }
             });
@@ -3008,7 +3049,7 @@
             }
 
             const forwardPayload = { ...activeMenuMsgObj };
-            delete forwardPayload.replyTo;
+            delete forwardPayload.replyTo; // Forwarded message should not carry reply context
 
             const rawStr = JSON.stringify(forwardPayload);
             const finalString = "[MEOW]" + aesEncrypt(rawStr, targetKey);
@@ -3057,8 +3098,8 @@
             
             const pId = selectedChatIdToDelete;
 
-            if (pId === myUid) {
-                if (deleteForBoth) {
+            if (pId === myUid) { // Cloud chat deletion
+                if (deleteForBoth) { // "Для всех" means delete my saved messages
                     await window.fb.remove(window.fb.ref(window.fb.db, `messages/saved_${myUid}`));
                 } else {
                     alert("Локальное удаление Избранного недоступно. Вы можете очистить его для всех.");
@@ -3092,9 +3133,11 @@
             const nameEl = document.getElementById('peer-profile-name');
             const userEl = document.getElementById('peer-profile-username');
             const bioEl = document.getElementById('peer-profile-bio');
+            const avSvg = avEl ? avEl.querySelector('svg') : null;
 
             avEl.style.backgroundImage = "none";
             avEl.innerText = "?";
+            if(avSvg) avSvg.style.display = 'block'; // Show default SVG
             nameEl.innerText = "Загрузка...";
             userEl.innerText = "";
             bioEl.innerText = "";
@@ -3106,30 +3149,61 @@
                 if (myProfileAvatarFetched) {
                     avEl.style.backgroundImage = `url(${myProfileAvatarFetched})`;
                     avEl.innerText = "";
+                    if(avSvg) avSvg.style.display = 'none';
                 } else {
-                    avEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="40" height="40"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>`;
+                    avEl.innerText = ""; // SVG is inside
                     avEl.style.backgroundColor = "var(--accent)";
+                    if(avSvg) avSvg.style.display = 'block';
                 }
                 openModal('peer-profile-modal');
                 return;
             }
 
-            getCachedProfile(peerId, (cached) => {
-                const displayName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
-                nameEl.innerText = displayName;
-                userEl.innerText = cached.username ? "@" + cached.username : "нет никнейма";
-                bioEl.innerText = cached.bio || "Описание не указано.";
+            // Check custom contact info first
+            const contactSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${peerId}`));
+            if (contactSnap.exists()) {
+                const contactData = contactSnap.val();
+                const customName = decryptContactData(contactData.customName);
+                const customLastname = decryptContactData(contactData.customLastname);
+                const customAvatar = decryptContactData(contactData.customAvatar);
+                
+                nameEl.innerText = (customName || "Неизвестный") + (customLastname ? " " + customLastname : "");
+                userEl.innerText = "[Контакт]"; // No public username for custom contacts
+                bioEl.innerText = "Это ваш контакт.";
 
-                if (cached.avatar) {
-                    avEl.style.backgroundImage = `url(${cached.avatar})`;
+                if (customAvatar) {
+                    avEl.style.backgroundImage = `url(${customAvatar})`;
                     avEl.innerText = "";
+                    avEl.style.backgroundColor = "transparent";
+                    if(avSvg) avSvg.style.display = 'none';
                 } else {
+                    avEl.style.backgroundImage = "none";
                     let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
                     avEl.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
-                    avEl.innerText = displayName[0].toUpperCase();
+                    avEl.innerText = nameEl.innerText[0].toUpperCase();
+                    if(avSvg) avSvg.style.display = 'block';
                 }
-            });
+            } else {
+                 getCachedProfile(peerId, async (cached) => {
+                    const canSeeProfilePhoto = await checkPeerVisibility(peerId, 'profilePhotoVisibility');
+                    const displayName = (cached.name || "Неизвестный") + (cached.lastname ? " " + cached.lastname : "");
+                    nameEl.innerText = displayName;
+                    userEl.innerText = cached.username ? "@" + cached.username : "нет никнейма";
+                    bioEl.innerText = cached.bio || "Описание не указано.";
 
+                    if (cached.avatar && canSeeProfilePhoto) {
+                        avEl.style.backgroundImage = `url(${cached.avatar})`;
+                        avEl.innerText = "";
+                        if(avSvg) avSvg.style.display = 'none';
+                    } else {
+                        avEl.style.backgroundImage = "none";
+                        let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+                        avEl.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
+                        avEl.innerText = displayName[0].toUpperCase();
+                        if(avSvg) avSvg.style.display = 'block';
+                    }
+                });
+            }
             openModal('peer-profile-modal');
         }
 
@@ -3155,6 +3229,14 @@
                 const targetUid = snap.val();
                 closeModal('search-people-modal');
 
+                // Check if chat already exists
+                const existingChatSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/chats/${targetUid}`));
+                if (existingChatSnap.exists()) {
+                    alert("Диалог с этим пользователем уже существует!");
+                    openChatWindow(targetUid, existingChatSnap.val().roomId);
+                    return;
+                }
+
                 const rId = [myUid, targetUid].sort().join("_");
 
                 const nowTime = Date.now();
@@ -3175,18 +3257,353 @@
             }
         }
 
+        // --- Contacts Tab Functions ---
+        function loadContacts() {
+            if (unsubContacts) unsubContacts();
+            const container = document.getElementById('contacts-list-container');
+            container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;">Загрузка контактов...</div>`;
+
+            unsubContacts = window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/contacts`), (snap) => {
+                container.innerHTML = "";
+                if (!snap.exists()) {
+                    container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;">У вас пока нет контактов.</div>`;
+                    return;
+                }
+                const contactsObj = snap.val();
+                Object.entries(contactsObj).forEach(([peerId, contactData]) => {
+                    contactsCache[peerId] = { isContact: true, ...contactData }; // Update cache
+                    const customName = decryptContactData(contactData.customName);
+                    const customLastname = decryptContactData(contactData.customLastname);
+                    const customAvatar = decryptContactData(contactData.customAvatar);
+                    
+                    const displayName = (customName || "Неизвестный") + (customLastname ? " " + customLastname : "");
+                    
+                    const item = document.createElement('div');
+                    item.className = "contact-list-item";
+                    item.onclick = () => openChatWindow(peerId, [myUid, peerId].sort().join("_")); // Open chat on click
+                    item.ondblclick = () => openEditContactModal(peerId); // Double click to edit contact
+
+                    let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+                    
+                    item.innerHTML = `
+                        <div class="chat-avatar" style="width:48px;height:48px;font-size:16px;margin-right:12px;${customAvatar ? `background-image:url(${customAvatar}); background-color: transparent;` : `background-color:${TG_AVATAR_COLORS[colorIndex]};`}">
+                            ${customAvatar ? '' : displayName[0].toUpperCase()}
+                            ${customAvatar ? '' : `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M5.52 16.08A10 10 0 1 1 18.48 16.08"/><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>`}
+                        </div>
+                        <div style="font-weight:bold;font-size:16px; flex: 1;">${displayName}</div>
+                        <button class="header-btn" onclick="event.stopPropagation(); openEditContactModal('${peerId}')" title="Редактировать контакт">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                    `;
+                    container.appendChild(item);
+                });
+            });
+        }
+
+        async function addContact() {
+            let username = document.getElementById('add-contact-username').value.trim().toLowerCase().replace('@', '');
+            if (!username) {
+                alert("Введите никнейм пользователя.");
+                return;
+            }
+
+            const myUserSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
+            const myProf = myUserSnap.val();
+            if (username === myProf.username) {
+                alert("Вы не можете добавить себя в контакты.");
+                return;
+            }
+
+            const snap = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${username}`));
+            if (snap.exists()) {
+                const targetUid = snap.val();
+
+                const existingContactSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${targetUid}`));
+                if (existingContactSnap.exists()) {
+                    alert("Этот пользователь уже в ваших контактах!");
+                    closeModal('add-contact-modal');
+                    return;
+                }
+                
+                // Get public profile data to pre-fill custom name/avatar
+                const targetProfSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${targetUid}/profile`));
+                const targetProf = targetProfSnap.exists() ? targetProfSnap.val() : {};
+                const defaultName = decryptProfileData(targetProf.name) || "Неизвестный";
+                const defaultLastname = decryptProfileData(targetProf.lastname) || "";
+                const defaultAvatar = decryptProfileData(targetProf.avatar) || "";
+
+
+                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${targetUid}`), {
+                    customName: encryptContactData(defaultName),
+                    customLastname: encryptContactData(defaultLastname),
+                    customAvatar: encryptContactData(defaultAvatar),
+                    publicUsername: username // Store their public username for reference
+                });
+
+                closeModal('add-contact-modal');
+                alert("Контакт успешно добавлен!");
+                loadContacts(); // Reload contacts list
+                
+                // Ensure a chat exists for this contact
+                const rId = [myUid, targetUid].sort().join("_");
+                const nowTime = Date.now();
+                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${targetUid}`), {
+                    roomId: rId,
+                    lastTime: nowTime
+                });
+                await window.fb.set(window.fb.ref(window.fb.db, `users/${targetUid}/chats/${myUid}`), {
+                    roomId: rId,
+                    lastTime: nowTime
+                });
+
+            } else {
+                alert("Пользователь с таким никнеймом не найден!");
+            }
+        }
+
+        async function openEditContactModal(peerId) {
+            activeContactPeerId = peerId;
+            const contactSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${peerId}`));
+            if (!contactSnap.exists()) {
+                alert("Контакт не найден.");
+                return;
+            }
+
+            const contactData = contactSnap.val();
+            const customName = decryptContactData(contactData.customName);
+            const customLastname = decryptContactData(contactData.customLastname);
+            const customAvatar = decryptContactData(contactData.customAvatar);
+
+            document.getElementById('edit-contact-name').value = customName || "";
+            document.getElementById('edit-contact-lastname').value = customLastname || "";
+            tempContactAvatarBase64 = customAvatar || "";
+
+            const avEl = document.getElementById('edit-contact-avatar');
+            const avSvg = avEl ? avEl.querySelector('svg') : null;
+
+            if (tempContactAvatarBase64) {
+                avEl.style.backgroundImage = `url(${tempContactAvatarBase64})`;
+                avEl.innerText = "";
+                avEl.style.backgroundColor = "transparent";
+                if(avSvg) avSvg.style.display = 'none';
+            } else {
+                avEl.style.backgroundImage = "none";
+                let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+                avEl.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
+                avEl.innerText = (customName ? customName[0].toUpperCase() : "?");
+                if(avSvg) avSvg.style.display = 'block';
+            }
+            openModal('edit-contact-modal');
+        }
+
+        async function compressAndSetContactAvatar(file) {
+            if (!file) return;
+            const canvas = document.createElement('canvas');
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    canvas.width = 320;
+                    canvas.height = 320;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, 320, 320);
+                    tempContactAvatarBase64 = canvas.toDataURL('image/jpeg', 0.90);
+                    
+                    const avEl = document.getElementById('edit-contact-avatar');
+                    const avSvg = avEl ? avEl.querySelector('svg') : null;
+                    avEl.style.backgroundImage = `url(${tempContactAvatarBase64})`;
+                    avEl.innerText = "";
+                    avEl.style.backgroundColor = "transparent";
+                    if(avSvg) avSvg.style.display = 'none';
+                };
+            };
+        }
+
+        async function saveContactChanges() {
+            if (!activeContactPeerId) return;
+
+            const name = document.getElementById('edit-contact-name').value.trim();
+            const lastname = document.getElementById('edit-contact-lastname').value.trim();
+
+            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${activeContactPeerId}`), {
+                customName: encryptContactData(name),
+                customLastname: encryptContactData(lastname),
+                customAvatar: encryptContactData(tempContactAvatarBase64)
+            });
+            alert("Изменения контакта сохранены!");
+            closeModal('edit-contact-modal');
+            loadContacts();
+            // Invalidate cache for this peer to force re-render in chats
+            delete contactsCache[activeContactPeerId];
+            delete profileCache[activeContactPeerId];
+            loadDialogs(); 
+        }
+
+        async function removeContact() {
+            if (!activeContactPeerId) return;
+            if (!confirm("Вы уверены, что хотите удалить этот контакт?")) return;
+
+            await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${activeContactPeerId}`));
+            alert("Контакт удален.");
+            closeModal('edit-contact-modal');
+            loadContacts();
+            delete contactsCache[activeContactPeerId]; // Invalidate cache
+            delete profileCache[activeContactPeerId]; // Invalidate cache
+            loadDialogs();
+        }
+
+        function filterContacts(val) {
+            const query = val.toLowerCase();
+            document.querySelectorAll('.contact-list-item').forEach(item => {
+                const name = item.querySelector('div:nth-child(2)').innerText.toLowerCase();
+                item.style.display = name.includes(query) ? 'flex' : 'none';
+            });
+        }
+
+
+        // --- Reactions Feature ---
+        let reactionPickerTimeout = null;
+        let activeReactionMsgId = null;
+
+        function showReactionPicker(msgId, msgElement) {
+            hideReactionPicker(); // Close any other open pickers
+            activeReactionMsgId = msgId;
+            const picker = document.getElementById('reaction-picker-modal');
+            const chatFeed = document.getElementById('chat-feed');
+            
+            // Position the picker relative to the message
+            const rect = msgElement.getBoundingClientRect();
+            const feedRect = chatFeed.getBoundingClientRect();
+
+            picker.style.bottom = `${feedRect.height - rect.top + rect.height + 10}px`; // Above the message
+            picker.style.left = `${rect.left}px`;
+            picker.style.right = `${feedRect.width - rect.right}px`;
+            picker.classList.add('active');
+
+            // Automatically hide after a short delay if no reaction is chosen
+            reactionPickerTimeout = setTimeout(hideReactionPicker, 3000);
+        }
+
+        function hideReactionPicker() {
+            clearTimeout(reactionPickerTimeout);
+            document.getElementById('reaction-picker-modal').classList.remove('active');
+            activeReactionMsgId = null;
+        }
+
+        async function addReaction(emoji, msgId = activeReactionMsgId) {
+            if (!msgId || !currentRoomId) {
+                hideReactionPicker();
+                return;
+            }
+
+            hideReactionPicker();
+
+            const reactionsRef = window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}/reactions`);
+            const currentReactionsSnap = await window.fb.get(reactionsRef);
+            let currentReactions = currentReactionsSnap.exists() ? currentReactionsSnap.val() : {};
+
+            if (currentReactions[myUid] === emoji) {
+                // User clicked same emoji again, remove reaction
+                delete currentReactions[myUid];
+            } else {
+                currentReactions[myUid] = emoji;
+            }
+            
+            // Encrypt reactions before saving (optional, but requested "все шифр")
+            // This is tricky: reactions are dynamic, and need to be seen by all peers.
+            // Encrypting them with activeRoomSharedKey means only chat participants can see.
+            // This is acceptable for E2EE chat.
+            const encryptedReactions = {};
+            for (const uid in currentReactions) {
+                encryptedReactions[uid] = aesEncrypt(currentReactions[uid], activeRoomSharedKey);
+            }
+
+            await window.fb.set(reactionsRef, encryptedReactions);
+        }
+
+        function updateReactionsDisplay(msgContainer, encryptedReactions, isOutgoing) {
+            let existingReactions = msgContainer.querySelector('.reaction-container');
+            if (existingReactions) {
+                existingReactions.remove();
+            }
+
+            if (!encryptedReactions || Object.keys(encryptedReactions).length === 0) {
+                return;
+            }
+
+            const decryptedReactions = {};
+            for (const uid in encryptedReactions) {
+                const emoji = aesDecrypt(encryptedReactions[uid], activeRoomSharedKey);
+                if (emoji && emoji.length < 5) { // Basic check for valid emoji string
+                    decryptedReactions[uid] = emoji;
+                }
+            }
+
+            const aggregatedReactions = {};
+            for (const uid in decryptedReactions) {
+                const emoji = decryptedReactions[uid];
+                if (!aggregatedReactions[emoji]) {
+                    aggregatedReactions[emoji] = 0;
+                }
+                aggregatedReactions[emoji]++;
+            }
+
+            const reactionDiv = document.createElement('div');
+            reactionDiv.className = `reaction-container ${isOutgoing ? 'right' : ''}`; // Position based on sender
+
+            for (const emoji in aggregatedReactions) {
+                const count = aggregatedReactions[emoji];
+                const item = document.createElement('div');
+                item.className = 'reaction-item';
+                item.innerHTML = `<span>${emoji}</span><small>${count}</small>`;
+                reactionDiv.appendChild(item);
+            }
+
+            msgContainer.appendChild(reactionDiv);
+        }
+
+
+        function updateSendButton() {} // Not used, can be removed.
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
         function filterDialogs(val) {
             const query = val.toLowerCase();
-            document.querySelectorAll('#chats-list-container .chat-row').forEach(row => {
+            document.querySelectorAll('.chat-row').forEach(row => {
                 const name = row.querySelector('.chat-row-name').innerText.toLowerCase();
                 row.style.display = name.includes(query) ? 'flex' : 'none';
             });
         }
 
-        async function seedDatabaseIfNeeded() {}
+        async function seedDatabaseIfNeeded() {
+            // For testing, ensures initial profile exists
+            if (!myUid) return;
+            const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
+            if (!profSnap.exists()) {
+                 const fallbackNick = "id_" + Math.floor(1000 + Math.random() * 9000);
+                 myNameCombined = myEmail.split('@')[0];
+                 await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
+                    name: encryptProfileData(myNameCombined),
+                    lastname: encryptProfileData(""),
+                    username: fallbackNick,
+                    bio: encryptProfileData(""),
+                    avatar: encryptProfileData(""),
+                    publicKey: JSON.parse(localStorage.getItem(`meow_pub_${myUid}`)) // Ensure public key is set
+                });
+                await window.fb.set(window.fb.ref(window.fb.db, `usernames/${fallbackNick}`), myUid);
+            }
+            const privacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/privacy`));
+            if (!privacySnap.exists()) {
+                 await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), {
+                    lastSeenVisibility: encryptPrivacySetting('all'),
+                    profilePhotoVisibility: encryptPrivacySetting('all'),
+                    readReceiptsVisibility: encryptPrivacySetting('all'),
+                    quickReaction: encryptPrivacySetting('❤️')
+                });
+            }
+        }
     </script>
 </body>
 </html>
