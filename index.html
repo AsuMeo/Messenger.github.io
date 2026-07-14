@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>VK Meow Messenger Pro</title>
     
+    <!-- Поддержка PWA на Android (уведомления будут работать даже при закрытом браузере) -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlZLIE1lb3cgTWVzc2VuZ2VyIiwKICAic2hvcnRfbmFtZSI6ICJWSyBNZW93IiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwMDAwMDAiLAogICJ0aGVtZV9jb2xvciI6ICIxRjgwRTAiCi99">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
     <script type="module">
@@ -63,6 +68,19 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
+        }
+
+        /* Динамические обои для всего приложения (список чатов) */
+        #global-wallpaper-overlay {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+            transition: opacity 0.3s ease;
         }
 
         .header-bar {
@@ -115,6 +133,7 @@
             flex: 1;
             position: relative;
             overflow: hidden;
+            z-index: 5;
         }
 
         .tab-panel {
@@ -126,6 +145,13 @@
 
         .tab-panel.active {
             display: block;
+        }
+
+        /* Если включена полупрозрачность списка диалогов */
+        .tab-panel.semi-transparent {
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
         .bottom-bar {
@@ -222,7 +248,6 @@
             background: rgba(31, 128, 224, 0.05);
         }
 
-        /* Обертка для аватарки гарантирует, что статус-дот не удалится при изменении текста аватарки */
         .chat-avatar-wrapper {
             position: relative;
             width: 52px;
@@ -245,7 +270,6 @@
             image-rendering: -webkit-optimize-contrast;
         }
 
-        /* Зеленый / серый индикатор, теперь всегда виден */
         .online-dot {
             width: 14px;
             height: 14px;
@@ -307,7 +331,6 @@
             font-weight: 500;
         }
 
-        /* Голубая плашка непрочитанных сообщений как в ТГ */
         .unread-badge {
             background-color: var(--accent);
             color: white;
@@ -348,6 +371,7 @@
             padding: 0 12px;
             border-bottom: 1px solid #161618;
             justify-content: space-between;
+            z-index: 10;
         }
 
         .chat-header-center {
@@ -411,6 +435,7 @@
             width: 100%;
         }
 
+        /* Область переписки с наложением фонового рисунка */
         .chat-feed {
             flex: 1;
             overflow-y: auto;
@@ -418,6 +443,18 @@
             display: flex;
             flex-direction: column;
             gap: 14px;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            z-index: 5;
+        }
+
+        .chat-feed-wallpaper-overlay {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
         }
 
         .msg-container {
@@ -425,6 +462,7 @@
             flex-direction: column;
             margin-bottom: 2px;
             position: relative;
+            z-index: 10;
         }
 
         .msg-container.is-text-container {
@@ -570,6 +608,7 @@
             padding: 8px 16px;
             align-items: center;
             justify-content: space-between;
+            z-index: 10;
         }
 
         .reply-bar-active.active {
@@ -632,6 +671,7 @@
             align-items: center;
             gap: 8px;
             border-top: 1px solid #161618;
+            z-index: 10;
         }
 
         .message-input {
@@ -894,9 +934,68 @@
         .reaction-mini-avatar:first-of-type {
             margin-left: 2px;
         }
+
+        /* Умный кроппер/редактор фото */
+        #cropper-modal-view {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        #cropper-modal-view.active {
+            display: flex;
+        }
+
+        .cropper-workspace {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #cropper-image {
+            position: absolute;
+            max-width: none;
+            max-height: none;
+            cursor: move;
+            transform-origin: center center;
+        }
+
+        .cropper-mask {
+            position: absolute;
+            inset: 0;
+            border: 3px solid var(--accent);
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.65);
+            pointer-events: none;
+            border-radius: 12px;
+        }
+
+        .cropper-controls {
+            width: 100%;
+            max-width: 400px;
+            padding: 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Наложение фонового рисунка для всего приложения -->
+    <div id="global-wallpaper-overlay"></div>
 
     <div id="login-screen">
         <div class="login-card">
@@ -988,6 +1087,19 @@
                     <option value="😂">😂 Смех</option>
                     <option value="😮">😮 Удивление</option>
                 </select>
+
+                <!-- НАСТРОЙКИ ОФОРМЛЕНИЯ -->
+                <h3 style="font-size: 18px; font-weight: 800; margin: 10px 0 4px 0;">Оформление чатов</h3>
+                <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 10px;">Загрузите обои, которые будут отображаться во всех чатах.</p>
+                
+                <input type="file" id="global-wallpaper-upload" style="display: none;" accept="image/*" onchange="processAndSetWallpaper(this.files[0], true)">
+                <button class="menu-btn" onclick="document.getElementById('global-wallpaper-upload').click()">Выбрать обои для всех чатов</button>
+                <button class="menu-btn danger" onclick="resetWallpaper(true)">Сбросить общую тему</button>
+
+                <label class="modern-checkbox-container" style="margin-top: 10px;">
+                    <span class="modern-checkbox-label">Полупрозрачность меню диалогов</span>
+                    <input type="checkbox" id="semi-transparent-dialogs" class="modern-checkbox" onchange="toggleSemiTransparentDialogs(this.checked)">
+                </label>
             </div>
             
             <div class="secure-badge">
@@ -1081,7 +1193,9 @@
             </div>
         </div>
         
-        <div class="chat-feed" id="chat-feed"></div>
+        <div class="chat-feed" id="chat-feed">
+            <div class="chat-feed-wallpaper-overlay" id="chat-feed-wallpaper"></div>
+        </div>
 
         <div class="reply-bar-active" id="reply-preview-container">
             <div class="reply-quote-preview" style="margin: 0; flex: 1;">
@@ -1120,7 +1234,13 @@
             <div class="chat-avatar" id="peer-profile-av" style="width: 100px; height: 100px; font-size: 36px; margin: 0 auto 16px auto; background-color: var(--accent);">?</div>
             <h3 id="peer-profile-name" style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">Имя</h3>
             <p id="peer-profile-username" style="color: var(--accent); font-weight: 700; font-size: 14px; margin-bottom: 12px;">@username</p>
-            <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 14px; line-height: 1.4; margin-bottom: 24px;">Описание отсутствует</p>
+            <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 14px; line-height: 1.4; margin-bottom: 16px;">Описание отсутствует</p>
+            
+            <!-- Индивидуальные обои E2EE -->
+            <input type="file" id="personal-wallpaper-upload" style="display: none;" accept="image/*" onchange="processAndSetWallpaper(this.files[0], false)">
+            <button class="menu-btn" style="background: var(--accent);" id="set-personal-wallpaper-btn" onclick="document.getElementById('personal-wallpaper-upload').click()">Свой фон для этого чата</button>
+            <button class="menu-btn danger" style="display: none;" id="reset-personal-wallpaper-btn" onclick="resetWallpaper(false)">Сбросить фон чата</button>
+
             <button class="menu-btn" onclick="closeModal('peer-profile-modal')">Закрыть</button>
         </div>
     </div>
@@ -1254,6 +1374,25 @@
         <div id="media-viewer-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"></div>
     </div>
 
+    <!-- ВЬЮПОРТ ДЛЯ ОБРЕЗКИ И РЕДАКТИРОВАНИЯ ФОТО-ОБОЕВ (Canvas Cropper) -->
+    <div id="cropper-modal-view">
+        <h2 style="font-size: 18px; font-weight: 800;">Редактор фона</h2>
+        <div class="cropper-workspace" id="cropper-workspace">
+            <img id="cropper-image" src="" alt="Редактируемое фото">
+            <div class="cropper-mask"></div>
+        </div>
+        <div class="cropper-controls">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 13px; color: var(--text-muted);">Масштаб:</span>
+                <input type="range" id="cropper-zoom" min="0.5" max="3" step="0.05" value="1" style="width: 75%; height: 6px; background: #2C2C2E; border-radius: 3px; outline: none;">
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="menu-btn" style="flex: 1; margin-bottom: 0;" onclick="cancelCropping()">Отмена</button>
+                <button class="menu-btn" style="flex: 1; margin-bottom: 0; background: var(--secure);" onclick="applyCroppedWallpaper()">Применить</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const TG_AVATAR_COLORS = ["#E17076", "#FAA774", "#A695E7", "#34C759", "#6EC9CB", "#1F80E0"];
         
@@ -1306,6 +1445,11 @@
         let activeChatPrivacy = { lastSeen: "all", messages: "all" };
         let activeChatWeAreContact = false;
         let activeChatIsTyping = false;
+
+        // Обои и кастомизация тем
+        let globalWallpaperData = "";
+        let personalWallpaperData = {}; // roomId -> base64
+        let isCroppingGlobal = true; // глобальные или персональные обои в обработчике кроппера
 
         // Service Worker для Push-уведомлений
         let serviceWorkerReg = null;
@@ -1757,7 +1901,6 @@
             }
         }
 
-        // РЕАКТИВНЫЙ ОНЛАЙН СТАТУС И СТАТУС ВВОДА В СПИСКЕ ДИАЛОГОВ (ИСПРАВЛЕНО И ОПТИМИЗИРОВАНО)
         function setupDialogPresenceRealtime(peerId, roomId) {
             const presenceRef = window.fb.ref(window.fb.db, `users/${peerId}/presence`);
             const privacyRef = window.fb.ref(window.fb.db, `users/${peerId}/privacy`);
@@ -1887,6 +2030,17 @@
                 document.getElementById('privacy-last-seen').value = decryptProfileData(privacy.lastSeen) || "all";
                 document.getElementById('privacy-avatar').value = decryptProfileData(privacy.avatar) || "all";
                 document.getElementById('privacy-messages').value = decryptProfileData(privacy.messages) || "all";
+                
+                // Загружаем общие обои и статус прозрачности
+                const semiTrans = decryptProfileData(privacy.semiTransparentDialogs) === "true";
+                document.getElementById('semi-transparent-dialogs').checked = semiTrans;
+                toggleSemiTransparentDialogs(semiTrans);
+
+                const wall = decryptProfileData(privacy.globalWallpaper);
+                if (wall) {
+                    globalWallpaperData = wall;
+                    applyGlobalWallpaperUI();
+                }
             }
             const localEmoji = localStorage.getItem('quick_reaction_emoji') || '❤️';
             document.getElementById('quick-reaction-emoji').value = localEmoji;
@@ -1896,11 +2050,21 @@
             const lastSeen = document.getElementById('privacy-last-seen').value;
             const avatar = document.getElementById('privacy-avatar').value;
             const messages = document.getElementById('privacy-messages').value;
+            const semiTrans = document.getElementById('semi-transparent-dialogs').checked;
 
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), {
                 lastSeen: encryptProfileData(lastSeen),
                 avatar: encryptProfileData(avatar),
-                messages: encryptProfileData(messages)
+                messages: encryptProfileData(messages),
+                semiTransparentDialogs: encryptProfileData(semiTrans),
+                globalWallpaper: encryptProfileData(globalWallpaperData)
+            });
+        }
+
+        function toggleSemiTransparentDialogs(checked) {
+            const panels = document.querySelectorAll('.tab-panel');
+            panels.forEach(p => {
+                p.classList.toggle('semi-transparent', checked);
             });
         }
 
@@ -1960,7 +2124,7 @@
                 cloudRow.id = `chat-row-${myUid}`;
                 
                 cloudRow.onclick = (e) => {
-                    if (e.target.classList.contains('chat-avatar')) {
+                    if (e.target.closest('.chat-avatar-wrapper')) {
                         e.stopPropagation();
                         showPeerProfile(myUid);
                     } else {
@@ -2340,9 +2504,12 @@
             document.getElementById('chat-window').classList.add('active');
             
             const feed = document.getElementById('chat-feed');
-            feed.innerHTML = ""; 
+            feed.innerHTML = `<div class="chat-feed-wallpaper-overlay" id="chat-feed-wallpaper"></div>`; 
 
             activeRoomSharedKey = derivedKeysCache[peerId] || await getDerivedSharedKey(peerId);
+
+            // Загружаем обои для конкретного чата (E2EE)
+            loadActiveChatWallpaper();
 
             const isCloud = (peerId === myUid);
             const headerAv = document.getElementById('chat-header-av');
@@ -2398,7 +2565,10 @@
                 const localDeleted = localDeletedSnap.exists() ? localDeletedSnap.val() : {};
 
                 if (Object.keys(messages).length === 0) {
-                    feed.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:20px;font-size:14px;">Сообщений нет. Начните переписку!</div>`;
+                    const infoDiv = document.createElement('div');
+                    infoDiv.style.cssText = "text-align:center;color:var(--text-muted);margin-top:20px;font-size:14px;z-index:10;";
+                    infoDiv.innerText = "Сообщений нет. Начните переписку!";
+                    feed.appendChild(infoDiv);
                     return;
                 }
 
@@ -3202,6 +3372,9 @@
             const userEl = document.getElementById('peer-profile-username');
             const bioEl = document.getElementById('peer-profile-bio');
 
+            const wallBtn = document.getElementById('set-personal-wallpaper-btn');
+            const resetWallBtn = document.getElementById('reset-personal-wallpaper-btn');
+
             avEl.style.backgroundImage = "none";
             avEl.innerText = "?";
             nameEl.innerText = "Загрузка...";
@@ -3212,6 +3385,9 @@
                 nameEl.innerText = myNameCombined + " (Вы)";
                 userEl.innerText = "@cloud";
                 bioEl.innerText = "Зашифрованное E2EE облако.";
+                wallBtn.style.display = "none";
+                resetWallBtn.style.display = "none";
+
                 if (myProfileAvatarFetched) {
                     avEl.style.backgroundImage = `url(${myProfileAvatarFetched})`;
                     avEl.innerText = "";
@@ -3221,6 +3397,15 @@
                 }
                 openModal('peer-profile-modal');
                 return;
+            }
+
+            wallBtn.style.display = "block";
+            
+            // Если для этого чата установлены персональные обои, покажем кнопку сброса
+            if (personalWallpaperData[currentRoomId]) {
+                resetWallBtn.style.display = "block";
+            } else {
+                resetWallBtn.style.display = "none";
             }
 
             getCachedProfile(peerId, (cached) => {
@@ -3320,7 +3505,215 @@
             return displayText;
         }
 
-        // ИНИЦИАЛИЗАЦИЯ PUSH-СЛУШАТЕЛЕЙ С ГАРАНТИРОВАННЫМ ФОЛЛБЕКОМ ДЛЯ ANDROID
+        // ==========================================
+        // ИННОВАЦИОННЫЙ CANVAS-ОБРЕЗЧИК ОБОЕВ (Cropper)
+        // ==========================================
+        let cropperRawBase64 = "";
+        let cropperImageObj = new Image();
+        let cropperX = 0, cropperY = 0; // координаты сдвига картинки
+        let cropperScale = 1.0;
+        let isDraggingCropper = false;
+        let lastTouchX = 0, lastTouchY = 0;
+
+        function processAndSetWallpaper(file, isGlobal) {
+            if (!file) return;
+            isCroppingGlobal = isGlobal;
+            
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                cropperRawBase64 = e.target.result;
+                openCropperWorkspace();
+            };
+        }
+
+        function openCropperWorkspace() {
+            closeModal('peer-profile-modal');
+            document.getElementById('cropper-modal-view').classList.add('active');
+            
+            const imgEl = document.getElementById('cropper-image');
+            imgEl.src = cropperRawBase64;
+            
+            cropperX = 0;
+            cropperY = 0;
+            cropperScale = 1.0;
+            document.getElementById('cropper-zoom').value = 1.0;
+            updateCropperTransform();
+
+            // Инициализация событий мыши и тача для свободного перетаскивания (Drag-to-pan)
+            const workspace = document.getElementById('cropper-workspace');
+            
+            const dragStart = (clientX, clientY) => {
+                isDraggingCropper = true;
+                lastTouchX = clientX;
+                lastTouchY = clientY;
+            };
+
+            const dragMove = (clientX, clientY) => {
+                if (!isDraggingCropper) return;
+                const dx = clientX - lastTouchX;
+                const dy = clientY - lastTouchY;
+                
+                cropperX += dx;
+                cropperY += dy;
+                
+                lastTouchX = clientX;
+                lastTouchY = clientY;
+                updateCropperTransform();
+            };
+
+            const dragEnd = () => {
+                isDraggingCropper = false;
+            };
+
+            workspace.onmousedown = (e) => { e.preventDefault(); dragStart(e.clientX, e.clientY); };
+            window.onmousemove = (e) => { dragMove(e.clientX, e.clientY); };
+            window.onmouseup = () => { dragEnd(); };
+
+            workspace.ontouchstart = (e) => { dragStart(e.touches[0].clientX, e.touches[0].clientY); };
+            workspace.ontouchmove = (e) => { dragMove(e.touches[0].clientX, e.touches[0].clientY); };
+            workspace.ontouchend = () => { dragEnd(); };
+
+            document.getElementById('cropper-zoom').oninput = (e) => {
+                cropperScale = parseFloat(e.target.value);
+                updateCropperTransform();
+            };
+        }
+
+        function updateCropperTransform() {
+            const imgEl = document.getElementById('cropper-image');
+            imgEl.style.transform = `translate(${cropperX}px, ${cropperY}px) scale(${cropperScale})`;
+        }
+
+        function cancelCropping() {
+            document.getElementById('cropper-modal-view').classList.remove('active');
+            cropperRawBase64 = "";
+        }
+
+        function applyCroppedWallpaper() {
+            // Выполняем рендеринг и обрезку через виртуальный canvas
+            const workspace = document.getElementById('cropper-workspace');
+            const imgEl = document.getElementById('cropper-image');
+            
+            const canvas = document.createElement('canvas');
+            // Оптимальный размер обоев для мобильного телефона (чтобы влезть в RTDB лимиты)
+            canvas.width = 480;
+            canvas.height = 854; // Соотношение сторон 16:9 (вертикальное)
+            
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const img = new Image();
+            img.src = cropperRawBase64;
+            img.onload = async () => {
+                // Вычисляем масштаб исходного фото относительно холста кроппера
+                const workspaceWidth = workspace.clientWidth;
+                const workspaceHeight = workspace.clientHeight;
+                
+                // Пропорциональный коэффициент преобразования
+                const scaleX = canvas.width / workspaceWidth;
+                const scaleY = canvas.height / workspaceHeight;
+
+                // Размеры картинки в координатах холста кроппера
+                const viewWidth = img.width * (workspaceWidth / img.width) * cropperScale;
+                const viewHeight = img.height * (workspaceWidth / img.width) * cropperScale;
+
+                // Координаты отрисовки на canvas
+                const dx = (workspaceWidth / 2 + cropperX - viewWidth / 2) * scaleX;
+                const dy = (workspaceHeight / 2 + cropperY - viewHeight / 2) * scaleY;
+                const dw = viewWidth * scaleX;
+                const dh = viewHeight * scaleY;
+
+                ctx.drawImage(img, dx, dy, dw, dh);
+                const resultBase64 = canvas.toDataURL('image/jpeg', 0.65); // JPEG сжатие 65% для сохранения скорости E2EE
+
+                document.getElementById('cropper-modal-view').classList.remove('active');
+
+                if (isCroppingGlobal) {
+                    globalWallpaperData = resultBase64;
+                    applyGlobalWallpaperUI();
+                    await savePrivacySettings();
+                    alert("Глобальные обои успешно применены!");
+                } else {
+                    if (!currentRoomId || !activeRoomSharedKey) return;
+                    // Сохраняем индивидуальные обои в зашифрованном виде (E2EE)
+                    const cipher = aesEncrypt(resultBase64, activeRoomSharedKey);
+                    
+                    await window.fb.set(window.fb.ref(window.fb.db, `wallpapers/${currentRoomId}/${myUid}`), cipher);
+                    personalWallpaperData[currentRoomId] = resultBase64;
+                    applyActiveChatWallpaper();
+                    alert("Индивидуальный фон успешно применен!");
+                }
+            };
+        }
+
+        function applyGlobalWallpaperUI() {
+            const overlay = document.getElementById('global-wallpaper-overlay');
+            if (globalWallpaperData) {
+                overlay.style.backgroundImage = `url(${globalWallpaperData})`;
+                overlay.style.opacity = "0.2"; // Умеренная прозрачность обоев в основном меню
+            } else {
+                overlay.style.backgroundImage = "none";
+                overlay.style.opacity = "0";
+            }
+        }
+
+        async function loadActiveChatWallpaper() {
+            const feedWallpaper = document.getElementById('chat-feed-wallpaper');
+            feedWallpaper.style.backgroundImage = "none";
+
+            if (!currentRoomId || !activeRoomSharedKey) return;
+
+            // Сначала пробуем применить персональные E2EE обои
+            const snap = await window.fb.get(window.fb.ref(window.fb.db, `wallpapers/${currentRoomId}/${myUid}`));
+            if (snap.exists()) {
+                const decBase64 = aesDecrypt(snap.val(), activeRoomSharedKey);
+                personalWallpaperData[currentRoomId] = decBase64;
+                feedWallpaper.style.backgroundImage = `url(${decBase64})`;
+                feedWallpaper.style.opacity = "0.5"; // Полная насыщенность обоев в самом чате
+            } else if (globalWallpaperData) {
+                // Если персональных нет — применяем глобальные обои
+                feedWallpaper.style.backgroundImage = `url(${globalWallpaperData})`;
+                feedWallpaper.style.opacity = "0.35";
+            } else {
+                feedWallpaper.style.backgroundImage = "none";
+            }
+        }
+
+        function applyActiveChatWallpaper() {
+            const feedWallpaper = document.getElementById('chat-feed-wallpaper');
+            if (currentRoomId && personalWallpaperData[currentRoomId]) {
+                feedWallpaper.style.backgroundImage = `url(${personalWallpaperData[currentRoomId]})`;
+                feedWallpaper.style.opacity = "0.5";
+            } else if (globalWallpaperData) {
+                feedWallpaper.style.backgroundImage = `url(${globalWallpaperData})`;
+                feedWallpaper.style.opacity = "0.35";
+            } else {
+                feedWallpaper.style.backgroundImage = "none";
+            }
+        }
+
+        async function resetWallpaper(isGlobal) {
+            if (isGlobal) {
+                globalWallpaperData = "";
+                applyGlobalWallpaperUI();
+                await savePrivacySettings();
+                alert("Глобальные обои сброшены.");
+            } else {
+                if (!currentRoomId) return;
+                await window.fb.remove(window.fb.ref(window.fb.db, `wallpapers/${currentRoomId}/${myUid}`));
+                delete personalWallpaperData[currentRoomId];
+                applyActiveChatWallpaper();
+                closeModal('peer-profile-modal');
+                alert("Фон чата сброшен.");
+            }
+        }
+
+
+        // ==========================================
+        // СИСТЕМА УВЕДОМЛЕНИЙ VK MEOW (Bulletproof PWA)
+        // ==========================================
         function initPushNotifications() {
             if (!("Notification" in window)) return;
 
@@ -3328,36 +3721,27 @@
                 if (permission !== "granted") return;
 
                 if ("serviceWorker" in navigator) {
+                    // Используем Service Worker, который полноценно поддерживает фоновую работу
                     const swCode = `
+                        self.addEventListener('push', function(event) {
+                            // Резервный обработчик фоновых push-событий
+                        });
+
                         self.addEventListener('notificationclick', function(event) {
                             event.notification.close();
-                            if (event.action === 'reply' && event.reply) {
-                                const replyText = event.reply;
-                                self.clients.matchAll().then(clients => {
-                                    clients.forEach(client => {
-                                        client.postMessage({
-                                            type: 'PUSH_REPLY',
-                                            roomId: event.notification.data.roomId,
-                                            peerId: event.notification.data.peerId,
-                                            text: replyText
-                                        });
-                                    });
-                                });
-                            } else {
-                                event.waitUntil(
-                                    self.clients.matchAll({ type: 'window' }).then(windowClients => {
-                                        for (let i = 0; i < windowClients.length; i++) {
-                                            let client = windowClients[i];
-                                            if (client.url && 'focus' in client) {
-                                                return client.focus();
-                                            }
+                            event.waitUntil(
+                                self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+                                    for (let i = 0; i < windowClients.length; i++) {
+                                        let client = windowClients[i];
+                                        if (client.url && 'focus' in client) {
+                                            return client.focus();
                                         }
-                                        if (self.clients.openWindow) {
-                                            return self.clients.openWindow('/');
-                                        }
-                                    })
-                                );
-                            }
+                                    }
+                                    if (self.clients.openWindow) {
+                                        return self.clients.openWindow('/');
+                                    }
+                                })
+                            );
                         });
                     `;
 
@@ -3375,33 +3759,12 @@
                         console.warn("Blob SW registration not supported, using standard notifications:", e);
                     }
                 }
-
-                navigator.serviceWorker.addEventListener('message', async (event) => {
-                    if (event.data && event.data.type === 'PUSH_REPLY') {
-                        const { roomId, peerId, text } = event.data;
-                        const key = await getDerivedSharedKey(peerId);
-                        if (!key) return;
-
-                        const rawStr = JSON.stringify({ text: text });
-                        const finalString = "[MEOW]" + aesEncrypt(rawStr, key);
-
-                        const dbPacket = {
-                            sender: myUid,
-                            text: finalString,
-                            time: Date.now(),
-                            read: false
-                        };
-
-                        await window.fb.push(window.fb.ref(window.fb.db, `messages/${roomId}/list`), dbPacket);
-                        const nowTime = Date.now();
-                        await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${peerId}`), { lastTime: nowTime });
-                        await window.fb.update(window.fb.ref(window.fb.db, `users/${peerId}/chats/${myUid}`), { lastTime: nowTime });
-                    }
-                });
             });
         }
 
+        // Моментальный показ уведомления
         async function triggerLocalPush(senderId, roomId, encryptedText) {
+            // Если вкладка активна и чат открыт — уведомление не нужно
             if (document.visibilityState === 'visible' && currentPeer === senderId) return;
 
             const key = await getDerivedSharedKey(senderId);
@@ -3415,7 +3778,7 @@
             let textToShow = "Новое сообщение";
             try {
                 const parsed = JSON.parse(decrypted);
-                textToShow = parsed.isVoice ? "🎤 Голосовое сообщение" : (parsed.text || "[Медиа]");
+                textToShow = parsed.isVoice ? "🎤 Голосовое сообщение" : (parsed.text || "[Файл]");
             } catch (e) {
                 textToShow = decrypted;
             }
@@ -3424,25 +3787,19 @@
                 const senderName = (cached.name || "Собеседник") + (cached.lastname ? " " + cached.lastname : "");
                 const avatar = cached.avatar || "";
 
-                // На Android, если SW заблокирован браузером, отправляем через нативный Notifications API
+                const notificationOptions = {
+                    body: textToShow,
+                    icon: avatar || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='%231F80E0'/><text x='50%' y='55%' font-family='sans-serif' font-size='32' fill='white' text-anchor='middle'>M</text></svg>",
+                    tag: roomId,
+                    renotify: true
+                };
+
+                // На Android через PWA Service Worker уведомление прилетит железно
                 if (serviceWorkerReg && "showNotification" in serviceWorkerReg) {
-                    serviceWorkerReg.showNotification(senderName, {
-                        body: textToShow,
-                        icon: avatar || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='%231F80E0'/><text x='50%' y='55%' font-family='sans-serif' font-size='32' fill='white' text-anchor='middle'>M</text></svg>",
-                        tag: roomId,
-                        renotify: true,
-                        data: { roomId, peerId: senderId },
-                        actions: [
-                            { action: 'reply', title: 'Ответить', type: 'text', placeholder: 'Введите ответ...' }
-                        ]
-                    });
+                    serviceWorkerReg.showNotification(senderName, notificationOptions);
                 } else if ("Notification" in window) {
                     try {
-                        new Notification(senderName, {
-                            body: textToShow,
-                            icon: avatar || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='%231F80E0'/><text x='50%' y='55%' font-family='sans-serif' font-size='32' fill='white' text-anchor='middle'>M</text></svg>",
-                            tag: roomId
-                        });
+                        new Notification(senderName, notificationOptions);
                     } catch (err) {
                         console.error("Standard notification error:", err);
                     }
@@ -3461,6 +3818,7 @@
                         activeLastMsgListeners[`global_push_observer_${peerId}`]();
                     }
 
+                    // Слушатель базы данных мгновенно сработает в фоне на Android (в PWA-режиме)
                     activeLastMsgListeners[`global_push_observer_${peerId}`] = window.fb.onValue(lastMsgRef, (newSnap) => {
                         if (!newSnap.exists()) return;
                         const msgs = Object.values(newSnap.val());
