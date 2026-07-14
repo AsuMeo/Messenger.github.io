@@ -1403,7 +1403,7 @@
             <p id="peer-profile-username" style="color: var(--accent); font-weight: 700; font-size: 14px; margin-bottom: 12px;">@username</p>
             <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 14px; line-height: 1.4; margin-bottom: 16px;">Описание отсутствует</p>
             
-            <!-- Кнопки управления контактами прямо из профиля -->
+            <!-- Кнопки управления контактами в профиле -->
             <button class="menu-btn" id="peer-add-contact-modal-btn" style="display: none; background: var(--secure);" onclick="quickAddActivePeerToContacts(); closeModal('peer-profile-modal');">Добавить в контакты</button>
             <button class="menu-btn danger" id="peer-remove-contact-modal-btn" style="display: none;" onclick="deleteContactFromProfile()">Удалить из контактов</button>
 
@@ -1603,7 +1603,7 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
         const TG_AVATAR_COLORS = ["#E17076", "#FAA774", "#A695E7", "#34C759", "#6EC9CB", "#1F80E0"];
         const PROFILE_ENC_KEY = "MeowSecureProfileGlobalKey_2026";
 
@@ -3792,9 +3792,6 @@
             const rect = workspace.getBoundingClientRect();
             const cropBoxWidth = rect.width; const cropBoxHeight = rect.height;
 
-            const displayScale = cropBoxWidth / targetWidth;
-            const imageNaturalScale = cropperImageWidth / img.width;
-
             const sourceX = ( (cropBoxWidth / 2 - cropperX) / cropperScale - img.width / 2 ) * (cropperImageWidth / img.width);
             const sourceY = ( (cropBoxHeight / 2 - cropperY) / cropperScale - img.height / 2 ) * (cropperImageHeight / img.height);
             const sourceW = (cropBoxWidth / cropperScale) * (cropperImageWidth / img.width);
@@ -3982,7 +3979,7 @@
             try {
                 await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
             } catch (err) {
-                if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {
+                if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential" || err.code === "auth/invalid-email") {
                     try {
                         await window.fb.createUserWithEmailAndPassword(window.fb.auth, email, password);
                     } catch (regErr) {
@@ -4134,6 +4131,70 @@
             });
         }
 
+        // ЭКСПОРТ ВСЕХ ФУНКЦИЙ В ГЛОБАЛЬНЫЙ ОБЪЕКТ WINDOW ДЛЯ HTML (ОБЯЗАТЕЛЬНО!)
+        window.authAction = authAction;
+        window.logoutAction = logoutAction;
+        window.openCloudChat = openCloudChat;
+        window.filterDialogsAndGlobalSearch = filterDialogsAndGlobalSearch;
+        window.switchSubTab = switchSubTab;
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.filterContacts = filterContacts;
+        window.savePrivacySettings = savePrivacySettings;
+        window.saveQuickReactionSetting = saveQuickReactionSetting;
+        window.resetWallpaper = resetWallpaper;
+        window.toggleSemiTransparentDialogs = toggleSemiTransparentDialogs;
+        window.deleteAccountPermanently = deleteAccountPermanently;
+        window.saveProfileSettings = saveProfileSettings;
+        window.switchTab = switchTab;
+        window.closeChat = closeChat;
+        window.showActivePeerProfile = showActivePeerProfile;
+        window.showE2EEVerification = showE2EEVerification;
+        window.toggleHeaderMenu = toggleHeaderMenu;
+        window.toggleChatSearchSubBar = toggleChatSearchSubBar;
+        window.quickAddActivePeerToContacts = quickAddActivePeerToContacts;
+        window.performMessageSearch = performMessageSearch;
+        window.navigateSearchMatch = navigateSearchMatch;
+        window.closeChatSearch = closeChatSearch;
+        window.unpinActiveMessage = unpinActiveMessage;
+        window.scrollToPinnedMessage = scrollToPinnedMessage;
+        window.cancelReply = cancelReply;
+        window.handleVoiceRecordClick = handleVoiceRecordClick;
+        window.toggleBurnMode = toggleBurnMode;
+        window.handleSendClick = handleSendClick;
+        window.toggleChannelSubscriptionFromChat = toggleChannelSubscriptionFromChat;
+        window.updateChannelName = updateChannelName;
+        window.deleteChannel = deleteChannel;
+        window.addReactionFromMenu = addReactionFromMenu;
+        window.triggerEditFromMenu = triggerEditFromMenu;
+        window.triggerReplyFromMenu = () => { closeModal('msg-options-modal'); if (activeMenuMsgId && activeMenuMsgObj) initiateReply(activeMenuMsgId, activeMenuMsgObj.text || "Медиа", activeMenuMsgObj.sender); };
+        window.triggerPinFromMenu = triggerPinFromMenu;
+        window.triggerForwardFromMenu = triggerForwardFromMenu;
+        window.triggerDeleteFromMenu = triggerDeleteFromMenu;
+        window.togglePinChat = togglePinChat;
+        window.triggerDeleteChatFromOptions = triggerDeleteChatFromOptions;
+        window.deleteMessageConfirm = deleteMessageConfirm;
+        window.deleteChatConfirm = deleteChatConfirm;
+        window.searchUserForContact = searchUserForContact;
+        window.saveContact = saveContact;
+        window.cancelContactEditStep = cancelContactEditStep;
+        window.closeMediaViewer = closeMediaViewer;
+        window.cancelCropping = cancelCropping;
+        window.applyCroppedResult = applyCroppedResult;
+        window.editContact = editContact;
+        window.deleteContact = deleteContact;
+        window.deleteContactFromProfile = deleteContactFromProfile;
+        window.toggleChannelPostReaction = toggleChannelPostReaction;
+        window.toggleReactionDirect = toggleReactionDirect;
+        window.seekVoice = seekVoice;
+        window.toggleVoicePlayback = toggleVoicePlayback;
+        window.scrollToMessage = scrollToMessage;
+        window.viewMediaFull = viewMediaFull;
+        window.processAndSetCrop = processAndSetCrop;
+        window.compressAndSendMedia = compressAndSendMedia;
+        window.triggerTypingStatus = triggerTypingStatus;
+        window.startContactChat = startContactChat;
+
         // ИНИЦИАЛИЗАЦИЯ И СВЯЗЬ С FIREBASE
         window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             if (user) {
@@ -4180,4 +4241,4 @@
         });
     </script>
 </body>
-</html>
+    </html>
