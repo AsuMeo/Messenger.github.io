@@ -83,14 +83,14 @@
 
         .header-buttons {
             display: flex;
-            gap: 8px;
+            gap: 12px;
+            align-items: center;
         }
 
         .header-btn {
             background: none;
             border: none;
             color: white;
-            font-size: 22px;
             width: 40px;
             height: 40px;
             cursor: pointer;
@@ -98,11 +98,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: background 0.2s, color 0.2s;
         }
 
         .header-btn:hover {
             background: rgba(255, 255, 255, 0.08);
+        }
+
+        .header-btn svg {
+            width: 22px;
+            height: 22px;
         }
 
         .main-container {
@@ -146,8 +151,15 @@
         }
 
         .tab-icon {
-            font-size: 20px;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tab-icon svg {
+            width: 22px;
+            height: 22px;
         }
 
         .tab-label {
@@ -196,12 +208,17 @@
             align-items: center;
             padding: 12px 16px;
             cursor: pointer;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             transition: background 0.2s;
+            position: relative;
         }
 
         .chat-row:hover {
             background: rgba(255, 255, 255, 0.03);
+        }
+
+        .chat-row.is-pinned {
+            background: rgba(31, 128, 224, 0.05);
         }
 
         .chat-avatar {
@@ -250,6 +267,9 @@
             font-weight: 700;
             font-size: 16px;
             color: var(--text-white);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .chat-row-time {
@@ -278,7 +298,6 @@
             display: flex;
         }
 
-        /* Центрированная шапка чата в стиле Telegram iOS */
         .chat-header {
             height: 60px;
             background-color: var(--bg-bar);
@@ -367,12 +386,10 @@
             transition: transform 0.2s;
         }
 
-        /* Тонкие текстовые сообщения в стиле Telegram */
         .msg-container.is-text-container {
             max-width: 65%;
         }
 
-        /* Фотографии во всю стандартную ширину */
         .msg-container.has-media-container {
             max-width: 75%;
         }
@@ -588,18 +605,23 @@
             user-select: text;
         }
 
-        /* Круглая кнопка отправки в стиле Telegram iOS */
         #send-btn {
             background: var(--accent);
             color: white !important;
             border-radius: 50%;
-            width: 34px;
-            height: 34px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
             flex-shrink: 0;
+            border: none;
+            cursor: pointer;
+        }
+
+        #send-btn svg {
+            width: 18px;
+            height: 18px;
         }
 
         #login-screen {
@@ -668,7 +690,6 @@
             margin-top: 15px;
         }
 
-        /* Стиль для кнопки сгорания */
         #burn-btn.active {
             color: var(--burn) !important;
             background: rgba(255, 149, 0, 0.15);
@@ -778,8 +799,12 @@
     <div class="header-bar" id="app-header">
         <div class="header-title" id="header-main-title">VK Meow</div>
         <div class="header-buttons">
-            <button class="header-btn" title="Избранное" onclick="openCloudChat()">☁️</button>
-            <button class="header-btn" title="Выйти" onclick="logoutAction()">🚪</button>
+            <button class="header-btn" title="Избранное" onclick="openCloudChat()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+            </button>
+            <button class="header-btn" title="Выйти" onclick="logoutAction()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
         </div>
     </div>
 
@@ -788,7 +813,9 @@
         <div class="tab-panel active" id="tab-0">
             <div class="search-row">
                 <input type="text" id="chat-search" class="search-bar" placeholder="Поиск по диалогам..." oninput="filterDialogs(this.value)">
-                <button class="search-action-btn" onclick="openModal('search-people-modal')">➕ Найти</button>
+                <button class="search-action-btn" onclick="openModal('search-people-modal')">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Найти
+                </button>
             </div>
             <div class="chats-list" id="chats-list-container"></div>
         </div>
@@ -826,14 +853,17 @@
 
     </div>
 
-    <!-- Две главные вкладки (Чаты и Профиль) -->
     <div class="bottom-bar" id="app-bottom-bar">
         <div class="tab-button active" onclick="switchTab(0)">
-            <div class="tab-icon">💬</div>
+            <div class="tab-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
             <div class="tab-label">Чаты</div>
         </div>
         <div class="tab-button" onclick="switchTab(1)">
-            <div class="tab-icon">⚙️</div>
+            <div class="tab-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
             <div class="tab-label">Профиль</div>
         </div>
     </div>
@@ -841,7 +871,9 @@
     <!-- Шапка чата в стиле Telegram iOS -->
     <div class="chat-window" id="chat-window">
         <div class="chat-header">
-            <button class="header-btn" onclick="closeChat()">⬅</button>
+            <button class="header-btn" onclick="closeChat()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            </button>
             <div class="chat-header-center" onclick="showActivePeerProfile()">
                 <div class="chat-header-user-row">
                     <div class="chat-header-avatar" id="chat-header-av">?</div>
@@ -853,7 +885,9 @@
                     </div>
                 </div>
             </div>
-            <button class="header-btn" style="color: var(--secure); font-size: 18px;" onclick="showE2EEVerification()" title="Верификация ключа">🔒</button>
+            <button class="header-btn" style="color: var(--secure)" onclick="showE2EEVerification()" title="Верификация ключа">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </button>
         </div>
         
         <div class="chat-feed" id="chat-feed"></div>
@@ -863,19 +897,29 @@
                 <div class="reply-quote-sender" id="reply-preview-sender">Имя</div>
                 <div class="reply-quote-text" id="reply-preview-text">Сообщение</div>
             </div>
-            <button class="header-btn" style="font-size: 16px; margin-left: 8px;" onclick="cancelReply()">✕</button>
+            <button class="header-btn" style="margin-left: 8px;" onclick="cancelReply()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
         </div>
 
         <div class="chat-input-bar">
             <input type="file" id="media-upload" style="display: none;" accept="image/*,video/*" onchange="compressAndSendMedia(this.files[0])">
-            <button class="header-btn" style="color: var(--accent)" id="clip-btn" onclick="document.getElementById('media-upload').click()">📎</button>
-            <button class="header-btn" style="color: var(--error)" id="voice-record-btn" onclick="handleVoiceRecordClick()">🎤</button>
+            <button class="header-btn" style="color: var(--accent)" id="clip-btn" onclick="document.getElementById('media-upload').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+            <button class="header-btn" style="color: var(--error)" id="voice-record-btn" onclick="handleVoiceRecordClick()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
             
-            <button class="header-btn" style="color: var(--text-muted)" id="burn-btn" onclick="toggleBurnMode()" title="Сгорающие сообщения (10 сек)">🔥</button>
+            <button class="header-btn" style="color: var(--text-muted)" id="burn-btn" onclick="toggleBurnMode()" title="Сгорающие сообщения (10 сек)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            </button>
 
-            <textarea class="message-input" id="message-input" placeholder="Зашифрованное E2EE сообщение..." rows="1"></textarea>
+            <textarea class="message-input" id="message-input" placeholder="Сообщение..." rows="1"></textarea>
 
-            <button class="header-btn" id="send-btn" onclick="handleSendClick()">➤</button>
+            <button id="send-btn" onclick="handleSendClick()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg); margin-left: -2px; margin-top: -1px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
         </div>
     </div>
 
@@ -908,6 +952,16 @@
             <button class="menu-btn" onclick="triggerForwardFromMenu()">Переслать</button>
             <button class="menu-btn danger" onclick="triggerDeleteFromMenu()">Удалить сообщение</button>
             <button class="menu-btn" style="background: transparent;" onclick="closeModal('msg-options-modal')">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно настроек диалога (Закрепление / Удаление) -->
+    <div class="modal-overlay" id="chat-options-modal">
+        <div class="modal-card">
+            <h3 style="margin-bottom: 16px; text-align: center;" id="chat-options-title">Настройка диалога</h3>
+            <button class="menu-btn" id="pin-chat-btn" onclick="togglePinChat()">Закрепить / Открепить</button>
+            <button class="menu-btn danger" id="delete-chat-btn" onclick="triggerDeleteChatFromOptions()">Удалить диалог</button>
+            <button class="menu-btn" style="background: transparent;" onclick="closeModal('chat-options-modal')">Отмена</button>
         </div>
     </div>
 
@@ -1005,6 +1059,9 @@
         let activePresenceListeners = {};
         let activeLastMsgListeners = {};
 
+        // Вспомогательная переменная для управления меню диалога
+        let activeMenuPeerId = null;
+
         function aesEncrypt(text, keyString) {
             const key = CryptoJS.enc.Utf8.parse(keyString.padEnd(32, '0').slice(0, 32));
             const iv = CryptoJS.lib.WordArray.random(16);
@@ -1050,17 +1107,13 @@
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             
             if (diffDays === 0) {
-                // Сегодня
                 return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             } else if (diffDays === 1) {
-                // Вчера
                 return "вчера";
             } else if (diffDays < 7) {
-                // На этой неделе (короткий день недели)
                 const days = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
                 return days[date.getDay()];
             } else {
-                // Более недели назад (день и короткий месяц)
                 return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '');
             }
         }
@@ -1188,7 +1241,7 @@
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
             if (isToday) {
-                return `был(а) в сети сегодня в ${timeStr}`;
+                return `был(а) в сети в ${timeStr}`; // Без лишнего слова "сегодня"
             } else if (isYesterday) {
                 return `был(а) в сети вчера в ${timeStr}`;
             } else {
@@ -1409,6 +1462,32 @@
             });
         }
 
+        // Меню действий с диалогом (Закрепление / Удаление)
+        function openChatOptions(peerId, name) {
+            activeMenuPeerId = peerId;
+            document.getElementById('chat-options-title').innerText = name || "Диалог";
+            openModal('chat-options-modal');
+        }
+
+        async function togglePinChat() {
+            if (!activeMenuPeerId) return;
+            const refPath = `users/${myUid}/chats/${activeMenuPeerId}`;
+            const metaSnap = await window.fb.get(window.fb.ref(window.fb.db, refPath));
+            if (metaSnap.exists()) {
+                const currentPinned = metaSnap.val().pinned || false;
+                await window.fb.update(window.fb.ref(window.fb.db, refPath), { pinned: !currentPinned });
+            }
+            closeModal('chat-options-modal');
+            loadDialogs();
+        }
+
+        function triggerDeleteChatFromOptions() {
+            closeModal('chat-options-modal');
+            if (activeMenuPeerId) {
+                triggerChatDeletion(activeMenuPeerId);
+            }
+        }
+
         function loadDialogs() {
             if (unsubDialogs) unsubDialogs();
             Object.values(activePresenceListeners).forEach(un => un());
@@ -1422,6 +1501,7 @@
             unsubDialogs = window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/chats`), (snap) => {
                 container.innerHTML = "";
                 
+                // Рендерим Избранное
                 const cloudRow = document.createElement('div');
                 cloudRow.className = "chat-row";
                 cloudRow.id = `chat-row-${myUid}`;
@@ -1434,17 +1514,30 @@
                         openCloudChat();
                     }
                 };
+
+                // Поддержка долгого нажатия на Избранное
+                let favPressTimer;
+                cloudRow.addEventListener('touchstart', () => {
+                    favPressTimer = setTimeout(() => openChatOptions(myUid, "Избранное"), 600);
+                }, { passive: true });
+                cloudRow.addEventListener('touchend', () => clearTimeout(favPressTimer), { passive: true });
+                cloudRow.addEventListener('touchmove', () => clearTimeout(favPressTimer), { passive: true });
+                cloudRow.addEventListener('mousedown', () => {
+                    favPressTimer = setTimeout(() => openChatOptions(myUid, "Избранное"), 600);
+                });
+                cloudRow.addEventListener('mouseup', () => clearTimeout(favPressTimer));
+                cloudRow.addEventListener('mouseleave', () => clearTimeout(favPressTimer));
                 
                 cloudRow.innerHTML = `
                     <div class="chat-avatar" id="avatar-${myUid}" style="background-color: var(--accent);">
-                        ☁️
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
                     </div>
                     <div class="chat-info">
                         <div class="chat-name-row">
-                            <div class="chat-row-name">Избранное</div>
+                            <div class="chat-row-name" id="name-${myUid}">Избранное</div>
                             <div class="chat-row-time" id="time-${myUid}"></div>
                         </div>
-                        <div class="chat-row-msg" id="last-msg-${myUid}">🛡️ Нажмите, чтобы открыть</div>
+                        <div class="chat-row-msg" id="last-msg-${myUid}">Сообщение</div>
                     </div>
                 `;
                 container.appendChild(cloudRow);
@@ -1474,11 +1567,20 @@
                 
                 const chatsObj = snap.val();
 
-                Object.entries(chatsObj).forEach(([peerId, chatMeta]) => {
-                    if (!chatMeta || !chatMeta.roomId || peerId === myUid) return;
+                // Алгоритм сортировки (Сначала закрепленные, затем по времени последнего взаимодействия)
+                const sortedChats = Object.entries(chatsObj).filter(([peerId]) => peerId !== myUid);
+                sortedChats.sort((a, b) => {
+                    const pinA = a[1].pinned ? 1 : 0;
+                    const pinB = b[1].pinned ? 1 : 0;
+                    if (pinA !== pinB) return pinB - pinA;
+                    return (b[1].lastTime || 0) - (a[1].lastTime || 0);
+                });
+
+                sortedChats.forEach(([peerId, chatMeta]) => {
+                    if (!chatMeta || !chatMeta.roomId) return;
 
                     const row = document.createElement('div');
-                    row.className = "chat-row";
+                    row.className = `chat-row ${chatMeta.pinned ? 'is-pinned' : ''}`;
                     row.id = `chat-row-${peerId}`;
 
                     row.onclick = (e) => {
@@ -1490,7 +1592,27 @@
                         }
                     };
 
+                    // Умная обработка долгого нажатия для настройки диалогов (закрепление, удаление)
+                    let rowPressTimer;
+                    row.addEventListener('touchstart', () => {
+                        const nameEl = document.getElementById(`name-${peerId}`);
+                        const nameText = nameEl ? nameEl.innerText : "Диалог";
+                        rowPressTimer = setTimeout(() => openChatOptions(peerId, nameText), 600);
+                    }, { passive: true });
+                    row.addEventListener('touchend', () => clearTimeout(rowPressTimer), { passive: true });
+                    row.addEventListener('touchmove', () => clearTimeout(rowPressTimer), { passive: true });
+                    row.addEventListener('mousedown', () => {
+                        const nameEl = document.getElementById(`name-${peerId}`);
+                        const nameText = nameEl ? nameEl.innerText : "Диалог";
+                        rowPressTimer = setTimeout(() => openChatOptions(peerId, nameText), 600);
+                    });
+                    row.addEventListener('mouseup', () => clearTimeout(rowPressTimer));
+                    row.addEventListener('mouseleave', () => clearTimeout(rowPressTimer));
+
                     let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+
+                    // Отрисовка булавки для закрепленных диалогов
+                    const pinSvg = chatMeta.pinned ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="color: var(--accent); margin-left: auto; flex-shrink:0;"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2z"/></svg>` : '';
 
                     row.innerHTML = `
                         <div class="chat-avatar" id="avatar-${peerId}" style="background-color: ${TG_AVATAR_COLORS[colorIndex]}">
@@ -1499,10 +1621,15 @@
                         </div>
                         <div class="chat-info">
                             <div class="chat-name-row">
-                                <div class="chat-row-name" id="name-${peerId}">Загрузка...</div>
-                                <div class="chat-row-time" id="time-${peerId}"></div>
+                                <div class="chat-row-name">
+                                    <span id="name-${peerId}">Загрузка...</span>
+                                </div>
+                                <div class="chat-row-time" style="display:flex; align-items:center; gap: 4px;">
+                                    <span id="time-${peerId}"></span>
+                                    ${pinSvg}
+                                </div>
                             </div>
-                            <div class="chat-row-msg" id="last-msg-${peerId}">🛡️ Зашифровано E2EE</div>
+                            <div class="chat-row-msg" id="last-msg-${peerId}">Сообщение</div>
                         </div>
                     `;
                     container.appendChild(row);
@@ -1549,7 +1676,7 @@
                                 timeBox.innerText = formatDialogTime(lastMsg.time);
                             }
                         } else if (msgBox) {
-                            msgBox.innerText = "Нет сообщений";
+                            msgBox.innerText = "Сообщение";
                             if (timeBox) timeBox.innerText = "";
                         }
                     });
@@ -1560,7 +1687,7 @@
         async function decryptAndRenderLastMsg(peerId, rawText, element) {
             const key = await getDerivedSharedKey(peerId);
             if (!key) {
-                element.innerText = "🔒 Зашифровано E2EE";
+                element.innerText = "Сообщение";
                 return;
             }
             let raw = rawText || "";
@@ -1629,7 +1756,7 @@
             let restorePresenceStatus = () => {};
 
             if (isCloud) {
-                headerTitle.innerHTML = "Избранное <span style='color: var(--secure); font-size: 13px;'>🔒</span>";
+                headerTitle.innerHTML = "Избранное";
                 if (myProfileAvatarFetched) {
                     headerAv.style.backgroundImage = `url(${myProfileAvatarFetched})`;
                     headerAv.innerText = "";
@@ -1643,7 +1770,7 @@
             } else {
                 getCachedProfile(peerId, (cached) => {
                     const displayName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
-                    headerTitle.innerHTML = `${displayName} <span style="color: var(--secure); font-size: 14px;" title="Сквозное шифрование">🔒</span>`;
+                    headerTitle.innerHTML = `${displayName}`; // Чистый заголовок без замка
 
                     if (cached.avatar) {
                         headerAv.style.backgroundImage = `url(${cached.avatar})`;
@@ -1752,21 +1879,19 @@
                     } else {
                         container = document.createElement('div');
                         
-                        // Умное распределение ширины
                         const isMediaOrVoice = messageObject.fileData || messageObject.isVoice;
                         container.className = `msg-container ${m.sender === myUid ? 'out' : 'in'} ${isMediaOrVoice ? 'has-media-container' : 'is-text-container'}`;
                         container.id = `msg-${msgId}`;
 
-                        // Двунаправленный жест свайпа для ответа + Срабатывание удержания (Long Press) на смартфонах
                         let startX = 0;
                         let startY = 0;
                         let msgPressTimer = null;
 
+                        // Свайпы для ответа и удержания
                         container.addEventListener('touchstart', (e) => {
                             startX = e.touches[0].clientX;
                             startY = e.touches[0].clientY;
                             
-                            // Запускаем таймер долгого нажатия
                             msgPressTimer = setTimeout(() => {
                                 activeMenuMsgId = msgId;
                                 activeMenuMsgObj = messageObject;
@@ -1778,7 +1903,6 @@
                             let diffX = startX - e.touches[0].clientX;
                             let diffY = Math.abs(startY - e.touches[0].clientY);
                             
-                            // Если пользователь начал листать чат, а не удерживать палец — сбрасываем таймер удаления
                             if (Math.abs(diffX) > 10 || diffY > 10) {
                                 clearTimeout(msgPressTimer);
                             }
@@ -1792,7 +1916,6 @@
                             }
                         }, { passive: true });
 
-                        // Поддержка долгого нажатия мышью на ПК
                         container.addEventListener('mousedown', (e) => {
                             msgPressTimer = setTimeout(() => {
                                 activeMenuMsgId = msgId;
@@ -2024,8 +2147,15 @@
                 dbPacket.burnTime = Date.now() + 10000;
             }
 
+            // Добавляем к записи метку времени взаимодействия для правильной сортировки чатов
+            const nowTime = Date.now();
             await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
             
+            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
+            if (currentPeer !== myUid) {
+                await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
+            }
+
             window.fb.set(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${myUid}`), null);
             input.value = "";
             input.style.height = "auto";
@@ -2079,7 +2209,14 @@
                             dbPacket.burnTime = Date.now() + 10000;
                         }
 
+                        const nowTime = Date.now();
                         await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+                        
+                        await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
+                        if (currentPeer !== myUid) {
+                            await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
+                        }
+
                         stream.getTracks().forEach(track => track.stop());
                     };
 
@@ -2186,7 +2323,13 @@
                 dbPacket.burnTime = Date.now() + 10000;
             }
 
+            const nowTime = Date.now();
             await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+
+            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
+            if (currentPeer !== myUid) {
+                await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
+            }
         }
 
         function fileToBase64(file) {
@@ -2319,6 +2462,12 @@
             selectedMsgIdToDelete = null;
         }
 
+        function triggerDeleteChatFromOptions() {
+            if (activeMenuPeerId) {
+                triggerChatDeletion(activeMenuPeerId);
+            }
+        }
+
         function triggerChatDeletion(peerId) {
             selectedChatIdToDelete = peerId;
             document.getElementById('delete-chat-both-checkbox').checked = false;
@@ -2431,12 +2580,15 @@
 
                 const rId = [myUid, targetUid].sort().join("_");
 
+                const nowTime = Date.now();
                 await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${targetUid}`), {
-                    roomId: rId
+                    roomId: rId,
+                    lastTime: nowTime
                 });
                 
                 await window.fb.set(window.fb.ref(window.fb.db, `users/${targetUid}/chats/${myUid}`), {
-                    roomId: rId
+                    roomId: rId,
+                    lastTime: nowTime
                 });
 
                 alert("Диалог начат!");
