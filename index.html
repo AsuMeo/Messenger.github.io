@@ -94,7 +94,6 @@
             transition: background 0.3s, backdrop-filter 0.3s, -webkit-backdrop-filter 0.3s;
         }
 
-        /* Полупрозрачность шапки */
         .header-bar.semi-transparent {
             background: rgba(10, 10, 12, 0.65) !important;
             backdrop-filter: blur(20px);
@@ -169,7 +168,6 @@
             transition: background 0.3s, backdrop-filter 0.3s, -webkit-backdrop-filter 0.3s;
         }
 
-        /* Полупрозрачность нижнего меню */
         .bottom-bar.semi-transparent {
             background: rgba(10, 10, 12, 0.65) !important;
             backdrop-filter: blur(20px);
@@ -967,23 +965,24 @@
 
         .cropper-workspace {
             position: relative;
-            flex: 1;
-            width: 100%;
-            max-width: 400px;
+            width: 90vw;
+            max-width: 340px;
+            aspect-ratio: 9 / 16;
             overflow: hidden;
             border: 2px dashed rgba(255,255,255,0.2);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #111;
         }
 
         #cropper-image {
             position: absolute;
-            max-width: none;
-            max-height: none;
             cursor: move;
             transform-origin: center center;
+            user-select: none;
+            -webkit-user-drag: none;
         }
 
         .cropper-mask {
@@ -1326,7 +1325,7 @@
                 <input type="checkbox" id="delete-both-checkbox" class="modern-checkbox">
             </label>
             <div style="display: flex; gap: 8px;">
-                <button class="menu-btn" style="margin-bottom: 0; background: transparent;" onclick="closeModal('delete-msg-modal')">Отмена</button>
+                <button class="menu-btn" style="margin-bottom: 0; background: transparent;" onclick="closeModal('delete-msg-modal');">Отмена</button>
                 <button class="menu-btn danger" style="margin-bottom: 0; flex: 1;" onclick="deleteMessageConfirm()">Удалить</button>
             </div>
         </div>
@@ -1677,6 +1676,43 @@
             return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
+        // ВЫСОКОКАЧЕСТВЕННАЯ ОБРАБОТКА ИЗОБРАЖЕНИЙ (ФОТО / АВАТАРКИ / ДО 8МБ БЕЗ СЖАТИЯ)
+        async function processImageHD(file, maxDimensionOverLimit = 1200) {
+            if (file.size < 8 * 1024 * 1024) {
+                return await fileToBase64(file);
+            } else {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.src = e.target.result;
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+                            if (width > height) {
+                                if (width > maxDimensionOverLimit) {
+                                    height = Math.round((height * maxDimensionOverLimit) / width);
+                                    width = maxDimensionOverLimit;
+                                }
+                            } else {
+                                if (height > maxDimensionOverLimit) {
+                                    width = Math.round((width * maxDimensionOverLimit) / height);
+                                    height = maxDimensionOverLimit;
+                                }
+                            }
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            resolve(canvas.toDataURL('image/jpeg', 0.85));
+                        };
+                    };
+                });
+            }
+        }
+
         // КОНТАКТЫ
         let tempContactAvatarBase64 = "";
         let selectedContactUid = null;
@@ -1722,24 +1758,14 @@
 
         async function compressAndSetContactAvatar(file) {
             if (!file) return;
-            const canvas = document.createElement('canvas');
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    canvas.width = 320;
-                    canvas.height = 320;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, 320, 320);
-                    tempContactAvatarBase64 = canvas.toDataURL('image/jpeg', 0.90);
-                    
-                    const preview = document.getElementById('contact-avatar-preview');
-                    preview.style.backgroundImage = `url(${tempContactAvatarBase64})`;
-                    preview.innerText = "";
-                };
-            };
+            try {
+                tempContactAvatarBase64 = await processImageHD(file, 600);
+                const preview = document.getElementById('contact-avatar-preview');
+                preview.style.backgroundImage = `url(${tempContactAvatarBase64})`;
+                preview.innerText = "";
+            } catch (e) {
+                alert("Ошибка во время выбора фотографии.");
+            }
         }
 
         async function saveContact() {
@@ -3121,56 +3147,20 @@
 
             try {
                 if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = (event) => {
-                        const img = new Image();
-                        img.src = event.target.result;
-                        img.onload = async () => {
-                            const canvas = document.createElement('canvas');
-                            let width = img.width;
-                            let height = img.height;
-                            const maxSide = 1600; 
-
-                            if (width > height) {
-                                if (width > maxSide) {
-                                    height = Math.round((height * maxSide) / width);
-                                    width = maxSide;
-                                }
-                            } else {
-                                if (height > maxSide) {
-                                    width = Math.round((width * maxSide) / height);
-                                    height = maxSide;
-                                }
-                            }
-
-                            canvas.width = width;
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, width, height);
-                            
-                            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.88); 
-                            await transmitDirectMedia(compressedBase64, 'image/jpeg');
-                            
-                            clipBtn.innerHTML = originalClipHtml;
-                            sendBtn.innerHTML = originalSendHtml;
-                        };
-                    };
+                    const finalBase64 = await processImageHD(file, 1600);
+                    await transmitDirectMedia(finalBase64, file.type);
                 } else if (file.type.startsWith('video/')) {
-                    if (file.size > 1.5 * 1024 * 1024) {
-                        alert("Размер видео превышает 1.5 МБ.");
+                    if (file.size > 8 * 1024 * 1024) { 
+                        alert("Размер видео превышает 8 МБ.");
                         clipBtn.innerHTML = originalClipHtml;
                         sendBtn.innerHTML = originalSendHtml;
                         return;
                     }
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = async (event) => {
-                        await transmitDirectMedia(event.target.result, file.type);
-                        clipBtn.innerHTML = originalClipHtml;
-                        sendBtn.innerHTML = originalSendHtml;
-                    };
+                    const base64 = await fileToBase64(file);
+                    await transmitDirectMedia(base64, file.type);
                 }
+                clipBtn.innerHTML = originalClipHtml;
+                sendBtn.innerHTML = originalSendHtml;
             } catch (err) {
                 console.error(err);
                 alert("Ошибка во время отправки файла!");
@@ -3521,10 +3511,10 @@
         }
 
         // ==========================================
-        // CANVAS-ОБРЕЗЧИК ОБОЕВ (Cropper)
+        // CANVAS-ОБРЕЗЧИК ОБОЕВ (Cropper - ТИП 9:16)
         // ==========================================
         let cropperRawBase64 = "";
-        let cropperImageObj = new Image();
+        let cropperImageWidth = 0, cropperImageHeight = 0; 
         let cropperX = 0, cropperY = 0; 
         let cropperScale = 1.0;
         let isDraggingCropper = false;
@@ -3549,11 +3539,31 @@
             const imgEl = document.getElementById('cropper-image');
             imgEl.src = cropperRawBase64;
             
-            cropperX = 0;
-            cropperY = 0;
-            cropperScale = 1.0;
-            document.getElementById('cropper-zoom').value = 1.0;
-            updateCropperTransform();
+            imgEl.onload = () => {
+                const workspace = document.getElementById('cropper-workspace');
+                const ww = workspace.clientWidth;
+                const wh = workspace.clientHeight;
+                
+                const imgRatio = imgEl.naturalWidth / imgEl.naturalHeight;
+                const wsRatio = ww / wh;
+                
+                if (imgRatio > wsRatio) {
+                    cropperImageHeight = wh;
+                    cropperImageWidth = wh * imgRatio;
+                } else {
+                    cropperImageWidth = ww;
+                    cropperImageHeight = ww / imgRatio;
+                }
+                
+                imgEl.style.width = cropperImageWidth + "px";
+                imgEl.style.height = cropperImageHeight + "px";
+                
+                cropperX = 0;
+                cropperY = 0;
+                cropperScale = 1.0;
+                document.getElementById('cropper-zoom').value = 1.0;
+                updateCropperTransform();
+            };
 
             const workspace = document.getElementById('cropper-workspace');
             
@@ -3606,53 +3616,45 @@
 
         function applyCroppedWallpaper() {
             const workspace = document.getElementById('cropper-workspace');
+            const imgEl = document.getElementById('cropper-image');
             
             const canvas = document.createElement('canvas');
-            canvas.width = 480;
-            canvas.height = 854; 
+            canvas.width = 1080;
+            canvas.height = 1920; 
             
             const ctx = canvas.getContext('2d');
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const img = new Image();
-            img.src = cropperRawBase64;
-            img.onload = async () => {
-                const workspaceWidth = workspace.clientWidth;
-                const workspaceHeight = workspace.clientHeight;
+            const ww = workspace.clientWidth;
+            const wh = workspace.clientHeight;
+            const renderScale = 1080 / ww;
+
+            const cx = ((ww / 2 + cropperX) - (cropperImageWidth * cropperScale) / 2) * renderScale;
+            const cy = ((wh / 2 + cropperY) - (cropperImageHeight * cropperScale) / 2) * renderScale;
+            const cw = (cropperImageWidth * cropperScale) * renderScale;
+            const ch = (cropperImageHeight * cropperScale) * renderScale;
+
+            ctx.drawImage(imgEl, cx, cy, cw, ch);
+            const resultBase64 = canvas.toDataURL('image/jpeg', 0.92); 
+
+            document.getElementById('cropper-modal-view').classList.remove('active');
+
+            if (isCroppingGlobal) {
+                globalWallpaperData = resultBase64;
+                applyGlobalWallpaperUI();
+                savePrivacySettings();
+                applyActiveChatWallpaper();
+                alert("Глобальные обои успешно применены!");
+            } else {
+                if (!currentRoomId || !activeRoomSharedKey) return;
+                const cipher = aesEncrypt(resultBase64, activeRoomSharedKey);
                 
-                const scaleX = canvas.width / workspaceWidth;
-                const scaleY = canvas.height / workspaceHeight;
-
-                const viewWidth = img.width * (workspaceWidth / img.width) * cropperScale;
-                const viewHeight = img.height * (workspaceWidth / img.width) * cropperScale;
-
-                const dx = (workspaceWidth / 2 + cropperX - viewWidth / 2) * scaleX;
-                const dy = (workspaceHeight / 2 + cropperY - viewHeight / 2) * scaleY;
-                const dw = viewWidth * scaleX;
-                const dh = viewHeight * scaleY;
-
-                ctx.drawImage(img, dx, dy, dw, dh);
-                const resultBase64 = canvas.toDataURL('image/jpeg', 0.65); 
-
-                document.getElementById('cropper-modal-view').classList.remove('active');
-
-                if (isCroppingGlobal) {
-                    globalWallpaperData = resultBase64;
-                    applyGlobalWallpaperUI();
-                    await savePrivacySettings();
-                    applyActiveChatWallpaper();
-                    alert("Глобальные обои успешно применены!");
-                } else {
-                    if (!currentRoomId || !activeRoomSharedKey) return;
-                    const cipher = aesEncrypt(resultBase64, activeRoomSharedKey);
-                    
-                    await window.fb.set(window.fb.ref(window.fb.db, `wallpapers/${currentRoomId}/${myUid}`), cipher);
-                    personalWallpaperData[currentRoomId] = resultBase64;
-                    applyActiveChatWallpaper();
-                    alert("Индивидуальный фон успешно применен!");
-                }
-            };
+                window.fb.set(window.fb.ref(window.fb.db, `wallpapers/${currentRoomId}/${myUid}`), cipher);
+                personalWallpaperData[currentRoomId] = resultBase64;
+                applyActiveChatWallpaper();
+                alert("Индивидуальный фон успешно применен!");
+            }
         }
 
         function applyGlobalWallpaperUI() {
@@ -3734,7 +3736,6 @@
             }
         }
 
-        // Приятный синтезированный звук уведомления
         function playIncomingSound() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -3744,15 +3745,15 @@
                 osc.connect(gain);
                 gain.connect(ctx.destination);
                 
-                osc.frequency.setValueAtTime(587.33, ctx.currentTime); // Ре (D5)
-                osc.frequency.exponentialRampToValueAtTime(880.00, ctx.currentTime + 0.12); // Ля (A5)
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(880.00, ctx.currentTime + 0.12); 
                 gain.gain.setValueAtTime(0.12, ctx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
                 
                 osc.start();
                 osc.stop(ctx.currentTime + 0.3);
             } catch (e) {
-                console.warn("Chime play blocked by audio context policy");
+                console.warn("Audio Context blocked by browser autoplay policies");
             }
         }
 
@@ -3790,7 +3791,7 @@
                     try {
                         new Notification(senderName, notificationOptions);
                     } catch (err) {
-                        console.warn("Standard HTML5 Notification block:", err);
+                        console.warn("Notification construct error:", err);
                     }
                 }
                 
@@ -3866,7 +3867,7 @@
                     try {
                         await user.delete();
                     } catch (authErr) {
-                        console.warn("Auth user delete failed (requires recent login), signing out instead:", authErr);
+                        console.warn("Auth delete failed:", authErr);
                     }
                 }
 
@@ -3946,24 +3947,14 @@
 
         async function compressAndSetProfileAvatar(file) {
             if (!file) return;
-            const canvas = document.createElement('canvas');
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    canvas.width = 320;
-                    canvas.height = 320;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, 320, 320);
-                    tempProfileAvatarBase64 = canvas.toDataURL('image/jpeg', 0.90);
-                    
-                    const myAvEl = document.getElementById('my-profile-avatar');
-                    myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
-                    myAvEl.innerText = "";
-                };
-            };
+            try {
+                tempProfileAvatarBase64 = await processImageHD(file, 600);
+                const myAvEl = document.getElementById('my-profile-avatar');
+                myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
+                myAvEl.innerText = "";
+            } catch (e) {
+                alert("Ошибка во время выбора аватарки.");
+            }
         }
 
         async function saveProfileSettings() {
