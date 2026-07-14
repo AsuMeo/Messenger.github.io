@@ -40,28 +40,10 @@
             --text-muted: #8E8E93;
             --text-white: #F2F2F7;
             --online: #34C759;
-            --offline-dot: #3A3A3C; /* Теперь четко виден серый цвет для оффлайна */
+            --offline-dot: #3A3A3C;
             --error: #FF3B30;
             --secure: #00C781;
             --burn: #FF9500;
-            --shield: #FF3B30; /* Цвет для активного шилда */
-        }
-
-        /* Запрет выделения текста, сохранения изображений/видео для Shield Mode */
-        body.shield-active {
-            user-select: none !important;
-            -webkit-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
-        }
-        body.shield-active img,
-        body.shield-active video {
-            pointer-events: none !important; /* Отключает правый клик и перетаскивание */
-        }
-
-        .shield-protected-blur {
-            filter: blur(15px) !important;
-            transition: filter 0.2s ease-out;
         }
 
         * {
@@ -70,7 +52,7 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             -webkit-tap-highlight-color: transparent;
-            /* user-select: none; /* Перенесено на body.shield-active */
+            user-select: none;
         }
 
         body {
@@ -240,9 +222,17 @@
             background: rgba(31, 128, 224, 0.05);
         }
 
-        .chat-avatar {
+        /* Обертка для аватарки гарантирует, что статус-дот не удалится при изменении текста аватарки */
+        .chat-avatar-wrapper {
+            position: relative;
             width: 52px;
             height: 52px;
+            flex-shrink: 0;
+        }
+
+        .chat-avatar {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
             background-size: cover;
             background-position: center;
@@ -252,25 +242,25 @@
             font-weight: bold;
             font-size: 18px;
             color: white;
-            position: relative;
-            flex-shrink: 0;
             image-rendering: -webkit-optimize-contrast;
         }
 
+        /* Зеленый / серый индикатор, теперь всегда виден */
         .online-dot {
             width: 14px;
             height: 14px;
-            background: var(--offline-dot); /* Дефолтный цвет - серый */
+            background-color: var(--offline-dot) !important;
             border-radius: 50%;
             position: absolute;
-            bottom: 0;
-            right: 0;
+            bottom: -1px;
+            right: -1px;
             border: 3px solid var(--bg-dark);
-            display: block; /* Всегда виден */
+            display: block !important;
+            z-index: 10;
         }
 
         .online-dot.active {
-            background: var(--online) !important; /* Зеленый, когда онлайн/печатает */
+            background-color: var(--online) !important;
         }
 
         .chat-info {
@@ -298,7 +288,7 @@
         .chat-row-time {
             font-size: 12px;
             color: var(--text-muted);
-            display: flex; /* Для выравнивания с badge */
+            display: flex;
             align-items: center;
             gap: 4px;
         }
@@ -309,9 +299,9 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            transition: color 0.15s;
         }
-        
-        /* Печатает статус в списке чатов */
+
         .chat-row-msg.typing-status {
             color: var(--online) !important;
             font-weight: 500;
@@ -332,8 +322,9 @@
             padding: 0 6px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
+
         .chat-row-time .unread-badge {
-            margin-left: auto; /* Выравнивает вправо */
+            margin-left: auto;
         }
 
         .chat-window {
@@ -905,7 +896,7 @@
         }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
     <div id="login-screen">
         <div class="login-card">
@@ -997,12 +988,6 @@
                     <option value="😂">😂 Смех</option>
                     <option value="😮">😮 Удивление</option>
                 </select>
-
-                <!-- Настройка Режима Защиты (Глобальная/По умолчанию) -->
-                <label class="modern-checkbox-container" style="margin-top: 10px;">
-                    <span class="modern-checkbox-label">Глобальный режим защиты (Откл. скриншотов)</span>
-                    <input type="checkbox" id="global-shield-toggle" class="modern-checkbox" onchange="toggleGlobalShieldMode(this.checked)">
-                </label>
             </div>
             
             <div class="secure-badge">
@@ -1086,13 +1071,9 @@
                 </div>
             </div>
             
-            <!-- КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ (КОНТАКТЫ + ЗАЩИТА) -->
             <div style="display: flex; align-items: center; gap: 4px;">
                 <button class="header-btn" id="header-add-contact-btn" style="display: none; color: var(--accent);" onclick="quickAddActivePeerToContacts()" title="Добавить в контакты">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
-                </button>
-                <button class="header-btn" id="header-shield-btn" style="color: var(--text-muted);" onclick="toggleShieldMode()" title="Режим защиты (запрет скриншотов/копирования)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </button>
                 <button class="header-btn" style="color: var(--secure)" onclick="showE2EEVerification()" title="Верификация ключа">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -1325,11 +1306,8 @@
         let activeChatPrivacy = { lastSeen: "all", messages: "all" };
         let activeChatWeAreContact = false;
         let activeChatIsTyping = false;
-        let myShieldActiveForThisPeer = false; // Мой режим защиты для этого собеседника
-        let peerShieldActiveForMe = false; // Режим защиты собеседника для меня
-        let activeChatShieldActive = false; // Общий активный режим защиты для чата (если кто-то включил)
 
-        // Service Worker для Push-уведомлений с поддержкой быстрых ответов
+        // Service Worker для Push-уведомлений
         let serviceWorkerReg = null;
 
         const playSvg = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
@@ -1701,8 +1679,10 @@
 
                 row.innerHTML = `
                     <div style="display:flex; align-items:center; flex:1;" onclick="startContactChat('${peerId}')">
-                        <div class="chat-avatar" style="${avatar ? `background-image:url(${avatar})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`}">
-                            ${avatar ? "" : fullName[0].toUpperCase()}
+                        <div class="chat-avatar-wrapper">
+                            <div class="chat-avatar" style="${avatar ? `background-image:url(${avatar})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`}">
+                                ${avatar ? "" : fullName[0].toUpperCase()}
+                            </div>
                         </div>
                         <div class="chat-info">
                             <div class="chat-row-name">${fullName}</div>
@@ -1777,7 +1757,7 @@
             }
         }
 
-        // РЕАКТИВНЫЙ ОНЛАЙН СТАТУС И СТАТУС ВВОДА В СПИСКЕ ДИАЛОГОВ
+        // РЕАКТИВНЫЙ ОНЛАЙН СТАТУС И СТАТУС ВВОДА В СПИСКЕ ДИАЛОГОВ (ИСПРАВЛЕНО И ОПТИМИЗИРОВАНО)
         function setupDialogPresenceRealtime(peerId, roomId) {
             const presenceRef = window.fb.ref(window.fb.db, `users/${peerId}/presence`);
             const privacyRef = window.fb.ref(window.fb.db, `users/${peerId}/privacy`);
@@ -1788,7 +1768,6 @@
             let statePriv = { lastSeen: "all" };
             let stateWeContact = false;
             let stateTyping = false;
-            let currentLastMessageText = ""; // Храним последнее сообщение для восстановления
 
             function reEvalDotAndSub() {
                 const dot = document.getElementById(`dot-${peerId}`);
@@ -1807,12 +1786,13 @@
                     if (statePres && statePres.status === "online" && !hideOnline) {
                         dot.classList.add('active');
                     } else {
-                        dot.classList.remove('active'); // Офлайн или скрыто, дот серый
+                        dot.classList.remove('active');
                     }
                     
                     if (msgBox && msgBox.classList.contains('typing-status')) {
-                        msgBox.innerText = currentLastMessageText || "Сообщение"; // Восстанавливаем
                         msgBox.classList.remove('typing-status');
+                        const original = msgBox.getAttribute('data-last-msg') || "Сообщение";
+                        msgBox.innerText = original;
                     }
                 }
             }
@@ -1840,28 +1820,6 @@
             activePresenceListeners[peerId + "_type"] = window.fb.onValue(typingRef, (snap) => {
                 stateTyping = snap.exists() && snap.val() === true;
                 reEvalDotAndSub();
-            });
-
-            // Дополнительный слушатель для обновления lastMessageText, когда он не печатает
-            activeLastMsgListeners[peerId + "_list_for_typing"] = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${roomId}/list`), (mSnap) => {
-                if (mSnap.exists()) {
-                    const list = Object.values(mSnap.val());
-                    const lastMsg = list[list.length - 1];
-                    // Дешифруем, но не сразу обновляем UI, только сохраняем
-                    decryptAndRenderLastMsg(peerId, lastMsg.text, { innerText: '' }).then(decryptedText => {
-                        currentLastMessageText = decryptedText;
-                        if (!stateTyping) { // Если не печатает, обновляем UI сразу
-                            const msgBox = document.getElementById(`last-msg-${peerId}`);
-                            if (msgBox) msgBox.innerText = currentLastMessageText;
-                        }
-                    });
-                } else {
-                    currentLastMessageText = "Сообщение";
-                    if (!stateTyping) {
-                        const msgBox = document.getElementById(`last-msg-${peerId}`);
-                        if (msgBox) msgBox.innerText = currentLastMessageText;
-                    }
-                }
             });
         }
 
@@ -1922,7 +1880,6 @@
             });
         }
 
-        // НАСТРОЙКИ ПРИВАТНОСТИ (ШИФРУЮТСЯ И ХРАНЯТСЯ В БАЗЕ)
         async function loadMyPrivacySettings() {
             const privacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/privacy`));
             if (privacySnap.exists()) {
@@ -1930,12 +1887,6 @@
                 document.getElementById('privacy-last-seen').value = decryptProfileData(privacy.lastSeen) || "all";
                 document.getElementById('privacy-avatar').value = decryptProfileData(privacy.avatar) || "all";
                 document.getElementById('privacy-messages').value = decryptProfileData(privacy.messages) || "all";
-                
-                const globalShield = decryptProfileData(privacy.globalShield) === "true";
-                document.getElementById('global-shield-toggle').checked = globalShield;
-            } else {
-                // Устанавливаем дефолтное значение для глобального щита
-                document.getElementById('global-shield-toggle').checked = false;
             }
             const localEmoji = localStorage.getItem('quick_reaction_emoji') || '❤️';
             document.getElementById('quick-reaction-emoji').value = localEmoji;
@@ -1945,42 +1896,12 @@
             const lastSeen = document.getElementById('privacy-last-seen').value;
             const avatar = document.getElementById('privacy-avatar').value;
             const messages = document.getElementById('privacy-messages').value;
-            const globalShield = document.getElementById('global-shield-toggle').checked; // boolean
 
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), {
                 lastSeen: encryptProfileData(lastSeen),
                 avatar: encryptProfileData(avatar),
-                messages: encryptProfileData(messages),
-                globalShield: encryptProfileData(globalShield) // Сохраняем как string "true"/"false"
+                messages: encryptProfileData(messages)
             });
-        }
-
-        async function toggleGlobalShieldMode(checked) {
-            await savePrivacySettings(); // Сначала сохраняем глобальную настройку
-
-            // Затем применяем эту настройку ко всем текущим чатам
-            const myChatsSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/chats`));
-            if (myChatsSnap.exists()) {
-                const chats = myChatsSnap.val();
-                for (const peerId in chats) {
-                    if (chats.hasOwnProperty(peerId)) {
-                        // Обновляем мой флаг shieldModeActiveByMe для каждого чата
-                        await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${peerId}`), {
-                            shieldModeActiveByMe: checked
-                        });
-                    }
-                }
-            }
-            // Также для облачного чата
-            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${myUid}`), {
-                shieldModeActiveByMe: checked
-            });
-
-            // Если открыт чат, обновим его UI
-            if (currentPeer) {
-                // Это вызовет onValue listeners и обновит myShieldActiveForThisPeer
-                // и соответственно updateShieldUI() и applyShieldModeUI()
-            }
         }
 
         function saveQuickReactionSetting(val) {
@@ -2002,7 +1923,6 @@
                     return;
                 }
 
-                // Считаем входящие непрочитанные сообщения
                 let unreadCount = 0;
                 const msgs = snap.val();
                 Object.values(msgs).forEach(m => {
@@ -2011,7 +1931,6 @@
                     }
                 });
 
-                // Показываем плашку только если есть непрочитанные и чат не открыт
                 if (unreadCount > 0 && currentPeer !== peerId) {
                     badgeContainer.innerHTML = `<div class="unread-badge">${unreadCount}</div>`;
                 } else {
@@ -2027,7 +1946,6 @@
             container.innerHTML = "";
 
             unsubDialogs = window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/chats`), (snap) => {
-                // Очищаем старые слушатели присутствия, сообщений и непрочитанных
                 Object.values(activePresenceListeners).forEach(un => un());
                 Object.values(activeLastMsgListeners).forEach(un => un());
                 Object.values(activeUnreadListeners).forEach(un => un());
@@ -2063,9 +1981,10 @@
                 cloudRow.addEventListener('mouseleave', () => clearTimeout(favPressTimer));
                 
                 cloudRow.innerHTML = `
-                    <div class="chat-avatar" id="avatar-${myUid}" style="background-color: var(--accent);">
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
-                        <div class="online-dot" id="dot-${myUid}"></div>
+                    <div class="chat-avatar-wrapper">
+                        <div class="chat-avatar" id="avatar-${myUid}" style="background-color: var(--accent);">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+                        </div>
                     </div>
                     <div class="chat-info">
                         <div class="chat-name-row">
@@ -2084,18 +2003,21 @@
                         cloudAv.innerText = "";
                     }
                 }
-                
-                // Для "Избранного" статус всегда "в сети", но дот не активный, если пользователь не печатает
-                const cloudDot = document.getElementById(`dot-${myUid}`);
-                if (cloudDot) {
-                    if (isCurrentlyTypingLocal && currentRoomId === `saved_${myUid}`) {
-                        cloudDot.classList.add('active');
-                    } else {
-                        cloudDot.classList.remove('active'); // Избранное всегда "доступно", но не "онлайн"
+
+                activeLastMsgListeners[myUid] = window.fb.onValue(window.fb.ref(window.fb.db, `messages/saved_${myUid}/list`), (mSnap) => {
+                    const msgBox = document.getElementById(`last-msg-${myUid}`);
+                    const timeBox = document.getElementById(`time-${myUid}`);
+                    if (mSnap.exists() && msgBox) {
+                        const list = Object.values(mSnap.val());
+                        const lastMsg = list[list.length - 1];
+                        decryptAndRenderLastMsg(myUid, lastMsg.text, msgBox).then(decrypted => {
+                            msgBox.setAttribute('data-last-msg', decrypted);
+                        });
+                        if (timeBox && lastMsg.time) {
+                            timeBox.innerText = formatDialogTime(lastMsg.time);
+                        }
                     }
-                }
-                
-                // Обновляем последнее сообщение для Избранного (уже есть activeLastMsgListeners[myUid])
+                });
 
                 if (!snap.exists()) return;
                 
@@ -2117,7 +2039,7 @@
                     row.id = `chat-row-${peerId}`;
 
                     row.onclick = (e) => {
-                        if (e.target.classList.contains('chat-avatar')) {
+                        if (e.target.closest('.chat-avatar-wrapper')) {
                             e.stopPropagation();
                             showPeerProfile(peerId);
                         } else {
@@ -2142,12 +2064,13 @@
                     row.addEventListener('mouseleave', () => clearTimeout(rowPressTimer));
 
                     let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
-
                     const pinSvg = chatMeta.pinned ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="color: var(--accent); margin-right: 4px; flex-shrink:0;"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2z"/></svg>` : '';
 
                     row.innerHTML = `
-                        <div class="chat-avatar" id="avatar-${peerId}" style="background-color: ${TG_AVATAR_COLORS[colorIndex]}">
-                            ?
+                        <div class="chat-avatar-wrapper">
+                            <div class="chat-avatar" id="avatar-${peerId}" style="background-color: ${TG_AVATAR_COLORS[colorIndex]}">
+                                ?
+                            </div>
                             <div class="online-dot" id="dot-${peerId}"></div>
                         </div>
                         <div class="chat-info">
@@ -2185,10 +2108,7 @@
                         getDerivedSharedKey(peerId);
                     });
 
-                    // Запускаем реактивное присутствие и статус печати
                     setupDialogPresenceRealtime(peerId, chatMeta.roomId);
-                    
-                    // Запускаем счетчик непрочитанных для голубой плашки
                     setupUnreadBadgeRealtime(peerId, chatMeta.roomId);
 
                     activeLastMsgListeners[peerId] = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${chatMeta.roomId}/list`), (mSnap) => {
@@ -2197,15 +2117,22 @@
                         if (mSnap.exists() && msgBox) {
                             const list = Object.values(mSnap.val());
                             const lastMsg = list[list.length - 1];
-                            // Обновляем только если не печатает, иначе статус "печатает"
-                            if (!msgBox.classList.contains('typing-status')) {
-                                decryptAndRenderLastMsg(peerId, lastMsg.text, msgBox);
-                            }
+                            
+                            decryptAndRenderLastMsg(peerId, lastMsg.text, msgBox).then(decrypted => {
+                                msgBox.setAttribute('data-last-msg', decrypted);
+                                if (!msgBox.classList.contains('typing-status')) {
+                                    msgBox.innerText = decrypted;
+                                }
+                            });
+                            
                             if (timeBox && lastMsg.time) {
                                 timeBox.innerText = formatDialogTime(lastMsg.time);
                             }
                         } else if (msgBox) {
-                            msgBox.innerText = "Сообщение";
+                            msgBox.setAttribute('data-last-msg', "Сообщение");
+                            if (!msgBox.classList.contains('typing-status')) {
+                                msgBox.innerText = "Сообщение";
+                            }
                             if (timeBox) timeBox.innerText = "";
                         }
                     });
@@ -2213,7 +2140,6 @@
             });
         }
 
-        // РЕАКТИВНЫЙ ОБРАБОТЧИК ДЛЯ ШАПКИ ЧАТА И БЛОКИРОВКИ ИНПУТА
         function updateActiveChatHeaderUI() {
             const headerStatus = document.getElementById('chat-header-status');
             const input = document.getElementById('message-input');
@@ -2223,7 +2149,6 @@
             const sendBtn = document.getElementById('send-btn');
 
             if (!headerStatus || !currentPeer || currentPeer === myUid) {
-                // Для облака не применяем блокировки, но сбрасываем состояние
                 input.disabled = false;
                 input.placeholder = "Сообщение...";
                 clipBtn.style.opacity = "1"; clipBtn.style.pointerEvents = "auto";
@@ -2266,7 +2191,6 @@
                 headerStatus.style.color = color;
             }
 
-            // Контроль блокировки отправки сообщений по приватности
             const msgPriv = activeChatPrivacy.messages || "all";
             if (msgPriv === "none" || (msgPriv === "contacts" && !activeChatWeAreContact)) {
                 input.disabled = true;
@@ -2285,7 +2209,6 @@
             }
         }
 
-        // БЫСТРОЕ ДОБАВЛЕНИЕ СОВЕСТНИКА В КОНТАКТЫ ИЗ ШАПКИ
         function updateHeaderContactButton() {
             const btn = document.getElementById('header-add-contact-btn');
             if (!btn) return;
@@ -2322,92 +2245,6 @@
             });
         }
 
-        // РЕЖИМ ЗАЩИТЫ (SHIELD MODE) - БЛОКИРОВКА ЭКРАНА И ФУНКЦИЙ
-        // Эта функция обновляет UI на основе состояния myShieldActiveForThisPeer и peerShieldActiveForMe
-        function updateShieldUI() {
-            // Общий режим защиты активен, если кто-то из нас включил его
-            activeChatShieldActive = myShieldActiveForThisPeer || peerShieldActiveForMe; 
-            applyShieldModeUI(activeChatShieldActive, myShieldActiveForThisPeer);
-        }
-
-        async function toggleShieldMode() {
-            if (!currentRoomId) return;
-            const myChatRef = window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`);
-            await window.fb.update(myChatRef, { shieldModeActiveByMe: !myShieldActiveForThisPeer });
-        }
-
-        function applyShieldModeUI(isActive, mySettingActive) {
-            const shieldBtn = document.getElementById('header-shield-btn');
-            const feed = document.getElementById('chat-feed');
-            const forwardBtn = document.getElementById('options-forward-btn');
-            const chatWindow = document.getElementById('chat-window');
-
-            if (!shieldBtn || !feed || !chatWindow) return;
-
-            // Цвет кнопки отражает только МОЮ настройку
-            if (mySettingActive) {
-                shieldBtn.style.color = "var(--shield)";
-                shieldBtn.title = "Ваша защита активна";
-            } else {
-                shieldBtn.style.color = "var(--text-muted)";
-                shieldBtn.title = "Ваша защита выключена";
-            }
-            
-            if (isActive) {
-                // Активируем глобальные ограничения на body
-                document.body.classList.add('shield-active');
-                // Добавляем слушатели для размытия чата
-                window.addEventListener('blur', applyScreenshotBlur);
-                window.addEventListener('focus', removeScreenshotBlur);
-                document.addEventListener('visibilitychange', handleVisibilityShield);
-                // При потере фокуса или сразу, если фокус уже потерян, размываем
-                if (document.hidden || !document.hasFocus()) {
-                    applyScreenshotBlur();
-                }
-
-                if (forwardBtn) {
-                    forwardBtn.style.display = "none"; // Запрет пересылки сообщений
-                }
-
-            } else {
-                // Удаляем глобальные ограничения
-                document.body.classList.remove('shield-active');
-                // Убираем слушатели
-                window.removeEventListener('blur', applyScreenshotBlur);
-                window.removeEventListener('focus', removeScreenshotBlur);
-                document.removeEventListener('visibilitychange', handleVisibilityShield);
-                // Убираем размытие, если оно было
-                removeScreenshotBlur();
-
-                if (forwardBtn) {
-                    forwardBtn.style.display = "block";
-                }
-            }
-        }
-
-        function applyScreenshotBlur() {
-            const chatFeed = document.getElementById('chat-feed');
-            if (activeChatShieldActive && chatFeed) {
-                chatFeed.classList.add('shield-protected-blur');
-            }
-        }
-
-        function removeScreenshotBlur() {
-            const chatFeed = document.getElementById('chat-feed');
-            if (chatFeed) {
-                chatFeed.classList.remove('shield-protected-blur');
-            }
-        }
-
-        function handleVisibilityShield() {
-            if (document.visibilityState === 'hidden') {
-                applyScreenshotBlur();
-            } else {
-                removeScreenshotBlur();
-            }
-        }
-
-        // ЗАПУСК И ОЧИСТКА СЛУШАТЕЛЕЙ ДЛЯ ОТКРЫТОГО ЧАТА
         async function startActiveChatSync(peerId) {
             if (unsubHeaderPresence) unsubHeaderPresence();
 
@@ -2415,17 +2252,11 @@
             activeChatPrivacy = { lastSeen: "all", messages: "all" };
             activeChatWeAreContact = false;
             activeChatIsTyping = false;
-            myShieldActiveForThisPeer = false;
-            peerShieldActiveForMe = false;
-            activeChatShieldActive = false;
 
             const presenceRef = window.fb.ref(window.fb.db, `users/${peerId}/presence`);
             const privacyRef = window.fb.ref(window.fb.db, `users/${peerId}/privacy`);
             const contactRef = window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`);
             const typingRef = window.fb.ref(window.fb.db, `typing/${currentRoomId}/${peerId}`);
-            const myChatShieldRef = window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}/shieldModeActiveByMe`);
-            const peerChatShieldRef = window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}/shieldModeActiveByMe`);
-
 
             const unPres = window.fb.onValue(presenceRef, (snap) => {
                 activeChatPresence = snap.val();
@@ -2449,7 +2280,7 @@
             const unCont = window.fb.onValue(contactRef, (snap) => {
                 activeChatWeAreContact = snap.exists();
                 updateActiveChatHeaderUI();
-                updateHeaderContactButton(); // Обновить кнопку "Добавить в контакты"
+                updateHeaderContactButton();
             });
 
             const unType = window.fb.onValue(typingRef, (snap) => {
@@ -2457,37 +2288,17 @@
                 updateActiveChatHeaderUI();
             });
 
-            const unMyShield = window.fb.onValue(myChatShieldRef, (snap) => {
-                myShieldActiveForThisPeer = snap.exists() ? snap.val() : false;
-                updateShieldUI();
-            });
-            const unPeerShield = window.fb.onValue(peerChatShieldRef, (snap) => {
-                peerShieldActiveForMe = snap.exists() ? snap.val() : false;
-                updateShieldUI();
-            });
-
             unsubHeaderPresence = () => {
                 unPres();
                 unPriv();
                 unCont();
                 unType();
-                unMyShield();
-                unPeerShield();
             };
 
-            // При открытии чата сразу запрашиваем текущие значения для инициализации UI
-            const myShieldSnap = await window.fb.get(myChatShieldRef);
-            myShieldActiveForThisPeer = myShieldSnap.exists() ? myShieldSnap.val() : false;
-
-            const peerShieldSnap = await window.fb.get(peerChatShieldRef);
-            peerShieldActiveForMe = peerShieldSnap.exists() ? peerShieldSnap.val() : false;
-            
-            updateShieldUI(); // Инициализируем UI щита
-            updateActiveChatHeaderUI(); // Инициализируем UI шапки
-            updateHeaderContactButton(); // Инициализируем кнопку контактов
+            updateActiveChatHeaderUI();
+            updateHeaderContactButton();
         }
 
-        // МОМЕНТАЛЬНЫЙ СБРОС И СИСТЕМА ДЕБАУНСА ВВОДА (КАК В ТГ)
         function stopTypingImmediately() {
             clearTimeout(typingTimeout);
             if (isCurrentlyTypingLocal) {
@@ -2521,7 +2332,7 @@
 
         async function openChatWindow(peerId, roomId) {
             if (unsubChatMessages) unsubChatMessages();
-            if (unsubHeaderPresence) unsubHeaderPresence(); // Гасим старые слушатели
+            if (unsubHeaderPresence) unsubHeaderPresence();
 
             currentPeer = peerId;
             currentRoomId = roomId;
@@ -2538,7 +2349,6 @@
             const headerTitle = document.getElementById('chat-header-title');
             const headerStatus = document.getElementById('chat-header-status');
 
-            // Принудительно гасим плашку непрочитанных у открытого диалога
             const badgeContainer = document.getElementById(`badge-container-${peerId}`);
             if (badgeContainer) badgeContainer.innerHTML = "";
 
@@ -2554,17 +2364,13 @@
                     headerAv.innerText = myNameCombined[0].toUpperCase();
                 }
                 headerStatus.innerText = "персональное защищенное хранилище";
-                
-                // Для облака неактивны кнопки контактов и защиты
                 document.getElementById('header-add-contact-btn').style.display = 'none';
-                document.getElementById('header-shield-btn').style.display = 'none';
                 
                 const input = document.getElementById('message-input');
                 input.disabled = false;
                 input.placeholder = "Сообщение...";
             } else {
-                document.getElementById('header-add-contact-btn').style.display = 'flex'; // Показываем кнопку "добавить в контакты"
-                document.getElementById('header-shield-btn').style.display = 'flex'; // Показываем кнопку "защита"
+                document.getElementById('header-add-contact-btn').style.display = 'flex';
 
                 getCachedProfile(peerId, (cached) => {
                     const displayName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
@@ -2582,7 +2388,7 @@
                     }
                 });
 
-                await startActiveChatSync(peerId); // Запускаем все слушатели и инициализируем UI
+                await startActiveChatSync(peerId);
             }
 
             unsubChatMessages = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), async (snapshot) => {
@@ -2813,7 +2619,6 @@
             });
         }
 
-        // КРАСИВЫЙ РЕНДЕРИНГ РЕАКЦИЙ С АВАТАРКАМИ УЧАСТНИКОВ (КАК В ТГ)
         function getReactionsHtml(msgId, reactionsObj) {
             if (!reactionsObj) return "";
             
@@ -2958,8 +2763,6 @@
             }
             
             stopTypingImmediately();
-            applyShieldModeUI(false, false); // Полностью выключаем ограничения защиты при выходе из чата
-            
             cancelReply();
             clearObjectUrlCache(); 
             document.getElementById('chat-window').classList.remove('active');
@@ -2967,7 +2770,7 @@
             currentRoomId = null;
             activeRoomSharedKey = null;
 
-            loadDialogs(); // Перезапуск непрочитанных в списке диалогов (включая активные listeners)
+            loadDialogs();
         }
 
         function initiateReply(msgId, text, senderId) {
@@ -3228,10 +3031,6 @@
         }
 
         function viewMediaFull(data, isVideo) {
-            if (activeChatShieldActive) {
-                alert("Просмотр на весь экран заблокирован режимом защиты!");
-                return;
-            }
             const viewer = document.getElementById('media-viewer-modal');
             const content = document.getElementById('media-viewer-content');
             viewer.classList.add('active');
@@ -3264,11 +3063,6 @@
         }
 
         async function triggerForwardFromMenu() {
-            if (activeChatShieldActive) {
-                alert("Пересылка отключена режимом защиты!");
-                closeModal('msg-options-modal');
-                return;
-            }
             closeModal('msg-options-modal');
             const listContainer = document.getElementById('forward-chats-list');
             listContainer.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;">Загрузка списка диалогов...</div>`;
@@ -3505,7 +3299,7 @@
             const key = await getDerivedSharedKey(peerId);
             if (!key) {
                 element.innerText = "Сообщение";
-                return "Сообщение"; // Return for caller to use
+                return "Сообщение";
             }
             let raw = rawText || "";
             if (raw.startsWith("[MEOW]")) {
@@ -3523,62 +3317,65 @@
                 displayText = raw;
             }
             element.innerText = displayText;
-            return displayText; // Return for caller to use
+            return displayText;
         }
 
-        // ИНИЦИАЛИЗАЦИЯ И РЕГИСТРАЦИЯ PUSH-СЛУШАТЕЛЕЙ С ДЕШИФРОВАНИЕМ НА КЛИЕНТЕ
+        // ИНИЦИАЛИЗАЦИЯ PUSH-СЛУШАТЕЛЕЙ С ГАРАНТИРОВАННЫМ ФОЛЛБЕКОМ ДЛЯ ANDROID
         function initPushNotifications() {
-            if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+            if (!("Notification" in window)) return;
 
             Notification.requestPermission().then(permission => {
                 if (permission !== "granted") return;
 
-                const swCode = `
-                    self.addEventListener('notificationclick', function(event) {
-                        event.notification.close();
-                        if (event.action === 'reply' && event.reply) {
-                            const replyText = event.reply;
-                            self.clients.matchAll().then(clients => {
-                                clients.forEach(client => {
-                                    client.postMessage({
-                                        type: 'PUSH_REPLY',
-                                        roomId: event.notification.data.roomId,
-                                        peerId: event.notification.data.peerId,
-                                        text: replyText
+                if ("serviceWorker" in navigator) {
+                    const swCode = `
+                        self.addEventListener('notificationclick', function(event) {
+                            event.notification.close();
+                            if (event.action === 'reply' && event.reply) {
+                                const replyText = event.reply;
+                                self.clients.matchAll().then(clients => {
+                                    clients.forEach(client => {
+                                        client.postMessage({
+                                            type: 'PUSH_REPLY',
+                                            roomId: event.notification.data.roomId,
+                                            peerId: event.notification.data.peerId,
+                                            text: replyText
+                                        });
                                     });
                                 });
-                            });
-                        } else {
-                            event.waitUntil(
-                                self.clients.matchAll({ type: 'window' }).then(windowClients => {
-                                    for (let i = 0; i < windowClients.length; i++) {
-                                        let client = windowClients[i];
-                                        if (client.url.includes('/code.html') && 'focus' in client) { // Target our app window
-                                            return client.focus();
+                            } else {
+                                event.waitUntil(
+                                    self.clients.matchAll({ type: 'window' }).then(windowClients => {
+                                        for (let i = 0; i < windowClients.length; i++) {
+                                            let client = windowClients[i];
+                                            if (client.url && 'focus' in client) {
+                                                return client.focus();
+                                            }
                                         }
-                                    }
-                                    if (self.clients.openWindow) {
-                                        return self.clients.openWindow('/code.html'); // Open new window if none exist
-                                    }
-                                })
-                            );
-                        }
-                    });
-                `;
+                                        if (self.clients.openWindow) {
+                                            return self.clients.openWindow('/');
+                                        }
+                                    })
+                                );
+                            }
+                        });
+                    `;
 
-                // Используем хеш кода Service Worker для создания стабильного имени Blob-файла,
-                // чтобы браузер понимал, что это один и тот же SW.
-                const swCodeHash = CryptoJS.SHA256(swCode).toString();
-                const blobUrl = URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' })) + '#' + swCodeHash;
+                    try {
+                        const blob = new Blob([swCode], { type: 'application/javascript' });
+                        const blobUrl = URL.createObjectURL(blob);
+                        
+                        navigator.serviceWorker.register(blobUrl).then(reg => {
+                            serviceWorkerReg = reg;
+                            console.log("Push Service Worker registered.");
+                        }).catch(err => {
+                            console.warn("Service Worker registration failed, using standard notifications:", err);
+                        });
+                    } catch (e) {
+                        console.warn("Blob SW registration not supported, using standard notifications:", e);
+                    }
+                }
 
-                navigator.serviceWorker.register(blobUrl).then(reg => {
-                    serviceWorkerReg = reg;
-                    console.log('Service Worker registered with blob URL:', blobUrl);
-                }).catch(error => {
-                    console.error('Service Worker registration failed:', error);
-                });
-
-                // Слушатель сообщений от SW (при быстром ответе из шторки уведомления)
                 navigator.serviceWorker.addEventListener('message', async (event) => {
                     if (event.data && event.data.type === 'PUSH_REPLY') {
                         const { roomId, peerId, text } = event.data;
@@ -3604,9 +3401,8 @@
             });
         }
 
-        // ПОКАЗ УВЕДОМЛЕНИЯ ПРИ НОВОМ СООБЩЕНИИ
         async function triggerLocalPush(senderId, roomId, encryptedText) {
-            if (document.visibilityState === 'visible' && currentPeer === senderId) return; // Не спамим, если чат открыт
+            if (document.visibilityState === 'visible' && currentPeer === senderId) return;
 
             const key = await getDerivedSharedKey(senderId);
             if (!key) return;
@@ -3628,25 +3424,32 @@
                 const senderName = (cached.name || "Собеседник") + (cached.lastname ? " " + cached.lastname : "");
                 const avatar = cached.avatar || "";
 
-                if (serviceWorkerReg && Notification.permission === "granted") {
+                // На Android, если SW заблокирован браузером, отправляем через нативный Notifications API
+                if (serviceWorkerReg && "showNotification" in serviceWorkerReg) {
                     serviceWorkerReg.showNotification(senderName, {
                         body: textToShow,
                         icon: avatar || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='%231F80E0'/><text x='50%' y='55%' font-family='sans-serif' font-size='32' fill='white' text-anchor='middle'>M</text></svg>",
-                        tag: roomId, // Группировка уведомлений по чату
-                        renotify: true, // Заменяет старое уведомление новым
+                        tag: roomId,
+                        renotify: true,
                         data: { roomId, peerId: senderId },
                         actions: [
                             { action: 'reply', title: 'Ответить', type: 'text', placeholder: 'Введите ответ...' }
                         ]
                     });
-                } else if ("Notification" in window && Notification.permission === "granted") {
-                    // Fallback для браузеров без поддержки Service Worker или Blob URL SW
-                    new Notification(senderName, { body: textToShow, icon: avatar });
+                } else if ("Notification" in window) {
+                    try {
+                        new Notification(senderName, {
+                            body: textToShow,
+                            icon: avatar || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='%231F80E0'/><text x='50%' y='55%' font-family='sans-serif' font-size='32' fill='white' text-anchor='middle'>M</text></svg>",
+                            tag: roomId
+                        });
+                    } catch (err) {
+                        console.error("Standard notification error:", err);
+                    }
                 }
             });
         }
 
-        // Наблюдатель за глобальными входящими сообщениями для триггера Push-уведомлений
         function startGlobalIncomingMessagesObserver() {
             window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/chats`), (snap) => {
                 if (!snap.exists()) return;
@@ -3654,22 +3457,17 @@
                 Object.entries(chats).forEach(([peerId, chatMeta]) => {
                     const lastMsgRef = window.fb.ref(window.fb.db, `messages/${chatMeta.roomId}/list`);
                     
-                    // Удаляем старый слушатель, чтобы не дублировать, если чаты перезагрузились
                     if (activeLastMsgListeners[`global_push_observer_${peerId}`]) {
                         activeLastMsgListeners[`global_push_observer_${peerId}`]();
                     }
 
-                    // Вешаем слушатель на новые сообщения для каждого чата
                     activeLastMsgListeners[`global_push_observer_${peerId}`] = window.fb.onValue(lastMsgRef, (newSnap) => {
                         if (!newSnap.exists()) return;
                         const msgs = Object.values(newSnap.val());
                         if (msgs.length > 0) {
                             const lastMsg = msgs[msgs.length - 1];
-                            // Только если сообщение не от меня и оно непрочитано
                             if (lastMsg.sender !== myUid && lastMsg.read !== true) {
                                 triggerLocalPush(lastMsg.sender, chatMeta.roomId, lastMsg.text);
-                                // Маркируем как прочитанное после уведомления (но не в БД), чтобы не триггерить повторно
-                                // Это чисто для логики уведомлений, в БД статус read меняется при открытии чата
                             }
                         }
                     });
@@ -3839,14 +3637,6 @@
                             });
                             stopTypingImmediately();
                         }
-                    });
-
-                    // Запрет контекстного меню (сохранения файлов) и перетаскивания (глобально)
-                    document.addEventListener('contextmenu', e => {
-                        if (document.body.classList.contains('shield-active')) e.preventDefault();
-                    });
-                    document.addEventListener('dragstart', e => {
-                        if (document.body.classList.contains('shield-active')) e.preventDefault();
                     });
 
                     await initE2EE();
