@@ -844,7 +844,7 @@
             background-size: cover;
             background-position: center;
             border: 1px solid #161618;
-            margin-left: -5px; /* Упругое наложение аватарок друг на друга */
+            margin-left: -5px; 
             overflow: hidden;
             text-shadow: none;
         }
@@ -1051,7 +1051,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             </button>
             <button class="header-btn" style="color: var(--error)" id="voice-record-btn" onclick="handleVoiceRecordClick()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
             </button>
             
             <button class="header-btn" style="color: var(--text-muted)" id="burn-btn" onclick="toggleBurnMode()" title="Сгорающие сообщения (10 сек)">
@@ -1236,6 +1236,7 @@
 
         let isBurnModeActive = false; 
         let typingTimeout = null;
+        let isCurrentlyTypingLocal = false; // Локальный стейт активности печати
 
         let objectUrlCache = {};
         let derivedKeysCache = {};
@@ -1251,6 +1252,12 @@
         let activeLastMsgListeners = {};
 
         let activeMenuPeerId = null;
+
+        // Переменные для синхронизации шапки чата
+        let activeChatPresence = null;
+        let activeChatPrivacy = { lastSeen: "all", messages: "all" };
+        let activeChatWeAreContact = false;
+        let activeChatIsTyping = false;
 
         const playSvg = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
         const pauseSvg = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
@@ -1459,278 +1466,6 @@
             }
             
             return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-        }
-
-        setTimeout(() => {
-            window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
-                if (user) {
-                    myUid = user.uid;
-                    myEmail = user.email;
-                    document.getElementById('login-screen').style.display = 'none';
-
-                    const myPresenceRef = window.fb.ref(window.fb.db, `users/${myUid}/presence`);
-                    window.fb.onDisconnect(myPresenceRef).set({
-                        status: "offline",
-                        lastSeen: Date.now()
-                    }).then(() => {
-                        window.fb.set(myPresenceRef, {
-                            status: "online",
-                            lastSeen: Date.now()
-                        });
-                    });
-
-                    await initE2EE();
-                    await loadMyPrivacySettings();
-                    
-                    // Слушатель контактов E2EE
-                    window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/contacts`), (snap) => {
-                        myContacts = snap.val() || {};
-                        profileCache = {}; 
-                        loadDialogs();
-                        renderContactsList();
-                        if (currentPeer) {
-                            openChatWindow(currentPeer, currentRoomId);
-                        }
-                    });
-
-                    const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
-                    if (profSnap.exists()) {
-                        const prof = profSnap.val();
-                        
-                        const decName = decryptProfileData(prof.name);
-                        const decLast = decryptProfileData(prof.lastname);
-                        const decBio = decryptProfileData(prof.bio);
-                        const decAvatar = decryptProfileData(prof.avatar);
-
-                        document.getElementById('setting-name').value = decName || "";
-                        document.getElementById('setting-lastname').value = decLast || "";
-                        document.getElementById('setting-username').value = prof.username ? prof.username : "";
-                        document.getElementById('setting-bio').value = decBio || "";
-
-                        myNameCombined = (decName || "Без имени") + (decLast ? " " + decLast : "");
-                        
-                        tempProfileAvatarBase64 = decAvatar || "";
-                        myProfileAvatarFetched = decAvatar || "";
-                        const myAvEl = document.getElementById('my-profile-avatar');
-                        if (tempProfileAvatarBase64) {
-                            myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
-                            myAvEl.innerText = "";
-                        } else {
-                            myAvEl.style.backgroundImage = "none";
-                            myAvEl.innerText = myNameCombined[0].toUpperCase();
-                        }
-                    } else {
-                        const fallbackNick = "id_" + Math.floor(1000 + Math.random() * 9000);
-                        myNameCombined = user.email.split('@')[0];
-                        await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
-                            name: encryptProfileData(myNameCombined),
-                            lastname: encryptProfileData(""),
-                            username: fallbackNick,
-                            bio: encryptProfileData(""),
-                            avatar: encryptProfileData("")
-                        });
-                        await window.fb.set(window.fb.ref(window.fb.db, `usernames/${fallbackNick}`), myUid);
-                    }
-
-                    seedDatabaseIfNeeded();
-                    switchTab(0);
-                    
-                    document.getElementById('message-input').addEventListener('input', triggerTypingStatus);
-                } else {
-                    document.getElementById('login-screen').style.display = 'flex';
-                }
-            });
-        }, 1200);
-
-        async function authAction() {
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value.trim();
-            const errDiv = document.getElementById('auth-error');
-
-            if (!email || !password) return;
-
-            try {
-                await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
-            } catch (err) {
-                try {
-                    await window.fb.createUserWithEmailAndPassword(window.fb.auth, email, password);
-                } catch (regErr) {
-                    errDiv.innerText = regErr.message;
-                    errDiv.style.display = 'block';
-                }
-            }
-        }
-
-        function logoutAction() {
-            const myPresenceRef = window.fb.ref(window.fb.db, `users/${myUid}/presence`);
-            window.fb.set(myPresenceRef, {
-                status: "offline",
-                lastSeen: Date.now()
-            }).then(() => {
-                window.fb.signOut(window.fb.auth).then(() => {
-                    location.reload();
-                });
-            });
-        }
-
-        function switchTab(index) {
-            document.querySelectorAll('.tab-panel').forEach((el, idx) => {
-                el.classList.toggle('active', idx === index);
-            });
-            document.querySelectorAll('.tab-button').forEach((el, idx) => {
-                el.classList.toggle('active', idx === index);
-            });
-
-            if (index === 0) {
-                loadDialogs();
-            } else if (index === 1) {
-                renderContactsList();
-            }
-        }
-
-        async function compressAndSetProfileAvatar(file) {
-            if (!file) return;
-            const canvas = document.createElement('canvas');
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    canvas.width = 320;
-                    canvas.height = 320;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, 320, 320);
-                    tempProfileAvatarBase64 = canvas.toDataURL('image/jpeg', 0.90);
-                    
-                    const myAvEl = document.getElementById('my-profile-avatar');
-                    myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
-                    myAvEl.innerText = "";
-                };
-            };
-        }
-
-        async function saveProfileSettings() {
-            const name = document.getElementById('setting-name').value.trim();
-            const lastname = document.getElementById('setting-lastname').value.trim();
-            const bio = document.getElementById('setting-bio').value.trim();
-            let username = document.getElementById('setting-username').value.trim().replace('@', '').toLowerCase();
-
-            if (!name || !username) {
-                alert("Имя и никнейм обязательны!");
-                return;
-            }
-
-            const nameCheck = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${username}`));
-            if (nameCheck.exists() && nameCheck.val() !== myUid) {
-                alert("Этот никнейм уже занят! Выберите другой.");
-                return;
-            }
-
-            const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
-            if (profSnap.exists() && profSnap.val().username !== username) {
-                await window.fb.remove(window.fb.ref(window.fb.db, `usernames/${profSnap.val().username}`));
-            }
-
-            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
-                name: encryptProfileData(name),
-                lastname: encryptProfileData(lastname),
-                bio: encryptProfileData(bio),
-                username: username,
-                avatar: encryptProfileData(tempProfileAvatarBase64)
-            });
-            await window.fb.set(window.fb.ref(window.fb.db, `usernames/${username}`), myUid);
-
-            myNameCombined = name + (lastname ? " " + lastname : "");
-            myProfileAvatarFetched = tempProfileAvatarBase64;
-            alert("Настройки успешно сохранены!");
-            switchTab(0);
-        }
-
-        function getCachedProfile(peerId, callback) {
-            if (profileCache[peerId]) {
-                callback(profileCache[peerId]);
-                return;
-            }
-
-            const userRef = window.fb.ref(window.fb.db, `users/${peerId}`);
-            Promise.all([
-                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`)),
-                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy`)),
-                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`))
-            ]).then(([profSnap, privacySnap, isContactSnap]) => {
-                let p = {
-                    name: "Без имени",
-                    lastname: "",
-                    avatar: "",
-                    bio: "",
-                    username: "",
-                    privacy: { lastSeen: "all", avatar: "all", messages: "all" },
-                    isWeContactOfPeer: isContactSnap.exists()
-                };
-
-                if (profSnap.exists()) {
-                    const prof = profSnap.val();
-                    p.name = decryptProfileData(prof.name) || "Без имени";
-                    p.lastname = decryptProfileData(prof.lastname) || "";
-                    p.avatar = decryptProfileData(prof.avatar) || "";
-                    p.bio = decryptProfileData(prof.bio) || "";
-                    p.username = prof.username || "";
-                }
-
-                if (privacySnap.exists()) {
-                    const priv = privacySnap.val();
-                    p.privacy = {
-                        lastSeen: decryptProfileData(priv.lastSeen) || "all",
-                        avatar: decryptProfileData(priv.avatar) || "all",
-                        messages: decryptProfileData(priv.messages) || "all"
-                    };
-                }
-
-                if (myContacts[peerId]) {
-                    const c = myContacts[peerId];
-                    p.name = decryptProfileData(c.name) || p.name;
-                    p.lastname = decryptProfileData(c.lastname) || p.lastname;
-                    p.avatar = decryptProfileData(c.avatar) || p.avatar;
-                } else {
-                    const avPriv = p.privacy.avatar || "all";
-                    if (avPriv === "none" || (avPriv === "contacts" && !p.isWeContactOfPeer)) {
-                        p.avatar = ""; 
-                    }
-                }
-
-                profileCache[peerId] = p;
-                callback(p);
-            });
-        }
-
-        // НАСТРОЙКИ ПРИВАТНОСТИ (ШИФРУЮТСЯ И ХРАНЯТСЯ В БАЗЕ)
-        async function loadMyPrivacySettings() {
-            const privacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/privacy`));
-            if (privacySnap.exists()) {
-                const privacy = privacySnap.val();
-                document.getElementById('privacy-last-seen').value = decryptProfileData(privacy.lastSeen) || "all";
-                document.getElementById('privacy-avatar').value = decryptProfileData(privacy.avatar) || "all";
-                document.getElementById('privacy-messages').value = decryptProfileData(privacy.messages) || "all";
-            }
-            const localEmoji = localStorage.getItem('quick_reaction_emoji') || '❤️';
-            document.getElementById('quick-reaction-emoji').value = localEmoji;
-        }
-
-        async function savePrivacySettings() {
-            const lastSeen = document.getElementById('privacy-last-seen').value;
-            const avatar = document.getElementById('privacy-avatar').value;
-            const messages = document.getElementById('privacy-messages').value;
-
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), {
-                lastSeen: encryptProfileData(lastSeen),
-                avatar: encryptProfileData(avatar),
-                messages: encryptProfileData(messages)
-            });
-        }
-
-        function saveQuickReactionSetting(val) {
-            localStorage.setItem('quick_reaction_emoji', val);
         }
 
         // КОНТАКТЫ
@@ -1969,7 +1704,7 @@
             }
         }
 
-        // МОМЕНТАЛЬНЫЙ СЛУШАТЕЛЬ ОНЛАЙН СТАТУСА ДЛЯ СПИСКА ДИАЛОГОВ
+        // РЕАКТИВНЫЙ ОНЛАЙН СТАТУС В СПИСКЕ ДИАЛОГОВ
         function setupDialogPresenceRealtime(peerId) {
             const presenceRef = window.fb.ref(window.fb.db, `users/${peerId}/presence`);
             const privacyRef = window.fb.ref(window.fb.db, `users/${peerId}/privacy`);
@@ -2011,17 +1746,104 @@
             });
         }
 
+        function getCachedProfile(peerId, callback) {
+            if (profileCache[peerId]) {
+                callback(profileCache[peerId]);
+                return;
+            }
+
+            Promise.all([
+                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`)),
+                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy`)),
+                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`))
+            ]).then(([profSnap, privacySnap, isContactSnap]) => {
+                let p = {
+                    name: "Без имени",
+                    lastname: "",
+                    avatar: "",
+                    bio: "",
+                    username: "",
+                    privacy: { lastSeen: "all", avatar: "all", messages: "all" },
+                    isWeContactOfPeer: isContactSnap.exists()
+                };
+
+                if (profSnap.exists()) {
+                    const prof = profSnap.val();
+                    p.name = decryptProfileData(prof.name) || "Без имени";
+                    p.lastname = decryptProfileData(prof.lastname) || "";
+                    p.avatar = decryptProfileData(prof.avatar) || "";
+                    p.bio = decryptProfileData(prof.bio) || "";
+                    p.username = prof.username || "";
+                }
+
+                if (privacySnap.exists()) {
+                    const priv = privacySnap.val();
+                    p.privacy = {
+                        lastSeen: decryptProfileData(priv.lastSeen) || "all",
+                        avatar: decryptProfileData(priv.avatar) || "all",
+                        messages: decryptProfileData(priv.messages) || "all"
+                    };
+                }
+
+                if (myContacts[peerId]) {
+                    const c = myContacts[peerId];
+                    p.name = decryptProfileData(c.name) || p.name;
+                    p.lastname = decryptProfileData(c.lastname) || p.lastname;
+                    p.avatar = decryptProfileData(c.avatar) || p.avatar;
+                } else {
+                    const avPriv = p.privacy.avatar || "all";
+                    if (avPriv === "none" || (avPriv === "contacts" && !p.isWeContactOfPeer)) {
+                        p.avatar = ""; 
+                    }
+                }
+
+                profileCache[peerId] = p;
+                callback(p);
+            });
+        }
+
+        // НАСТРОЙКИ ПРИВАТНОСТИ (ШИФРУЮТСЯ И ХРАНЯТСЯ В БАЗЕ)
+        async function loadMyPrivacySettings() {
+            const privacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/privacy`));
+            if (privacySnap.exists()) {
+                const privacy = privacySnap.val();
+                document.getElementById('privacy-last-seen').value = decryptProfileData(privacy.lastSeen) || "all";
+                document.getElementById('privacy-avatar').value = decryptProfileData(privacy.avatar) || "all";
+                document.getElementById('privacy-messages').value = decryptProfileData(privacy.messages) || "all";
+            }
+            const localEmoji = localStorage.getItem('quick_reaction_emoji') || '❤️';
+            document.getElementById('quick-reaction-emoji').value = localEmoji;
+        }
+
+        async function savePrivacySettings() {
+            const lastSeen = document.getElementById('privacy-last-seen').value;
+            const avatar = document.getElementById('privacy-avatar').value;
+            const messages = document.getElementById('privacy-messages').value;
+
+            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), {
+                lastSeen: encryptProfileData(lastSeen),
+                avatar: encryptProfileData(avatar),
+                messages: encryptProfileData(messages)
+            });
+        }
+
+        function saveQuickReactionSetting(val) {
+            localStorage.setItem('quick_reaction_emoji', val);
+        }
+
         function loadDialogs() {
             if (unsubDialogs) unsubDialogs();
-            Object.values(activePresenceListeners).forEach(un => un());
-            Object.values(activeLastMsgListeners).forEach(un => un());
-            activePresenceListeners = {};
-            activeLastMsgListeners = {};
 
             const container = document.getElementById('chats-list-container');
             container.innerHTML = "";
 
             unsubDialogs = window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/chats`), (snap) => {
+                // Очищаем старые слушатели при каждом обновлении списка диалогов
+                Object.values(activePresenceListeners).forEach(un => un());
+                Object.values(activeLastMsgListeners).forEach(un => un());
+                activePresenceListeners = {};
+                activeLastMsgListeners = {};
+
                 container.innerHTML = "";
                 
                 const cloudRow = document.createElement('div');
@@ -2192,158 +2014,161 @@
             });
         }
 
-        async function decryptAndRenderLastMsg(peerId, rawText, element) {
-            const key = await getDerivedSharedKey(peerId);
-            if (!key) {
-                element.innerText = "Сообщение";
+        // РЕАКТИВНЫЙ ОБРАБОТЧИК ДЛЯ ШАПКИ ЧАТА И БЛОКИРОВКИ ИНПУТА
+        function updateActiveChatHeaderUI() {
+            const headerStatus = document.getElementById('chat-header-status');
+            if (!headerStatus || !currentPeer || currentPeer === myUid) return;
+
+            // Если собеседник пишет прямо сейчас, этот статус имеет наивысший приоритет
+            if (activeChatIsTyping) {
+                headerStatus.innerText = "печатает...";
+                headerStatus.style.color = "var(--online)";
                 return;
             }
-            let raw = rawText || "";
-            if (raw.startsWith("[MEOW]")) {
-                raw = aesDecrypt(raw.substring(6), key);
-            }
-            try {
-                const parsed = JSON.parse(raw);
-                if (parsed.isVoice) {
-                    element.innerText = "🎤 Голосовое сообщение";
+
+            // Проверка настроек скрытности "Время захода"
+            const hideOnline = (activeChatPrivacy.lastSeen === "none") || 
+                               (activeChatPrivacy.lastSeen === "contacts" && !activeChatWeAreContact);
+
+            let statusText = "офлайн";
+            let color = "var(--text-muted)";
+
+            if (activeChatPresence) {
+                if (activeChatPresence.status === "online") {
+                    if (hideOnline) {
+                        statusText = "был(а) недавно";
+                    } else {
+                        statusText = "в сети";
+                        color = "var(--online)";
+                    }
                 } else {
-                    element.innerText = parsed.text || "[Файл]";
+                    if (hideOnline) {
+                        statusText = "был(а) недавно";
+                    } else {
+                        statusText = formatFriendlyLastSeen(activeChatPresence.lastSeen);
+                    }
                 }
-            } catch (e) {
-                element.innerText = raw;
-            }
-        }
-
-        function openCloudChat() {
-            const cloudRoom = `saved_${myUid}`;
-            openChatWindow(myUid, cloudRoom);
-        }
-
-        function triggerTypingStatus() {
-            if (!currentRoomId || !myUid || currentPeer === myUid) return;
-            window.fb.set(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${myUid}`), true);
-            
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => {
-                window.fb.set(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${myUid}`), null);
-            }, 2000);
-        }
-
-        function toggleBurnMode() {
-            isBurnModeActive = !isBurnModeActive;
-            const btn = document.getElementById('burn-btn');
-            if (isBurnModeActive) {
-                btn.classList.add('active');
-                btn.title = "Сгорание активно (10 сек)";
             } else {
-                btn.classList.remove('active');
-                btn.title = "Сгорающие сообщения (10 сек)";
+                if (hideOnline) statusText = "был(а) недавно";
+            }
+
+            headerStatus.innerText = statusText;
+            headerStatus.style.color = color;
+
+            // Контроль блокировки отправки сообщений по приватности
+            const input = document.getElementById('message-input');
+            const clipBtn = document.getElementById('clip-btn');
+            const voiceBtn = document.getElementById('voice-record-btn');
+            const burnBtn = document.getElementById('burn-btn');
+            const sendBtn = document.getElementById('send-btn');
+
+            const msgPriv = activeChatPrivacy.messages || "all";
+            if (msgPriv === "none" || (msgPriv === "contacts" && !activeChatWeAreContact)) {
+                input.disabled = true;
+                input.placeholder = "Пользователь ограничил отправку сообщений";
+                clipBtn.style.opacity = "0.3"; clipBtn.style.pointerEvents = "none";
+                voiceBtn.style.opacity = "0.3"; voiceBtn.style.pointerEvents = "none";
+                burnBtn.style.opacity = "0.3"; burnBtn.style.pointerEvents = "none";
+                sendBtn.style.opacity = "0.3"; sendBtn.style.pointerEvents = "none";
+            } else {
+                input.disabled = false;
+                input.placeholder = "Сообщение...";
+                clipBtn.style.opacity = "1"; clipBtn.style.pointerEvents = "auto";
+                voiceBtn.style.opacity = "1"; voiceBtn.style.pointerEvents = "auto";
+                burnBtn.style.opacity = "1"; burnBtn.style.pointerEvents = "auto";
+                sendBtn.style.opacity = "1"; sendBtn.style.pointerEvents = "auto";
             }
         }
 
-        // МОМЕНТАЛЬНЫЕ СЛУШАТЕЛИ ВНУТРИ ЧАТА (В РЕАЛЬНОМ ВРЕМЕНИ ДЛЯ КОНФИДЕНЦИАЛЬНОСТИ И КНОПОК)
-        function setupChatPresenceRealtime(peerId) {
+        // ЗАПУСК И ОЧИСТКА СЛУШАТЕЛЕЙ ДЛЯ ОТКРЫТОГО ЧАТА
+        function startActiveChatSync(peerId) {
             if (unsubHeaderPresence) unsubHeaderPresence();
+
+            activeChatPresence = null;
+            activeChatPrivacy = { lastSeen: "all", messages: "all" };
+            activeChatWeAreContact = false;
+            activeChatIsTyping = false;
 
             const presenceRef = window.fb.ref(window.fb.db, `users/${peerId}/presence`);
             const privacyRef = window.fb.ref(window.fb.db, `users/${peerId}/privacy`);
             const contactRef = window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`);
-
-            let statePres = null;
-            let statePriv = { lastSeen: "all", messages: "all" };
-            let stateWeContact = false;
-
-            function reEvalHeader() {
-                const headerStatus = document.getElementById('chat-header-status');
-                if (!headerStatus) return;
-
-                const hideOnline = (statePriv.lastSeen === "none") || (statePriv.lastSeen === "contacts" && !stateWeContact);
-
-                let statusText = "офлайн";
-                let color = "var(--text-muted)";
-
-                if (statePres) {
-                    if (statePres.status === "online") {
-                        if (hideOnline) {
-                            statusText = "был(а) недавно";
-                        } else {
-                            statusText = "в сети";
-                            color = "var(--online)";
-                        }
-                    } else {
-                        if (hideOnline) {
-                            statusText = "был(а) недавно";
-                        } else {
-                            statusText = formatFriendlyLastSeen(statePres.lastSeen);
-                        }
-                    }
-                } else {
-                    if (hideOnline) statusText = "был(а) недавно";
-                }
-
-                headerStatus.innerText = statusText;
-                headerStatus.style.color = color;
-
-                // Моментальная блокировка сообщений в реальном времени при изменении настроек приватности
-                const input = document.getElementById('message-input');
-                const clipBtn = document.getElementById('clip-btn');
-                const voiceBtn = document.getElementById('voice-record-btn');
-                const burnBtn = document.getElementById('burn-btn');
-                const sendBtn = document.getElementById('send-btn');
-
-                const msgPriv = statePriv.messages || "all";
-                if (msgPriv === "none" || (msgPriv === "contacts" && !stateWeContact)) {
-                    input.disabled = true;
-                    input.placeholder = "Пользователь ограничил отправку сообщений";
-                    clipBtn.style.opacity = "0.3"; clipBtn.style.pointerEvents = "none";
-                    voiceBtn.style.opacity = "0.3"; voiceBtn.style.pointerEvents = "none";
-                    burnBtn.style.opacity = "0.3"; burnBtn.style.pointerEvents = "none";
-                    sendBtn.style.opacity = "0.3"; sendBtn.style.pointerEvents = "none";
-                } else {
-                    input.disabled = false;
-                    input.placeholder = "Сообщение...";
-                    clipBtn.style.opacity = "1"; clipBtn.style.pointerEvents = "auto";
-                    voiceBtn.style.opacity = "1"; voiceBtn.style.pointerEvents = "auto";
-                    burnBtn.style.opacity = "1"; burnBtn.style.pointerEvents = "auto";
-                    sendBtn.style.opacity = "1"; sendBtn.style.pointerEvents = "auto";
-                }
-            }
+            const typingRef = window.fb.ref(window.fb.db, `typing/${currentRoomId}/${peerId}`);
 
             const unPres = window.fb.onValue(presenceRef, (snap) => {
-                statePres = snap.val();
-                reEvalHeader();
+                activeChatPresence = snap.val();
+                updateActiveChatHeaderUI();
             });
 
             const unPriv = window.fb.onValue(privacyRef, (snap) => {
                 if (snap.exists()) {
                     const p = snap.val();
-                    statePriv = {
+                    activeChatPrivacy = {
                         lastSeen: decryptProfileData(p.lastSeen) || "all",
                         avatar: decryptProfileData(p.avatar) || "all",
                         messages: decryptProfileData(p.messages) || "all"
                     };
                 } else {
-                    statePriv = { lastSeen: "all", avatar: "all", messages: "all" };
+                    activeChatPrivacy = { lastSeen: "all", avatar: "all", messages: "all" };
                 }
-                reEvalHeader();
+                updateActiveChatHeaderUI();
             });
 
             const unCont = window.fb.onValue(contactRef, (snap) => {
-                stateWeContact = snap.exists();
-                reEvalHeader();
+                activeChatWeAreContact = snap.exists();
+                updateActiveChatHeaderUI();
+            });
+
+            const unType = window.fb.onValue(typingRef, (snap) => {
+                activeChatIsTyping = (snap.exists() && snap.val() === true);
+                updateActiveChatHeaderUI();
             });
 
             unsubHeaderPresence = () => {
                 unPres();
                 unPriv();
                 unCont();
+                unType();
             };
+        }
+
+        // МОМЕНТАЛЬНЫЙ СБРОС И СИСТЕМА ДЕБАУНСА ВВОДА (КАК В ТГ)
+        function stopTypingImmediately() {
+            clearTimeout(typingTimeout);
+            if (isCurrentlyTypingLocal) {
+                isCurrentlyTypingLocal = false;
+                if (currentRoomId && myUid) {
+                    window.fb.set(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${myUid}`), null);
+                }
+            }
+        }
+
+        function triggerTypingStatus() {
+            if (!currentRoomId || !myUid || currentPeer === myUid) return;
+            
+            const inputVal = document.getElementById('message-input').value;
+            
+            // Если текст пустой — мгновенно отключаем статус печати в Firebase
+            if (inputVal.length === 0) {
+                stopTypingImmediately();
+                return;
+            }
+
+            // Отправляем сигнал в Firebase только при смене стейта с "не печатает" на "печатает"
+            if (!isCurrentlyTypingLocal) {
+                isCurrentlyTypingLocal = true;
+                window.fb.set(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${myUid}`), true);
+            }
+            
+            // Сброс таймаута: если пользователь остановился писать на 1.5 сек, статус исчезает
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                stopTypingImmediately();
+            }, 1500);
         }
 
         async function openChatWindow(peerId, roomId) {
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
-            if (unsubTypingStatus) unsubTypingStatus();
 
             currentPeer = peerId;
             currentRoomId = roomId;
@@ -2373,7 +2198,6 @@
                 }
                 headerStatus.innerText = "персональное защищенное хранилище";
                 
-                // Для избранного инпуты всегда разблокированы
                 const input = document.getElementById('message-input');
                 input.disabled = false;
                 input.placeholder = "Сообщение...";
@@ -2394,16 +2218,7 @@
                     }
                 });
 
-                setupChatPresenceRealtime(peerId);
-
-                unsubTypingStatus = window.fb.onValue(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${peerId}`), (snap) => {
-                    if (snap.exists() && snap.val() === true) {
-                        headerStatus.innerText = "печатает...";
-                        headerStatus.style.color = "var(--online)";
-                    } else {
-                        // Обычный статус вернет присутствие при обновлении
-                    }
-                });
+                startActiveChatSync(peerId);
             }
 
             unsubChatMessages = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), async (snapshot) => {
@@ -2467,7 +2282,6 @@
                             ticksSpan.innerHTML = m.read ? `<span style="color: #64B5F6; font-weight: bold;">✓✓</span>` : `<span>✓</span>`;
                         }
                         
-                        // Полное обновление реакций при изменениях
                         const oldReactions = container.querySelector('.msg-reactions-container');
                         if (oldReactions) oldReactions.remove();
                         const rxHtml = getReactionsHtml(msgId, m.reactions);
@@ -2489,7 +2303,6 @@
                         let msgPressTimer = null;
                         const bubbleTranslateTarget = 80;
 
-                        // Сенсорный/мышиный контроль сдвига для ответа (работает на любом сообщении!)
                         container.addEventListener('touchstart', (e) => {
                             startX = e.touches[0].clientX;
                             startY = e.touches[0].clientY;
@@ -2539,7 +2352,6 @@
                             container.setAttribute('data-last-tap', now);
                             
                             if (now - lastTap < 300) {
-                                // Быстрый дабл-клик/тап -> Ставим реакцию
                                 const quickEmoji = localStorage.getItem('quick_reaction_emoji') || '❤️';
                                 toggleReactionDirect(msgId, quickEmoji);
                                 isSwiping = false;
@@ -2616,7 +2428,6 @@
                             bubbleHtml += `<div class="msg-text">${messageObject.text}</div>`;
                         }
 
-                        // Логическое отображение реакций
                         const rxHtml = getReactionsHtml(msgId, m.reactions);
                         if (rxHtml) {
                             bubbleHtml += rxHtml;
@@ -2642,7 +2453,6 @@
         function getReactionsHtml(msgId, reactionsObj) {
             if (!reactionsObj) return "";
             
-            // Группируем по эмодзи
             const grouped = {};
             Object.entries(reactionsObj).forEach(([userId, emoji]) => {
                 if (!grouped[emoji]) grouped[emoji] = [];
@@ -2660,7 +2470,6 @@
                         <span>${emoji}</span>
                 `;
 
-                // Рендерим мини-аватарку каждого пользователя, поставившего реакцию
                 userIds.forEach(uId => {
                     if (uId === myUid) {
                         const avBase64 = myProfileAvatarFetched;
@@ -2779,12 +2588,12 @@
 
         function closeChat() {
             if (unsubChatMessages) unsubChatMessages();
-            if (unsubHeaderPresence) unsubHeaderPresence();
-            if (unsubTypingStatus) unsubTypingStatus();
-            
-            if (currentRoomId && myUid) {
-                window.fb.set(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${myUid}`), null);
+            if (unsubHeaderPresence) {
+                unsubHeaderPresence();
+                unsubHeaderPresence = null;
             }
+            
+            stopTypingImmediately();
             
             cancelReply();
             clearObjectUrlCache(); 
@@ -2861,7 +2670,7 @@
                 await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
             }
 
-            window.fb.set(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${myUid}`), null);
+            stopTypingImmediately();
             input.value = "";
             input.style.height = "auto";
         }
@@ -2935,7 +2744,7 @@
             } else {
                 audioRecorder.stop();
                 isRecordingAudio = false;
-                recBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+                recBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
                 recBtn.style.color = "var(--accent)";
             }
         }
@@ -3315,6 +3124,258 @@
                 row.style.display = name.includes(query) ? 'flex' : 'none';
             });
         }
+
+        async function decryptAndRenderLastMsg(peerId, rawText, element) {
+            const key = await getDerivedSharedKey(peerId);
+            if (!key) {
+                element.innerText = "Сообщение";
+                return;
+            }
+            let raw = rawText || "";
+            if (raw.startsWith("[MEOW]")) {
+                raw = aesDecrypt(raw.substring(6), key);
+            }
+            try {
+                const parsed = JSON.parse(raw);
+                if (parsed.isVoice) {
+                    element.innerText = "🎤 Голосовое сообщение";
+                } else {
+                    element.innerText = parsed.text || "[Файл]";
+                }
+            } catch (e) {
+                element.innerText = raw;
+            }
+        }
+
+        async function authAction() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const errDiv = document.getElementById('auth-error');
+
+            if (!email || !password) return;
+
+            try {
+                await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
+            } catch (err) {
+                try {
+                    await window.fb.createUserWithEmailAndPassword(window.fb.auth, email, password);
+                } catch (regErr) {
+                    errDiv.innerText = regErr.message;
+                    errDiv.style.display = 'block';
+                }
+            }
+        }
+
+        function logoutAction() {
+            const myPresenceRef = window.fb.ref(window.fb.db, `users/${myUid}/presence`);
+            window.fb.set(myPresenceRef, {
+                status: "offline",
+                lastSeen: Date.now()
+            }).then(() => {
+                window.fb.signOut(window.fb.auth).then(() => {
+                    location.reload();
+                });
+            });
+        }
+
+        function switchTab(index) {
+            document.querySelectorAll('.tab-panel').forEach((el, idx) => {
+                el.classList.toggle('active', idx === index);
+            });
+            document.querySelectorAll('.tab-button').forEach((el, idx) => {
+                el.classList.toggle('active', idx === index);
+            });
+
+            if (index === 0) {
+                loadDialogs();
+            } else if (index === 1) {
+                renderContactsList();
+            }
+        }
+
+        async function compressAndSetProfileAvatar(file) {
+            if (!file) return;
+            const canvas = document.createElement('canvas');
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    canvas.width = 320;
+                    canvas.height = 320;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, 320, 320);
+                    tempProfileAvatarBase64 = canvas.toDataURL('image/jpeg', 0.90);
+                    
+                    const myAvEl = document.getElementById('my-profile-avatar');
+                    myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
+                    myAvEl.innerText = "";
+                };
+            };
+        }
+
+        async function saveProfileSettings() {
+            const name = document.getElementById('setting-name').value.trim();
+            const lastname = document.getElementById('setting-lastname').value.trim();
+            const bio = document.getElementById('setting-bio').value.trim();
+            let username = document.getElementById('setting-username').value.trim().replace('@', '').toLowerCase();
+
+            if (!name || !username) {
+                alert("Имя и никнейм обязательны!");
+                return;
+            }
+
+            const nameCheck = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${username}`));
+            if (nameCheck.exists() && nameCheck.val() !== myUid) {
+                alert("Этот никнейм уже занят! Выберите другой.");
+                return;
+            }
+
+            const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
+            if (profSnap.exists() && profSnap.val().username !== username) {
+                await window.fb.remove(window.fb.ref(window.fb.db, `usernames/${profSnap.val().username}`));
+            }
+
+            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
+                name: encryptProfileData(name),
+                lastname: encryptProfileData(lastname),
+                bio: encryptProfileData(bio),
+                username: username,
+                avatar: encryptProfileData(tempProfileAvatarBase64)
+            });
+            await window.fb.set(window.fb.ref(window.fb.db, `usernames/${username}`), myUid);
+
+            myNameCombined = name + (lastname ? " " + lastname : "");
+            myProfileAvatarFetched = tempProfileAvatarBase64;
+            alert("Настройки успешно сохранены!");
+            switchTab(0);
+        }
+
+        function toggleBurnMode() {
+            isBurnModeActive = !isBurnModeActive;
+            const btn = document.getElementById('burn-btn');
+            if (isBurnModeActive) {
+                btn.classList.add('active');
+                btn.title = "Сгорание активно (10 сек)";
+            } else {
+                btn.classList.remove('active');
+                btn.title = "Сгорающие сообщения (10 сек)";
+            }
+        }
+
+        // ПАТЧИМ ИНИЦИАЛИЗАЦИЮ И НАСТРОЙКУ ЦЕПОЧКИ ПРИСУТСТВИЯ (FIREBASE REALTIME DETECTOR)
+        setTimeout(() => {
+            window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
+                if (user) {
+                    myUid = user.uid;
+                    myEmail = user.email;
+                    document.getElementById('login-screen').style.display = 'none';
+
+                    // Каноничный способ отслеживания "В сети / Офлайн" в Firebase
+                    const connectedRef = window.fb.ref(window.fb.db, ".info/connected");
+                    const myPresenceRef = window.fb.ref(window.fb.db, `users/${myUid}/presence`);
+
+                    window.fb.onValue(connectedRef, (snap) => {
+                        if (snap.val() === true) {
+                            // Регистрация onDisconnect на стороне Firebase-сервера
+                            window.fb.onDisconnect(myPresenceRef).set({
+                                status: "offline",
+                                lastSeen: Date.now()
+                            }).then(() => {
+                                // Устанавливаем статус "в сети", если вкладка активна
+                                if (document.visibilityState === 'visible') {
+                                    window.fb.set(myPresenceRef, {
+                                        status: "online",
+                                        lastSeen: Date.now()
+                                    });
+                                } else {
+                                    window.fb.set(myPresenceRef, {
+                                        status: "offline",
+                                        lastSeen: Date.now()
+                                    });
+                                }
+                            });
+                        }
+                    });
+
+                    // Автоматический трекинг при переключении/сворачивании вкладок браузера
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState === 'visible') {
+                            window.fb.set(myPresenceRef, {
+                                status: "online",
+                                lastSeen: Date.now()
+                            });
+                        } else {
+                            window.fb.set(myPresenceRef, {
+                                status: "offline",
+                                lastSeen: Date.now()
+                            });
+                            stopTypingImmediately();
+                        }
+                    });
+
+                    await initE2EE();
+                    await loadMyPrivacySettings();
+                    
+                    window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/contacts`), (snap) => {
+                        myContacts = snap.val() || {};
+                        profileCache = {}; 
+                        loadDialogs();
+                        renderContactsList();
+                        if (currentPeer) {
+                            openChatWindow(currentPeer, currentRoomId);
+                        }
+                    });
+
+                    const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
+                    if (profSnap.exists()) {
+                        const prof = profSnap.val();
+                        
+                        const decName = decryptProfileData(prof.name);
+                        const decLast = decryptProfileData(prof.lastname);
+                        const decBio = decryptProfileData(prof.bio);
+                        const decAvatar = decryptProfileData(prof.avatar);
+
+                        document.getElementById('setting-name').value = decName || "";
+                        document.getElementById('setting-lastname').value = decLast || "";
+                        document.getElementById('setting-username').value = prof.username ? prof.username : "";
+                        document.getElementById('setting-bio').value = decBio || "";
+
+                        myNameCombined = (decName || "Без имени") + (decLast ? " " + decLast : "");
+                        
+                        tempProfileAvatarBase64 = decAvatar || "";
+                        myProfileAvatarFetched = decAvatar || "";
+                        const myAvEl = document.getElementById('my-profile-avatar');
+                        if (tempProfileAvatarBase64) {
+                            myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
+                            myAvEl.innerText = "";
+                        } else {
+                            myAvEl.style.backgroundImage = "none";
+                            myAvEl.innerText = myNameCombined[0].toUpperCase();
+                        }
+                    } else {
+                        const fallbackNick = "id_" + Math.floor(1000 + Math.random() * 9000);
+                        myNameCombined = user.email.split('@')[0];
+                        await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
+                            name: encryptProfileData(myNameCombined),
+                            lastname: encryptProfileData(""),
+                            username: fallbackNick,
+                            bio: encryptProfileData(""),
+                            avatar: encryptProfileData("")
+                        });
+                        await window.fb.set(window.fb.ref(window.fb.db, `usernames/${fallbackNick}`), myUid);
+                    }
+
+                    seedDatabaseIfNeeded();
+                    switchTab(0);
+                    
+                    document.getElementById('message-input').addEventListener('input', triggerTypingStatus);
+                } else {
+                    document.getElementById('login-screen').style.display = 'flex';
+                }
+            });
+        }, 1200);
 
         async function seedDatabaseIfNeeded() {}
     </script>
