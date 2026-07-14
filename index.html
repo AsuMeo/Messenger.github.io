@@ -108,11 +108,6 @@
         .header-btn svg {
             width: 22px;
             height: 22px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
         }
 
         .main-container {
@@ -165,11 +160,6 @@
         .tab-icon svg {
             width: 22px;
             height: 22px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
         }
 
         .tab-label {
@@ -393,7 +383,6 @@
             flex-direction: column;
             margin-bottom: 2px;
             position: relative;
-            transition: transform 0.2s;
         }
 
         .msg-container.is-text-container {
@@ -420,6 +409,7 @@
             flex-direction: column;
             border: 1px solid rgba(255, 255, 255, 0.02);
             box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            will-change: transform;
         }
 
         .msg-container.out .msg-bubble {
@@ -458,6 +448,8 @@
             border-radius: 8px;
             align-self: flex-start;
             margin: 4px 8px 0px 8px;
+            display: flex;
+            align-items: center;
         }
 
         .msg-media {
@@ -503,68 +495,6 @@
             border-radius: 10px;
             color: white;
             backdrop-filter: blur(4px);
-        }
-
-        /* Telegram-style Реакции внизу пузыря */
-        .msg-reactions-wrapper {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-            position: absolute;
-            bottom: -10px;
-            right: 12px;
-            z-index: 10;
-        }
-
-        .reaction-pill {
-            background: #1C1C1E;
-            border: 1px solid #2C2C2E;
-            border-radius: 10px;
-            padding: 2px 6px;
-            font-size: 11px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
-        }
-
-        .reaction-pill:active {
-            transform: scale(0.9);
-        }
-
-        /* Панель выбора реакций (Quick Reaction Picker) */
-        .reaction-selector-popover {
-            position: absolute;
-            top: -48px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1C1C1E;
-            border: 1.5px solid #2C2C2E;
-            border-radius: 20px;
-            padding: 6px 10px;
-            display: flex;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            z-index: 1000;
-            animation: popReaction 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes popReaction {
-            from { opacity: 0; transform: translateX(-50%) scale(0.5); }
-            to { opacity: 1; transform: translateX(-50%) scale(1); }
-        }
-
-        .reaction-choice-btn {
-            font-size: 18px;
-            cursor: pointer;
-            transition: transform 0.15s;
-        }
-
-        .reaction-choice-btn:hover {
-            transform: scale(1.3);
         }
 
         .reply-quote-preview {
@@ -615,7 +545,6 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 14px;
         }
 
         .voice-wave-container {
@@ -696,68 +625,82 @@
             height: 18px;
         }
 
-        /* iOS-style Секции в Настройках */
-        .settings-section-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin: 16px 16px 8px 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .settings-list {
-            background: #1C1C1E;
-            border-radius: 14px;
-            margin: 0 16px 16px 16px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .settings-row {
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 14px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            justify-content: center;
+            z-index: 2000;
         }
 
-        .settings-row:last-child {
-            border-bottom: none;
+        .login-card {
+            width: 90%;
+            max-width: 380px;
+            background: #161618;
+            padding: 32px 24px;
+            border-radius: 24px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .settings-label {
-            font-size: 15px;
-            font-weight: 500;
-            color: var(--text-white);
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1500;
+            backdrop-filter: blur(8px);
         }
 
-        .settings-select {
-            background: transparent;
-            border: none;
-            color: var(--accent);
-            font-size: 15px;
-            font-weight: 600;
-            outline: none;
-            cursor: pointer;
-            text-align: right;
-            direction: rtl; /* Чтобы стрелочка или текст выравнивались вправо */
+        .modal-overlay.active {
+            display: flex;
         }
 
-        .settings-select option {
-            background: #1C1C1E;
-            color: white;
+        .modal-card {
+            background: #161618;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 380px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .settings-input-small {
-            background: transparent;
-            border: none;
-            color: var(--accent);
-            font-size: 15px;
-            font-weight: 600;
-            text-align: right;
-            outline: none;
-            width: 60px;
+        .profile-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: rgba(0, 199, 129, 0.1);
+            color: var(--secure);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px dashed rgba(0, 199, 129, 0.3);
+            margin-top: 15px;
+        }
+
+        #burn-btn.active {
+            color: var(--burn) !important;
+            background: rgba(255, 149, 0, 0.15);
+            border-radius: 50%;
+            animation: pulse-burn 1.5s infinite alternate;
+        }
+
+        @keyframes pulse-burn {
+            from { box-shadow: 0 0 4px rgba(255, 149, 0, 0.3); }
+            to { box-shadow: 0 0 10px rgba(255, 149, 0, 0.6); }
         }
 
         .forward-list-item {
@@ -836,13 +779,69 @@
         .menu-btn:hover { background: #3A3A3C; }
         .menu-btn.danger { background: var(--error); color: white; }
         .menu-btn.danger:hover { background: #E0241B; }
+
+        /* Стили реакций */
+        .msg-reactions-panel {
+            display: flex;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            margin-bottom: 16px;
+            justify-content: space-around;
+        }
+
+        .reaction-item-btn {
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .reaction-item-btn:hover, .reaction-item-btn:active {
+            transform: scale(1.3);
+        }
+
+        .msg-reactions-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 4px 10px;
+            position: absolute;
+            bottom: -12px;
+            right: 10px;
+            z-index: 5;
+        }
+
+        .reaction-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #1C1C1E;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 11px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .reaction-pill.active {
+            background: rgba(31, 128, 224, 0.25);
+            border-color: var(--accent);
+        }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
         <div class="login-card">
-            <div style="font-size: 50px; margin-bottom: 10px;">🐾</div>
+            <div style="margin-bottom: 16px; display: flex; justify-content: center;">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="60" height="60" style="color: var(--accent);">
+                    <path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3.5 3 3.5s3-1.5 3-3.5c0-1.66-1.34-3-3-3zm-4.5-3c-.83 0-1.5.67-1.5 1.5s.5 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.5 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5zm-11-4C5.17 7 4.5 7.67 4.5 8.5S5 10.5 6 10.5s1.5-1 1.5-2-.67-1.5-1.5-1.5zm13 0c-.83 0-1.5.67-1.5 1.5s.5 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5z"/>
+                </svg>
+            </div>
             <h1 style="font-size: 24px; margin-bottom: 6px;">VK Meow</h1>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Безопасный мессенджер нового поколения</p>
             
@@ -858,81 +857,85 @@
         <div class="header-title" id="header-main-title">VK Meow</div>
         <div class="header-buttons">
             <button class="header-btn" title="Избранное" onclick="openCloudChat()">
-                <svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
             </button>
             <button class="header-btn" title="Выйти" onclick="logoutAction()">
-                <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
         </div>
     </div>
 
     <div class="main-container">
         
-        <!-- ВКЛАДКА 0: ЧАТЫ -->
+        <!-- Tab 0: ЧАТЫ -->
         <div class="tab-panel active" id="tab-0">
             <div class="search-row">
                 <input type="text" id="chat-search" class="search-bar" placeholder="Поиск по диалогам..." oninput="filterDialogs(this.value)">
                 <button class="search-action-btn" onclick="openModal('search-people-modal')">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Найти
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Найти
                 </button>
             </div>
             <div class="chats-list" id="chats-list-container"></div>
         </div>
 
-        <!-- ВКЛАДКА 1: КОНТАКТЫ -->
+        <!-- Tab 1: КОНТАКТЫ -->
         <div class="tab-panel" id="tab-1">
             <div class="search-row">
-                <input type="text" id="contact-search" class="search-bar" placeholder="Поиск по контактам..." oninput="filterContacts(this.value)">
+                <input type="text" id="contact-search" class="search-bar" placeholder="Поиск контактов..." oninput="filterContacts(this.value)">
                 <button class="search-action-btn" onclick="openModal('add-contact-modal')">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Добавить
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg> Добавить
                 </button>
             </div>
-            <div class="chats-list" id="contacts-list-container"></div>
+            <div class="chats-list" id="contacts-list-container" style="padding-top: 4px;"></div>
         </div>
 
-        <!-- ВКЛАДКА 2: НАСТРОЙКИ КОНФИДЕНЦИАЛЬНОСТИ -->
-        <div class="tab-panel" id="tab-2">
-            <div class="settings-section-title">Конфиденциальность</div>
-            <div class="settings-list">
-                <div class="settings-row">
-                    <div class="settings-label">Время захода</div>
-                    <select id="privacy-lastseen" class="settings-select" onchange="savePrivacySetting('lastSeen', this.value)">
-                        <option value="all">Все</option>
-                        <option value="contacts">Только контакты</option>
-                        <option value="none">Никто</option>
-                    </select>
-                </div>
-                <div class="settings-row">
-                    <div class="settings-label">Фотографии профиля</div>
-                    <select id="privacy-photos" class="settings-select" onchange="savePrivacySetting('photos', this.value)">
-                        <option value="all">Все</option>
-                        <option value="contacts">Только контакты</option>
-                        <option value="none">Никто</option>
-                    </select>
-                </div>
-                <div class="settings-row">
-                    <div class="settings-label">Кто может мне писать</div>
-                    <select id="privacy-messages" class="settings-select" onchange="savePrivacySetting('messages', this.value)">
-                        <option value="all">Все</option>
-                        <option value="contacts">Только контакты</option>
-                        <option value="none">Никто</option>
-                    </select>
-                </div>
-            </div>
+        <!-- Tab 2: НАСТРОЙКИ -->
+        <div class="tab-panel" id="tab-2" style="padding: 20px 16px;">
+            <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Конфиденциальность</h2>
+            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Настройте безопасность вашего аккаунта</p>
+            
+            <div class="profile-form">
+                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ВРЕМЯ ЗАХОДА</label>
+                <select id="privacy-last-seen" class="search-bar" style="width: 100%; margin-bottom: 10px; appearance: none; background-position: right 12px center;" onchange="savePrivacySettings()">
+                    <option value="all">Все</option>
+                    <option value="contacts">Только контакты</option>
+                    <option value="none">Никто</option>
+                </select>
 
-            <div class="settings-section-title">Чат и реакции</div>
-            <div class="settings-list">
-                <div class="settings-row">
-                    <div class="settings-label">Быстрая реакция (2 тапа)</div>
-                    <input type="text" id="setting-quick-emoji" class="settings-input-small" value="❤️" maxlength="2" onchange="saveQuickEmojiSetting(this.value)">
-                </div>
+                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ФОТОГРАФИИ ПРОФИЛЯ</label>
+                <select id="privacy-avatar" class="search-bar" style="width: 100%; margin-bottom: 10px; appearance: none;" onchange="savePrivacySettings()">
+                    <option value="all">Все</option>
+                    <option value="contacts">Только контакты</option>
+                    <option value="none">Никто</option>
+                </select>
+
+                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">СООБЩЕНИЯ</label>
+                <select id="privacy-messages" class="search-bar" style="width: 100%; margin-bottom: 10px; appearance: none;" onchange="savePrivacySettings()">
+                    <option value="all">Все</option>
+                    <option value="contacts">Только контакты</option>
+                    <option value="none">Никто</option>
+                </select>
+
+                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">БЫСТРАЯ РЕАКЦИЯ (ДВОЙНОЙ КЛИК)</label>
+                <select id="quick-reaction-emoji" class="search-bar" style="width: 100%; margin-bottom: 20px; appearance: none;" onchange="saveQuickReactionSetting(this.value)">
+                    <option value="❤️">❤️ Сердечко</option>
+                    <option value="👍">👍 Палец вверх</option>
+                    <option value="🔥">🔥 Огонь</option>
+                    <option value="👏">👏 Аплодисменты</option>
+                    <option value="😂">😂 Смех</option>
+                    <option value="😮">😮 Удивление</option>
+                </select>
+            </div>
+            
+            <div class="secure-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Сквозное шифрование E2EE (P-256 / AES-256) активно
             </div>
         </div>
 
-        <!-- ВКЛАДКА 3: ПРОФИЛЬ -->
+        <!-- Tab 3: ПРОФИЛЬ -->
         <div class="tab-panel" id="tab-3" style="padding: 20px 16px;">
-            <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Ваш профиль</h2>
-            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Информация профиля зашифрована вашим личным E2EE ключом</p>
+            <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Настройки профиля</h2>
+            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Имя, аватарка и описание полностью зашифрованы ключом E2EE</p>
             
             <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
                 <div class="chat-avatar" id="my-profile-avatar" style="width: 80px; height: 80px; font-size: 24px; cursor: pointer; background-color: var(--accent);" onclick="document.getElementById('profile-avatar-upload').click()">?</div>
@@ -953,45 +956,45 @@
                 <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ВАШ УНИКАЛЬНЫЙ НИКНЕЙМ (@)</label>
                 <input type="text" id="setting-username" class="search-bar" placeholder="username">
 
-                <button class="search-action-btn" style="width: 100%; margin-top: 10px; height: 48px; justify-content: center;" onclick="saveProfileSettings()">💾 Сохранить изменения</button>
+                <button class="search-action-btn" style="width: 100%; margin-top: 10px; height: 48px; justify-content: center;" onclick="saveProfileSettings()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right: 6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Сохранить изменения
+                </button>
             </div>
         </div>
 
     </div>
 
-    <!-- Навигация нижней панели полностью на SVG -->
     <div class="bottom-bar" id="app-bottom-bar">
         <div class="tab-button active" onclick="switchTab(0)">
             <div class="tab-icon">
-                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
             <div class="tab-label">Чаты</div>
         </div>
         <div class="tab-button" onclick="switchTab(1)">
             <div class="tab-icon">
-                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
             <div class="tab-label">Контакты</div>
         </div>
         <div class="tab-button" onclick="switchTab(2)">
             <div class="tab-icon">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </div>
             <div class="tab-label">Настройки</div>
         </div>
         <div class="tab-button" onclick="switchTab(3)">
             <div class="tab-icon">
-                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             <div class="tab-label">Профиль</div>
         </div>
     </div>
 
-    <!-- Шапка чата -->
     <div class="chat-window" id="chat-window">
         <div class="chat-header">
             <button class="header-btn" onclick="closeChat()">
-                <svg viewBox="0 0 24 24" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
             </button>
             <div class="chat-header-center" onclick="showActivePeerProfile()">
                 <div class="chat-header-user-row">
@@ -1005,7 +1008,7 @@
                 </div>
             </div>
             <button class="header-btn" style="color: var(--secure)" onclick="showE2EEVerification()" title="Верификация ключа">
-                <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </button>
         </div>
         
@@ -1017,27 +1020,27 @@
                 <div class="reply-quote-text" id="reply-preview-text">Сообщение</div>
             </div>
             <button class="header-btn" style="margin-left: 8px;" onclick="cancelReply()">
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </div>
 
         <div class="chat-input-bar">
             <input type="file" id="media-upload" style="display: none;" accept="image/*,video/*" onchange="compressAndSendMedia(this.files[0])">
             <button class="header-btn" style="color: var(--accent)" id="clip-btn" onclick="document.getElementById('media-upload').click()">
-                <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             </button>
             <button class="header-btn" style="color: var(--error)" id="voice-record-btn" onclick="handleVoiceRecordClick()">
-                <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
             </button>
             
             <button class="header-btn" style="color: var(--text-muted)" id="burn-btn" onclick="toggleBurnMode()" title="Сгорающие сообщения (10 сек)">
-                <svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
             </button>
 
             <textarea class="message-input" id="message-input" placeholder="Сообщение..." rows="1"></textarea>
 
             <button id="send-btn" onclick="handleSendClick()">
-                <svg viewBox="0 0 24 24" stroke-width="2.5" style="transform: rotate(45deg); margin-left: -2px; margin-top: -1px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg); margin-left: -2px; margin-top: -1px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
         </div>
     </div>
@@ -1053,38 +1056,34 @@
         </div>
     </div>
 
-    <!-- Модальное окно: Добавить / Изменить контакт (Telegram style) -->
-    <div class="modal-overlay" id="add-contact-modal">
-        <div class="modal-card">
-            <h3 style="margin-bottom: 15px; text-align: center;">👤 Контакт</h3>
-            
-            <label style="font-size: 11px; font-weight: bold; color: var(--text-muted); margin-bottom: 4px; display:block;">НИКНЕЙМ СУЩЕСТВУЮЩЕГО ПОЛЬЗОВАТЕЛЯ (@)</label>
-            <input type="text" id="contact-reg-username" class="search-bar" style="width: 100%; margin-bottom: 15px;" placeholder="username">
-
-            <label style="font-size: 11px; font-weight: bold; color: var(--text-muted); margin-bottom: 4px; display:block;">КАК БУДЕТ ОТОБРАЖАТЬСЯ У ВАС</label>
-            <input type="text" id="contact-reg-alias" class="search-bar" style="width: 100%; margin-bottom: 15px;" placeholder="Любимое имя (Е2ЕЕ)">
-
-            <label style="font-size: 11px; font-weight: bold; color: var(--text-muted); margin-bottom: 4px; display:block;">ЛИЧНАЯ АВАТАРКА ДЛЯ НЕГО (ФАЙЛ)</label>
-            <input type="file" id="contact-reg-avatar" class="search-bar" style="width: 100%; margin-bottom: 15px;" accept="image/*" onchange="compressAndSetContactAvatar(this.files[0])">
-
-            <button class="search-action-btn" style="width: 100%; justify-content: center; margin-bottom: 8px;" onclick="addOrUpdateContact()">Сохранить контакт</button>
-            <button class="search-action-btn" style="width: 100%; justify-content: center; background: #2C2C2E;" onclick="closeModal('add-contact-modal')">Отмена</button>
-        </div>
-    </div>
-
     <div class="modal-overlay" id="e2ee-verify-modal">
         <div class="modal-card" style="text-align: center;">
-            <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
+            <div style="margin-bottom: 16px; display: flex; justify-content: center;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="48" height="48" style="color: var(--secure);"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
             <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Шифрование проверено</h3>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">Уникальный отпечаток ключа Diffie-Hellman для этой сессии переписки:</p>
             <div id="e2ee-fingerprint" style="font-family: monospace; background: #2C2C2E; padding: 12px; border-radius: 10px; font-size: 14px; color: var(--secure); margin-bottom: 20px; letter-spacing: 1px;">XXXX-XXXX-XXXX-XXXX</div>
+            <p style="color: var(--text-muted); font-size: 11px; margin-bottom: 20px;">Если эти цифры совпадают на экранах обоих устройств, переписка абсолютно защищена от прослушивания кем бы то ни было.</p>
             <button class="menu-btn" onclick="closeModal('e2ee-verify-modal')">Понятно</button>
         </div>
     </div>
 
     <div class="modal-overlay" id="msg-options-modal">
         <div class="modal-card">
-            <h3 style="margin-bottom: 16px; text-align: center;">💬 Действия</h3>
+            <h3 style="margin-bottom: 16px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Действия
+            </h3>
+            
+            <div class="msg-reactions-panel">
+                <span class="reaction-item-btn" onclick="addReactionFromMenu('❤️')">❤️</span>
+                <span class="reaction-item-btn" onclick="addReactionFromMenu('👍')">👍</span>
+                <span class="reaction-item-btn" onclick="addReactionFromMenu('🔥')">🔥</span>
+                <span class="reaction-item-btn" onclick="addReactionFromMenu('👏')">👏</span>
+                <span class="reaction-item-btn" onclick="addReactionFromMenu('😂')">😂</span>
+                <span class="reaction-item-btn" onclick="addReactionFromMenu('😮')">😮</span>
+            </div>
+
             <button class="menu-btn" onclick="triggerReplyFromMenu()">Ответить</button>
             <button class="menu-btn" onclick="triggerForwardFromMenu()">Переслать</button>
             <button class="menu-btn danger" onclick="triggerDeleteFromMenu()">Удалить сообщение</button>
@@ -1103,7 +1102,9 @@
 
     <div class="modal-overlay" id="forward-select-modal">
         <div class="modal-card">
-            <h3 style="margin-bottom: 16px; text-align: center;">✈️ Кому переслать?</h3>
+            <h3 style="margin-bottom: 16px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Кому переслать?
+            </h3>
             <div id="forward-chats-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 16px;"></div>
             <button class="menu-btn" style="background: transparent;" onclick="closeModal('forward-select-modal')">Отмена</button>
         </div>
@@ -1139,11 +1140,43 @@
 
     <div class="modal-overlay" id="search-people-modal">
         <div class="modal-card">
-            <h3 style="margin-bottom: 10px; text-align: center;">👤 Найти собеседника</h3>
+            <h3 style="margin-bottom: 10px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Найти собеседника
+            </h3>
             <p style="font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 15px;">Введите никнейм без знака @</p>
             <input type="text" id="search-by-username" class="search-bar" style="width: 100%; margin-bottom: 15px;" placeholder="username">
             <button class="search-action-btn" style="width: 100%; justify-content: center; margin-bottom: 8px;" onclick="searchPeople()">Начать диалог</button>
             <button class="search-action-btn" style="width: 100%; justify-content: center; background: #2C2C2E;" onclick="closeModal('search-people-modal')">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Модалка добавления контакта -->
+    <div class="modal-overlay" id="add-contact-modal">
+        <div class="modal-card">
+            <h3 style="margin-bottom: 12px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;" id="contact-modal-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Новый контакт
+            </h3>
+            
+            <div id="contact-search-step">
+                <p style="font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 15px;">Введите юзернейм для добавления</p>
+                <input type="text" id="contact-username-input" class="search-bar" style="width: 100%; margin-bottom: 15px;" placeholder="username">
+                <button class="search-action-btn" style="width: 100%; justify-content: center; margin-bottom: 8px;" onclick="searchUserForContact()">Найти</button>
+                <button class="search-action-btn" style="width: 100%; justify-content: center; background: #2C2C2E;" onclick="closeModal('add-contact-modal')">Отмена</button>
+            </div>
+
+            <div id="contact-edit-step" style="display: none;">
+                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;">
+                    <div class="chat-avatar" id="contact-avatar-preview" style="width: 70px; height: 70px; font-size: 20px; cursor: pointer; background-color: var(--accent);" onclick="document.getElementById('contact-avatar-upload').click()">?</div>
+                    <input type="file" id="contact-avatar-upload" style="display: none;" accept="image/*" onchange="compressAndSetContactAvatar(this.files[0])">
+                    <span style="font-size: 11px; color: var(--accent); cursor: pointer; margin-top: 6px;" onclick="document.getElementById('contact-avatar-upload').click()">Кастомная аватарка</span>
+                </div>
+                <div class="profile-form">
+                    <input type="text" id="contact-custom-name" class="search-bar" placeholder="Кастомное имя">
+                    <input type="text" id="contact-custom-lastname" class="search-bar" placeholder="Кастомная фамилия">
+                    <button class="search-action-btn" style="width: 100%; justify-content: center;" onclick="saveContact()">Сохранить</button>
+                    <button class="search-action-btn" style="width: 100%; justify-content: center; background: #2C2C2E;" onclick="cancelContactEditStep()">Назад</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1154,6 +1187,7 @@
 
     <script>
         const TG_AVATAR_COLORS = ["#E17076", "#FAA774", "#A695E7", "#34C759", "#6EC9CB", "#1F80E0"];
+        
         const PROFILE_ENC_KEY = "MeowSecureProfileGlobalKey_2026";
 
         let myUid = null;
@@ -1163,7 +1197,6 @@
         let currentRoomId = null;
         let tempProfileAvatarBase64 = ""; 
         let myProfileAvatarFetched = "";
-        let myLocalKey = ""; // Локальный Zero-Knowledge ключ для контактов
 
         let activeRoomSharedKey = null;
 
@@ -1187,10 +1220,9 @@
         let derivedKeysCache = {};
         
         let profileCache = {};
-        let contactsCache = {}; // Локальные контакты Е2ЕЕ
+        let myContacts = {};
 
         let unsubDialogs = null;
-        let unsubContacts = null;
         let unsubChatMessages = null;
         let unsubHeaderPresence = null;
         let unsubTypingStatus = null;
@@ -1198,7 +1230,10 @@
         let activeLastMsgListeners = {};
 
         let activeMenuPeerId = null;
-        let tempContactAvatarBase64 = "";
+
+        // Константы SVG для голосовых
+        const playSvg = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+        const pauseSvg = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
 
         function aesEncrypt(text, keyString) {
             const key = CryptoJS.enc.Utf8.parse(keyString.padEnd(32, '0').slice(0, 32));
@@ -1232,26 +1267,14 @@
             return cipher;
         }
 
-        // Локальное шифрование (контакты, личные настройки в облаке)
-        function encryptLocalData(text) {
-            if (!text) return "";
-            return "[ENC_LOC]" + aesEncrypt(text, myLocalKey);
-        }
-
-        function decryptLocalData(cipher) {
-            if (!cipher) return "";
-            if (cipher.startsWith("[ENC_LOC]")) {
-                return aesDecrypt(cipher.substring(9), myLocalKey);
-            }
-            return cipher;
-        }
-
         function formatDialogTime(timestamp) {
             if (!timestamp) return "";
             const date = new Date(timestamp);
             const now = new Date();
+            
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            
             const diffTime = today - msgDate;
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             
@@ -1277,16 +1300,17 @@
                     true,
                     ["deriveKey", "deriveBits"]
                 );
+                
                 const priv = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
                 const pub = await window.crypto.subtle.exportKey("jwk", keyPair.publicKey);
+                
                 localStorage.setItem(`meow_priv_${myUid}`, JSON.stringify(priv));
                 localStorage.setItem(`meow_pub_${myUid}`, JSON.stringify(pub));
+                
                 privJwk = JSON.stringify(priv);
                 pubJwk = JSON.stringify(pub);
             }
             
-            myLocalKey = CryptoJS.SHA256(privJwk).toString();
-
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
                 publicKey: pubJwk
             });
@@ -1294,20 +1318,48 @@
 
         async function getDerivedSharedKey(peerId) {
             if (derivedKeysCache[peerId]) return derivedKeysCache[peerId];
+            
             try {
                 if (peerId === myUid) {
-                    derivedKeysCache[peerId] = myLocalKey;
-                    return myLocalKey;
+                    const privStr = localStorage.getItem(`meow_priv_${myUid}`);
+                    const hash = CryptoJS.SHA256(privStr).toString();
+                    derivedKeysCache[peerId] = hash;
+                    return hash;
                 }
+                
                 const peerProfSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile/publicKey`));
-                if (!peerProfSnap.exists()) return null;
+                if (!peerProfSnap.exists()) {
+                    return null;
+                }
+                
                 const peerPubJwk = JSON.parse(peerProfSnap.val());
                 const myPrivJwk = JSON.parse(localStorage.getItem(`meow_priv_${myUid}`));
-                const myPrivKeyObj = await window.crypto.subtle.importKey("jwk", myPrivJwk, { name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]);
-                const peerPubKeyObj = await window.crypto.subtle.importKey("jwk", peerPubJwk, { name: "ECDH", namedCurve: "P-256" }, true, []);
-                const sharedBits = await window.crypto.subtle.deriveBits({ name: "ECDH", public: peerPubKeyObj }, myPrivKeyObj, 256);
+                
+                const myPrivKeyObj = await window.crypto.subtle.importKey(
+                    "jwk",
+                    myPrivJwk,
+                    { name: "ECDH", namedCurve: "P-256" },
+                    true,
+                    ["deriveBits"]
+                );
+                
+                const peerPubKeyObj = await window.crypto.subtle.importKey(
+                    "jwk",
+                    peerPubJwk,
+                    { name: "ECDH", namedCurve: "P-256" },
+                    true,
+                    []
+                );
+                
+                const sharedBits = await window.crypto.subtle.deriveBits(
+                    { name: "ECDH", public: peerPubKeyObj },
+                    myPrivKeyObj,
+                    256
+                );
+                
                 const buffer = new Uint8Array(sharedBits);
                 const hexKey = Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join('');
+                
                 derivedKeysCache[peerId] = hexKey;
                 return hexKey;
             } catch (e) {
@@ -1318,15 +1370,18 @@
         function getCachedObjectUrl(msgId, base64Data) {
             if (!base64Data) return "";
             if (objectUrlCache[msgId]) return objectUrlCache[msgId];
+            
             try {
                 const parts = base64Data.split(';base64,');
                 const contentType = parts[0].split(':')[1];
                 const raw = window.atob(parts[1]);
                 const rawLength = raw.length;
                 const uInt8Array = new Uint8Array(rawLength);
+                
                 for (let i = 0; i < rawLength; ++i) {
                     uInt8Array[i] = raw.charCodeAt(i);
                 }
+                
                 const blob = new Blob([uInt8Array], { type: contentType });
                 const url = URL.createObjectURL(blob);
                 objectUrlCache[msgId] = url;
@@ -1338,22 +1393,11 @@
 
         function clearObjectUrlCache() {
             Object.values(objectUrlCache).forEach(url => {
-                if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+                if (url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url);
+                }
             });
             objectUrlCache = {};
-        }
-
-        // Учет конфиденциальности в отображении статуса активности
-        async function formatFriendlyLastSeenWithPrivacy(peerId, timestamp) {
-            if (!timestamp) return "офлайн";
-            const isMeInTheirContacts = await checkIfInTheirContacts(peerId);
-            const peerPrivacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy/lastSeen`));
-            const level = peerPrivacySnap.exists() ? peerPrivacySnap.val() : "all";
-
-            if (level === "none" || (level === "contacts" && !isMeInTheirContacts)) {
-                return "был(а) недавно";
-            }
-            return formatFriendlyLastSeen(timestamp);
         }
 
         function formatFriendlyLastSeen(timestamp) {
@@ -1361,32 +1405,40 @@
             const date = new Date(timestamp);
             const now = new Date();
             const isToday = date.toDateString() === now.toDateString();
+            
             const yesterday = new Date();
             yesterday.setDate(now.getDate() - 1);
             const isYesterday = date.toDateString() === yesterday.toDateString();
+            
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            if (isToday) return `был(а) в сети в ${timeStr}`;
-            if (isYesterday) return `был(а) в сети вчера в ${timeStr}`;
-            const dayStr = String(date.getDate()).padStart(2, '0');
-            const monthStr = String(date.getMonth() + 1).padStart(2, '0');
-            return `был(а) в сети ${dayStr}.${monthStr}.${date.getFullYear()} в ${timeStr}`;
+            if (isToday) {
+                return `был(а) в сети в ${timeStr}`;
+            } else if (isYesterday) {
+                return `был(а) в сети вчера в ${timeStr}`;
+            } else {
+                const dayStr = String(date.getDate()).padStart(2, '0');
+                const monthStr = String(date.getMonth() + 1).padStart(2, '0');
+                const yearStr = date.getFullYear();
+                return `был(а) в сети ${dayStr}.${monthStr}.${yearStr} в ${timeStr}`;
+            }
         }
 
         function getFriendlyDateSeparator(timestamp) {
             const date = new Date(timestamp);
             const now = new Date();
-            if (date.toDateString() === now.toDateString()) return "Сегодня";
+            
+            if (date.toDateString() === now.toDateString()) {
+                return "Сегодня";
+            }
+            
             const yesterday = new Date();
             yesterday.setDate(now.getDate() - 1);
-            if (date.toDateString() === yesterday.toDateString()) return "Вчера";
+            if (date.toDateString() === yesterday.toDateString()) {
+                return "Вчера";
+            }
+            
             return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-        }
-
-        async function checkIfInTheirContacts(peerId) {
-            if (peerId === myUid) return true;
-            const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`));
-            return snap.exists();
         }
 
         setTimeout(() => {
@@ -1408,11 +1460,23 @@
                     });
 
                     await initE2EE();
-                    await fetchPrivacySettings();
+                    await loadMyPrivacySettings();
+                    
+                    // Слушатель контактов E2EE
+                    window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/contacts`), (snap) => {
+                        myContacts = snap.val() || {};
+                        profileCache = {}; // сброс кэша профилей для применения кастомных данных
+                        loadDialogs();
+                        renderContactsList();
+                        if (currentPeer) {
+                            openChatWindow(currentPeer, currentRoomId);
+                        }
+                    });
 
                     const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
                     if (profSnap.exists()) {
                         const prof = profSnap.val();
+                        
                         const decName = decryptProfileData(prof.name);
                         const decLast = decryptProfileData(prof.lastname);
                         const decBio = decryptProfileData(prof.bio);
@@ -1424,6 +1488,7 @@
                         document.getElementById('setting-bio').value = decBio || "";
 
                         myNameCombined = (decName || "Без имени") + (decLast ? " " + decLast : "");
+                        
                         tempProfileAvatarBase64 = decAvatar || "";
                         myProfileAvatarFetched = decAvatar || "";
                         const myAvEl = document.getElementById('my-profile-avatar');
@@ -1447,7 +1512,9 @@
                         await window.fb.set(window.fb.ref(window.fb.db, `usernames/${fallbackNick}`), myUid);
                     }
 
+                    seedDatabaseIfNeeded();
                     switchTab(0);
+                    
                     document.getElementById('message-input').addEventListener('input', triggerTypingStatus);
                 } else {
                     document.getElementById('login-screen').style.display = 'flex';
@@ -1455,32 +1522,13 @@
             });
         }, 1200);
 
-        async function fetchPrivacySettings() {
-            const privacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/privacy`));
-            if (privacySnap.exists()) {
-                const settings = privacySnap.val();
-                if (settings.lastSeen) document.getElementById('privacy-lastseen').value = settings.lastSeen;
-                if (settings.photos) document.getElementById('privacy-photos').value = settings.photos;
-                if (settings.messages) document.getElementById('privacy-messages').value = settings.messages;
-            }
-            const qEmoji = localStorage.getItem(`quick_emoji_${myUid}`) || "❤️";
-            document.getElementById('setting-quick-emoji').value = qEmoji;
-        }
-
-        async function savePrivacySetting(field, value) {
-            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), { [field]: value });
-        }
-
-        function saveQuickEmojiSetting(val) {
-            const emoji = val.trim() || "❤️";
-            localStorage.setItem(`quick_emoji_${myUid}`, emoji);
-        }
-
         async function authAction() {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value.trim();
             const errDiv = document.getElementById('auth-error');
+
             if (!email || !password) return;
+
             try {
                 await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
             } catch (err) {
@@ -1513,8 +1561,11 @@
                 el.classList.toggle('active', idx === index);
             });
 
-            if (index === 0) loadDialogs();
-            if (index === 1) loadContacts();
+            if (index === 0) {
+                loadDialogs();
+            } else if (index === 1) {
+                renderContactsList();
+            }
         }
 
         async function compressAndSetProfileAvatar(file) {
@@ -1531,6 +1582,7 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, 320, 320);
                     tempProfileAvatarBase64 = canvas.toDataURL('image/jpeg', 0.90);
+                    
                     const myAvEl = document.getElementById('my-profile-avatar');
                     myAvEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
                     myAvEl.innerText = "";
@@ -1575,64 +1627,131 @@
             switchTab(0);
         }
 
-        // Кэширование профилей с учетом Е2ЕЕ контактов
-        async function getCachedProfile(peerId, callback) {
-            const localContact = await getLocalContact(peerId);
-            if (localContact) {
-                callback(localContact);
-                return;
-            }
-
+        // Кэширование профилей с учетом контактов и приватности
+        function getCachedProfile(peerId, callback) {
             if (profileCache[peerId]) {
                 callback(profileCache[peerId]);
                 return;
             }
 
-            window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/profile`), async (profSnap) => {
+            const userRef = window.fb.ref(window.fb.db, `users/${peerId}`);
+            Promise.all([
+                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`)),
+                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy`)),
+                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`))
+            ]).then(([profSnap, privacySnap, isContactSnap]) => {
+                let p = {
+                    name: "Без имени",
+                    lastname: "",
+                    avatar: "",
+                    bio: "",
+                    username: "",
+                    privacy: { lastSeen: "all", avatar: "all", messages: "all" },
+                    isWeContactOfPeer: isContactSnap.exists()
+                };
+
                 if (profSnap.exists()) {
                     const prof = profSnap.val();
-                    
-                    // Проверка конфиденциальности фото профиля
-                    let avatarResult = "";
-                    const photosPrivacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy/photos`));
-                    const level = photosPrivacySnap.exists() ? photosPrivacySnap.val() : "all";
-                    const isMeInTheirContacts = await checkIfInTheirContacts(peerId);
-                    
-                    if (level === "all" || (level === "contacts" && isMeInTheirContacts)) {
-                        avatarResult = decryptProfileData(prof.avatar);
-                    }
-
-                    const p = {
-                        name: decryptProfileData(prof.name),
-                        lastname: decryptProfileData(prof.lastname),
-                        avatar: avatarResult,
-                        bio: decryptProfileData(prof.bio),
-                        username: prof.username
-                    };
-                    profileCache[peerId] = p;
-                    callback(p);
+                    p.name = decryptProfileData(prof.name) || "Без имени";
+                    p.lastname = decryptProfileData(prof.lastname) || "";
+                    p.avatar = decryptProfileData(prof.avatar) || "";
+                    p.bio = decryptProfileData(prof.bio) || "";
+                    p.username = prof.username || "";
                 }
+
+                if (privacySnap.exists()) {
+                    p.privacy = { ...p.privacy, ...privacySnap.val() };
+                }
+
+                // Применяем ОВЕРРАЙД из НАШИХ контактов
+                if (myContacts[peerId]) {
+                    const c = myContacts[peerId];
+                    p.name = decryptProfileData(c.name) || p.name;
+                    p.lastname = decryptProfileData(c.lastname) || p.lastname;
+                    p.avatar = decryptProfileData(c.avatar) || p.avatar;
+                } else {
+                    // Применяем ИХ приватность на фото профиля
+                    const avPriv = p.privacy.avatar || "all";
+                    if (avPriv === "none" || (avPriv === "contacts" && !p.isWeContactOfPeer)) {
+                        p.avatar = ""; 
+                    }
+                }
+
+                profileCache[peerId] = p;
+                callback(p);
             });
         }
 
-        // --- ЛОКАЛЬНЫЕ КОНТАКТЫ (Zero-Knowledge E2EE) ---
-        async function getLocalContact(peerId) {
-            if (contactsCache[peerId]) return contactsCache[peerId];
-            const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${peerId}`));
-            if (snap.exists()) {
-                const data = snap.val();
-                const decryptedContact = {
-                    name: decryptLocalData(data.alias),
-                    lastname: "",
-                    avatar: decryptLocalData(data.avatar),
-                    bio: "Локальный контакт",
-                    username: data.username,
-                    isContact: true
-                };
-                contactsCache[peerId] = decryptedContact;
-                return decryptedContact;
+        // НАСТРОЙКИ ПРИВАТНОСТИ И РЕАКЦИЙ
+        async function loadMyPrivacySettings() {
+            const privacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/privacy`));
+            if (privacySnap.exists()) {
+                const privacy = privacySnap.val();
+                document.getElementById('privacy-last-seen').value = privacy.lastSeen || "all";
+                document.getElementById('privacy-avatar').value = privacy.avatar || "all";
+                document.getElementById('privacy-messages').value = privacy.messages || "all";
             }
-            return null;
+            const localEmoji = localStorage.getItem('quick_reaction_emoji') || '❤️';
+            document.getElementById('quick-reaction-emoji').value = localEmoji;
+        }
+
+        async function savePrivacySettings() {
+            const lastSeen = document.getElementById('privacy-last-seen').value;
+            const avatar = document.getElementById('privacy-avatar').value;
+            const messages = document.getElementById('privacy-messages').value;
+
+            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), {
+                lastSeen,
+                avatar,
+                messages
+            });
+        }
+
+        function saveQuickReactionSetting(val) {
+            localStorage.setItem('quick_reaction_emoji', val);
+        }
+
+        // КОНТАКТЫ
+        let tempContactAvatarBase64 = "";
+        let selectedContactUid = null;
+        let isEditingContact = false;
+
+        async function searchUserForContact() {
+            const username = document.getElementById('contact-username-input').value.trim().toLowerCase().replace('@', '');
+            if (!username) return;
+
+            if (username === document.getElementById('setting-username').value.trim().toLowerCase()) {
+                alert("Нельзя добавить себя!");
+                return;
+            }
+
+            const usernameSnap = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${username}`));
+            if (usernameSnap.exists()) {
+                selectedContactUid = usernameSnap.val();
+                isEditingContact = false;
+                
+                const profileSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${selectedContactUid}/profile`));
+                if (profileSnap.exists()) {
+                    const prof = profileSnap.val();
+                    document.getElementById('contact-custom-name').value = decryptProfileData(prof.name) || "";
+                    document.getElementById('contact-custom-lastname').value = decryptProfileData(prof.lastname) || "";
+                    tempContactAvatarBase64 = decryptProfileData(prof.avatar) || "";
+                    
+                    const avPreview = document.getElementById('contact-avatar-preview');
+                    if (tempContactAvatarBase64) {
+                        avPreview.style.backgroundImage = `url(${tempContactAvatarBase64})`;
+                        avPreview.innerText = "";
+                    } else {
+                        avPreview.style.backgroundImage = "none";
+                        avPreview.innerText = "?";
+                    }
+                }
+                
+                document.getElementById('contact-search-step').style.display = "none";
+                document.getElementById('contact-edit-step').style.display = "block";
+            } else {
+                alert("Пользователь не найден!");
+            }
         }
 
         async function compressAndSetContactAvatar(file) {
@@ -1649,106 +1768,160 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, 320, 320);
                     tempContactAvatarBase64 = canvas.toDataURL('image/jpeg', 0.90);
+                    
+                    const preview = document.getElementById('contact-avatar-preview');
+                    preview.style.backgroundImage = `url(${tempContactAvatarBase64})`;
+                    preview.innerText = "";
                 };
             };
         }
 
-        async function addOrUpdateContact() {
-            const targetUsername = document.getElementById('contact-reg-username').value.trim().toLowerCase().replace('@', '');
-            const alias = document.getElementById('contact-reg-alias').value.trim();
-            if (!targetUsername || !alias) {
-                alert("Заполните никнейм и имя!");
+        async function saveContact() {
+            const name = document.getElementById('contact-custom-name').value.trim();
+            const lastname = document.getElementById('contact-custom-lastname').value.trim();
+
+            if (!name) {
+                alert("Имя обязательно!");
                 return;
             }
 
-            const snap = await window.fb.get(window.fb.ref(window.fb.db, `usernames/${targetUsername}`));
-            if (snap.exists()) {
-                const peerId = snap.val();
-                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${peerId}`), {
-                    alias: encryptLocalData(alias),
-                    avatar: encryptLocalData(tempContactAvatarBase64),
-                    username: targetUsername
-                });
-                delete contactsCache[peerId];
-                tempContactAvatarBase64 = "";
-                alert("Контакт успешно сохранен!");
+            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${selectedContactUid}`), {
+                name: encryptProfileData(name),
+                lastname: encryptProfileData(lastname),
+                avatar: encryptProfileData(tempContactAvatarBase64)
+            });
+
+            alert(isEditingContact ? "Контакт обновлен!" : "Контакт добавлен!");
+            closeModal('add-contact-modal');
+            resetContactModal();
+        }
+
+        function cancelContactEditStep() {
+            if (isEditingContact) {
                 closeModal('add-contact-modal');
-                loadContacts();
-                loadDialogs();
+                resetContactModal();
             } else {
-                alert("Пользователь с таким никнеймом не найден!");
+                document.getElementById('contact-search-step').style.display = "block";
+                document.getElementById('contact-edit-step').style.display = "none";
             }
         }
 
-        function loadContacts() {
-            if (unsubContacts) unsubContacts();
+        function resetContactModal() {
+            document.getElementById('contact-username-input').value = "";
+            document.getElementById('contact-custom-name').value = "";
+            document.getElementById('contact-custom-lastname').value = "";
+            document.getElementById('contact-avatar-preview').style.backgroundImage = "none";
+            document.getElementById('contact-avatar-preview').innerText = "?";
+            tempContactAvatarBase64 = "";
+            selectedContactUid = null;
+            isEditingContact = false;
+            document.getElementById('contact-search-step').style.display = "block";
+            document.getElementById('contact-edit-step').style.display = "none";
+        }
+
+        function editContact(peerId) {
+            selectedContactUid = peerId;
+            isEditingContact = true;
+            
+            const contact = myContacts[peerId];
+            document.getElementById('contact-custom-name').value = decryptProfileData(contact.name) || "";
+            document.getElementById('contact-custom-lastname').value = decryptProfileData(contact.lastname) || "";
+            tempContactAvatarBase64 = decryptProfileData(contact.avatar) || "";
+            
+            const preview = document.getElementById('contact-avatar-preview');
+            if (tempContactAvatarBase64) {
+                preview.style.backgroundImage = `url(${tempContactAvatarBase64})`;
+                preview.innerText = "";
+            } else {
+                preview.style.backgroundImage = "none";
+                preview.innerText = "?";
+            }
+
+            document.getElementById('contact-search-step').style.display = "none";
+            document.getElementById('contact-edit-step').style.display = "block";
+            openModal('add-contact-modal');
+        }
+
+        async function deleteContact(peerId) {
+            if (confirm("Вы действительно хотите удалить этот контакт?")) {
+                await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${peerId}`));
+            }
+        }
+
+        function renderContactsList() {
             const container = document.getElementById('contacts-list-container');
             container.innerHTML = "";
 
-            unsubContacts = window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/contacts`), (snap) => {
-                container.innerHTML = "";
-                if (!snap.exists()) {
-                    container.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:20px;font-size:14px;">Список контактов пуст</div>`;
-                    return;
-                }
+            const entries = Object.entries(myContacts);
+            if (entries.length === 0) {
+                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:40px;font-size:14px;">Список контактов пуст.</div>`;
+                return;
+            }
 
-                const contactsMap = snap.val();
-                Object.entries(contactsMap).forEach(([peerId, contactMeta]) => {
-                    const decName = decryptLocalData(contactMeta.alias);
-                    const decAvatar = decryptLocalData(contactMeta.avatar);
-                    
-                    const row = document.createElement('div');
-                    row.className = "chat-row";
-                    row.onclick = () => {
-                        const rId = [myUid, peerId].sort().join("_");
-                        openChatWindow(peerId, rId);
-                    };
+            entries.forEach(([peerId, data]) => {
+                const decName = decryptProfileData(data.name) || "Без имени";
+                const decLast = decryptProfileData(data.lastname) || "";
+                const avatar = decryptProfileData(data.avatar) || "";
+                const fullName = decName + (decLast ? " " + decLast : "");
 
-                    let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
-                    
-                    row.innerHTML = `
-                        <div class="chat-avatar" id="c-avatar-${peerId}" style="background-color: ${TG_AVATAR_COLORS[colorIndex]}">
-                            ${decName[0].toUpperCase()}
-                            <div class="online-dot" id="c-dot-${peerId}"></div>
+                const colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+
+                const row = document.createElement('div');
+                row.className = "chat-row";
+
+                row.innerHTML = `
+                    <div style="display:flex; align-items:center; flex:1;" onclick="startContactChat('${peerId}')">
+                        <div class="chat-avatar" style="${avatar ? `background-image:url(${avatar})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`}">
+                            ${avatar ? "" : fullName[0].toUpperCase()}
                         </div>
                         <div class="chat-info">
-                            <div class="chat-name-row">
-                                <div class="chat-row-name">${decName}</div>
-                                <div class="chat-row-time" id="c-status-${peerId}">офлайн</div>
-                            </div>
-                            <div class="chat-row-msg">@${contactMeta.username}</div>
+                            <div class="chat-row-name">${fullName}</div>
+                            <div class="chat-row-msg" id="contact-sub-${peerId}">Загрузка юзернейма...</div>
                         </div>
-                    `;
-                    container.appendChild(row);
+                    </div>
+                    <div style="display:flex; gap: 8px;">
+                        <button class="header-btn" onclick="editContact('${peerId}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button class="header-btn" style="color: var(--error);" onclick="deleteContact('${peerId}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
+                    </div>
+                `;
 
-                    if (decAvatar) {
-                        const avEl = document.getElementById(`c-avatar-${peerId}`);
-                        avEl.style.backgroundImage = `url(${decAvatar})`;
-                        avEl.innerText = "";
-                        avEl.style.backgroundColor = "transparent";
+                container.appendChild(row);
+
+                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`)).then((snap) => {
+                    const sub = document.getElementById(`contact-sub-${peerId}`);
+                    if (sub && snap.exists()) {
+                        sub.innerText = "@" + (snap.val().username || "id");
                     }
-
-                    window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), async (pSnap) => {
-                        const dot = document.getElementById(`c-dot-${peerId}`);
-                        const statusText = document.getElementById(`c-status-${peerId}`);
-                        if (pSnap.exists() && dot && statusText) {
-                            const p = pSnap.val();
-                            if (p.status === "online") {
-                                dot.style.display = "block";
-                                statusText.innerText = "в сети";
-                                statusText.style.color = "var(--online)";
-                            } else {
-                                dot.style.display = "none";
-                                statusText.innerText = await formatFriendlyLastSeenWithPrivacy(peerId, p.lastSeen);
-                                statusText.style.color = "var(--text-muted)";
-                            }
-                        }
-                    });
                 });
             });
         }
 
-        // Меню настройки чата
+        function filterContacts(query) {
+            const q = query.toLowerCase();
+            document.querySelectorAll('#contacts-list-container .chat-row').forEach(row => {
+                const name = row.querySelector('.chat-row-name').innerText.toLowerCase();
+                row.style.display = name.includes(q) ? 'flex' : 'none';
+            });
+        }
+
+        async function startContactChat(peerId) {
+            const rId = [myUid, peerId].sort().join("_");
+            const nowTime = Date.now();
+            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${peerId}`), {
+                roomId: rId,
+                lastTime: nowTime
+            });
+            await window.fb.set(window.fb.ref(window.fb.db, `users/${peerId}/chats/${myUid}`), {
+                roomId: rId,
+                lastTime: nowTime
+            });
+            openChatWindow(peerId, rId);
+        }
+
         function openChatOptions(peerId, name) {
             activeMenuPeerId = peerId;
             document.getElementById('chat-options-title').innerText = name || "Диалог";
@@ -1769,7 +1942,9 @@
 
         function triggerDeleteChatFromOptions() {
             closeModal('chat-options-modal');
-            if (activeMenuPeerId) triggerChatDeletion(activeMenuPeerId);
+            if (activeMenuPeerId) {
+                triggerChatDeletion(activeMenuPeerId);
+            }
         }
 
         function loadDialogs() {
@@ -1788,6 +1963,7 @@
                 const cloudRow = document.createElement('div');
                 cloudRow.className = "chat-row";
                 cloudRow.id = `chat-row-${myUid}`;
+                
                 cloudRow.onclick = (e) => {
                     if (e.target.classList.contains('chat-avatar')) {
                         e.stopPropagation();
@@ -1847,6 +2023,7 @@
                 if (!snap.exists()) return;
                 
                 const chatsObj = snap.val();
+
                 const sortedChats = Object.entries(chatsObj).filter(([peerId]) => peerId !== myUid);
                 sortedChats.sort((a, b) => {
                     const pinA = a[1].pinned ? 1 : 0;
@@ -1888,6 +2065,7 @@
                     row.addEventListener('mouseleave', () => clearTimeout(rowPressTimer));
 
                     let colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+
                     const pinSvg = chatMeta.pinned ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="color: var(--accent); margin-left: auto; flex-shrink:0;"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2z"/></svg>` : '';
 
                     row.innerHTML = `
@@ -1990,6 +2168,7 @@
         function triggerTypingStatus() {
             if (!currentRoomId || !myUid || currentPeer === myUid) return;
             window.fb.set(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${myUid}`), true);
+            
             clearTimeout(typingTimeout);
             typingTimeout = setTimeout(() => {
                 window.fb.set(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${myUid}`), null);
@@ -2009,18 +2188,6 @@
         }
 
         async function openChatWindow(peerId, roomId) {
-            // Проверка конфиденциальности перед написанием
-            if (peerId !== myUid) {
-                const writePrivacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy/messages`));
-                const level = writePrivacySnap.exists() ? writePrivacySnap.val() : "all";
-                const isMeInTheirContacts = await checkIfInTheirContacts(peerId);
-                
-                if (level === "none" || (level === "contacts" && !isMeInTheirContacts)) {
-                    alert("Пользователь ограничил круг лиц, которые могут писать ему личные сообщения.");
-                    return;
-                }
-            }
-
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
             if (unsubTypingStatus) unsubTypingStatus();
@@ -2041,6 +2208,20 @@
             const headerStatus = document.getElementById('chat-header-status');
 
             let restorePresenceStatus = () => {};
+
+            // Блокировка ввода по приватности сообщений
+            const input = document.getElementById('message-input');
+            const clipBtn = document.getElementById('clip-btn');
+            const voiceBtn = document.getElementById('voice-record-btn');
+            const burnBtn = document.getElementById('burn-btn');
+            const sendBtn = document.getElementById('send-btn');
+
+            input.disabled = false;
+            input.placeholder = "Сообщение...";
+            clipBtn.style.opacity = "1"; clipBtn.style.pointerEvents = "auto";
+            voiceBtn.style.opacity = "1"; voiceBtn.style.pointerEvents = "auto";
+            burnBtn.style.opacity = "1"; burnBtn.style.pointerEvents = "auto";
+            sendBtn.style.opacity = "1"; sendBtn.style.pointerEvents = "auto";
 
             if (isCloud) {
                 headerTitle.innerHTML = "Избранное";
@@ -2069,26 +2250,47 @@
                         headerAv.style.backgroundColor = TG_AVATAR_COLORS[colorIndex];
                         headerAv.innerText = displayName[0].toUpperCase();
                     }
-                });
 
-                const unsubPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), async (snap) => {
-                    let statusText = "офлайн";
-                    let color = "var(--text-muted)";
-                    if (snap.exists() && snap.val().status === "online") {
-                        statusText = "в сети";
-                        color = "var(--online)";
-                    } else if (snap.exists()) {
-                        statusText = await formatFriendlyLastSeenWithPrivacy(peerId, snap.val().lastSeen);
+                    // Блокировка чата по приватности "Сообщения"
+                    const msgPrivacy = cached.privacy ? cached.privacy.messages || "all" : "all";
+                    if (msgPrivacy === "none" || (msgPrivacy === "contacts" && !cached.isWeContactOfPeer)) {
+                        input.disabled = true;
+                        input.placeholder = "Пользователь ограничил отправку сообщений";
+                        clipBtn.style.opacity = "0.3"; clipBtn.style.pointerEvents = "none";
+                        voiceBtn.style.opacity = "0.3"; voiceBtn.style.pointerEvents = "none";
+                        burnBtn.style.opacity = "0.3"; burnBtn.style.pointerEvents = "none";
+                        sendBtn.style.opacity = "0.3"; sendBtn.style.pointerEvents = "none";
                     }
-                    
-                    restorePresenceStatus = () => {
-                        headerStatus.innerText = statusText;
-                        headerStatus.style.color = color;
-                    };
-                    restorePresenceStatus();
                 });
 
-                unsubHeaderPresence = () => { unsubPresence(); };
+                const unsubPresence = window.fb.onValue(window.fb.ref(window.fb.db, `users/${peerId}/presence`), (snap) => {
+                    getCachedProfile(peerId, (cached) => {
+                        const lsPriv = cached.privacy ? cached.privacy.lastSeen || "all" : "all";
+                        let statusText = "офлайн";
+                        let color = "var(--text-muted)";
+
+                        if (snap.exists() && snap.val().status === "online") {
+                            statusText = "в сети";
+                            color = "var(--online)";
+                        } else if (snap.exists()) {
+                            if (lsPriv === "none" || (lsPriv === "contacts" && !cached.isWeContactOfPeer)) {
+                                statusText = "был(а) недавно";
+                            } else {
+                                statusText = formatFriendlyLastSeen(snap.val().lastSeen);
+                            }
+                        }
+                        
+                        restorePresenceStatus = () => {
+                            headerStatus.innerText = statusText;
+                            headerStatus.style.color = color;
+                        };
+                        restorePresenceStatus();
+                    });
+                });
+
+                unsubHeaderPresence = () => {
+                    unsubPresence();
+                };
 
                 unsubTypingStatus = window.fb.onValue(window.fb.ref(window.fb.db, `typing/${currentRoomId}/${peerId}`), (snap) => {
                     if (snap.exists() && snap.val() === true) {
@@ -2102,6 +2304,7 @@
 
             unsubChatMessages = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), async (snapshot) => {
                 const messages = snapshot.val() || {};
+                
                 const localDeletedSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/deletedMessages/${currentRoomId}`));
                 const localDeleted = localDeletedSnap.exists() ? localDeletedSnap.val() : {};
 
@@ -2113,7 +2316,9 @@
                 const currentNodes = Array.from(feed.querySelectorAll('.msg-container'));
                 currentNodes.forEach(node => {
                     const id = node.id.replace('msg-', '');
-                    if (!messages[id] || localDeleted[id]) node.remove();
+                    if (!messages[id] || localDeleted[id]) {
+                        node.remove();
+                    }
                 });
 
                 feed.querySelectorAll('.date-separator').forEach(el => el.remove());
@@ -2157,20 +2362,30 @@
                         if (ticksSpan && m.sender === myUid) {
                             ticksSpan.innerHTML = m.read ? `<span style="color: #64B5F6; font-weight: bold;">✓✓</span>` : `<span>✓</span>`;
                         }
-                        renderReactions(msgId, m.reactions, container);
+                        
+                        // Рендер/апдейт реакций
+                        const rxCont = container.querySelector('.msg-reactions-container');
+                        if (rxCont) rxCont.remove();
+                        const newRxHtml = getReactionsHtml(msgId, m.reactions);
+                        if (newRxHtml) {
+                            container.querySelector('.msg-bubble').insertAdjacentHTML('beforeend', newRxHtml);
+                        }
+
                         feed.appendChild(container);
                     } else {
                         container = document.createElement('div');
+                        
                         const isMediaOrVoice = messageObject.fileData || messageObject.isVoice;
                         container.className = `msg-container ${m.sender === myUid ? 'out' : 'in'} ${isMediaOrVoice ? 'has-media-container' : 'is-text-container'}`;
                         container.id = `msg-${msgId}`;
 
-                        // Логика перетаскивания и свайпа влево (Swipe Left to Reply) - Работает на любые сообщения!
                         let startX = 0;
                         let startY = 0;
-                        let msgPressTimer = null;
                         let isSwiping = false;
+                        let msgPressTimer = null;
+                        const bubbleTranslateTarget = 80;
 
+                        // Сенсорный/мышиный контроль сдвига для ответа (любого сообщения)
                         container.addEventListener('touchstart', (e) => {
                             startX = e.touches[0].clientX;
                             startY = e.touches[0].clientY;
@@ -2186,56 +2401,66 @@
                         }, { passive: true });
 
                         container.addEventListener('touchmove', (e) => {
-                            let diffX = startX - e.touches[0].clientX;
-                            let diffY = Math.abs(startY - e.touches[0].clientY);
+                            let currentX = e.touches[0].clientX;
+                            let currentY = e.touches[0].clientY;
+                            let diffX = startX - currentX;
+                            let diffY = Math.abs(startY - currentY);
                             
-                            if (diffX > 10 || diffY > 10) {
+                            if (diffX > 15 && diffY < 25) {
                                 isSwiping = true;
                                 clearTimeout(msgPressTimer);
-                            }
-
-                            // Плавный визуальный сдвиг сообщения во время свайпа влево
-                            if (diffX > 0 && diffX < 120 && diffY < 20) {
-                                container.style.transform = `translateX(-${diffX}px)`;
+                                const bubble = container.querySelector('.msg-bubble');
+                                if (bubble) {
+                                    bubble.style.transition = "none";
+                                    bubble.style.transform = `translateX(-${Math.min(diffX, bubbleTranslateTarget)}px)`;
+                                }
+                            } else if (diffY > 15) {
+                                clearTimeout(msgPressTimer);
                             }
                         }, { passive: true });
 
                         container.addEventListener('touchend', (e) => {
                             clearTimeout(msgPressTimer);
-                            let diffX = startX - e.changedTouches[0].clientX;
-                            container.style.transform = "translateX(0px)"; // Возвращаем пузырь на место
+                            let endX = e.changedTouches[0].clientX;
+                            let diffX = startX - endX;
                             
-                            if (diffX > 60) {
+                            const bubble = container.querySelector('.msg-bubble');
+                            if (bubble) {
+                                bubble.style.transition = "transform 0.25s cubic-bezier(0.1, 0.8, 0.3, 1)";
+                                bubble.style.transform = "translateX(0)";
+                            }
+                            
+                            let doubleTapTimer = container.getAttribute('data-double-tap-timer');
+                            let now = Date.now();
+                            let lastTap = parseInt(container.getAttribute('data-last-tap') || "0");
+                            container.setAttribute('data-last-tap', now);
+                            
+                            if (now - lastTap < 300) {
+                                // Быстрый дабл-клик/тап -> Быстрая реакция
+                                const quickEmoji = localStorage.getItem('quick_reaction_emoji') || '❤️';
+                                toggleReactionDirect(msgId, quickEmoji);
+                                isSwiping = false;
+                                return;
+                            }
+                            
+                            if (isSwiping && diffX > 60) {
                                 initiateReply(msgId, messageObject.text || (messageObject.isVoice ? "Голосовое сообщение" : "[Медиа]"), m.sender);
                             }
                         }, { passive: true });
 
-                        // Поддержка ПК
-                        container.addEventListener('mousedown', (e) => {
-                            msgPressTimer = setTimeout(() => {
-                                activeMenuMsgId = msgId;
-                                activeMenuMsgObj = messageObject;
-                                openModal('msg-options-modal');
-                            }, 550);
+                        // Двойной клик на десктопе
+                        container.addEventListener('dblclick', (e) => {
+                            e.stopPropagation();
+                            const quickEmoji = localStorage.getItem('quick_reaction_emoji') || '❤️';
+                            toggleReactionDirect(msgId, quickEmoji);
                         });
-                        container.addEventListener('mouseup', () => clearTimeout(msgPressTimer));
-                        container.addEventListener('mouseleave', () => clearTimeout(msgPressTimer));
 
-                        // Умный тап: одиночный (выбор реакции), двойной (быстрая реакция)
-                        let lastTap = 0;
-                        container.addEventListener('click', (e) => {
-                            const nowTime = Date.now();
-                            if (nowTime - lastTap < 300) {
-                                // Двойной тап -> Быстрая реакция
-                                e.stopPropagation();
-                                handleQuickReaction(msgId);
-                            } else {
-                                // Одиночный тап -> Меню выбора реакций
-                                e.stopPropagation();
-                                showReactionSelector(msgId, container, e);
-                            }
-                            lastTap = nowTime;
-                        });
+                        container.onclick = (e) => {
+                            if (isSwiping) return;
+                            activeMenuMsgId = msgId;
+                            activeMenuMsgObj = messageObject;
+                            openModal('msg-options-modal');
+                        };
 
                         const timeString = new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -2260,14 +2485,16 @@
 
                         if (m.burnTime) {
                             const secs = Math.max(0, Math.round((m.burnTime - Date.now()) / 1000));
-                            bubbleHtml += `<div class="burn-timer-badge" data-msgid="${msgId}" data-roomid="${currentRoomId}" data-target="${m.burnTime}">🔥 ${secs}с</div>`;
+                            bubbleHtml += `<div class="burn-timer-badge" data-msgid="${msgId}" data-roomid="${currentRoomId}" data-target="${m.burnTime}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" style="color: var(--burn); margin-right: 3px;"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> <span>${secs}с</span>
+                            </div>`;
                         }
 
                         if (messageObject.isVoice) {
                             const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
                             bubbleHtml += `
-                                <div class="voice-wave-container">
-                                    <button class="voice-play-btn" onclick="toggleVoicePlayback(this, '${blobUrl}')">▶</button>
+                                <div class="voice-wave-container" onclick="event.stopPropagation()">
+                                    <button class="voice-play-btn" onclick="toggleVoicePlayback(this, '${blobUrl}')">${playSvg}</button>
                                     <div class="voice-progress-bar" onclick="seekVoice(event, this)">
                                         <div class="voice-progress-fill"></div>
                                     </div>
@@ -2275,6 +2502,7 @@
                             `;
                         } else if (messageObject.fileData) {
                             const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
+                            
                             if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
                                 bubbleHtml += `<div class="msg-media" onclick="event.stopPropagation(); viewMediaFull('${blobUrl}', true)"><video src="${blobUrl}" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
                             } else {
@@ -2285,6 +2513,12 @@
                         if (messageObject.text && messageObject.text !== "[Медиа]" && !messageObject.isVoice) {
                             bubbleHtml += `<div class="msg-text">${messageObject.text}</div>`;
                         }
+
+                        // Рендерим реакции
+                        const rxHtml = getReactionsHtml(msgId, m.reactions);
+                        if (rxHtml) {
+                            bubbleHtml += rxHtml;
+                        }
                         
                         bubbleHtml += `
                             <div class="msg-meta">
@@ -2293,11 +2527,7 @@
                             </div>
                         </div>`;
 
-                        // Встраиваем блок реакций
-                        bubbleHtml += `<div class="msg-reactions-wrapper" id="reactions-container-${msgId}"></div>`;
-
                         container.innerHTML = bubbleHtml;
-                        renderReactions(msgId, m.reactions, container);
                         feed.appendChild(container);
                     }
                 });
@@ -2306,79 +2536,46 @@
             });
         }
 
-        // --- ЛОГИКА РЕАКЦИЙ (E2EE шифрование) ---
-        function showReactionSelector(msgId, element, event) {
-            // Удаляем старые селекторы
-            document.querySelectorAll('.reaction-selector-popover').forEach(pop => pop.remove());
-            
-            const popover = document.createElement('div');
-            popover.className = "reaction-selector-popover";
-            
-            const list = ['👍', '❤️', '🔥', '😂', '😮', '😢', '🙏'];
-            list.forEach(emoji => {
-                const btn = document.createElement('span');
-                btn.className = "reaction-choice-btn";
-                btn.innerText = emoji;
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    submitReaction(msgId, emoji);
-                    popover.remove();
-                };
-                popover.appendChild(btn);
+        // Логика формирования html реакций
+        function getReactionsHtml(msgId, reactionsObj) {
+            if (!reactionsObj) return "";
+            const counts = {};
+            Object.values(reactionsObj).forEach(emoji => {
+                counts[emoji] = (counts[emoji] || 0) + 1;
             });
 
-            element.querySelector('.msg-bubble').appendChild(popover);
-            
-            // Закрывать селектор по клику в любую часть экрана
-            setTimeout(() => {
-                const closeHandler = () => {
-                    popover.remove();
-                    document.removeEventListener('click', closeHandler);
-                };
-                document.addEventListener('click', closeHandler);
-            }, 100);
-        }
+            if (Object.keys(counts).length === 0) return "";
 
-        async function submitReaction(msgId, emoji) {
-            // Шифруем реакцию ключом комнаты
-            const encryptedReaction = "[MEOW]" + aesEncrypt(emoji, activeRoomSharedKey);
-            await window.fb.set(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}/reactions/${myUid}`), encryptedReaction);
-        }
-
-        async function handleQuickReaction(msgId) {
-            const emoji = localStorage.getItem(`quick_emoji_${myUid}`) || "❤️";
-            await submitReaction(msgId, emoji);
-        }
-
-        function renderReactions(msgId, reactionsObj, container) {
-            const wrapper = container.querySelector(`#reactions-container-${msgId}`);
-            if (!wrapper) return;
-            wrapper.innerHTML = "";
-
-            if (!reactionsObj) return;
-
-            // Расшифровываем и группируем реакции
-            const totals = {};
-            Object.entries(reactionsObj).forEach(([senderUid, encryptedText]) => {
-                let decrypted = encryptedText;
-                if (encryptedText.startsWith("[MEOW]")) {
-                    decrypted = aesDecrypt(encryptedText.substring(6), activeRoomSharedKey);
-                }
-                if (decrypted && decrypted !== "[Ошибка дешифрования]") {
-                    totals[decrypted] = (totals[decrypted] || 0) + 1;
-                }
+            let html = `<div class="msg-reactions-container">`;
+            Object.entries(counts).forEach(([emoji, count]) => {
+                const isMyRx = reactionsObj[myUid] === emoji;
+                html += `
+                    <div class="reaction-pill ${isMyRx ? 'active' : ''}" onclick="event.stopPropagation(); toggleReactionDirect('${msgId}', '${emoji}')">
+                        <span>${emoji}</span>
+                        <span>${count}</span>
+                    </div>
+                `;
             });
+            html += `</div>`;
+            return html;
+        }
 
-            Object.entries(totals).forEach(([emoji, count]) => {
-                const pill = document.createElement('div');
-                pill.className = "reaction-pill";
-                pill.innerHTML = `<span>${emoji}</span> <span style="font-weight:bold;">${count}</span>`;
-                pill.onclick = (e) => {
-                    e.stopPropagation();
-                    submitReaction(msgId, emoji);
-                };
-                wrapper.appendChild(pill);
-            });
+        async function toggleReactionDirect(msgId, emoji) {
+            if (!currentRoomId) return;
+            const rxRef = window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}/reactions/${myUid}`);
+            const snap = await window.fb.get(rxRef);
+            if (snap.exists() && snap.val() === emoji) {
+                await window.fb.remove(rxRef);
+            } else {
+                await window.fb.set(rxRef, emoji);
+            }
+        }
+
+        function addReactionFromMenu(emoji) {
+            if (activeMenuMsgId) {
+                toggleReactionDirect(activeMenuMsgId, emoji);
+            }
+            closeModal('msg-options-modal');
         }
 
         setInterval(() => {
@@ -2388,10 +2585,10 @@
                 const roomId = badge.getAttribute('data-roomid');
                 const diff = Math.max(0, Math.round((targetTime - Date.now()) / 1000));
                 if (diff <= 0) {
-                    badge.innerText = "🔥 Сгорает...";
+                    badge.querySelector('span').innerText = "Сгорает...";
                     window.fb.remove(window.fb.ref(window.fb.db, `messages/${roomId}/list/${msgId}`));
                 } else {
-                    badge.innerText = `🔥 ${diff}с`;
+                    badge.querySelector('span').innerText = `${diff}с`;
                 }
             });
         }, 1000);
@@ -2406,7 +2603,6 @@
         }
 
         function toggleVoicePlayback(btn, url) {
-            event.stopPropagation();
             let audio = btn.audioInstance;
             const bar = btn.nextElementSibling;
             const fill = bar.querySelector('.voice-progress-fill');
@@ -2414,29 +2610,34 @@
             if (!audio) {
                 audio = new Audio(url);
                 btn.audioInstance = audio;
+                
                 audio.ontimeupdate = () => {
                     const pct = (audio.currentTime / audio.duration) * 100;
                     fill.style.width = `${pct}%`;
                 };
+
                 audio.onended = () => {
-                    btn.innerText = "▶";
+                    btn.innerHTML = playSvg;
                     fill.style.width = "0%";
                 };
             }
 
             if (audio.paused) {
-                document.querySelectorAll('audio').forEach(a => { if (a !== audio) a.pause(); });
-                document.querySelectorAll('.voice-play-btn').forEach(b => { if (b !== btn) b.innerText = "▶"; });
+                document.querySelectorAll('audio').forEach(a => {
+                    if (a !== audio) a.pause();
+                });
+                document.querySelectorAll('.voice-play-btn').forEach(b => {
+                    if (b !== btn) b.innerHTML = playSvg;
+                });
                 audio.play();
-                btn.innerText = "⏸";
+                btn.innerHTML = pauseSvg;
             } else {
                 audio.pause();
-                btn.innerText = "▶";
+                btn.innerHTML = playSvg;
             }
         }
 
         function seekVoice(event, bar) {
-            event.stopPropagation();
             const btn = bar.previousElementSibling;
             const audio = btn.audioInstance;
             if (!audio) return;
@@ -2471,9 +2672,8 @@
                 replyTargetSenderName = "Вы";
                 setupReplyUI();
             } else {
-                window.fb.get(window.fb.ref(window.fb.db, `users/${senderId}/profile/name`)).then(snap => {
-                    const decName = decryptProfileData(snap.val());
-                    replyTargetSenderName = snap.exists() ? decName : "Собеседник";
+                getCachedProfile(senderId, (cached) => {
+                    replyTargetSenderName = (cached.name || "Собеседник") + (cached.lastname ? " " + cached.lastname : "");
                     setupReplyUI();
                 });
             }
@@ -2499,6 +2699,7 @@
             if (!txt || !activeRoomSharedKey) return;
 
             const messagePayload = { text: txt };
+            
             if (replyTargetMessageId) {
                 messagePayload.replyTo = {
                     msgId: replyTargetMessageId,
@@ -2537,11 +2738,13 @@
 
         async function handleVoiceRecordClick() {
             const recBtn = document.getElementById('voice-record-btn');
+            
             if (!isRecordingAudio) {
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                     alert("Запись звука не поддерживается вашим браузером!");
                     return;
                 }
+
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     audioChunks = [];
@@ -2594,7 +2797,7 @@
 
                     audioRecorder.start();
                     isRecordingAudio = true;
-                    recBtn.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>`;
+                    recBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/></svg>`;
                     recBtn.style.color = "var(--error)";
                 } catch (err) {
                     alert("Не удалось получить доступ к микрофону!");
@@ -2602,17 +2805,24 @@
             } else {
                 audioRecorder.stop();
                 isRecordingAudio = false;
-                recBtn.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+                recBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
                 recBtn.style.color = "var(--accent)";
             }
         }
 
         async function compressAndSendMedia(file) {
             if (!file || !activeRoomSharedKey) return;
+
             const clipBtn = document.getElementById('clip-btn');
             const sendBtn = document.getElementById('send-btn');
-            clipBtn.innerText = "⏳";
-            sendBtn.innerText = "⏳";
+            
+            const originalClipHtml = clipBtn.innerHTML;
+            const originalSendHtml = sendBtn.innerHTML;
+
+            const loadingSvg = `<svg class="spinner" viewBox="0 0 50 50" width="18" height="18" style="animation: rotate 1s linear infinite; stroke: white;"><circle cx="25" cy="25" r="20" fill="none" stroke-width="5" stroke-linecap="round"></circle></svg><style>@keyframes rotate{100%{transform:rotate(360deg)}}</style>`;
+
+            clipBtn.innerHTML = loadingSvg;
+            sendBtn.innerHTML = loadingSvg;
 
             try {
                 if (file.type.startsWith('image/')) {
@@ -2643,42 +2853,59 @@
                             canvas.height = height;
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
+                            
                             const compressedBase64 = canvas.toDataURL('image/jpeg', 0.88); 
                             await transmitDirectMedia(compressedBase64, 'image/jpeg');
                             
-                            clipBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`;
-                            sendBtn.innerHTML = `<svg viewBox="0 0 24 24" stroke-width="2.5" style="transform: rotate(45deg); margin-left: -2px; margin-top: -1px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+                            clipBtn.innerHTML = originalClipHtml;
+                            sendBtn.innerHTML = originalSendHtml;
                         };
                     };
                 } else if (file.type.startsWith('video/')) {
                     if (file.size > 1.5 * 1024 * 1024) {
                         alert("Размер видео превышает 1.5 МБ.");
-                        clipBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`;
-                        sendBtn.innerHTML = `<svg viewBox="0 0 24 24" stroke-width="2.5" style="transform: rotate(45deg); margin-left: -2px; margin-top: -1px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+                        clipBtn.innerHTML = originalClipHtml;
+                        sendBtn.innerHTML = originalSendHtml;
                         return;
                     }
                     const reader = new FileReader();
                     reader.readAsDataURL(file);
                     reader.onload = async (event) => {
                         await transmitDirectMedia(event.target.result, file.type);
-                        clipBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`;
-                        sendBtn.innerHTML = `<svg viewBox="0 0 24 24" stroke-width="2.5" style="transform: rotate(45deg); margin-left: -2px; margin-top: -1px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+                        clipBtn.innerHTML = originalClipHtml;
+                        sendBtn.innerHTML = originalSendHtml;
                     };
                 }
             } catch (err) {
+                console.error(err);
                 alert("Ошибка во время отправки файла!");
-                clipBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`;
-                sendBtn.innerHTML = `<svg viewBox="0 0 24 24" stroke-width="2.5" style="transform: rotate(45deg); margin-left: -2px; margin-top: -1px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+                clipBtn.innerHTML = originalClipHtml;
+                sendBtn.innerHTML = originalSendHtml;
             }
         }
 
         async function transmitDirectMedia(base64Data, fileType) {
-            const rawStr = JSON.stringify({ text: "[Медиа]", fileData: base64Data, fileType: fileType });
+            const rawStr = JSON.stringify({
+                text: "[Медиа]",
+                fileData: base64Data,
+                fileType: fileType
+            });
             const finalString = "[MEOW]" + aesEncrypt(rawStr, activeRoomSharedKey);
-            const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false };
-            if (isBurnModeActive) dbPacket.burnTime = Date.now() + 10000;
+
+            const dbPacket = {
+                sender: myUid,
+                text: finalString,
+                time: Date.now(),
+                read: false
+            };
+
+            if (isBurnModeActive) {
+                dbPacket.burnTime = Date.now() + 10000;
+            }
+
             const nowTime = Date.now();
             await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
             if (currentPeer !== myUid) {
                 await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
@@ -2721,7 +2948,8 @@
         function triggerReplyFromMenu() {
             closeModal('msg-options-modal');
             if (activeMenuMsgId && activeMenuMsgObj) {
-                initiateReply(activeMenuMsgId, activeMenuMsgObj.text || (activeMenuMsgObj.isVoice ? "Голосовое сообщение" : "[Медиа]"), activeMenuMsgId ? document.getElementById(`msg-${activeMenuMsgId}`).classList.contains('out') ? myUid : currentPeer : myUid);
+                const senderId = document.getElementById(`msg-${activeMenuMsgId}`).classList.contains('out') ? myUid : currentPeer;
+                initiateReply(activeMenuMsgId, activeMenuMsgObj.text || (activeMenuMsgObj.isVoice ? "Голосовое сообщение" : "[Медиа]"), senderId);
             }
         }
 
@@ -2733,11 +2961,14 @@
 
             window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/chats`)).then(async (snap) => {
                 listContainer.innerHTML = "";
+                
                 const cloudItem = document.createElement('div');
                 cloudItem.className = "forward-list-item";
                 cloudItem.onclick = () => executeForward(myUid, `saved_${myUid}`);
                 cloudItem.innerHTML = `
-                    <div class="chat-avatar" style="width:36px;height:36px;font-size:14px;background-color:var(--accent);margin-right:12px;">☁️</div>
+                    <div class="chat-avatar" style="width:36px;height:36px;font-size:14px;background-color:var(--accent);margin-right:12px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+                    </div>
                     <div style="font-weight:bold;font-size:14px;">Избранное</div>
                 `;
                 listContainer.appendChild(cloudItem);
@@ -2746,11 +2977,13 @@
                     const chats = snap.val();
                     for (let [peerId, meta] of Object.entries(chats)) {
                         if (peerId === myUid) continue;
+                        
                         getCachedProfile(peerId, (prof) => {
                             const name = (prof.name || "Без имени") + (prof.lastname ? " " + prof.lastname : "");
                             const item = document.createElement('div');
                             item.className = "forward-list-item";
                             item.onclick = () => executeForward(peerId, meta.roomId);
+                            
                             item.innerHTML = `
                                 <div class="chat-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;${prof.avatar ? `background-image:url(${prof.avatar})` : `background-color:var(--accent)`}">
                                     ${prof.avatar ? '' : name[0].toUpperCase()}
@@ -2767,16 +3000,26 @@
         async function executeForward(targetPeerId, targetRoomId) {
             if (!activeMenuMsgObj) return;
             closeModal('forward-select-modal');
+
             const targetKey = await getDerivedSharedKey(targetPeerId);
             if (!targetKey) {
                 alert("Ошибка шифрования: не удалось получить ключ получателя!");
                 return;
             }
+
             const forwardPayload = { ...activeMenuMsgObj };
             delete forwardPayload.replyTo;
+
             const rawStr = JSON.stringify(forwardPayload);
             const finalString = "[MEOW]" + aesEncrypt(rawStr, targetKey);
-            const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false };
+
+            const dbPacket = {
+                sender: myUid,
+                text: finalString,
+                time: Date.now(),
+                read: false
+            };
+
             await window.fb.push(window.fb.ref(window.fb.db, `messages/${targetRoomId}/list`), dbPacket);
             alert("Сообщение успешно переслано!");
         }
@@ -2791,17 +3034,15 @@
         async function deleteMessageConfirm() {
             if (!selectedMsgIdToDelete || !currentRoomId) return;
             const deleteForBoth = document.getElementById('delete-both-checkbox').checked;
+
             if (deleteForBoth) {
                 await window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${selectedMsgIdToDelete}`));
             } else {
                 await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/deletedMessages/${currentRoomId}/${selectedMsgIdToDelete}`), true);
             }
+
             closeModal('delete-msg-modal');
             selectedMsgIdToDelete = null;
-        }
-
-        function triggerDeleteChatFromOptions() {
-            if (activeMenuPeerId) triggerChatDeletion(activeMenuPeerId);
         }
 
         function triggerChatDeletion(peerId) {
@@ -2813,13 +3054,14 @@
         async function deleteChatConfirm() {
             if (!selectedChatIdToDelete) return;
             const deleteForBoth = document.getElementById('delete-chat-both-checkbox').checked;
+            
             const pId = selectedChatIdToDelete;
 
             if (pId === myUid) {
                 if (deleteForBoth) {
                     await window.fb.remove(window.fb.ref(window.fb.db, `messages/saved_${myUid}`));
                 } else {
-                    alert("Локальное удаление Избранного недоступно.");
+                    alert("Локальное удаление Избранного недоступно. Вы можете очистить его для всех.");
                     closeModal('delete-chat-modal');
                     return;
                 }
@@ -2827,6 +3069,7 @@
                 const chatSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pId}`));
                 if (!chatSnap.exists()) return;
                 const rId = chatSnap.val().roomId;
+
                 if (deleteForBoth) {
                     await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pId}`));
                     await window.fb.remove(window.fb.ref(window.fb.db, `users/${pId}/chats/${myUid}`));
@@ -2835,9 +3078,12 @@
                     await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pId}`));
                 }
             }
+
             closeModal('delete-chat-modal');
             selectedChatIdToDelete = null;
-            if (currentPeer === pId) closeChat();
+            if (currentPeer === pId) {
+                closeChat();
+            }
             loadDialogs();
         }
 
@@ -2861,7 +3107,7 @@
                     avEl.style.backgroundImage = `url(${myProfileAvatarFetched})`;
                     avEl.innerText = "";
                 } else {
-                    avEl.innerText = "☁️";
+                    avEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="40" height="40"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>`;
                     avEl.style.backgroundColor = "var(--accent)";
                 }
                 openModal('peer-profile-modal');
@@ -2873,6 +3119,7 @@
                 nameEl.innerText = displayName;
                 userEl.innerText = cached.username ? "@" + cached.username : "нет никнейма";
                 bioEl.innerText = cached.bio || "Описание не указано.";
+
                 if (cached.avatar) {
                     avEl.style.backgroundImage = `url(${cached.avatar})`;
                     avEl.innerText = "";
@@ -2882,11 +3129,14 @@
                     avEl.innerText = displayName[0].toUpperCase();
                 }
             });
+
             openModal('peer-profile-modal');
         }
 
         function showActivePeerProfile() {
-            if (currentPeer) showPeerProfile(currentPeer);
+            if (currentPeer) {
+                showPeerProfile(currentPeer);
+            }
         }
 
         async function searchPeople() {
@@ -2904,10 +3154,20 @@
             if (snap.exists()) {
                 const targetUid = snap.val();
                 closeModal('search-people-modal');
+
                 const rId = [myUid, targetUid].sort().join("_");
+
                 const nowTime = Date.now();
-                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${targetUid}`), { roomId: rId, lastTime: nowTime });
-                await window.fb.set(window.fb.ref(window.fb.db, `users/${targetUid}/chats/${myUid}`), { roomId: rId, lastTime: nowTime });
+                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${targetUid}`), {
+                    roomId: rId,
+                    lastTime: nowTime
+                });
+                
+                await window.fb.set(window.fb.ref(window.fb.db, `users/${targetUid}/chats/${myUid}`), {
+                    roomId: rId,
+                    lastTime: nowTime
+                });
+
                 alert("Диалог начат!");
                 openChatWindow(targetUid, rId);
             } else {
@@ -2921,14 +3181,6 @@
         function filterDialogs(val) {
             const query = val.toLowerCase();
             document.querySelectorAll('#chats-list-container .chat-row').forEach(row => {
-                const name = row.querySelector('.chat-row-name').innerText.toLowerCase();
-                row.style.display = name.includes(query) ? 'flex' : 'none';
-            });
-        }
-
-        function filterContacts(val) {
-            const query = val.toLowerCase();
-            document.querySelectorAll('#contacts-list-container .chat-row').forEach(row => {
                 const name = row.querySelector('.chat-row-name').innerText.toLowerCase();
                 row.style.display = name.includes(query) ? 'flex' : 'none';
             });
