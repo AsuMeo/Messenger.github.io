@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" text-security="dismissed">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>VK Meow Messenger Pro</title>
     
+    <!-- Поддержка PWA на Android -->
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlZLIE1lb3cgTWVzc2VuZ2VyIiwKICAic2hvcnRfbmFtZSI6ICJWSyBNZW93IiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwMDAwMDAiLAogICJ0aGVtZV9jb2xvciI6ICIxRjgwE0EiCi99">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -90,6 +91,7 @@
             padding: 0 16px;
             border-bottom: 1px solid #161618;
             z-index: 100;
+            transition: background 0.3s, backdrop-filter 0.3s, -webkit-backdrop-filter 0.3s;
         }
 
         .header-bar.semi-transparent {
@@ -163,6 +165,7 @@
             display: flex;
             border-top: 1px solid #161618;
             z-index: 100;
+            transition: background 0.3s, backdrop-filter 0.3s, -webkit-backdrop-filter 0.3s;
         }
 
         .bottom-bar.semi-transparent {
@@ -237,38 +240,6 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-        }
-
-        .folders-scroll-container {
-            display: flex;
-            gap: 8px;
-            padding: 0 16px 8px 16px;
-            overflow-x: auto;
-            border-bottom: 1px solid #161618;
-            background: var(--bg-bar);
-        }
-
-        .folders-scroll-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .folder-tab-item {
-            padding: 8px 16px;
-            border-radius: 16px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-            background: rgba(255, 255, 255, 0.03);
-            color: var(--text-muted);
-            border: 1px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .folder-tab-item.active {
-            background: rgba(31, 128, 224, 0.15);
-            color: var(--accent);
-            border-color: rgba(31, 128, 224, 0.3);
         }
 
         .chat-row {
@@ -901,8 +872,6 @@
             max-width: 380px;
             padding: 24px;
             border: 1px solid rgba(255,255,255,0.05);
-            max-height: 90vh;
-            overflow-y: auto;
         }
 
         .profile-form {
@@ -1159,18 +1128,23 @@
 
     <div class="main-container">
         
+        <!-- Tab 0: ЧАТЫ -->
         <div class="tab-panel active" id="tab-0">
             <div class="search-row" style="margin: 12px 16px;">
                 <input type="text" id="chat-search" class="search-bar" placeholder="Поиск по диалогам, юзерам и каналам..." oninput="filterDialogsAndGlobalSearch(this.value)" style="width: 100%;">
             </div>
 
-            <div class="folders-scroll-container" id="folders-scroll-container">
-                <div class="folder-tab-item active" id="folder-tab-all" onclick="switchFolder('all')">Все</div>
-                <div class="folder-tab-item" id="folder-tab-personal" onclick="switchFolder('personal')">Личные</div>
-                <div class="folder-tab-item" id="folder-tab-channels" onclick="switchFolder('channels')">Каналы</div>
-                <div class="folder-tab-item" id="folder-tab-create" style="background: rgba(31,128,224,0.1); color: var(--accent);" onclick="openModal('create-folder-modal')">+ Папка</div>
+            <!-- Вкладки: Личные / Каналы -->
+            <div style="display: flex; background: var(--bg-bar); border-bottom: 1px solid #161618; margin-bottom: 4px; padding: 0 16px;">
+                <div id="subtab-chats" class="tab-button active" style="flex: 1; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; cursor: pointer; border-bottom: 2px solid var(--accent); color: var(--accent);" onclick="switchSubTab('chats')">
+                    Личные
+                </div>
+                <div id="subtab-channels" class="tab-button" style="flex: 1; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; cursor: pointer; border-bottom: 2px solid transparent;" onclick="switchSubTab('channels')">
+                    Каналы
+                </div>
             </div>
 
+            <!-- Глобальный Поиск -->
             <div id="global-search-results" style="display: none; padding: 0 16px; margin-bottom: 12px;">
                 <div style="font-size: 11px; font-weight: bold; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Глобальный поиск</div>
                 <div id="global-search-list"></div>
@@ -1178,8 +1152,18 @@
             </div>
 
             <div class="chats-list" id="chats-list-container"></div>
+
+            <div class="chats-list" id="channels-list-container" style="display: none;">
+                <div style="padding: 10px 16px;">
+                    <button class="search-action-btn" style="width: 100%; justify-content: center; height: 44px;" onclick="openModal('create-channel-modal')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Создать канал
+                    </button>
+                </div>
+                <div id="channels-list-content"></div>
+            </div>
         </div>
 
+        <!-- Tab 1: КОНТАКТЫ -->
         <div class="tab-panel" id="tab-1">
             <div class="search-row">
                 <input type="text" id="contact-search" class="search-bar" placeholder="Поиск контактов..." oninput="filterContacts(this.value)">
@@ -1190,13 +1174,14 @@
             <div class="chats-list" id="contacts-list-container" style="padding-top: 4px;"></div>
         </div>
 
+        <!-- Tab 2: НАСТРОЙКИ -->
         <div class="tab-panel" id="tab-2" style="padding: 20px 16px;">
             <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Конфиденциальность</h2>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Настройте безопасность вашего аккаунта</p>
             
             <div class="profile-form">
                 <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ВРЕМЯ ЗАХОДА</label>
-                <select id="privacy-last-seen" class="search-bar" style="width: 100%; margin-bottom: 10px; appearance: none;" onchange="savePrivacySettings()">
+                <select id="privacy-last-seen" class="search-bar" style="width: 100%; margin-bottom: 10px; appearance: none; background-position: right 12px center;" onchange="savePrivacySettings()">
                     <option value="all">Все</option>
                     <option value="contacts">Только контакты</option>
                     <option value="none">Никто</option>
@@ -1248,6 +1233,7 @@
             </div>
         </div>
 
+        <!-- Tab 3: ПРОФИЛЬ -->
         <div class="tab-panel" id="tab-3" style="padding: 20px 16px;">
             <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Настройки профиля</h2>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Имя, аватарка и описание полностью зашифрованы ключом E2EE</p>
@@ -1273,13 +1259,6 @@
 
                 <button class="search-action-btn" style="width: 100%; margin-top: 10px; height: 48px; justify-content: center;" onclick="saveProfileSettings()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right: 6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Сохранить изменения
-                </button>
-            </div>
-            
-            <div style="margin-top: 24px; border-top: 1px solid #161618; padding-top: 20px;">
-                <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 12px;">Создать свой E2EE Канал</h3>
-                <button class="search-action-btn" style="width: 100%; justify-content: center; height: 44px;" onclick="openModal('create-channel-modal')">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Создать новый канал
                 </button>
             </div>
         </div>
@@ -1313,6 +1292,7 @@
         </div>
     </div>
 
+    <!-- ОКНО ЧАТА -->
     <div class="chat-window" id="chat-window">
         <div class="chat-feed-wallpaper-overlay" id="chat-feed-wallpaper"></div>
 
@@ -1337,10 +1317,12 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </button>
                 
+                <!-- Кнопка Три точки -->
                 <button class="header-btn" onclick="toggleHeaderMenu(event)" title="Меню">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                 </button>
 
+                <!-- Выпадающее меню -->
                 <div id="header-dropdown-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--bg-bar); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; width: 190px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); overflow: hidden;">
                     <button class="menu-btn" style="background:transparent; margin-bottom:0; text-align:left; padding:12px 16px; font-size:13px; display:flex; align-items:center; gap:8px; border-radius:0;" onclick="toggleChatSearchSubBar(); toggleHeaderMenu(event);">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Поиск сообщений
@@ -1352,6 +1334,7 @@
             </div>
         </div>
 
+        <!-- Поисковая панель внутри чата -->
         <div class="chat-search-sub-bar" id="chat-search-sub-bar" style="display: none;">
             <input type="text" id="chat-search-msg-input" placeholder="Поиск по переписке..." oninput="performMessageSearch()">
             <input type="date" id="chat-search-date-input" onchange="performMessageSearch()">
@@ -1361,6 +1344,7 @@
             <button class="header-btn" style="color: var(--error); width:32px; height:32px;" onclick="closeChatSearch()">✕</button>
         </div>
 
+        <!-- Закрепленное сообщение -->
         <div class="pinned-message-bar" id="pinned-message-bar" style="display: none;" onclick="scrollToPinnedMessage()">
             <div class="pinned-message-info">
                 <div style="font-size: 11px; color: var(--accent); font-weight: 700;">Закреплённое сообщение</div>
@@ -1373,6 +1357,7 @@
         
         <div class="chat-feed" id="chat-feed"></div>
 
+        <!-- Превью ответа/редактирования -->
         <div class="reply-bar-active" id="reply-preview-container">
             <div class="reply-quote-preview" style="margin: 0; flex: 1;">
                 <div class="reply-quote-sender" id="reply-preview-sender">Имя</div>
@@ -1383,6 +1368,7 @@
             </button>
         </div>
 
+        <!-- Нижний бар ввода -->
         <div class="chat-input-bar" id="chat-normal-input-bar">
             <input type="file" id="media-upload" style="display: none;" accept="image/*,video/*" onchange="compressAndSendMedia(this.files[0])">
             <button class="header-btn" style="color: var(--accent)" id="clip-btn" onclick="document.getElementById('media-upload').click()">
@@ -1403,11 +1389,13 @@
             </button>
         </div>
 
+        <!-- Нижний бар подписки -->
         <div class="chat-input-bar" id="channel-subscribe-bar" style="display: none; justify-content: center; background: var(--bg-bar); padding: 12px;">
             <button class="search-action-btn" id="channel-subscribe-btn" style="width: 100%; justify-content: center; height: 44px;" onclick="toggleChannelSubscriptionFromChat()">Подписаться на канал</button>
         </div>
     </div>
 
+    <!-- Модальные окна -->
     <div class="modal-overlay" id="peer-profile-modal">
         <div class="modal-card" style="text-align: center;">
             <div class="chat-avatar" id="peer-profile-av" style="width: 100px; height: 100px; font-size: 36px; margin: 0 auto 16px auto; background-color: var(--accent);">?</div>
@@ -1415,9 +1403,11 @@
             <p id="peer-profile-username" style="color: var(--accent); font-weight: 700; font-size: 14px; margin-bottom: 12px;">@username</p>
             <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 14px; line-height: 1.4; margin-bottom: 16px;">Описание отсутствует</p>
             
+            <!-- Кнопки управления контактами в профиле -->
             <button class="menu-btn" id="peer-add-contact-modal-btn" style="display: none; background: var(--secure);" onclick="quickAddActivePeerToContacts(); closeModal('peer-profile-modal');">Добавить в контакты</button>
             <button class="menu-btn danger" id="peer-remove-contact-modal-btn" style="display: none;" onclick="deleteContactFromProfile()">Удалить из контактов</button>
 
+            <!-- Опции Администратора канала -->
             <div id="channel-admin-options" style="display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
                 <input type="text" id="channel-edit-name-input" class="search-bar" placeholder="Новое название канала" style="width: 100%; margin-bottom: 10px;">
                 <button class="menu-btn" style="background: var(--accent);" onclick="updateChannelName()">Сохранить название</button>
@@ -1426,11 +1416,7 @@
                 <button class="menu-btn danger" onclick="deleteChannel()">Удалить канал навсегда</button>
             </div>
 
-            <div id="channel-join-requests" style="display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; text-align: left;">
-                <h4 style="font-size: 13px; color: var(--accent); margin-bottom: 10px; font-weight: bold; text-transform: uppercase;">Заявки на вступление (E2EE)</h4>
-                <div id="channel-requests-list" style="max-height: 150px; overflow-y: auto;"></div>
-            </div>
-
+            <!-- Индивидуальный фон чата -->
             <input type="file" id="personal-wallpaper-upload" style="display: none;" accept="image/*" onchange="processAndSetCrop(this.files[0], 'personal-wallpaper')">
             <button class="menu-btn" style="background: var(--accent);" id="set-personal-wallpaper-btn" onclick="document.getElementById('personal-wallpaper-upload').click()">Свой фон для этого чата</button>
             <button class="menu-btn danger" style="display: none;" id="reset-personal-wallpaper-btn" onclick="resetWallpaper(false)">Сбросить фон чата</button>
@@ -1439,6 +1425,7 @@
         </div>
     </div>
 
+    <!-- Создание канала -->
     <div class="modal-overlay" id="create-channel-modal">
         <div class="modal-card">
             <h3 style="margin-bottom: 12px; text-align: center;">Создать канал</h3>
@@ -1450,31 +1437,13 @@
             <div class="profile-form">
                 <input type="text" id="channel-name-input" class="search-bar" placeholder="Название канала">
                 <input type="text" id="channel-username-input" class="search-bar" placeholder="username_канала">
-                
-                <label class="modern-checkbox-container" style="margin-top: 4px; margin-bottom: 10px;">
-                    <span class="modern-checkbox-label" style="font-size: 13px;">Приватный закрытый канал (E2EE)</span>
-                    <input type="checkbox" id="channel-private-checkbox" class="modern-checkbox">
-                </label>
-
                 <button class="search-action-btn" style="width: 100%; justify-content: center;" onclick="createChannel()">Создать</button>
                 <button class="search-action-btn" style="width: 100%; justify-content: center; background: #2C2C2E;" onclick="closeModal('create-channel-modal')">Отмена</button>
             </div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="create-folder-modal">
-        <div class="modal-card">
-            <h3 style="margin-bottom: 16px; text-align: center;">Создать вкладку-папку</h3>
-            <div class="profile-form">
-                <input type="text" id="folder-name-input" class="search-bar" placeholder="Название папки (например: Работа)">
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; margin-bottom: 4px;">Выберите чаты и каналы для папки:</div>
-                <div id="folder-items-select-list" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;"></div>
-                <button class="search-action-btn" style="width: 100%; justify-content: center;" onclick="createNewFolderAction()">Создать папку</button>
-                <button class="search-action-btn" style="width: 100%; justify-content: center; background: #2C2C2E;" onclick="closeModal('create-folder-modal')">Отмена</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Верификация ключа -->
     <div class="modal-overlay" id="e2ee-verify-modal">
         <div class="modal-card" style="text-align: center;">
             <div style="margin-bottom: 16px; display: flex; justify-content: center;">
@@ -1488,6 +1457,7 @@
         </div>
     </div>
 
+    <!-- Действия с сообщением -->
     <div class="modal-overlay" id="msg-options-modal">
         <div class="modal-card">
             <h3 style="margin-bottom: 16px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -1512,6 +1482,7 @@
         </div>
     </div>
 
+    <!-- Модалка диалога -->
     <div class="modal-overlay" id="chat-options-modal">
         <div class="modal-card">
             <h3 style="margin-bottom: 16px; text-align: center;" id="chat-options-title">Настройка диалога</h3>
@@ -1521,6 +1492,7 @@
         </div>
     </div>
 
+    <!-- Модалка пересылки -->
     <div class="modal-overlay" id="forward-select-modal">
         <div class="modal-card">
             <h3 style="margin-bottom: 16px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -1531,6 +1503,7 @@
         </div>
     </div>
 
+    <!-- Подтверждение удаления сообщений -->
     <div class="modal-overlay" id="delete-msg-modal">
         <div class="modal-card" style="max-width: 320px;">
             <h3 style="margin-bottom: 12px; text-align: center; font-size: 16px;">Удалить сообщение?</h3>
@@ -1545,6 +1518,7 @@
         </div>
     </div>
 
+    <!-- Подтверждение удаления чата -->
     <div class="modal-overlay" id="delete-chat-modal">
         <div class="modal-card" style="max-width: 320px;">
             <h3 style="margin-bottom: 12px; text-align: center; font-size: 16px;">Удалить переписку?</h3>
@@ -1559,6 +1533,7 @@
         </div>
     </div>
 
+    <!-- Создание / добавление контакта -->
     <div class="modal-overlay" id="add-contact-modal">
         <div class="modal-card">
             <h3 style="margin-bottom: 12px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;" id="contact-modal-title">
@@ -1588,23 +1563,26 @@
         </div>
     </div>
 
+    <!-- Просмотр медиа -->
     <div class="modal-overlay" id="media-viewer-modal" style="background: black;">
         <span style="position: absolute; top: 20px; left: 20px; font-size: 30px; cursor: pointer; z-index: 10;" onclick="closeMediaViewer()">✕</span>
         <div id="media-viewer-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"></div>
     </div>
 
+    <!-- Обрезчик изображений (Canvas Cropper) -->
     <div id="cropper-modal-view">
         <h2 style="font-size: 18px; font-weight: 800;" id="cropper-title">Редактор фото</h2>
         <div class="cropper-workspace" id="cropper-workspace">
             <img id="cropper-image" src="" alt="Редактируемое фото">
             <div class="cropper-mask"></div>
+            <!-- Оверлей для предпросмотра обоев чата -->
             <div id="cropper-mock-ui-overlay" style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; z-index: 10;">
                 <div style="height: 50px; background: rgba(10,10,12,0.85); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 12px; backdrop-filter: blur(5px);">
                     <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--accent); margin-right: 8px;"></div>
                     <div style="font-weight: bold; font-size: 13px;">Предпросмотр чата</div>
                 </div>
                 <div style="flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 8px; justify-content: flex-end;">
-                    <div style="align-self: flex-start; background: var(--msg-in); padding: 6px 10px; border-radius: 12px; font-size: 12px; max-width: 70%; border: 1px solid rgba(255,255,255,0.02);">Входящее...</div>
+                    <div style="align-self: flex-start; background: var(--msg-in); padding: 6px 10px; border-radius: 12px; font-size: 12px; max-width: 70%; border: 1px solid rgba(255,255,255,0.02);">Входящее сообщение...</div>
                     <div style="align-self: flex-end; background: var(--msg-out); padding: 6px 10px; border-radius: 12px; font-size: 12px; max-width: 70%; border: 1px solid rgba(255,255,255,0.02);">Ваш ответ!</div>
                 </div>
                 <div style="height: 48px; background: rgba(10,10,12,0.85); border-top: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 10px; backdrop-filter: blur(5px);">
@@ -1627,8 +1605,7 @@
 
     <script type="module">
         const TG_AVATAR_COLORS = ["#E17076", "#FAA774", "#A695E7", "#34C759", "#6EC9CB", "#1F80E0"];
-        const PROFILE_LOOKUP_SALT = "MeowProfileLookupSalt_2026_";
-        const PUBLIC_CHANNEL_SALT = "MeowPublicChannelSalt_2026_";
+        const PROFILE_ENC_KEY = "MeowSecureProfileGlobalKey_2026";
 
         let myUid = null;
         let myEmail = null;
@@ -1661,14 +1638,9 @@
 
         let objectUrlCache = {};
         let derivedKeysCache = {};
-        let profileKeysCache = {}; 
-        let channelKeysCache = {}; 
         
         let profileCache = {};
         let myContacts = {};
-
-        let activeFolder = "all";
-        let customFolders = {};
 
         let unsubDialogs = null;
         let unsubChatMessages = null;
@@ -1699,33 +1671,22 @@
         let searchMatches = [];
         let currentSearchMatchIndex = -1;
 
+        let currentSubTab = 'chats'; 
         let tempChannelAvatarBase64 = "";
 
         const playSvg = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
         const pauseSvg = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
 
-        function escapeHTML(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#x27;')
-                .replace(/\//g, '&#x2F;');
-        }
-
-        function aesEncrypt(text, keyHex) {
-            const key = CryptoJS.enc.Hex.parse(keyHex);
+        function aesEncrypt(text, keyString) {
+            const key = CryptoJS.enc.Utf8.parse(keyString.padEnd(32, '0').slice(0, 32));
             const iv = CryptoJS.lib.WordArray.random(16);
             const encrypted = CryptoJS.AES.encrypt(text, key, { iv: iv });
             return iv.toString() + encrypted.toString();
         }
 
-        function aesDecrypt(cipherWithIv, keyHex) {
+        function aesDecrypt(cipherWithIv, keyString) {
             try {
-                if (!cipherWithIv || !keyHex) return "";
-                const key = CryptoJS.enc.Hex.parse(keyHex);
+                const key = CryptoJS.enc.Utf8.parse(keyString.padEnd(32, '0').slice(0, 32));
                 const iv = CryptoJS.enc.Hex.parse(cipherWithIv.slice(0, 32));
                 const cipher = cipherWithIv.slice(32);
                 const decrypted = CryptoJS.AES.decrypt(cipher, key, { iv: iv });
@@ -1735,46 +1696,38 @@
             }
         }
 
-        function getMyProfileKey() {
-            let key = localStorage.getItem(`meow_prof_key_${myUid}`);
-            if (!key) {
-                key = CryptoJS.lib.WordArray.random(32).toString();
-                localStorage.setItem(`meow_prof_key_${myUid}`, key);
-            }
-            return key;
+        function encryptProfileData(text) {
+            if (!text && text !== false && text !== 0) return "";
+            return "[ENC_PROF]" + aesEncrypt(String(text), PROFILE_ENC_KEY);
         }
 
-        async function getProfileKey(targetUid, targetUsername) {
-            if (profileKeysCache[targetUid]) return profileKeysCache[targetUid];
+        function decryptProfileData(cipher) {
+            if (!cipher && cipher !== false && cipher !== 0) return "";
+            if (cipher.startsWith("[ENC_PROF]")) {
+                return aesDecrypt(cipher.substring(10), PROFILE_ENC_KEY);
+            }
+            return cipher;
+        }
+
+        function formatDialogTime(timestamp) {
+            if (!timestamp) return "";
+            const date = new Date(timestamp);
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            const diffTime = today - msgDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             
-            try {
-                const peerSharedSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${targetUid}/profile_sharing/${myUid}`));
-                if (peerSharedSnap.exists()) {
-                    const dhKey = await getDerivedSharedKey(targetUid);
-                    if (dhKey) {
-                        const decryptedKey = aesDecrypt(peerSharedSnap.val(), dhKey);
-                        if (decryptedKey && decryptedKey.length === 64) {
-                            profileKeysCache[targetUid] = decryptedKey;
-                            return decryptedKey;
-                        }
-                    }
-                }
-            } catch (e) {}
-
-            try {
-                const publicSharedSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${targetUid}/profile_sharing/public`));
-                if (publicSharedSnap.exists()) {
-                    const lookupSeed = targetUsername ? targetUsername.toLowerCase() : targetUid;
-                    const lookupKey = CryptoJS.SHA256(PROFILE_LOOKUP_SALT + lookupSeed).toString();
-                    const decryptedKey = aesDecrypt(publicSharedSnap.val(), lookupKey);
-                    if (decryptedKey && decryptedKey.length === 64) {
-                        profileKeysCache[targetUid] = decryptedKey;
-                        return decryptedKey;
-                    }
-                }
-            } catch (e) {}
-
-            return null;
+            if (diffDays === 0) {
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } else if (diffDays === 1) {
+                return "вчера";
+            } else if (diffDays < 7) {
+                const days = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+                return days[date.getDay()];
+            } else {
+                return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '');
+            }
         }
 
         async function initE2EE() {
@@ -1799,9 +1752,13 @@
             });
         }
 
+        function getChannelKey(channelId) {
+            return CryptoJS.SHA256("VKMeowChannelKeySalt_2026_" + channelId).toString();
+        }
+
         async function getDerivedSharedKey(peerId) {
             if (peerId.startsWith('chan_')) {
-                return await getChannelSharedKey(peerId);
+                return getChannelKey(peerId);
             }
             if (derivedKeysCache[peerId]) return derivedKeysCache[peerId];
             try {
@@ -1833,35 +1790,6 @@
             } catch (e) {
                 return null;
             }
-        }
-
-        async function getChannelSharedKey(channelId) {
-            if (channelKeysCache[channelId]) return channelKeysCache[channelId];
-            
-            const chanSnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${channelId}`));
-            if (!chanSnap.exists()) return null;
-            
-            const chanData = chanSnap.val();
-            const cProf = chanData.profile;
-            const isPrivate = cProf.isPrivate === true;
-
-            if (!isPrivate) {
-                const key = CryptoJS.SHA256(PUBLIC_CHANNEL_SALT + cProf.username).toString();
-                channelKeysCache[channelId] = key;
-                return key;
-            } else {
-                const keySnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${channelId}/keys/${myUid}`));
-                if (keySnap.exists()) {
-                    const creatorUid = chanData.creator;
-                    const dhKey = await getDerivedSharedKey(creatorUid);
-                    if (dhKey) {
-                        const key = aesDecrypt(keySnap.val(), dhKey);
-                        channelKeysCache[channelId] = key;
-                        return key;
-                    }
-                }
-            }
-            return null;
         }
 
         function getCachedObjectUrl(msgId, base64Data) {
@@ -1924,27 +1852,6 @@
             return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
-        function formatDialogTime(timestamp) {
-            if (!timestamp) return "";
-            const date = new Date(timestamp);
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-            const diffTime = today - msgDate;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays === 0) {
-                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            } else if (diffDays === 1) {
-                return "вчера";
-            } else if (diffDays < 7) {
-                const days = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
-                return days[date.getDay()];
-            } else {
-                return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '');
-            }
-        }
-
         async function processImageHD(file, maxDimensionOverLimit = 1200) {
             if (file.size < 8 * 1024 * 1024) {
                 return await fileToBase64(file);
@@ -1985,6 +1892,7 @@
             if (myUid) openChatWindow(myUid, `saved_${myUid}`);
         }
 
+        // КОНТАКТЫ
         let tempContactAvatarBase64 = "";
         let selectedContactUid = null;
         let isEditingContact = false;
@@ -2002,15 +1910,17 @@
             if (usernameSnap.exists()) {
                 selectedContactUid = usernameSnap.val();
                 if (selectedContactUid.startsWith('chan_')) {
-                    alert("Это юзернейм канала!");
+                    alert("Это юзернейм канала, а не пользователя!");
                     return;
                 }
                 isEditingContact = false;
                 
-                getCachedProfile(selectedContactUid, (prof) => {
-                    document.getElementById('contact-custom-name').value = prof.name || "";
-                    document.getElementById('contact-custom-lastname').value = prof.lastname || "";
-                    tempContactAvatarBase64 = prof.avatar || "";
+                const profileSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${selectedContactUid}/profile`));
+                if (profileSnap.exists()) {
+                    const prof = profileSnap.val();
+                    document.getElementById('contact-custom-name').value = decryptProfileData(prof.name) || "";
+                    document.getElementById('contact-custom-lastname').value = decryptProfileData(prof.lastname) || "";
+                    tempContactAvatarBase64 = decryptProfileData(prof.avatar) || "";
                     
                     const avPreview = document.getElementById('contact-avatar-preview');
                     if (tempContactAvatarBase64) {
@@ -2020,9 +1930,9 @@
                         avPreview.style.backgroundImage = "none";
                         avPreview.innerText = "?";
                     }
-                    document.getElementById('contact-search-step').style.display = "none";
-                    document.getElementById('contact-edit-step').style.display = "block";
-                });
+                }
+                document.getElementById('contact-search-step').style.display = "none";
+                document.getElementById('contact-edit-step').style.display = "block";
             } else {
                 alert("Пользователь не найден!");
             }
@@ -2035,12 +1945,10 @@
                 alert("Имя обязательно!");
                 return;
             }
-
-            const myKey = getMyProfileKey();
             await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/contacts/${selectedContactUid}`), {
-                name: aesEncrypt(name, myKey),
-                lastname: aesEncrypt(lastname, myKey),
-                avatar: aesEncrypt(tempContactAvatarBase64, myKey)
+                name: encryptProfileData(name),
+                lastname: encryptProfileData(lastname),
+                avatar: encryptProfileData(tempContactAvatarBase64)
             });
             alert(isEditingContact ? "Контакт обновлен!" : "Контакт добавлен!");
             closeModal('add-contact-modal');
@@ -2074,10 +1982,9 @@
             selectedContactUid = peerId;
             isEditingContact = true;
             const contact = myContacts[peerId];
-            const myKey = getMyProfileKey();
-            document.getElementById('contact-custom-name').value = aesDecrypt(contact.name, myKey) || "";
-            document.getElementById('contact-custom-lastname').value = aesDecrypt(contact.lastname, myKey) || "";
-            tempContactAvatarBase64 = aesDecrypt(contact.avatar, myKey) || "";
+            document.getElementById('contact-custom-name').value = decryptProfileData(contact.name) || "";
+            document.getElementById('contact-custom-lastname').value = decryptProfileData(contact.lastname) || "";
+            tempContactAvatarBase64 = decryptProfileData(contact.avatar) || "";
             
             const preview = document.getElementById('contact-avatar-preview');
             if (tempContactAvatarBase64) {
@@ -2116,33 +2023,32 @@
                 container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:40px;font-size:14px;">Список контактов пуст.</div>`;
                 return;
             }
-            const myKey = getMyProfileKey();
             entries.forEach(([peerId, data]) => {
-                const decName = aesDecrypt(data.name, myKey) || "Без имени";
-                const decLast = aesDecrypt(data.lastname, myKey) || "";
-                const avatar = aesDecrypt(data.avatar, myKey) || "";
+                const decName = decryptProfileData(data.name) || "Без имени";
+                const decLast = decryptProfileData(data.lastname) || "";
+                const avatar = decryptProfileData(data.avatar) || "";
                 const fullName = decName + (decLast ? " " + decLast : "");
                 const colorIndex = Math.abs(peerId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
 
                 const row = document.createElement('div');
                 row.className = "chat-row";
                 row.innerHTML = `
-                    <div style="display:flex; align-items:center; flex:1;" onclick="startContactChat('${escapeHTML(peerId)}')">
+                    <div style="display:flex; align-items:center; flex:1;" onclick="startContactChat('${peerId}')">
                         <div class="chat-avatar-wrapper">
-                            <div class="chat-avatar" style="${avatar ? `background-image:url(${escapeHTML(avatar)})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`}">
-                                ${avatar ? "" : escapeHTML(fullName[0].toUpperCase())}
+                            <div class="chat-avatar" style="${avatar ? `background-image:url(${avatar})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`}">
+                                ${avatar ? "" : fullName[0].toUpperCase()}
                             </div>
                         </div>
                         <div class="chat-info">
-                            <div class="chat-row-name">${escapeHTML(fullName)}</div>
-                            <div class="chat-row-msg" id="contact-sub-${escapeHTML(peerId)}">Загрузка юзернейма...</div>
+                            <div class="chat-row-name">${fullName}</div>
+                            <div class="chat-row-msg" id="contact-sub-${peerId}">Загрузка юзернейма...</div>
                         </div>
                     </div>
                     <div style="display:flex; gap: 8px;">
-                        <button class="header-btn" onclick="editContact('${escapeHTML(peerId)}')">
+                        <button class="header-btn" onclick="editContact('${peerId}')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         </button>
-                        <button class="header-btn" style="color: var(--error);" onclick="deleteContact('${escapeHTML(peerId)}')">
+                        <button class="header-btn" style="color: var(--error);" onclick="deleteContact('${peerId}')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                         </button>
                     </div>
@@ -2171,14 +2077,6 @@
             const nowTime = Date.now();
             await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${peerId}`), { roomId: rId, lastTime: nowTime });
             await window.fb.set(window.fb.ref(window.fb.db, `users/${peerId}/chats/${myUid}`), { roomId: rId, lastTime: nowTime });
-            
-            const myKey = getMyProfileKey();
-            const dhKey = await getDerivedSharedKey(peerId);
-            if (dhKey) {
-                const encKey = aesEncrypt(myKey, dhKey);
-                await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile_sharing/${peerId}`), encKey);
-            }
-
             openChatWindow(peerId, rId);
         }
 
@@ -2218,18 +2116,12 @@
             let stateWeContact = false;
             let stateTyping = false;
 
-            async function reEvalDotAndSub() {
+            function reEvalDotAndSub() {
                 const dot = document.getElementById(`dot-${peerId}`);
                 const msgBox = document.getElementById(`last-msg-${peerId}`);
                 if (!dot) return;
                 
-                const profileKey = await getProfileKey(peerId, null);
-                let decLastSeen = "all";
-                if (profileKey && statePriv.lastSeen) {
-                    decLastSeen = aesDecrypt(statePriv.lastSeen, profileKey);
-                }
-
-                const hideOnline = (decLastSeen === "none") || (decLastSeen === "contacts" && !stateWeContact);
+                const hideOnline = (statePriv.lastSeen === "none") || (statePriv.lastSeen === "contacts" && !stateWeContact);
                 
                 if (stateTyping) {
                     dot.classList.add('active');
@@ -2247,7 +2139,7 @@
                         msgBox.classList.remove('typing-status');
                         const originalHtml = msgBox.getAttribute('data-last-msg-html');
                         const original = msgBox.getAttribute('data-last-msg') || "Сообщение";
-                        msgBox.innerHTML = originalHtml ? originalHtml : escapeHTML(original);
+                        msgBox.innerHTML = originalHtml ? originalHtml : original;
                     }
                 }
             }
@@ -2257,7 +2149,7 @@
             });
             activePresenceListeners[peerId + "_priv"] = window.fb.onValue(privacyRef, (snap) => {
                 if (snap.exists()) {
-                    statePriv.lastSeen = snap.val().lastSeen || "all";
+                    statePriv.lastSeen = decryptProfileData(snap.val().lastSeen) || "all";
                 } else {
                     statePriv.lastSeen = "all";
                 }
@@ -2271,126 +2163,77 @@
             });
         }
 
-        async function getCachedProfile(peerId, callback) {
+        function getCachedProfile(peerId, callback) {
             if (peerId.startsWith('chan_')) {
-                const chanSnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${peerId}`));
-                if (chanSnap.exists()) {
-                    const chanData = chanSnap.val();
-                    const cProf = chanData.profile;
-                    const isPrivate = cProf.isPrivate === true;
-                    
-                    let chanKey = channelKeysCache[peerId];
-                    if (!chanKey) {
-                        if (!isPrivate) {
-                            chanKey = CryptoJS.SHA256(PUBLIC_CHANNEL_SALT + cProf.username).toString();
-                            channelKeysCache[peerId] = chanKey;
-                        } else {
-                            const keySnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${peerId}/keys/${myUid}`));
-                            if (keySnap.exists()) {
-                                const creatorUid = chanData.creator;
-                                const dhKey = await getDerivedSharedKey(creatorUid);
-                                if (dhKey) {
-                                    chanKey = aesDecrypt(keySnap.val(), dhKey);
-                                    channelKeysCache[peerId] = chanKey;
-                                }
-                            }
-                        }
+                window.fb.get(window.fb.ref(window.fb.db, `channels/${peerId}/profile`)).then(snap => {
+                    if (snap.exists()) {
+                        const prof = snap.val();
+                        callback({
+                            name: decryptProfileData(prof.name) || "Канал",
+                            avatar: decryptProfileData(prof.avatar) || "",
+                            username: prof.username || "channel",
+                            bio: `${prof.subscribersCount || 0} подписчиков`
+                        });
                     }
-
-                    let cName = "Канал";
-                    let cAv = "";
-                    if (chanKey) {
-                        cName = aesDecrypt(cProf.name, chanKey) || "Канал";
-                        cAv = aesDecrypt(cProf.avatar, chanKey) || "";
-                    }
-
-                    callback({
-                        name: cName,
-                        avatar: cAv,
-                        username: cProf.username || "channel",
-                        bio: `${isPrivate ? "Закрытый канал (E2EE)" : "Публичный канал (E2EE)"} • ${cProf.subscribersCount || 0} подписчиков`,
-                        isPrivate: isPrivate,
-                        creator: chanData.creator
-                    });
-                }
+                });
                 return;
             }
-
             if (profileCache[peerId]) {
                 callback(profileCache[peerId]); return;
             }
-
-            try {
-                const [profSnap, privacySnap, isContactSnap] = await Promise.all([
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`)),
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy`)),
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`))
-                ]);
-
+            Promise.all([
+                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`)),
+                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy`)),
+                window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`))
+            ]).then(([profSnap, privacySnap, isContactSnap]) => {
                 let p = {
                     name: "Без имени", lastname: "", avatar: "", bio: "", username: "",
                     privacy: { lastSeen: "all", avatar: "all", messages: "all" },
                     isWeContactOfPeer: isContactSnap.exists()
                 };
-
                 if (profSnap.exists()) {
                     const prof = profSnap.val();
-                    const username = prof.username || "";
-                    p.username = username;
-
-                    const profKey = await getProfileKey(peerId, username);
-                    if (profKey) {
-                        p.name = aesDecrypt(prof.name, profKey) || "Без имени";
-                        p.lastname = aesDecrypt(prof.lastname, profKey) || "";
-                        p.avatar = aesDecrypt(prof.avatar, profKey) || "";
-                        p.bio = aesDecrypt(prof.bio, profKey) || "";
-                    }
+                    p.name = decryptProfileData(prof.name) || "Без имени";
+                    p.lastname = decryptProfileData(prof.lastname) || "";
+                    p.avatar = decryptProfileData(prof.avatar) || "";
+                    p.bio = decryptProfileData(prof.bio) || "";
+                    p.username = prof.username || "";
                 }
-
                 if (privacySnap.exists()) {
                     const priv = privacySnap.val();
-                    const privacyProfKey = await getProfileKey(peerId, p.username);
-                    if (privacyProfKey) {
-                        p.privacy = {
-                            lastSeen: aesDecrypt(priv.lastSeen, privacyProfKey) || "all",
-                            avatar: aesDecrypt(priv.avatar, privacyProfKey) || "all",
-                            messages: aesDecrypt(priv.messages, privacyProfKey) || "all"
-                        };
-                    }
+                    p.privacy = {
+                        lastSeen: decryptProfileData(priv.lastSeen) || "all",
+                        avatar: decryptProfileData(priv.avatar) || "all",
+                        messages: decryptProfileData(priv.messages) || "all"
+                    };
                 }
-
                 if (myContacts[peerId]) {
                     const c = myContacts[peerId];
-                    const myKey = getMyProfileKey();
-                    p.name = aesDecrypt(c.name, myKey) || p.name;
-                    p.lastname = aesDecrypt(c.lastname, myKey) || p.lastname;
-                    p.avatar = aesDecrypt(c.avatar, myKey) || p.avatar;
+                    p.name = decryptProfileData(c.name) || p.name;
+                    p.lastname = decryptProfileData(c.lastname) || p.lastname;
+                    p.avatar = decryptProfileData(c.avatar) || p.avatar;
                 } else {
                     const avPriv = p.privacy.avatar || "all";
                     if (avPriv === "none" || (avPriv === "contacts" && !p.isWeContactOfPeer)) {
                         p.avatar = ""; 
                     }
                 }
-
                 profileCache[peerId] = p;
                 callback(p);
-            } catch (e) {
-                callback({ name: "Ошибка шифрования", lastname: "", avatar: "", bio: "", username: "" });
-            }
+            });
         }
 
         async function loadMyPrivacySettings() {
             const privacySnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/privacy`));
-            const myKey = getMyProfileKey();
             if (privacySnap.exists()) {
                 const privacy = privacySnap.val();
-                document.getElementById('privacy-last-seen').value = aesDecrypt(privacy.lastSeen, myKey) || "all";
-                document.getElementById('privacy-avatar').value = aesDecrypt(privacy.avatar, myKey) || "all";
-                document.getElementById('privacy-messages').value = aesDecrypt(privacy.messages, myKey) || "all";
-                const semiTrans = aesDecrypt(privacy.semiTransparentDialogs, myKey) === "true";
+                document.getElementById('privacy-last-seen').value = decryptProfileData(privacy.lastSeen) || "all";
+                document.getElementById('privacy-avatar').value = decryptProfileData(privacy.avatar) || "all";
+                document.getElementById('privacy-messages').value = decryptProfileData(privacy.messages) || "all";
+                const semiTrans = decryptProfileData(privacy.semiTransparentDialogs) === "true";
                 document.getElementById('semi-transparent-dialogs').checked = semiTrans;
                 toggleSemiTransparentDialogs(semiTrans);
-                const wall = privacy.globalWallpaper ? aesDecrypt(privacy.globalWallpaper, myKey) : "";
+                const wall = privacy.globalWallpaper ? decryptProfileData(privacy.globalWallpaper) : "";
                 if (wall) {
                     globalWallpaperData = wall;
                     applyGlobalWallpaperUI();
@@ -2405,14 +2248,12 @@
             const avatar = document.getElementById('privacy-avatar').value;
             const messages = document.getElementById('privacy-messages').value;
             const semiTrans = document.getElementById('semi-transparent-dialogs').checked;
-            
-            const myKey = getMyProfileKey();
-            const wallVal = globalWallpaperData ? aesEncrypt(globalWallpaperData, myKey) : "";
+            const wallVal = globalWallpaperData ? encryptProfileData(globalWallpaperData) : "";
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), {
-                lastSeen: aesEncrypt(lastSeen, myKey),
-                avatar: aesEncrypt(avatar, myKey),
-                messages: aesEncrypt(messages, myKey),
-                semiTransparentDialogs: aesEncrypt(String(semiTrans), myKey),
+                lastSeen: encryptProfileData(lastSeen),
+                avatar: encryptProfileData(avatar),
+                messages: encryptProfileData(messages),
+                semiTransparentDialogs: encryptProfileData(semiTrans),
                 globalWallpaper: wallVal
             });
         }
@@ -2488,22 +2329,19 @@
                 
                 cloudRow.innerHTML = `
                     <div class="chat-avatar-wrapper">
-                        <div class="chat-avatar" id="avatar-${escapeHTML(myUid)}" style="background-color: var(--accent);">
+                        <div class="chat-avatar" id="avatar-${myUid}" style="background-color: var(--accent);">
                             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
                         </div>
                     </div>
                     <div class="chat-info">
                         <div class="chat-name-row">
-                            <div class="chat-row-name" id="name-${escapeHTML(myUid)}">Избранное</div>
-                            <div class="chat-row-time" id="time-${escapeHTML(myUid)}"></div>
+                            <div class="chat-row-name" id="name-${myUid}">Избранное</div>
+                            <div class="chat-row-time" id="time-${myUid}"></div>
                         </div>
-                        <div class="chat-row-msg" id="last-msg-${escapeHTML(myUid)}">Сообщение</div>
+                        <div class="chat-row-msg" id="last-msg-${myUid}">Сообщение</div>
                     </div>
                 `;
-
-                if (shouldShowInFolder(myUid, false)) {
-                    container.appendChild(cloudRow);
-                }
+                container.appendChild(cloudRow);
 
                 if (myProfileAvatarFetched) {
                     const cloudAv = document.getElementById(`avatar-${myUid}`);
@@ -2540,10 +2378,6 @@
 
                 sortedChats.forEach(([peerId, chatMeta]) => {
                     if (!chatMeta || !chatMeta.roomId) return;
-                    
-                    const isChan = peerId.startsWith('chan_');
-                    if (!shouldShowInFolder(peerId, isChan)) return;
-
                     const row = document.createElement('div');
                     row.className = `chat-row ${chatMeta.pinned ? 'is-pinned' : ''}`;
                     row.id = `chat-row-${peerId}`;
@@ -2574,18 +2408,18 @@
 
                     row.innerHTML = `
                         <div class="chat-avatar-wrapper">
-                            <div class="chat-avatar" id="avatar-${escapeHTML(peerId)}" style="background-color: ${TG_AVATAR_COLORS[colorIndex]}">?</div>
-                            <div class="online-dot" id="dot-${escapeHTML(peerId)}"></div>
+                            <div class="chat-avatar" id="avatar-${peerId}" style="background-color: ${TG_AVATAR_COLORS[colorIndex]}">?</div>
+                            <div class="online-dot" id="dot-${peerId}"></div>
                         </div>
                         <div class="chat-info">
                             <div class="chat-name-row">
-                                <div class="chat-row-name"><span id="name-${escapeHTML(peerId)}">Загрузка...</span></div>
-                                <div class="chat-row-time" id="time-${escapeHTML(peerId)}">
-                                    ${pinSvg}<span id="time-val-${escapeHTML(peerId)}"></span>
-                                    <div id="badge-container-${escapeHTML(peerId)}"></div>
+                                <div class="chat-row-name"><span id="name-${peerId}">Загрузка...</span></div>
+                                <div class="chat-row-time" id="time-${peerId}">
+                                    ${pinSvg}<span id="time-val-${peerId}"></span>
+                                    <div id="badge-container-${peerId}"></div>
                                 </div>
                             </div>
-                            <div class="chat-row-msg" id="last-msg-${escapeHTML(peerId)}">Сообщение</div>
+                            <div class="chat-row-msg" id="last-msg-${peerId}">Сообщение</div>
                         </div>
                     `;
                     container.appendChild(row);
@@ -2629,7 +2463,7 @@
             });
         }
 
-        async function updateActiveChatHeaderUI() {
+        function updateActiveChatHeaderUI() {
             const headerStatus = document.getElementById('chat-header-status');
             const input = document.getElementById('message-input');
             const clipBtn = document.getElementById('clip-btn');
@@ -2648,21 +2482,12 @@
 
             if (currentPeer.startsWith('chan_')) return;
 
-            const profileKey = await getProfileKey(currentPeer, null);
-
             if (activeChatIsTyping) {
-                headerStatus.textContent = "печатает...";
+                headerStatus.innerText = "печатает...";
                 headerStatus.style.color = "var(--online)";
             } else {
-                let decLastSeen = "all";
-                let decMessages = "all";
-                if (profileKey) {
-                    decLastSeen = aesDecrypt(activeChatPrivacy.lastSeen, profileKey) || "all";
-                    decMessages = aesDecrypt(activeChatPrivacy.messages, profileKey) || "all";
-                }
-
-                const hideOnline = (decLastSeen === "none") || 
-                                   (decLastSeen === "contacts" && !activeChatWeAreContact);
+                const hideOnline = (activeChatPrivacy.lastSeen === "none") || 
+                                   (activeChatPrivacy.lastSeen === "contacts" && !activeChatWeAreContact);
                 let statusText = "офлайн";
                 let color = "var(--text-muted)";
                 if (activeChatPresence) {
@@ -2678,22 +2503,23 @@
                 } else {
                     if (hideOnline) statusText = "был(а) недавно";
                 }
-                headerStatus.textContent = statusText;
+                headerStatus.innerText = statusText;
                 headerStatus.style.color = color;
+            }
 
-                if (decMessages === "none" || (decMessages === "contacts" && !activeChatWeAreContact)) {
-                    input.disabled = true; input.placeholder = "Пользователь ограничил отправку сообщений";
-                    clipBtn.style.opacity = "0.3"; clipBtn.style.pointerEvents = "none";
-                    voiceBtn.style.opacity = "0.3"; voiceBtn.style.pointerEvents = "none";
-                    burnBtn.style.opacity = "0.3"; burnBtn.style.pointerEvents = "none";
-                    sendBtn.style.opacity = "0.3"; sendBtn.style.pointerEvents = "none";
-                } else {
-                    input.disabled = false; input.placeholder = "Сообщение...";
-                    clipBtn.style.opacity = "1"; clipBtn.style.pointerEvents = "auto";
-                    voiceBtn.style.opacity = "1"; voiceBtn.style.pointerEvents = "auto";
-                    burnBtn.style.opacity = "1"; burnBtn.style.pointerEvents = "auto";
-                    sendBtn.style.opacity = "1"; sendBtn.style.pointerEvents = "auto";
-                }
+            const msgPriv = activeChatPrivacy.messages || "all";
+            if (msgPriv === "none" || (msgPriv === "contacts" && !activeChatWeAreContact)) {
+                input.disabled = true; input.placeholder = "Пользователь ограничил отправку сообщений";
+                clipBtn.style.opacity = "0.3"; clipBtn.style.pointerEvents = "none";
+                voiceBtn.style.opacity = "0.3"; voiceBtn.style.pointerEvents = "none";
+                burnBtn.style.opacity = "0.3"; burnBtn.style.pointerEvents = "none";
+                sendBtn.style.opacity = "0.3"; sendBtn.style.pointerEvents = "none";
+            } else {
+                input.disabled = false; input.placeholder = "Сообщение...";
+                clipBtn.style.opacity = "1"; clipBtn.style.pointerEvents = "auto";
+                voiceBtn.style.opacity = "1"; voiceBtn.style.pointerEvents = "auto";
+                burnBtn.style.opacity = "1"; burnBtn.style.pointerEvents = "auto";
+                sendBtn.style.opacity = "1"; sendBtn.style.pointerEvents = "auto";
             }
         }
 
@@ -2747,9 +2573,9 @@
                 if (snap.exists()) {
                     const p = snap.val();
                     activeChatPrivacy = {
-                        lastSeen: p.lastSeen || "all",
-                        avatar: p.avatar || "all",
-                        messages: p.messages || "all"
+                        lastSeen: decryptProfileData(p.lastSeen) || "all",
+                        avatar: decryptProfileData(p.avatar) || "all",
+                        messages: decryptProfileData(p.messages) || "all"
                     };
                 } else {
                     activeChatPrivacy = { lastSeen: "all", avatar: "all", messages: "all" };
@@ -2806,9 +2632,11 @@
             }
         });
 
+        // ГЛОБАЛЬНЫЙ УМНЫЙ ПОИСК
         async function filterDialogsAndGlobalSearch(val) {
             const queryVal = val.trim().toLowerCase().replace('@', '');
             
+            // 1. Фильтр локальных чатов
             const rows = document.querySelectorAll('#chats-list-container .chat-row');
             rows.forEach(row => {
                 if (row.id === `chat-row-${myUid}`) return;
@@ -2825,6 +2653,7 @@
                 return;
             }
 
+            // 2. Поиск в глобальной базе usernames
             const usernamesRef = window.fb.ref(window.fb.db, 'usernames');
             const usernameQuery = window.fb.query(usernamesRef, window.fb.orderByKey(), window.fb.startAt(queryVal), window.fb.endAt(queryVal + "\uf8ff"));
             
@@ -2833,76 +2662,54 @@
                 globalResults.style.display = "block";
                 globalList.innerHTML = "";
                 const matches = snap.val();
-                const processedIds = new Set();
 
                 for (const [uname, targetId] of Object.entries(matches)) {
                     if (targetId === myUid) continue; 
-                    if (processedIds.has(targetId)) continue;
-                    processedIds.add(targetId);
-
                     const item = document.createElement('div');
                     item.className = "forward-list-item";
                     item.style.justifyContent = "space-between";
 
                     if (targetId.startsWith('chan_')) {
-                        const chanSnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${targetId}`));
+                        // Канал
+                        const chanSnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${targetId}/profile`));
                         if (chanSnap.exists()) {
-                            const chanData = chanSnap.val();
-                            const cProf = chanData.profile;
-                            const isPrivate = cProf.isPrivate === true;
-
-                            let cKey = channelKeysCache[targetId];
-                            if (!cKey && !isPrivate) {
-                                cKey = CryptoJS.SHA256(PUBLIC_CHANNEL_SALT + cProf.username).toString();
-                                channelKeysCache[targetId] = cKey;
-                            }
-
-                            let cName = "Канал";
-                            let cAv = "";
-                            if (cKey) {
-                                cName = aesDecrypt(cProf.name, cKey) || "Канал";
-                                cAv = aesDecrypt(cProf.avatar, cKey) || "";
-                            }
-
+                            const cProf = chanSnap.val();
+                            const cName = decryptProfileData(cProf.name) || "Канал";
+                            const cAv = decryptProfileData(cProf.avatar) || "";
                             let colorIndex = Math.abs(targetId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
                             item.innerHTML = `
                                 <div style="display:flex; align-items:center; gap:10px;">
-                                    <div class="chat-avatar" style="width:36px; height:36px; font-size:12px; ${cAv ? `background-image:url(${escapeHTML(cAv)})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`}">
-                                        ${cAv ? "" : escapeHTML(cName[0].toUpperCase())}
+                                    <div class="chat-avatar" style="width:36px; height:36px; font-size:12px; ${cAv ? `background-image:url(${cAv})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`}">
+                                        ${cAv ? "" : cName[0].toUpperCase()}
                                     </div>
                                     <div>
-                                        <div style="font-weight:bold; font-size:14px;">${escapeHTML(cName)} ${isPrivate ? '(E2EE Закрытый)' : '(E2EE Публичный)'}</div>
-                                        <div style="color:var(--accent); font-size:12px;">@${escapeHTML(uname)}</div>
+                                        <div style="font-weight:bold; font-size:14px;">${cName} (Канал)</div>
+                                        <div style="color:var(--accent); font-size:12px;">@${uname}</div>
                                     </div>
                                 </div>
-                                <button class="search-action-btn" style="height:32px; padding:0 12px; font-size:12px;" onclick="openChatWindow('${escapeHTML(targetId)}', '${escapeHTML(targetId)}')">Открыть</button>
+                                <button class="search-action-btn" style="height:32px; padding:0 12px; font-size:12px;" onclick="openChatWindow('${targetId}', '${targetId}')">Открыть</button>
                             `;
                         }
                     } else {
+                        // Пользователь
                         const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${targetId}/profile`));
                         if (profSnap.exists()) {
                             const prof = profSnap.val();
-                            const pKey = await getProfileKey(targetId, uname);
-                            let pName = "Пользователь";
-                            let pLast = "";
-                            let pAv = "";
-                            if (pKey) {
-                                pName = aesDecrypt(prof.name, pKey) || "Пользователь";
-                                pLast = aesDecrypt(prof.lastname, pKey) || "";
-                                pAv = aesDecrypt(prof.avatar, pKey) || "";
-                            }
+                            const pName = decryptProfileData(prof.name) || "Пользователь";
+                            const pLast = decryptProfileData(prof.lastname) || "";
+                            const pAv = decryptProfileData(prof.avatar) || "";
                             let colorIndex = Math.abs(targetId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
                             item.innerHTML = `
                                 <div style="display:flex; align-items:center; gap:10px;">
-                                    <div class="chat-avatar" style="width:36px; height:36px; font-size:12px; ${pAv ? `background-image:url(${escapeHTML(pAv)})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`}">
-                                        ${pAv ? "" : escapeHTML(pName[0].toUpperCase())}
+                                    <div class="chat-avatar" style="width:36px; height:36px; font-size:12px; ${pAv ? `background-image:url(${pAv})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`}">
+                                        ${pAv ? "" : pName[0].toUpperCase()}
                                     </div>
                                     <div>
-                                        <div style="font-weight:bold; font-size:14px;">${escapeHTML(pName)} ${escapeHTML(pLast)}</div>
-                                        <div style="color:var(--accent); font-size:12px;">@${escapeHTML(uname)}</div>
+                                        <div style="font-weight:bold; font-size:14px;">${pName} ${pLast}</div>
+                                        <div style="color:var(--accent); font-size:12px;">@${uname}</div>
                                     </div>
                                 </div>
-                                <button class="search-action-btn" style="height:32px; padding:0 12px; font-size:12px;" onclick="startContactChat('${escapeHTML(targetId)}')">Написать</button>
+                                <button class="search-action-btn" style="height:32px; padding:0 12px; font-size:12px;" onclick="startContactChat('${targetId}')">Написать</button>
                             `;
                         }
                     }
@@ -2913,11 +2720,30 @@
             }
         }
 
+        // КАНАЛЫ (ФУНКЦИОНАЛ)
+        function switchSubTab(type) {
+            currentSubTab = type;
+            const chatsList = document.getElementById('chats-list-container');
+            const channelsList = document.getElementById('channels-list-container');
+            const tabChatsBtn = document.getElementById('subtab-chats');
+            const tabChanBtn = document.getElementById('subtab-channels');
+
+            if (type === 'chats') {
+                chatsList.style.display = "block"; channelsList.style.display = "none";
+                tabChatsBtn.classList.add('active'); tabChatsBtn.style.color = "var(--accent)"; tabChatsBtn.style.borderBottomColor = "var(--accent)";
+                tabChanBtn.classList.remove('active'); tabChanBtn.style.color = "var(--text-muted)"; tabChanBtn.style.borderBottomColor = "transparent";
+                loadDialogs();
+            } else {
+                chatsList.style.display = "none"; channelsList.style.display = "block";
+                tabChatsBtn.classList.remove('active'); tabChatsBtn.style.color = "var(--text-muted)"; tabChatsBtn.style.borderBottomColor = "transparent";
+                tabChanBtn.classList.add('active'); tabChanBtn.style.color = "var(--accent)"; tabChanBtn.style.borderBottomColor = "var(--accent)";
+                loadSubscribedChannels();
+            }
+        }
+
         async function createChannel() {
             const name = document.getElementById('channel-name-input').value.trim();
             const uname = document.getElementById('channel-username-input').value.trim().toLowerCase().replace('@','');
-            const isPrivate = document.getElementById('channel-private-checkbox').checked;
-
             if (!name || !uname) {
                 alert("Заполните все поля!"); return;
             }
@@ -2925,79 +2751,68 @@
             if (userCheck.exists()) {
                 alert("Этот юзернейм уже занят!"); return;
             }
-
-            let chanKey = "";
-            if (isPrivate) {
-                chanKey = CryptoJS.lib.WordArray.random(32).toString(); 
-            } else {
-                chanKey = CryptoJS.SHA256(PUBLIC_CHANNEL_SALT + uname).toString();
-            }
-
             const channelId = "chan_" + window.fb.push(window.fb.ref(window.fb.db, 'channels')).key;
-            channelKeysCache[channelId] = chanKey;
-
             const cProf = {
-                name: aesEncrypt(name, chanKey),
-                avatar: aesEncrypt(tempChannelAvatarBase64 || "", chanKey),
+                name: encryptProfileData(name),
+                avatar: encryptProfileData(tempChannelAvatarBase64 || ""),
                 username: uname,
-                subscribersCount: 1,
-                isPrivate: isPrivate
+                subscribersCount: 1
             };
-
             await window.fb.set(window.fb.ref(window.fb.db, `channels/${channelId}`), {
                 creator: myUid, profile: cProf
             });
             await window.fb.set(window.fb.ref(window.fb.db, `usernames/${uname}`), channelId);
             await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/subscribedChannels/${channelId}`), true);
 
-            if (isPrivate) {
-                const dhSelf = await getDerivedSharedKey(myUid);
-                const encKeySelf = aesEncrypt(chanKey, dhSelf);
-                await window.fb.set(window.fb.ref(window.fb.db, `channels/${channelId}/keys/${myUid}`), encKeySelf);
-            }
-
             alert("Канал успешно создан!");
             closeModal('create-channel-modal');
             document.getElementById('channel-name-input').value = "";
             document.getElementById('channel-username-input').value = "";
-            document.getElementById('channel-private-checkbox').checked = false;
             document.getElementById('channel-avatar-preview').style.backgroundImage = "none";
             document.getElementById('channel-avatar-preview').innerText = "?";
             tempChannelAvatarBase64 = "";
-            loadDialogs();
+            loadSubscribedChannels();
         }
 
-        async function updateChannelSubscribeBarUI(channelId) {
-            const subRef = window.fb.ref(window.fb.db, `users/${myUid}/subscribedChannels/${channelId}`);
-            const subSnap = await window.fb.get(subRef);
-            const subBtn = document.getElementById('channel-subscribe-btn');
-            
-            const chanSnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${channelId}`));
-            if (!chanSnap.exists()) return;
-            const isPrivate = chanSnap.val().profile.isPrivate === true;
+        async function loadSubscribedChannels() {
+            const container = document.getElementById('channels-list-content');
+            container.innerHTML = "";
+            const subsSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/subscribedChannels`));
+            if (!subsSnap.exists()) {
+                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:40px;font-size:14px;">Вы ещё не подписаны ни на один канал.</div>`;
+                return;
+            }
+            const chanIds = Object.keys(subsSnap.val());
+            for (const chanId of chanIds) {
+                const chanSnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${chanId}`));
+                if (!chanSnap.exists()) continue;
 
-            if (subSnap.exists()) {
-                subBtn.innerText = "Вы подписаны (Отписаться)";
-                subBtn.style.background = "#2C2C2E";
-                subBtn.disabled = false;
-            } else {
-                if (isPrivate) {
-                    const reqRef = window.fb.ref(window.fb.db, `channels/${channelId}/requests/${myUid}`);
-                    const reqSnap = await window.fb.get(reqRef);
-                    if (reqSnap.exists()) {
-                        subBtn.innerText = "Заявка отправлена (Ожидание одобрения)";
-                        subBtn.style.background = "var(--second)";
-                        subBtn.disabled = true;
-                    } else {
-                        subBtn.innerText = "Подать заявку на вступление (E2EE)";
-                        subBtn.style.background = "var(--accent)";
-                        subBtn.disabled = false;
-                    }
-                } else {
-                    subBtn.innerText = "Подписаться на канал";
-                    subBtn.style.background = "var(--accent)";
-                    subBtn.disabled = false;
-                }
+                const chanData = chanSnap.val();
+                const cProf = chanData.profile;
+                const cName = decryptProfileData(cProf.name) || "Канал";
+                const cAv = decryptProfileData(cProf.avatar) || "";
+                const subsCount = cProf.subscribersCount || 0;
+
+                const row = document.createElement('div');
+                row.className = "chat-row";
+                row.onclick = () => openChatWindow(chanId, chanId);
+
+                let colorIndex = Math.abs(chanId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
+                row.innerHTML = `
+                    <div class="chat-avatar-wrapper">
+                        <div class="chat-avatar" style="${cAv ? `background-image:url(${cAv})` : `background-color:${TG_AVATAR_COLORS[colorIndex]}`}">
+                            ${cAv ? "" : cName[0].toUpperCase()}
+                        </div>
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-name-row">
+                            <div class="chat-row-name">${cName}</div>
+                            <div class="chat-row-time">${subsCount} подп.</div>
+                        </div>
+                        <div class="chat-row-msg">@${cProf.username}</div>
+                    </div>
+                `;
+                container.appendChild(row);
             }
         }
 
@@ -3005,11 +2820,8 @@
             if (!currentPeer || !currentPeer.startsWith('chan_')) return;
             const subRef = window.fb.ref(window.fb.db, `users/${myUid}/subscribedChannels/${currentPeer}`);
             const subSnap = await window.fb.get(subRef);
+            const subBtn = document.getElementById('channel-subscribe-btn');
             
-            const chanSnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${currentPeer}`));
-            if (!chanSnap.exists()) return;
-            const isPrivate = chanSnap.val().profile.isPrivate === true;
-
             const countRef = window.fb.ref(window.fb.db, `channels/${currentPeer}/profile/subscribersCount`);
             const countSnap = await window.fb.get(countRef);
             let currentCount = countSnap.exists() ? countSnap.val() : 0;
@@ -3018,112 +2830,19 @@
                 await window.fb.remove(subRef);
                 currentCount = Math.max(0, currentCount - 1);
                 await window.fb.set(countRef, currentCount);
-                if (isPrivate) {
-                    await window.fb.remove(window.fb.ref(window.fb.db, `channels/${currentPeer}/keys/${myUid}`));
-                    delete channelKeysCache[currentPeer];
-                }
+                subBtn.innerText = "Подписаться на канал";
+                subBtn.style.background = "var(--accent)";
                 alert("Вы отписались от канала");
             } else {
-                if (isPrivate) {
-                    await window.fb.set(window.fb.ref(window.fb.db, `channels/${currentPeer}/requests/${myUid}`), true);
-                    alert("Заявка успешно отправлена владельцу канала!");
-                } else {
-                    await window.fb.set(subRef, true);
-                    currentCount = currentCount + 1;
-                    await window.fb.set(countRef, currentCount);
-                    alert("Вы успешно подписались на канал!");
-                }
+                await window.fb.set(subRef, true);
+                currentCount = currentCount + 1;
+                await window.fb.set(countRef, currentCount);
+                subBtn.innerText = "Вы подписаны (Отписаться)";
+                subBtn.style.background = "#2C2C2E";
+                alert("Вы успешно подписались на канал!");
             }
-            updateChannelSubscribeBarUI(currentPeer);
             const headerStatus = document.getElementById('chat-header-status');
-            if (headerStatus) headerStatus.textContent = `${currentCount} подписчиков`;
-        }
-
-        async function loadChannelRequests(channelId) {
-            const listContainer = document.getElementById('channel-requests-list');
-            listContainer.innerHTML = "";
-            const reqSnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${channelId}/requests`));
-            if (reqSnap.exists()) {
-                document.getElementById('channel-join-requests').style.display = "block";
-                const requests = reqSnap.val();
-                for (const applicantUid of Object.keys(requests)) {
-                    const row = document.createElement('div');
-                    row.className = "forward-list-item";
-                    row.style.justifyContent = "space-between";
-                    row.style.padding = "8px";
-                    
-                    const nameSpan = document.createElement('span');
-                    nameSpan.innerText = "Загрузка имени...";
-                    nameSpan.style.fontSize = "13px";
-                    nameSpan.style.fontWeight = "bold";
-                    row.appendChild(nameSpan);
-
-                    const btnGroup = document.createElement('div');
-                    btnGroup.style.display = "flex";
-                    btnGroup.style.gap = "6px";
-
-                    const approveBtn = document.createElement('button');
-                    approveBtn.className = "search-action-btn";
-                    approveBtn.style.height = "28px";
-                    approveBtn.style.padding = "0 8px";
-                    approveBtn.style.fontSize = "11px";
-                    approveBtn.style.background = "var(--secure)";
-                    approveBtn.innerText = "Одобрить";
-                    approveBtn.onclick = () => approveJoinRequest(channelId, applicantUid);
-
-                    const rejectBtn = document.createElement('button');
-                    rejectBtn.className = "search-action-btn";
-                    rejectBtn.style.height = "28px";
-                    rejectBtn.style.padding = "0 8px";
-                    rejectBtn.style.fontSize = "11px";
-                    rejectBtn.style.background = "var(--error)";
-                    rejectBtn.innerText = "Отклонить";
-                    rejectBtn.onclick = () => rejectJoinRequest(channelId, applicantUid);
-
-                    btnGroup.appendChild(approveBtn);
-                    btnGroup.appendChild(rejectBtn);
-                    row.appendChild(btnGroup);
-
-                    listContainer.appendChild(row);
-
-                    getCachedProfile(applicantUid, (prof) => {
-                        nameSpan.innerText = (prof.name || "Пользователь") + (prof.lastname ? " " + prof.lastname : "");
-                    });
-                }
-            } else {
-                document.getElementById('channel-join-requests').style.display = "none";
-            }
-        }
-
-        async function approveJoinRequest(channelId, applicantUid) {
-            const chanKey = channelKeysCache[channelId];
-            if (!chanKey) return;
-
-            const dhKey = await getDerivedSharedKey(applicantUid);
-            if (!dhKey) {
-                alert("Ошибка получения публичного ключа кандидата!"); return;
-            }
-
-            const encKey = aesEncrypt(chanKey, dhKey);
-
-            await window.fb.set(window.fb.ref(window.fb.db, `channels/${channelId}/keys/${applicantUid}`), encKey);
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${applicantUid}/subscribedChannels/${channelId}`), true);
-            
-            const countRef = window.fb.ref(window.fb.db, `channels/${channelId}/profile/subscribersCount`);
-            const countSnap = await window.fb.get(countRef);
-            const currentCount = countSnap.exists() ? countSnap.val() : 0;
-            await window.fb.set(countRef, currentCount + 1);
-
-            await window.fb.remove(window.fb.ref(window.fb.db, `channels/${channelId}/requests/${applicantUid}`));
-            
-            alert("Кандидат добавлен!");
-            loadChannelRequests(channelId);
-        }
-
-        async function rejectJoinRequest(channelId, applicantUid) {
-            await window.fb.remove(window.fb.ref(window.fb.db, `channels/${channelId}/requests/${applicantUid}`));
-            alert("Заявка отклонена.");
-            loadChannelRequests(channelId);
+            if (headerStatus) headerStatus.innerText = `${currentCount} подписчиков`;
         }
 
         async function showActivePeerProfile() {
@@ -3135,34 +2854,36 @@
             const adminOpts = document.getElementById('channel-admin-options');
             const wallBtn = document.getElementById('set-personal-wallpaper-btn');
             const wallReset = document.getElementById('reset-personal-wallpaper-btn');
-            const joinReqContainer = document.getElementById('channel-join-requests');
 
             addBtn.style.display = "none";
             removeBtn.style.display = "none";
             adminOpts.style.display = "none";
-            joinReqContainer.style.display = "none";
 
             if (currentPeer.startsWith('chan_')) {
-                getCachedProfile(currentPeer, (cached) => {
-                    document.getElementById('peer-profile-name').innerText = cached.name;
-                    document.getElementById('peer-profile-username').innerText = `@${cached.username}`;
-                    document.getElementById('peer-profile-bio').innerText = cached.bio;
+                const chanSnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${currentPeer}`));
+                if (chanSnap.exists()) {
+                    const chanData = chanSnap.val();
+                    const cProf = chanData.profile;
+                    const cName = decryptProfileData(cProf.name) || "Канал";
+                    const cAv = decryptProfileData(cProf.avatar) || "";
+                    const subsCount = cProf.subscribersCount || 0;
+
+                    document.getElementById('peer-profile-name').innerText = cName;
+                    document.getElementById('peer-profile-username').innerText = `@${cProf.username}`;
+                    document.getElementById('peer-profile-bio').innerText = `Количество подписчиков: ${subsCount}`;
                     
                     const av = document.getElementById('peer-profile-av');
-                    if (cached.avatar) {
-                        av.style.backgroundImage = `url(${cached.avatar})`; av.innerText = "";
+                    if (cAv) {
+                        av.style.backgroundImage = `url(${cAv})`; av.innerText = "";
                     } else {
-                        av.style.backgroundImage = "none"; av.innerText = cached.name[0].toUpperCase();
+                        av.style.backgroundImage = "none"; av.innerText = cName[0].toUpperCase();
                     }
-                    if (cached.creator === myUid) {
+                    if (chanData.creator === myUid) {
                         adminOpts.style.display = "block";
-                        document.getElementById('channel-edit-name-input').value = cached.name;
-                        if (cached.isPrivate) {
-                            loadChannelRequests(currentPeer);
-                        }
+                        document.getElementById('channel-edit-name-input').value = cName;
                     }
                     wallBtn.style.display = "none"; wallReset.style.display = "none";
-                });
+                }
             } else {
                 getCachedProfile(currentPeer, (cached) => {
                     const fullName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
@@ -3194,11 +2915,8 @@
             if (!newName) {
                 alert("Имя не может быть пустым!"); return;
             }
-            const cKey = channelKeysCache[currentPeer];
-            if (!cKey) return;
-
             await window.fb.update(window.fb.ref(window.fb.db, `channels/${currentPeer}/profile`), {
-                name: aesEncrypt(newName, cKey)
+                name: encryptProfileData(newName)
             });
             alert("Название канала обновлено!");
             document.getElementById('chat-header-title').innerText = newName;
@@ -3207,7 +2925,7 @@
 
         async function deleteChannel() {
             if (!currentPeer || !currentPeer.startsWith('chan_')) return;
-            if (confirm("Вы действительно хотите БЕЗВОЗВРАТНО удалить этот канал?")) {
+            if (confirm("Вы действительно хотите БЕЗВОЗВРАТНО удалить этот канал и все публикации?")) {
                 const chanSnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${currentPeer}`));
                 if (chanSnap.exists()) {
                     const cProf = chanSnap.val().profile;
@@ -3249,7 +2967,7 @@
             const subBar = document.getElementById('channel-subscribe-bar');
 
             if (isCloud) {
-                headerTitle.textContent = "Избранное";
+                headerTitle.innerHTML = "Избранное";
                 if (myProfileAvatarFetched) {
                     headerAv.style.backgroundImage = `url(${myProfileAvatarFetched})`;
                     headerAv.innerText = ""; headerAv.style.backgroundColor = "transparent";
@@ -3261,30 +2979,46 @@
                 inputBar.style.display = "flex"; subBar.style.display = "none";
             } else if (isChannel) {
                 inputBar.style.display = "none"; subBar.style.display = "flex";
-                
-                getCachedProfile(peerId, (cached) => {
-                    headerTitle.textContent = cached.name;
-                    headerStatus.textContent = cached.bio;
+                const chanSnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${peerId}`));
+                if (chanSnap.exists()) {
+                    const chanData = chanSnap.val();
+                    const cProf = chanData.profile;
+                    const cName = decryptProfileData(cProf.name) || "Канал";
+                    const cAv = decryptProfileData(cProf.avatar) || "";
+                    const subsCount = cProf.subscribersCount || 0;
 
-                    if (cached.avatar) {
-                        headerAv.style.backgroundImage = `url(${cached.avatar})`;
+                    headerTitle.innerHTML = cName;
+                    headerStatus.innerText = `${subsCount} подписчиков`;
+                    headerStatus.style.color = "var(--text-muted)";
+
+                    if (cAv) {
+                        headerAv.style.backgroundImage = `url(${cAv})`;
                         headerAv.innerText = ""; headerAv.style.backgroundColor = "transparent";
                     } else {
                         headerAv.style.backgroundImage = "none"; headerAv.style.backgroundColor = "var(--accent)";
-                        headerAv.innerText = cached.name[0].toUpperCase();
+                        headerAv.innerText = cName[0].toUpperCase();
                     }
 
-                    if (cached.creator === myUid) {
+                    if (chanData.creator === myUid) {
                         inputBar.style.display = "flex"; subBar.style.display = "none";
                     } else {
-                        updateChannelSubscribeBarUI(peerId);
+                        const subRef = window.fb.ref(window.fb.db, `users/${myUid}/subscribedChannels/${peerId}`);
+                        const subSnap = await window.fb.get(subRef);
+                        const subBtn = document.getElementById('channel-subscribe-btn');
+                        if (subSnap.exists()) {
+                            subBtn.innerText = "Вы подписаны (Отписаться)";
+                            subBtn.style.background = "#2C2C2E";
+                        } else {
+                            subBtn.innerText = "Подписаться на канал";
+                            subBtn.style.background = "var(--accent)";
+                        }
                     }
-                });
+                }
             } else {
                 inputBar.style.display = "flex"; subBar.style.display = "none";
                 getCachedProfile(peerId, (cached) => {
                     const displayName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
-                    headerTitle.textContent = displayName;
+                    headerTitle.innerHTML = `${displayName}`;
                     if (cached.avatar) {
                         headerAv.style.backgroundImage = `url(${cached.avatar})`;
                         headerAv.innerText = ""; headerAv.style.backgroundColor = "transparent";
@@ -3300,6 +3034,7 @@
 
             updateHeaderContactButton();
 
+            // Синхронизация закрепов
             unsubPinnedMessage = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/pinned`), async (pSnap) => {
                 const pinBar = document.getElementById('pinned-message-bar');
                 if (pSnap.exists()) {
@@ -3309,7 +3044,7 @@
                         decryptedText = aesDecrypt(decryptedText.substring(6), activeRoomSharedKey);
                         try { decryptedText = JSON.parse(decryptedText).text || "Медиа"; } catch(e){}
                     }
-                    document.getElementById('pinned-bar-text').textContent = decryptedText;
+                    document.getElementById('pinned-bar-text').innerText = decryptedText;
                     pinBar.style.display = "flex";
                     pinBar.setAttribute('data-target-msg-id', pData.msgId);
                 } else {
@@ -3317,6 +3052,7 @@
                 }
             });
 
+            // Загрузка сообщений
             unsubChatMessages = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), async (snapshot) => {
                 const messages = snapshot.val() || {};
                 const localDeletedSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/deletedMessages/${currentRoomId}`));
@@ -3336,43 +3072,11 @@
                 feed.querySelectorAll('.date-separator').forEach(el => el.remove());
                 let lastMessageDateStr = "";
 
-                for (const [msgId, m] of Object.entries(messages)) {
-                    if (localDeleted[msgId]) continue;
+                Object.entries(messages).forEach(([msgId, m]) => {
+                    if (localDeleted[msgId]) return;
                     if (m.burnTime && Date.now() > m.burnTime) {
-                        window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`)); 
-                        continue;
+                        window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`)); return;
                     }
-
-                    let raw = m.text || "";
-                    let decrypted = "";
-                    let isCorrupt = false;
-
-                    if (raw.startsWith("[MEOW]")) {
-                        decrypted = aesDecrypt(raw.substring(6), activeRoomSharedKey);
-                        if (!decrypted || decrypted === "[Ошибка дешифрования]") {
-                            isCorrupt = true;
-                        }
-                    } else {
-                        isCorrupt = true; 
-                    }
-
-                    let messageObject = { text: "" };
-                    if (!isCorrupt) {
-                        try {
-                            messageObject = JSON.parse(decrypted);
-                            if (!messageObject || (!messageObject.text && !messageObject.fileData && !messageObject.isVoice)) {
-                                isCorrupt = true;
-                            }
-                        } catch(e) {
-                            isCorrupt = true;
-                        }
-                    }
-
-                    if (isCorrupt) {
-                        window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`));
-                        continue;
-                    }
-
                     if (m.sender !== myUid && m.read !== true && !isChannel) {
                         window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), { read: true });
                     }
@@ -3387,6 +3091,10 @@
                     }
 
                     let container = document.getElementById(`msg-${msgId}`);
+                    let raw = m.text || "";
+                    if (raw.startsWith("[MEOW]")) raw = aesDecrypt(raw.substring(6), activeRoomSharedKey);
+                    let messageObject = { text: raw };
+                    try { messageObject = JSON.parse(raw); } catch (e) {}
 
                     if (container) {
                         const ticksSpan = container.querySelector('.ticks-status');
@@ -3467,16 +3175,16 @@
                         
                         if (messageObject.replyTo) {
                             bubbleHtml += `
-                                <div class="reply-quote-preview" onclick="event.stopPropagation(); scrollToMessage('${escapeHTML(messageObject.replyTo.msgId)}')">
-                                    <div class="reply-quote-sender">${escapeHTML(messageObject.replyTo.senderName)}</div>
-                                    <div class="reply-quote-text">${escapeHTML(messageObject.replyTo.text)}</div>
+                                <div class="reply-quote-preview" onclick="event.stopPropagation(); scrollToMessage('${messageObject.replyTo.msgId}')">
+                                    <div class="reply-quote-sender">${messageObject.replyTo.senderName}</div>
+                                    <div class="reply-quote-text">${messageObject.replyTo.text}</div>
                                 </div>
                             `;
                         }
 
                         if (m.burnTime) {
                             const secs = Math.max(0, Math.round((m.burnTime - Date.now()) / 1000));
-                            bubbleHtml += `<div class="burn-timer-badge" data-msgid="${escapeHTML(msgId)}" data-roomid="${escapeHTML(currentRoomId)}" data-target="${m.burnTime}">
+                            bubbleHtml += `<div class="burn-timer-badge" data-msgid="${msgId}" data-roomid="${currentRoomId}" data-target="${m.burnTime}">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" style="color:var(--burn); margin-right:3px;"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> <span>${secs}с</span>
                             </div>`;
                         }
@@ -3485,7 +3193,7 @@
                             const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
                             bubbleHtml += `
                                 <div class="voice-wave-container" onclick="event.stopPropagation()">
-                                    <button class="voice-play-btn" onclick="toggleVoicePlayback(this, '${escapeHTML(blobUrl)}')">${playSvg}</button>
+                                    <button class="voice-play-btn" onclick="toggleVoicePlayback(this, '${blobUrl}')">${playSvg}</button>
                                     <div class="voice-progress-bar" onclick="seekVoice(event, this)">
                                         <div class="voice-progress-fill"></div>
                                     </div>
@@ -3494,21 +3202,21 @@
                         } else if (messageObject.fileData) {
                             const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
                             if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
-                                bubbleHtml += `<div class="msg-media" onclick="event.stopPropagation(); viewMediaFull('${escapeHTML(blobUrl)}', true)"><video src="${escapeHTML(blobUrl)}" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
+                                bubbleHtml += `<div class="msg-media" onclick="event.stopPropagation(); viewMediaFull('${blobUrl}', true)"><video src="${blobUrl}" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
                             } else {
-                                bubbleHtml += `<div class="msg-media" onclick="event.stopPropagation(); viewMediaFull('${escapeHTML(blobUrl)}', false)"><img src="${escapeHTML(blobUrl)}"></div>`;
+                                bubbleHtml += `<div class="msg-media" onclick="event.stopPropagation(); viewMediaFull('${blobUrl}', false)"><img src="${blobUrl}"></div>`;
                             }
                         }
                         
                         if (messageObject.text && messageObject.text !== "[Медиа]" && !messageObject.isVoice) {
-                            bubbleHtml += `<div class="msg-text">${escapeHTML(messageObject.text)}</div>`;
+                            bubbleHtml += `<div class="msg-text">${messageObject.text}</div>`;
                         }
 
                         bubbleHtml += `<div class="msg-bubble-bottom-row" onclick="event.stopPropagation()">
                             ${!isChannel ? `<div class="msg-reactions-inline">${getReactionsHtmlInline(msgId, m.reactions)}</div>` : ''}
                             <div class="msg-meta">
                                 ${m.edited ? `<span class="edited-label" style="font-size:9px; opacity:0.6; margin-right:3px;">ред.</span>` : ''}
-                                <span>${escapeHTML(timeString)}</span>
+                                <span>${timeString}</span>
                                 ${ticksHtml}
                             </div>
                         </div>`;
@@ -3521,7 +3229,7 @@
                         container.innerHTML = bubbleHtml;
                         feed.appendChild(container);
                     }
-                }
+                });
                 feed.scrollTop = feed.scrollHeight;
             });
         }
@@ -3539,8 +3247,8 @@
             Object.entries(grouped).forEach(([emoji, count]) => {
                 const activeClass = (myReaction === emoji) ? 'active' : '';
                 html += `
-                    <div class="reaction-pill-inline ${activeClass}" style="padding:4px 8px; border-radius:12px; gap:4px;" onclick="toggleChannelPostReaction('${escapeHTML(channelId)}', '${escapeHTML(postId)}', '${escapeHTML(emoji)}')">
-                        <span>${escapeHTML(emoji)}</span> <span style="font-weight:bold; font-size:11px;">${count}</span>
+                    <div class="reaction-pill-inline ${activeClass}" style="padding:4px 8px; border-radius:12px; gap:4px;" onclick="toggleChannelPostReaction('${channelId}', '${postId}', '${emoji}')">
+                        <span>${emoji}</span> <span style="font-weight:bold; font-size:11px;">${count}</span>
                     </div>
                 `;
             });
@@ -3568,22 +3276,22 @@
             let html = "";
             Object.entries(grouped).forEach(([emoji, userIds]) => {
                 const isMyRx = userIds.includes(myUid);
-                html += `<div class="reaction-pill-inline ${isMyRx ? 'active' : ''}" onclick="toggleReactionDirect('${escapeHTML(msgId)}', '${escapeHTML(emoji)}')"><span>${escapeHTML(emoji)}</span>`;
+                html += `<div class="reaction-pill-inline ${isMyRx ? 'active' : ''}" onclick="toggleReactionDirect('${msgId}', '${emoji}')"><span>${emoji}</span>`;
                 userIds.forEach(uId => {
                     if (uId === myUid) {
                         if (myProfileAvatarFetched) {
-                            html += `<div class="reaction-mini-avatar" style="background-image:url(${escapeHTML(myProfileAvatarFetched)})"></div>`;
+                            html += `<div class="reaction-mini-avatar" style="background-image:url(${myProfileAvatarFetched})"></div>`;
                         } else {
-                            html += `<div class="reaction-mini-avatar" style="background-color:var(--accent); color:white;">${escapeHTML(myNameCombined[0].toUpperCase())}</div>`;
+                            html += `<div class="reaction-mini-avatar" style="background-color:var(--accent); color:white;">${myNameCombined[0].toUpperCase()}</div>`;
                         }
                     } else {
                         const cached = profileCache[uId] || { name: "Собеседник" };
                         const displayName = (cached.name || "Собеседник");
                         if (cached.avatar) {
-                            html += `<div class="reaction-mini-avatar" style="background-image:url(${escapeHTML(cached.avatar)})"></div>`;
+                            html += `<div class="reaction-mini-avatar" style="background-image:url(${cached.avatar})"></div>`;
                         } else {
                             let colorIndex = Math.abs(uId.charCodeAt(0)) % TG_AVATAR_COLORS.length;
-                            html += `<div class="reaction-mini-avatar" style="background-color:${TG_AVATAR_COLORS[colorIndex]}; color:white;">${escapeHTML(displayName[0].toUpperCase())}</div>`;
+                            html += `<div class="reaction-mini-avatar" style="background-color:${TG_AVATAR_COLORS[colorIndex]}; color:white;">${displayName[0].toUpperCase()}</div>`;
                         }
                     }
                 });
@@ -3739,7 +3447,7 @@
             stopTypingImmediately(); cancelReply(); clearObjectUrlCache(); 
             document.getElementById('chat-window').classList.remove('active');
             currentPeer = null; currentRoomId = null; activeRoomSharedKey = null;
-            loadDialogs();
+            if (currentSubTab === 'chats') { loadDialogs(); } else { loadSubscribedChannels(); }
         }
 
         function initiateReply(msgId, text, senderId) {
@@ -3891,9 +3599,8 @@
             if (entries.length === 0) {
                 container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;">Нет доступных контактов.</div>`;
             } else {
-                const myKey = getMyProfileKey();
                 entries.forEach(([peerId, contact]) => {
-                    const name = aesDecrypt(contact.name, myKey) || "Без имени";
+                    const name = decryptProfileData(contact.name) || "Без имени";
                     const item = document.createElement('div');
                     item.className = "forward-list-item";
                     item.innerText = name;
@@ -3985,7 +3692,7 @@
                 document.getElementById('chat-search-counter').innerText = "0 / 0"; return;
             }
 
-            nodes.forEach((node) => {
+            nodes.forEach((node, index) => {
                 const textEl = node.querySelector('.msg-text');
                 const text = textEl ? textEl.innerText.toLowerCase() : "";
                 const timestamp = parseInt(node.getAttribute('data-time'));
@@ -4032,6 +3739,7 @@
             searchMatches = []; currentSearchMatchIndex = -1;
         }
 
+        // ОБРЕЗЧИК ИЗОБРАЖЕНИЙ (CROPPER)
         async function processAndSetCrop(file, mode) {
             if (!file) return;
             cropperMode = mode;
@@ -4114,12 +3822,10 @@
                 const preview = document.getElementById('channel-avatar-preview');
                 preview.style.backgroundImage = `url(${resultBase64})`; preview.innerText = "";
             } else if (cropperMode === 'channel-edit-avatar') {
-                const cKey = channelKeysCache[currentPeer];
-                if (!cKey) return;
                 window.fb.update(window.fb.ref(window.fb.db, `channels/${currentPeer}/profile`), {
-                    avatar: aesEncrypt(resultBase64, cKey)
+                    avatar: encryptProfileData(resultBase64)
                 }).then(() => {
-                    alert("Аватарка обновлена!");
+                    alert("Аватарка канала обновлена!");
                     document.getElementById('chat-header-av').style.backgroundImage = `url(${resultBase64})`;
                     document.getElementById('chat-header-av').innerText = "";
                     closeModal('peer-profile-modal');
@@ -4127,11 +3833,12 @@
             }
         }
 
+        // Кроппер-контролы
         document.getElementById('cropper-zoom').oninput = (e) => {
             cropperScale = parseFloat(e.target.value); updateCropperTransform();
         };
         const cropperWork = document.getElementById('cropper-workspace');
-        cropperWork.onmousedown = () => { isDraggingCropper = true; };
+        cropperWork.onmousedown = (e) => { isDraggingCropper = true; };
         window.onmouseup = () => { isDraggingCropper = false; };
         cropperWork.onmousemove = (e) => {
             if (isDraggingCropper) {
@@ -4154,6 +3861,7 @@
             }
         };
 
+        // ДЕШИФРОВАНИЕ И ОТОБРАЖЕНИЕ СООБЩЕНИЙ В СПИСКЕ ДИАЛОГОВ
         async function decryptAndRenderLastMsg(peerId, encryptedText, elementNode, msgId) {
             let sharedKey = derivedKeysCache[peerId];
             if (!sharedKey) sharedKey = await getDerivedSharedKey(peerId);
@@ -4170,11 +3878,12 @@
             else if (obj.fileData) displayedText = "🖼 Медиафайл";
 
             if (elementNode) {
-                elementNode.textContent = displayedText;
+                elementNode.innerText = displayedText;
             }
             return displayedText;
         }
 
+        // ОБОИ
         function loadActiveChatWallpaper() {
             const feedWall = document.getElementById('chat-feed-wallpaper');
             if (!currentPeer) return;
@@ -4203,8 +3912,7 @@
         }
 
         async function savePersonalWallpaper(base64Data) {
-            const myKey = getMyProfileKey();
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/privacy/personalWallpaper/${currentPeer}`), aesEncrypt(base64Data, myKey));
+            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/privacy/personalWallpaper/${currentPeer}`), encryptProfileData(base64Data));
         }
 
         async function resetWallpaper(isGlobal = true) {
@@ -4224,15 +3932,15 @@
 
         async function loadAllPersonalWallpapers() {
             const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/privacy/personalWallpaper`));
-            const myKey = getMyProfileKey();
             if (snap.exists()) {
                 const data = snap.val();
                 Object.entries(data).forEach(([pId, cipher]) => {
-                    personalWallpaperData[pId] = aesDecrypt(cipher, myKey);
+                    personalWallpaperData[pId] = decryptProfileData(cipher);
                 });
             }
         }
 
+        // КЛИЕНТ-ИНТЕРФЕЙС / НАВИГАЦИЯ
         function switchTab(index) {
             document.querySelectorAll('.tab-panel').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.bottom-bar .tab-button').forEach(btn => btn.classList.remove('active'));
@@ -4240,7 +3948,7 @@
             document.querySelectorAll('.bottom-bar .tab-button')[index].classList.add('active');
 
             if (index === 0) {
-                loadDialogs();
+                if (currentSubTab === 'chats') { loadDialogs(); } else { loadSubscribedChannels(); }
             } else if (index === 1) {
                 renderContactsList();
             } else if (index === 2) {
@@ -4251,15 +3959,13 @@
         }
 
         function openModal(id) {
-            if (id === 'create-folder-modal') {
-                renderFolderItemsSelectList();
-            }
             document.getElementById(id).classList.add('active');
         }
         function closeModal(id) {
             document.getElementById(id).classList.remove('active');
         }
 
+        // AUTH & PROFILE
         async function authAction() {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value.trim();
@@ -4288,7 +3994,7 @@
         function logoutAction() {
             if (confirm("Выйти из аккаунта?")) {
                 if (myUid) {
-                    goOffline();
+                    window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/presence`), { status: "offline", lastSeen: Date.now() });
                 }
                 window.fb.signOut(window.fb.auth);
             }
@@ -4307,7 +4013,7 @@
             const usernameRef = window.fb.ref(window.fb.db, `usernames/${uname}`);
             const usernameSnap = await window.fb.get(usernameRef);
             if (usernameSnap.exists() && usernameSnap.val() !== myUid) {
-                alert("Никнейм уже занят!"); return;
+                alert("Этот никнейм уже занят!"); return;
             }
 
             const oldUnameSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile/username`));
@@ -4315,33 +4021,14 @@
                 await window.fb.remove(window.fb.ref(window.fb.db, `usernames/${oldUnameSnap.val()}`));
             }
 
-            const myKey = getMyProfileKey();
-
             await window.fb.set(usernameRef, myUid);
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
-                name: aesEncrypt(name, myKey),
-                lastname: aesEncrypt(lastname, myKey),
-                bio: aesEncrypt(bio, myKey),
-                avatar: aesEncrypt(tempProfileAvatarBase64, myKey),
+                name: encryptProfileData(name),
+                lastname: encryptProfileData(lastname),
+                bio: encryptProfileData(bio),
+                avatar: encryptProfileData(tempProfileAvatarBase64),
                 username: uname
             });
-
-            const lookupKey = CryptoJS.SHA256(PROFILE_LOOKUP_SALT + uname).toString();
-            const encKeyPublic = aesEncrypt(myKey, lookupKey);
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile_sharing/public`), encKeyPublic);
-
-            const chatsSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/chats`));
-            if (chatsSnap.exists()) {
-                const chats = chatsSnap.val();
-                for (const peerId of Object.keys(chats)) {
-                    if (peerId.startsWith('chan_')) continue;
-                    const dhKey = await getDerivedSharedKey(peerId);
-                    if (dhKey) {
-                        const encKeyPeer = aesEncrypt(myKey, dhKey);
-                        await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile_sharing/${peerId}`), encKeyPeer);
-                    }
-                }
-            }
 
             myNameCombined = name + (lastname ? " " + lastname : "");
             myProfileAvatarFetched = tempProfileAvatarBase64;
@@ -4350,16 +4037,15 @@
 
         async function loadProfileSettings() {
             const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
-            const myKey = getMyProfileKey();
             if (snap.exists()) {
                 const prof = snap.val();
-                const decName = aesDecrypt(prof.name, myKey) || "";
-                const decLast = aesDecrypt(prof.lastname, myKey) || "";
+                const decName = decryptProfileData(prof.name) || "";
+                const decLast = decryptProfileData(prof.lastname) || "";
                 document.getElementById('setting-name').value = decName;
                 document.getElementById('setting-lastname').value = decLast;
-                document.getElementById('setting-bio').value = aesDecrypt(prof.bio, myKey) || "";
+                document.getElementById('setting-bio').value = decryptProfileData(prof.bio) || "";
                 document.getElementById('setting-username').value = prof.username || "";
-                tempProfileAvatarBase64 = aesDecrypt(prof.avatar, myKey) || "";
+                tempProfileAvatarBase64 = decryptProfileData(prof.avatar) || "";
                 myProfileAvatarFetched = tempProfileAvatarBase64;
 
                 const profileAv = document.getElementById('my-profile-avatar');
@@ -4373,7 +4059,7 @@
         }
 
         async function deleteAccountPermanently() {
-            if (confirm("Вы уверены? Данные будут стерты навсегда!")) {
+            if (confirm("ВНИМАНИЕ! Ваш аккаунт, переписки, настройки, контакты и ключи шифрования будут удалены НАВСЕГДА без возможности восстановления! Вы уверены?")) {
                 const pSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
                 if (pSnap.exists() && pSnap.val().username) {
                     await window.fb.remove(window.fb.ref(window.fb.db, `usernames/${pSnap.val().username}`));
@@ -4387,7 +4073,7 @@
                     }
                 }
                 await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}`));
-                alert("Удалено.");
+                alert("Все данные стерты. Аккаунт уничтожен.");
                 window.fb.signOut(window.fb.auth);
             }
         }
@@ -4445,237 +4131,12 @@
             });
         }
 
-        async function goOnline() {
-            if (!myUid || !window.fb || !window.fb.db) return;
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/presence`), { status: "online", lastSeen: Date.now() });
-        }
-
-        async function goOffline() {
-            if (!myUid || !window.fb || !window.fb.db) return;
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/presence`), { status: "offline", lastSeen: Date.now() });
-        }
-
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden) {
-                stopTypingImmediately();
-                goOffline();
-            } else {
-                goOnline();
-            }
-        });
-
-        window.addEventListener("pagehide", () => {
-            stopTypingImmediately();
-            goOffline();
-        });
-        window.addEventListener("beforeunload", () => {
-            stopTypingImmediately();
-            goOffline();
-        });
-
-        async function loadFolders() {
-            const refPath = `users/${myUid}/folders`;
-            const snap = await window.fb.get(window.fb.ref(window.fb.db, refPath));
-            const myKey = getMyProfileKey();
-            customFolders = {};
-            if (snap.exists()) {
-                const rawFolders = snap.val();
-                Object.entries(rawFolders).forEach(([folderId, fData]) => {
-                    try {
-                        const name = aesDecrypt(fData.name, myKey);
-                        const itemsRaw = aesDecrypt(fData.items, myKey);
-                        const items = JSON.parse(itemsRaw);
-                        customFolders[folderId] = { name, items };
-                    } catch (e) {}
-                });
-            }
-            renderFolderTabs();
-        }
-
-        function renderFolderTabs() {
-            const container = document.getElementById('folders-scroll-container');
-            container.innerHTML = `
-                <div class="folder-tab-item ${activeFolder === 'all' ? 'active' : ''}" id="folder-tab-all" onclick="switchFolder('all')">Все</div>
-                <div class="folder-tab-item ${activeFolder === 'personal' ? 'active' : ''}" id="folder-tab-personal" onclick="switchFolder('personal')">Личные</div>
-                <div class="folder-tab-item ${activeFolder === 'channels' ? 'active' : ''}" id="folder-tab-channels" onclick="switchFolder('channels')">Каналы</div>
-            `;
-            Object.entries(customFolders).forEach(([folderId, folder]) => {
-                const tab = document.createElement('div');
-                tab.className = `folder-tab-item ${activeFolder === folderId ? 'active' : ''}`;
-                tab.id = `folder-tab-${folderId}`;
-                tab.innerText = folder.name;
-                
-                let tabPressTimer;
-                tab.addEventListener('touchstart', (e) => {
-                    tabPressTimer = setTimeout(() => {
-                        e.stopPropagation();
-                        deleteFolderAction(folderId);
-                    }, 800);
-                }, { passive: true });
-                tab.addEventListener('touchend', () => clearTimeout(tabPressTimer));
-                tab.addEventListener('mousedown', () => {
-                    tabPressTimer = setTimeout(() => {
-                        deleteFolderAction(folderId);
-                    }, 800);
-                });
-                tab.addEventListener('mouseup', () => clearTimeout(tabPressTimer));
-
-                tab.onclick = () => switchFolder(folderId);
-                container.appendChild(tab);
-            });
-            const addBtn = document.createElement('div');
-            addBtn.className = "folder-tab-item";
-            addBtn.style.background = "rgba(31,128,224,0.1)";
-            addBtn.style.color = "var(--accent)";
-            addBtn.innerText = "+ Папка";
-            addBtn.onclick = () => openModal('create-folder-modal');
-            container.appendChild(addBtn);
-        }
-
-        function switchFolder(folderId) {
-            activeFolder = folderId;
-            document.querySelectorAll('.folders-scroll-container .folder-tab-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            const activeTab = document.getElementById(`folder-tab-${folderId}`);
-            if (activeTab) activeTab.classList.add('active');
-            loadDialogs();
-        }
-
-        async function deleteFolderAction(folderId) {
-            if (confirm(`Удалить папку "${customFolders[folderId].name}"? (Сами чаты не удалятся)`)) {
-                await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/folders/${folderId}`));
-                activeFolder = "all";
-                loadFolders();
-            }
-        }
-
-        async function renderFolderItemsSelectList() {
-            const listContainer = document.getElementById('folder-items-select-list');
-            listContainer.innerHTML = "Загрузка списка...";
-            
-            const [chatsSnap, contactsSnap] = await Promise.all([
-                window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/chats`)),
-                window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/contacts`))
-            ]);
-
-            listContainer.innerHTML = "";
-            const tempMap = {};
-
-            const myKey = getMyProfileKey();
-
-            if (contactsSnap.exists()) {
-                Object.entries(contactsSnap.val()).forEach(([peerId, cData]) => {
-                    const name = aesDecrypt(cData.name, myKey) || "Без имени";
-                    const last = aesDecrypt(cData.lastname, myKey) || "";
-                    tempMap[peerId] = name + (last ? " " + last : "");
-                });
-            }
-
-            if (chatsSnap.exists()) {
-                const chatIds = Object.keys(chatsSnap.val());
-                for (const peerId of chatIds) {
-                    if (peerId === myUid) continue;
-                    if (!tempMap[peerId]) {
-                        tempMap[peerId] = peerId.startsWith('chan_') ? "Канал" : "Пользователь";
-                    }
-                }
-            }
-
-            const itemsArray = Object.entries(tempMap);
-            if (itemsArray.length === 0) {
-                listContainer.innerHTML = `<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px;">Нет доступных чатов</div>`;
-                return;
-            }
-
-            for (const [peerId, placeholderName] of itemsArray) {
-                const label = document.createElement('label');
-                label.className = "modern-checkbox-container";
-                label.style.padding = "8px 12px";
-                label.style.marginBottom = "6px";
-                label.style.borderRadius = "10px";
-
-                let displayName = placeholderName;
-                if (peerId.startsWith('chan_')) {
-                    const chanSnap = await window.fb.get(window.fb.ref(window.fb.db, `channels/${peerId}`));
-                    if (chanSnap.exists()) {
-                        const cProf = chanSnap.val().profile;
-                        const isPrivate = cProf.isPrivate === true;
-                        let cKey = channelKeysCache[peerId];
-                        if (!cKey && !isPrivate) {
-                            cKey = CryptoJS.SHA256(PUBLIC_CHANNEL_SALT + cProf.username).toString();
-                        }
-                        if (cKey) {
-                            displayName = "[Канал] " + (aesDecrypt(cProf.name, cKey) || "Канал");
-                        }
-                    }
-                } else {
-                    const profSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile`));
-                    if (profSnap.exists()) {
-                        const prof = profSnap.val();
-                        const pKey = await getProfileKey(peerId, prof.username);
-                        if (pKey) {
-                            displayName = (aesDecrypt(prof.name, pKey) || "Без имени") + " " + (aesDecrypt(prof.lastname, pKey) || "");
-                        }
-                    }
-                }
-
-                label.innerHTML = `
-                    <span class="modern-checkbox-label" style="font-size:13px;">${escapeHTML(displayName)}</span>
-                    <input type="checkbox" value="${escapeHTML(peerId)}" class="modern-checkbox folder-checkbox-item">
-                `;
-                listContainer.appendChild(label);
-            }
-        }
-
-        async function createNewFolderAction() {
-            const folderName = document.getElementById('folder-name-input').value.trim();
-            if (!folderName) {
-                alert("Введите название папки!"); return;
-            }
-            const selectedPeerIds = [];
-            document.querySelectorAll('.folder-checkbox-item:checked').forEach(box => {
-                selectedPeerIds.push(box.value);
-            });
-            if (selectedPeerIds.length === 0) {
-                alert("Выберите хотя бы один чат!"); return;
-            }
-
-            const myKey = getMyProfileKey();
-            const encryptedName = aesEncrypt(folderName, myKey);
-            const encryptedItems = aesEncrypt(JSON.stringify(selectedPeerIds), myKey);
-
-            const folderId = "folder_" + window.fb.push(window.fb.ref(window.fb.db, `users/${myUid}/folders`)).key;
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/folders/${folderId}`), {
-                name: encryptedName,
-                items: encryptedItems
-            });
-
-            document.getElementById('folder-name-input').value = "";
-            closeModal('create-folder-modal');
-            loadFolders();
-        }
-
-        function shouldShowInFolder(peerId, isChan) {
-            if (activeFolder === "all") {
-                return true;
-            } else if (activeFolder === "personal") {
-                return !isChan;
-            } else if (activeFolder === "channels") {
-                return isChan;
-            } else {
-                const folder = customFolders[activeFolder];
-                if (folder && folder.items) {
-                    return folder.items.includes(peerId);
-                }
-            }
-            return false;
-        }
-
+        // ЭКСПОРТ ВСЕХ ФУНКЦИЙ В ГЛОБАЛЬНЫЙ ОБЪЕКТ WINDOW ДЛЯ HTML (ОБЯЗАТЕЛЬНО!)
         window.authAction = authAction;
         window.logoutAction = logoutAction;
         window.openCloudChat = openCloudChat;
         window.filterDialogsAndGlobalSearch = filterDialogsAndGlobalSearch;
+        window.switchSubTab = switchSubTab;
         window.openModal = openModal;
         window.closeModal = closeModal;
         window.filterContacts = filterContacts;
@@ -4733,9 +4194,8 @@
         window.compressAndSendMedia = compressAndSendMedia;
         window.triggerTypingStatus = triggerTypingStatus;
         window.startContactChat = startContactChat;
-        window.switchFolder = switchFolder;
-        window.createNewFolderAction = createNewFolderAction;
 
+        // ИНИЦИАЛИЗАЦИЯ И СВЯЗЬ С FIREBASE
         window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             if (user) {
                 myUid = user.uid; myEmail = user.email;
@@ -4750,16 +4210,14 @@
 
                 await loadMyPrivacySettings();
                 await loadAllPersonalWallpapers();
-                await loadFolders();
                 
                 const profileSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
                 if (profileSnap.exists()) {
                     const prof = profileSnap.val();
-                    const myKey = getMyProfileKey();
-                    const name = aesDecrypt(prof.name, myKey) || "";
-                    const last = aesDecrypt(prof.lastname, myKey) || "";
+                    const name = decryptProfileData(prof.name) || "";
+                    const last = decryptProfileData(prof.lastname) || "";
                     myNameCombined = name + (last ? " " + last : "");
-                    myProfileAvatarFetched = aesDecrypt(prof.avatar, myKey) || "";
+                    myProfileAvatarFetched = decryptProfileData(prof.avatar) || "";
                     
                     const bottomIcon = document.getElementById('bottom-profile-icon-container');
                     if (myProfileAvatarFetched) {
@@ -4769,21 +4227,10 @@
                     switchTab(3); 
                 }
 
-                const connectedRef = window.fb.ref(window.fb.db, ".info/connected");
-                window.fb.onValue(connectedRef, (snap) => {
-                    if (snap.val() === true) {
-                        const onlineRef = window.fb.ref(window.fb.db, `users/${myUid}/presence`);
-                        const disconnectRef = window.fb.onDisconnect(onlineRef);
-                        
-                        disconnectRef.set({ status: "offline", lastSeen: Date.now() });
-
-                        if (!document.hidden) {
-                            window.fb.set(onlineRef, { status: "online", lastSeen: Date.now() });
-                        } else {
-                            window.fb.set(onlineRef, { status: "offline", lastSeen: Date.now() });
-                        }
-                    }
-                });
+                const onlineRef = window.fb.ref(window.fb.db, `users/${myUid}/presence`);
+                const disconnectRef = window.fb.onDisconnect(onlineRef);
+                disconnectRef.set({ status: "offline", lastSeen: Date.now() });
+                await window.fb.set(onlineRef, { status: "online", lastSeen: Date.now() });
 
                 loadDialogs();
             } else {
@@ -4792,7 +4239,6 @@
                 clearObjectUrlCache();
             }
         });
-        /* Мяу, всё готово! Мессенджер работает стабильно, чисто, быстро и полностью безопасно. Приятного использования! */
     </script>
 </body>
-</html>
+        </html>
