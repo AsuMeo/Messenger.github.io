@@ -7,7 +7,7 @@
     
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlZLIE1lb3cgTWVzc2VuZ2VyIiwKICAic2hvcnRfbmFtZSI6ICJWSyBNZW93IiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwMDAwMDAiLAogICJ0aGVtZV9jb2xvciI6ICIxRjgwE0EiCi99">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-web-app-capable" content="yes">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
@@ -309,6 +309,7 @@
             font-size: 18px;
             color: white;
             image-rendering: -webkit-optimize-contrast;
+            overflow: hidden;
         }
 
         .online-dot {
@@ -1094,10 +1095,15 @@
 
         #cropper-image {
             position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
             cursor: move;
-            transform-origin: center center;
             user-select: none;
             -webkit-user-drag: none;
+            max-width: none;
+            max-height: none;
+            transform-origin: center center;
         }
 
         .cropper-mask {
@@ -4051,9 +4057,20 @@
             }
 
             img.onload = () => {
-                cropperImageWidth = img.naturalWidth; cropperImageHeight = img.naturalHeight;
-                cropperScale = 1.0; cropperX = 0; cropperY = 0;
-                document.getElementById('cropper-zoom').value = 1.0;
+                cropperImageWidth = img.naturalWidth; 
+                cropperImageHeight = img.naturalHeight;
+                img.style.width = cropperImageWidth + "px";
+                img.style.height = cropperImageHeight + "px";
+                cropperScale = 1.0; 
+                cropperX = 0; 
+                cropperY = 0;
+                
+                const zoomInput = document.getElementById('cropper-zoom');
+                zoomInput.min = "0.1";
+                zoomInput.max = "5";
+                zoomInput.step = "0.01";
+                zoomInput.value = "1";
+                
                 updateCropperTransform();
                 document.getElementById('cropper-modal-view').classList.add('active');
             };
@@ -4061,7 +4078,7 @@
 
         function updateCropperTransform() {
             const img = document.getElementById('cropper-image');
-            img.style.transform = `translate(${cropperX}px, ${cropperY}px) scale(${cropperScale})`;
+            img.style.transform = `translate(-50%, -50%) translate(${cropperX}px, ${cropperY}px) scale(${cropperScale})`;
         }
 
         function cancelCropping() {
@@ -4070,27 +4087,46 @@
         }
 
         function applyCroppedResult() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const img = document.getElementById('cropper-image');
+            const image = document.getElementById('cropper-image');
+            const workspace = document.getElementById('cropper-workspace');
+            const rect = workspace.getBoundingClientRect();
             
             const isCircular = (cropperMode === 'profile-avatar' || cropperMode === 'contact-avatar' || cropperMode === 'channel-avatar' || cropperMode === 'channel-edit-avatar');
             const targetWidth = isCircular ? 400 : 720;
             const targetHeight = isCircular ? 400 : 1280;
 
-            canvas.width = targetWidth; canvas.height = targetHeight;
+            const canvas = document.createElement('canvas');
+            canvas.width = targetWidth; 
+            canvas.height = targetHeight;
+            const context = canvas.getContext('2d');
 
-            const workspace = document.getElementById('cropper-workspace');
-            const rect = workspace.getBoundingClientRect();
-            const cropBoxWidth = rect.width; const cropBoxHeight = rect.height;
+            const factorX = targetWidth / rect.width;
+            const factorY = targetHeight / rect.height;
 
-            const sourceX = ( (cropBoxWidth / 2 - cropperX) / cropperScale - img.width / 2 ) * (cropperImageWidth / img.width);
-            const sourceY = ( (cropBoxHeight / 2 - cropperY) / cropperScale - img.height / 2 ) * (cropperImageHeight / img.height);
-            const sourceW = (cropBoxWidth / cropperScale) * (cropperImageWidth / img.width);
-            const sourceH = (cropBoxHeight / cropperScale) * (cropperImageHeight / img.height);
+            const drawnWidth = cropperImageWidth * cropperScale * factorX;
+            const drawnHeight = cropperImageHeight * cropperScale * factorY;
+            const drawnX = targetWidth / 2 + cropperX * factorX - drawnWidth / 2;
+            const drawnY = targetHeight / 2 + cropperY * factorY - drawnHeight / 2;
 
-            ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, targetWidth, targetHeight);
-            const resultBase64 = canvas.toDataURL('image/jpeg', 0.85);
+            context.clearRect(0, 0, targetWidth, targetHeight);
+
+            if (isCircular) {
+                context.save();
+                context.beginPath();
+                context.arc(targetWidth / 2, targetHeight / 2, targetWidth / 2, 0, Math.PI * 2);
+                context.closePath();
+                context.clip();
+            }
+
+            context.imageSmoothingEnabled = true;
+            context.imageSmoothingQuality = 'high';
+            context.drawImage(image, drawnX, drawnY, drawnWidth, drawnHeight);
+
+            if (isCircular) {
+                context.restore();
+            }
+
+            const resultBase64 = isCircular ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85);
 
             document.getElementById('cropper-modal-view').classList.remove('active');
 
@@ -4131,11 +4167,21 @@
             cropperScale = parseFloat(e.target.value); updateCropperTransform();
         };
         const cropperWork = document.getElementById('cropper-workspace');
-        cropperWork.onmousedown = () => { isDraggingCropper = true; };
+        cropperWork.onmousedown = (e) => { 
+            isDraggingCropper = true; 
+            lastTouchX = e.clientX; 
+            lastTouchY = e.clientY; 
+        };
         window.onmouseup = () => { isDraggingCropper = false; };
         cropperWork.onmousemove = (e) => {
             if (isDraggingCropper) {
-                cropperX += e.movementX; cropperY += e.movementY; updateCropperTransform();
+                const dx = e.clientX - lastTouchX; 
+                const dy = e.clientY - lastTouchY;
+                cropperX += dx; 
+                cropperY += dy;
+                lastTouchX = e.clientX; 
+                lastTouchY = e.clientY;
+                updateCropperTransform();
             }
         };
         cropperWork.ontouchstart = (e) => {
@@ -4147,9 +4193,12 @@
         cropperWork.ontouchend = () => { isDraggingCropper = false; };
         cropperWork.ontouchmove = (e) => {
             if (isDraggingCropper && e.touches.length === 1) {
-                const dx = e.touches[0].clientX - lastTouchX; const dy = e.touches[0].clientY - lastTouchY;
-                cropperX += dx; cropperY += dy;
-                lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY;
+                const dx = e.touches[0].clientX - lastTouchX; 
+                const dy = e.touches[0].clientY - lastTouchY;
+                cropperX += dx; 
+                cropperY += dy;
+                lastTouchX = e.touches[0].clientX; 
+                lastTouchY = e.touches[0].clientY;
                 updateCropperTransform();
             }
         };
@@ -4204,7 +4253,7 @@
 
         async function savePersonalWallpaper(base64Data) {
             const myKey = getMyProfileKey();
-            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/privacy/personalWallpaper/${currentPeer}`), aesEncrypt(base64Data, myKey));
+            await window.fb.set(window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/privacy/personalWallpaper/${currentPeer}`), aesEncrypt(base64Data, myKey)));
         }
 
         async function resetWallpaper(isGlobal = true) {
@@ -4792,7 +4841,6 @@
                 clearObjectUrlCache();
             }
         });
-        /* Мяу, всё готово! Мессенджер работает стабильно, чисто, быстро и полностью безопасно. Приятного использования! */
     </script>
 </body>
 </html>
