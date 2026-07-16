@@ -1092,19 +1092,22 @@
             border-radius: 50% !important;
         }
 
-        #cropper-image {
+                #cropper-image {
             position: absolute;
             cursor: move;
             transform-origin: center center;
             user-select: none;
             -webkit-user-drag: none;
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
         }
 
         .cropper-mask {
             position: absolute;
             inset: 0;
             border: 3px solid var(--accent);
-            box-shadow: 0 0 0 9999px rgba(0,0,0,0.65);
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.8);
             pointer-events: none;
             border-radius: 12px;
         }
@@ -4070,38 +4073,45 @@
         }
 
         function applyCroppedResult() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const img = document.getElementById('cropper-image');
-            
-            const isCircular = (cropperMode === 'profile-avatar' || cropperMode === 'contact-avatar' || cropperMode === 'channel-avatar' || cropperMode === 'channel-edit-avatar');
-            const targetWidth = isCircular ? 400 : 720;
-            const targetHeight = isCircular ? 400 : 1280;
-
-            canvas.width = targetWidth; canvas.height = targetHeight;
-
             const workspace = document.getElementById('cropper-workspace');
-            const rect = workspace.getBoundingClientRect();
-            const cropBoxWidth = rect.width; const cropBoxHeight = rect.height;
+            const img = document.getElementById('cropper-image');
+            const canvas = document.createElement('canvas');
+            const size = 500; 
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
 
-            const sourceX = ( (cropBoxWidth / 2 - cropperX) / cropperScale - img.width / 2 ) * (cropperImageWidth / img.width);
-            const sourceY = ( (cropBoxHeight / 2 - cropperY) / cropperScale - img.height / 2 ) * (cropperImageHeight / img.height);
-            const sourceW = (cropBoxWidth / cropperScale) * (cropperImageWidth / img.width);
-            const sourceH = (cropBoxHeight / cropperScale) * (cropperImageHeight / img.height);
+            const isCircular = workspace.classList.contains('circular-mask');
+            
+            ctx.save();
+            if (isCircular) {
+                ctx.beginPath();
+                ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+                ctx.clip();
+            }
 
-            ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, targetWidth, targetHeight);
-            const resultBase64 = canvas.toDataURL('image/jpeg', 0.85);
+            const scale = cropperScale;
+            const w = img.naturalWidth * scale;
+            const h = img.naturalHeight * scale;
+            const x = (size / 2) - (w / 2) + cropperX;
+            const y = (size / 2) - (h / 2) + cropperY;
 
+            ctx.drawImage(img, x, y, w, h);
+            ctx.restore();
+            
+            const resultBase64 = canvas.toDataURL('image/jpeg', 0.9);
             document.getElementById('cropper-modal-view').classList.remove('active');
 
             if (cropperMode === 'profile-avatar') {
                 tempProfileAvatarBase64 = resultBase64;
                 const myAv = document.getElementById('my-profile-avatar');
-                myAv.style.backgroundImage = `url(${resultBase64})`; myAv.innerText = "";
+                myAv.style.backgroundImage = `url(${resultBase64})`;
+                myAv.innerText = "";
             } else if (cropperMode === 'contact-avatar') {
                 tempContactAvatarBase64 = resultBase64;
                 const cAv = document.getElementById('contact-avatar-preview');
-                cAv.style.backgroundImage = `url(${resultBase64})`; cAv.innerText = "";
+                cAv.style.backgroundImage = `url(${resultBase64})`;
+                cAv.innerText = "";
             } else if (cropperMode === 'global-wallpaper') {
                 globalWallpaperData = resultBase64;
                 applyGlobalWallpaperUI(); savePrivacySettings();
@@ -4795,4 +4805,4 @@
         /* Мяу, всё готово! Мессенджер работает стабильно, чисто, быстро и полностью безопасно. Приятного использования! */
     </script>
 </body>
-</html>
+    </html>
