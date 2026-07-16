@@ -1093,20 +1093,12 @@
         }
 
         #cropper-image {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: auto;
-    height: auto;
-    max-width: none;
-    max-height: none;
-    cursor: grab;
-    transform-origin: center center;
-    user-select: none;
-    -webkit-user-drag: none;
-    touch-action: none;
-    pointer-events: none;
-}
+            position: absolute;
+            cursor: move;
+            transform-origin: center center;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
 
         .cropper-mask {
             position: absolute;
@@ -4040,310 +4032,127 @@
             searchMatches = []; currentSearchMatchIndex = -1;
         }
 
-       function isAvatarCropMode() {
-    return cropperMode === 'profile-avatar' ||
-           cropperMode === 'contact-avatar' ||
-           cropperMode === 'channel-avatar' ||
-           cropperMode === 'channel-edit-avatar';
-}
+        async function processAndSetCrop(file, mode) {
+            if (!file) return;
+            cropperMode = mode;
+            cropperRawBase64 = await fileToBase64(file);
+            const workspace = document.getElementById('cropper-workspace');
+            const img = document.getElementById('cropper-image');
+            img.src = cropperRawBase64;
+            
+            if (mode === 'profile-avatar' || mode === 'contact-avatar' || mode === 'channel-avatar' || mode === 'channel-edit-avatar') {
+                workspace.classList.add('circular-mask');
+                document.getElementById('cropper-mock-ui-overlay').style.display = "none";
+                document.getElementById('cropper-title').innerText = "Редактор аватара";
+            } else {
+                workspace.classList.remove('circular-mask');
+                document.getElementById('cropper-mock-ui-overlay').style.display = "flex";
+                document.getElementById('cropper-title').innerText = "Редактор фона чата";
+            }
 
-function getCropperMinimumScale() {
-    const workspace = document.getElementById('cropper-workspace');
-    const rect = workspace.getBoundingClientRect();
+            img.onload = () => {
+                cropperImageWidth = img.naturalWidth; cropperImageHeight = img.naturalHeight;
+                cropperScale = 1.0; cropperX = 0; cropperY = 0;
+                document.getElementById('cropper-zoom').value = 1.0;
+                updateCropperTransform();
+                document.getElementById('cropper-modal-view').classList.add('active');
+            };
+        }
 
-    if (!cropperImageWidth || !cropperImageHeight || !rect.width || !rect.height) {
-        return 1;
-    }
+        function updateCropperTransform() {
+            const img = document.getElementById('cropper-image');
+            img.style.transform = `translate(${cropperX}px, ${cropperY}px) scale(${cropperScale})`;
+        }
 
-    return Math.max(
-        rect.width / cropperImageWidth,
-        rect.height / cropperImageHeight
-    );
-}
+        function cancelCropping() {
+            document.getElementById('cropper-modal-view').classList.remove('active');
+            cropperRawBase64 = "";
+        }
 
-function clampCropperPosition() {
-    const workspace = document.getElementById('cropper-workspace');
-    const rect = workspace.getBoundingClientRect();
+        function applyCroppedResult() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = document.getElementById('cropper-image');
+            
+            const isCircular = (cropperMode === 'profile-avatar' || cropperMode === 'contact-avatar' || cropperMode === 'channel-avatar' || cropperMode === 'channel-edit-avatar');
+            const targetWidth = isCircular ? 400 : 720;
+            const targetHeight = isCircular ? 400 : 1280;
 
-    const renderedWidth = cropperImageWidth * cropperScale;
-    const renderedHeight = cropperImageHeight * cropperScale;
+            canvas.width = targetWidth; canvas.height = targetHeight;
 
-    const maxX = Math.max(0, (renderedWidth - rect.width) / 2);
-    const maxY = Math.max(0, (renderedHeight - rect.height) / 2);
+            const workspace = document.getElementById('cropper-workspace');
+            const rect = workspace.getBoundingClientRect();
+            const cropBoxWidth = rect.width; const cropBoxHeight = rect.height;
 
-    cropperX = Math.max(-maxX, Math.min(maxX, cropperX));
-    cropperY = Math.max(-maxY, Math.min(maxY, cropperY));
-}
+            const sourceX = ( (cropBoxWidth / 2 - cropperX) / cropperScale - img.width / 2 ) * (cropperImageWidth / img.width);
+            const sourceY = ( (cropBoxHeight / 2 - cropperY) / cropperScale - img.height / 2 ) * (cropperImageHeight / img.height);
+            const sourceW = (cropBoxWidth / cropperScale) * (cropperImageWidth / img.width);
+            const sourceH = (cropBoxHeight / cropperScale) * (cropperImageHeight / img.height);
 
-function isAvatarCropMode() {
-    return cropperMode === 'profile-avatar' ||
-           cropperMode === 'contact-avatar' ||
-           cropperMode === 'channel-avatar' ||
-           cropperMode === 'channel-edit-avatar';
-}
+            ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, targetWidth, targetHeight);
+            const resultBase64 = canvas.toDataURL('image/jpeg', 0.85);
 
-function getCropperMinimumScale() {
-    const workspace = document.getElementById('cropper-workspace');
-    const rect = workspace.getBoundingClientRect();
+            document.getElementById('cropper-modal-view').classList.remove('active');
 
-    if (!cropperImageWidth || !cropperImageHeight || !rect.width || !rect.height) {
-        return 1;
-    }
+            if (cropperMode === 'profile-avatar') {
+                tempProfileAvatarBase64 = resultBase64;
+                const myAv = document.getElementById('my-profile-avatar');
+                myAv.style.backgroundImage = `url(${resultBase64})`; myAv.innerText = "";
+            } else if (cropperMode === 'contact-avatar') {
+                tempContactAvatarBase64 = resultBase64;
+                const cAv = document.getElementById('contact-avatar-preview');
+                cAv.style.backgroundImage = `url(${resultBase64})`; cAv.innerText = "";
+            } else if (cropperMode === 'global-wallpaper') {
+                globalWallpaperData = resultBase64;
+                applyGlobalWallpaperUI(); savePrivacySettings();
+            } else if (cropperMode === 'personal-wallpaper') {
+                personalWallpaperData[currentPeer] = resultBase64;
+                applyActiveChatWallpaperUI(resultBase64); savePersonalWallpaper(resultBase64);
+                document.getElementById('reset-personal-wallpaper-btn').style.display = "block";
+            } else if (cropperMode === 'channel-avatar') {
+                tempChannelAvatarBase64 = resultBase64;
+                const preview = document.getElementById('channel-avatar-preview');
+                preview.style.backgroundImage = `url(${resultBase64})`; preview.innerText = "";
+            } else if (cropperMode === 'channel-edit-avatar') {
+                const cKey = channelKeysCache[currentPeer];
+                if (!cKey) return;
+                window.fb.update(window.fb.ref(window.fb.db, `channels/${currentPeer}/profile`), {
+                    avatar: aesEncrypt(resultBase64, cKey)
+                }).then(() => {
+                    alert("Аватарка обновлена!");
+                    document.getElementById('chat-header-av').style.backgroundImage = `url(${resultBase64})`;
+                    document.getElementById('chat-header-av').innerText = "";
+                    closeModal('peer-profile-modal');
+                });
+            }
+        }
 
-    return Math.max(
-        rect.width / cropperImageWidth,
-        rect.height / cropperImageHeight
-    );
-}
-
-function clampCropperPosition() {
-    const workspace = document.getElementById('cropper-workspace');
-    const rect = workspace.getBoundingClientRect();
-
-    const renderedWidth = cropperImageWidth * cropperScale;
-    const renderedHeight = cropperImageHeight * cropperScale;
-
-    const maxX = Math.max(0, (renderedWidth - rect.width) / 2);
-    const maxY = Math.max(0, (renderedHeight - rect.height) / 2);
-
-    cropperX = Math.max(-maxX, Math.min(maxX, cropperX));
-    cropperY = Math.max(-maxY, Math.min(maxY, cropperY));
-}
-
-async function processAndSetCrop(file, mode) {
-    if (!file) return;
-
-    cropperMode = mode;
-    cropperRawBase64 = await fileToBase64(file);
-
-    const modal = document.getElementById('cropper-modal-view');
-    const workspace = document.getElementById('cropper-workspace');
-    const image = document.getElementById('cropper-image');
-    const zoom = document.getElementById('cropper-zoom');
-    const mockOverlay = document.getElementById('cropper-mock-ui-overlay');
-    const title = document.getElementById('cropper-title');
-
-    if (isAvatarCropMode()) {
-        workspace.classList.add('circular-mask');
-        mockOverlay.style.display = 'none';
-        title.innerText = 'Редактор аватара';
-    } else {
-        workspace.classList.remove('circular-mask');
-        mockOverlay.style.display = 'flex';
-        title.innerText = 'Редактор фона чата';
-    }
-
-    modal.classList.add('active');
-
-    image.onload = () => {
-        cropperImageWidth = image.naturalWidth;
-        cropperImageHeight = image.naturalHeight;
-
-        image.style.width = `${cropperImageWidth}px`;
-        image.style.height = `${cropperImageHeight}px`;
-
-        requestAnimationFrame(() => {
-            const minimumScale = getCropperMinimumScale();
-
-            cropperScale = minimumScale;
-            cropperX = 0;
-            cropperY = 0;
-
-            zoom.min = String(minimumScale);
-            zoom.max = String(minimumScale * 4);
-            zoom.step = String(Math.max(minimumScale / 100, 0.001));
-            zoom.value = String(minimumScale);
-
-            updateCropperTransform();
-        });
-    };
-
-    image.src = cropperRawBase64;
-}
-
-function updateCropperTransform() {
-    const image = document.getElementById('cropper-image');
-
-    clampCropperPosition();
-
-    image.style.left = `calc(50% + ${cropperX}px)`;
-    image.style.top = `calc(50% + ${cropperY}px)`;
-    image.style.transform = `translate(-50%, -50%) scale(${cropperScale})`;
-}
-
-function cancelCropping() {
-    document.getElementById('cropper-modal-view').classList.remove('active');
-    document.getElementById('cropper-image').removeAttribute('src');
-    cropperRawBase64 = '';
-    isDraggingCropper = false;
-}
-
-function applyCroppedResult() {
-    const image = document.getElementById('cropper-image');
-    const workspace = document.getElementById('cropper-workspace');
-    const workspaceRect = workspace.getBoundingClientRect();
-    const circular = isAvatarCropMode();
-
-    if (!cropperImageWidth || !cropperImageHeight || !workspaceRect.width || !workspaceRect.height) {
-        return;
-    }
-
-    clampCropperPosition();
-
-    const targetWidth = circular ? 400 : 720;
-    const targetHeight = circular ? 400 : 1280;
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-
-    const factorX = targetWidth / workspaceRect.width;
-    const factorY = targetHeight / workspaceRect.height;
-
-    const drawnWidth = cropperImageWidth * cropperScale * factorX;
-    const drawnHeight = cropperImageHeight * cropperScale * factorY;
-    const drawnX = targetWidth / 2 + cropperX * factorX - drawnWidth / 2;
-    const drawnY = targetHeight / 2 + cropperY * factorY - drawnHeight / 2;
-
-    context.clearRect(0, 0, targetWidth, targetHeight);
-
-    if (circular) {
-        context.save();
-        context.beginPath();
-        context.arc(
-            targetWidth / 2,
-            targetHeight / 2,
-            Math.min(targetWidth, targetHeight) / 2,
-            0,
-            Math.PI * 2
-        );
-        context.closePath();
-        context.clip();
-    }
-
-    context.imageSmoothingEnabled = true;
-    context.imageSmoothingQuality = 'high';
-    context.drawImage(
-        image,
-        drawnX,
-        drawnY,
-        drawnWidth,
-        drawnHeight
-    );
-
-    if (circular) {
-        context.restore();
-    }
-
-    const resultBase64 = circular
-        ? canvas.toDataURL('image/png')
-        : canvas.toDataURL('image/jpeg', 0.9);
-
-    document.getElementById('cropper-modal-view').classList.remove('active');
-
-    if (cropperMode === 'profile-avatar') {
-        tempProfileAvatarBase64 = resultBase64;
-        const avatar = document.getElementById('my-profile-avatar');
-        avatar.style.backgroundImage = `url(${resultBase64})`;
-        avatar.style.backgroundPosition = 'center';
-        avatar.style.backgroundSize = 'cover';
-        avatar.innerText = '';
-    } else if (cropperMode === 'contact-avatar') {
-        tempContactAvatarBase64 = resultBase64;
-        const avatar = document.getElementById('contact-avatar-preview');
-        avatar.style.backgroundImage = `url(${resultBase64})`;
-        avatar.style.backgroundPosition = 'center';
-        avatar.style.backgroundSize = 'cover';
-        avatar.innerText = '';
-    } else if (cropperMode === 'global-wallpaper') {
-        globalWallpaperData = resultBase64;
-        applyGlobalWallpaperUI();
-        savePrivacySettings();
-    } else if (cropperMode === 'personal-wallpaper') {
-        personalWallpaperData[currentPeer] = resultBase64;
-        applyActiveChatWallpaperUI(resultBase64);
-        savePersonalWallpaper(resultBase64);
-        document.getElementById('reset-personal-wallpaper-btn').style.display = 'block';
-    } else if (cropperMode === 'channel-avatar') {
-        tempChannelAvatarBase64 = resultBase64;
-        const avatar = document.getElementById('channel-avatar-preview');
-        avatar.style.backgroundImage = `url(${resultBase64})`;
-        avatar.style.backgroundPosition = 'center';
-        avatar.style.backgroundSize = 'cover';
-        avatar.innerText = '';
-    } else if (cropperMode === 'channel-edit-avatar') {
-        const channelId = currentPeer;
-        const channelKey = channelKeysCache[channelId];
-
-        if (!channelKey) return;
-
-        window.fb.update(
-            window.fb.ref(window.fb.db, `channels/${channelId}/profile`),
-            { avatar: aesEncrypt(resultBase64, channelKey) }
-        ).then(() => {
-            const avatar = document.getElementById('chat-header-av');
-            avatar.style.backgroundImage = `url(${resultBase64})`;
-            avatar.style.backgroundPosition = 'center';
-            avatar.style.backgroundSize = 'cover';
-            avatar.innerText = '';
-            delete profileCache[channelId];
-            alert('Аватарка обновлена!');
-            closeModal('peer-profile-modal');
-        });
-    }
-
-    cropperRawBase64 = '';
-    isDraggingCropper = false;
-}
-
-document.getElementById('cropper-zoom').oninput = event => {
-    cropperScale = parseFloat(event.target.value);
-    updateCropperTransform();
-};
-
-const cropperWork = document.getElementById('cropper-workspace');
-let activeCropperPointer = null;
-
-cropperWork.addEventListener('pointerdown', event => {
-    activeCropperPointer = event.pointerId;
-    isDraggingCropper = true;
-    lastTouchX = event.clientX;
-    lastTouchY = event.clientY;
-    cropperWork.setPointerCapture(event.pointerId);
-    event.preventDefault();
-});
-
-cropperWork.addEventListener('pointermove', event => {
-    if (!isDraggingCropper || event.pointerId !== activeCropperPointer) return;
-
-    const dx = event.clientX - lastTouchX;
-    const dy = event.clientY - lastTouchY;
-
-    cropperX += dx;
-    cropperY += dy;
-    lastTouchX = event.clientX;
-    lastTouchY = event.clientY;
-
-    updateCropperTransform();
-    event.preventDefault();
-});
-
-cropperWork.addEventListener('pointerup', event => {
-    if (event.pointerId !== activeCropperPointer) return;
-
-    isDraggingCropper = false;
-    activeCropperPointer = null;
-
-    if (cropperWork.hasPointerCapture(event.pointerId)) {
-        cropperWork.releasePointerCapture(event.pointerId);
-    }
-});
-
-cropperWork.addEventListener('pointercancel', () => {
-    isDraggingCropper = false;
-    activeCropperPointer = null;
-});
+        document.getElementById('cropper-zoom').oninput = (e) => {
+            cropperScale = parseFloat(e.target.value); updateCropperTransform();
+        };
+        const cropperWork = document.getElementById('cropper-workspace');
+        cropperWork.onmousedown = () => { isDraggingCropper = true; };
+        window.onmouseup = () => { isDraggingCropper = false; };
+        cropperWork.onmousemove = (e) => {
+            if (isDraggingCropper) {
+                cropperX += e.movementX; cropperY += e.movementY; updateCropperTransform();
+            }
+        };
+        cropperWork.ontouchstart = (e) => {
+            if (e.touches.length === 1) {
+                isDraggingCropper = true;
+                lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY;
+            }
+        };
+        cropperWork.ontouchend = () => { isDraggingCropper = false; };
+        cropperWork.ontouchmove = (e) => {
+            if (isDraggingCropper && e.touches.length === 1) {
+                const dx = e.touches[0].clientX - lastTouchX; const dy = e.touches[0].clientY - lastTouchY;
+                cropperX += dx; cropperY += dy;
+                lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY;
+                updateCropperTransform();
+            }
+        };
 
         async function decryptAndRenderLastMsg(peerId, encryptedText, elementNode, msgId) {
             let sharedKey = derivedKeysCache[peerId];
