@@ -2111,7 +2111,7 @@
                         </div>
                     </div>
                     <div style="display:flex; gap: 8px;">
-                        <button class="header-btn" onclick="editContact('${escapeHTML(peerId)}')" >
+                        <button class="header-btn" onclick="editContact('${escapeHTML(peerId)}')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         </button>
                         <button class="header-btn" style="color: var(--error);" onclick="deleteContact('${escapeHTML(peerId)}')">
@@ -2506,9 +2506,9 @@
                         </div>
                         <div class="chat-info">
                             <div class="chat-name-row">
-                                <div class="chat-row-name"><span>${pinSvg}</span><span id="name-${escapeHTML(peerId)}">Загрузка...</span></div>
+                                <div class="chat-row-name"><span id="name-${escapeHTML(peerId)}">Загрузка...</span></div>
                                 <div class="chat-row-time" id="time-${escapeHTML(peerId)}">
-                                    <span id="time-val-${escapeHTML(peerId)}"></span>
+                                    ${pinSvg}<span id="time-val-${escapeHTML(peerId)}"></span>
                                     <div id="badge-container-${escapeHTML(peerId)}"></div>
                                 </div>
                             </div>
@@ -3854,7 +3854,7 @@
                 delete personalWallpaperData[currentPeer];
                 await window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/privacy/personalWallpaper/${currentPeer}`));
                 loadActiveChatWallpaper();
-                document.getElementById('reset-personal-wallpaper-btn').style.display = "block";
+                document.getElementById('reset-personal-wallpaper-btn').style.display = "none";
                 alert("Фон этого чата сброшен.");
             }
             closeModal('peer-profile-modal');
@@ -4429,4 +4429,4 @@
         });
     </script>
 </body>
-</html>
+    </html>
