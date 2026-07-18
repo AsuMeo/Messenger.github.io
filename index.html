@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" text-security="dismissed">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Meow</title>
+    <title>VK Meow Messenger Pro</title>
     
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlZLIE1lb3cgTWVzc2VuZ2VyIiwKICAic2hvcnRfbmFtZSI6ICJWSyBNZW93IiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwMDAwMDAiLAogICJ0aGVtZV9jb2xvciI6ICIxRjgwE0EiCi99">
     <meta name="mobile-web-app-capable" content="yes">
@@ -1724,74 +1724,7 @@
         .tab-badge { position: absolute; top: 6px; right: calc(50% - 26px); background: var(--accent); color: white; font-size: 10px; font-weight: 800; min-width: 17px; height: 17px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 5px; animation: modalPopIn 0.2s ease; }
 
         .forwarded-label { font-size: 11px; color: rgba(255,255,255,0.55); font-style: italic; margin: 2px 10px 0 10px; }
-    
-        /* Meow v4 CSS additions */
-        .profile-music-card { display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.04); border-radius:14px; padding:10px 12px; margin-top:12px; cursor:pointer; transition:background 0.2s; }
-        .profile-music-card:hover { background:rgba(255,255,255,0.08); }
-        .profile-music-cover { width:48px; height:48px; border-radius:8px; background:var(--second); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
-        .profile-music-info { flex:1; overflow:hidden; }
-        .profile-music-title { font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .profile-music-artist { font-size:12px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .story-ring { width:64px; height:64px; border-radius:50%; padding:3px; background:linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer; }
-        .story-ring-inner { width:100%; height:100%; border-radius:50%; background:var(--bg-dark); border:2px solid var(--bg-dark); overflow:hidden; }
-        .story-ring-inner img { width:100%; height:100%; object-fit:cover; }
-        .stories-row { display:flex; gap:10px; padding:12px 16px; overflow-x:auto; border-bottom:1px solid #161618; }
-        .stories-row::-webkit-scrollbar { display:none; }
-        .story-username { font-size:11px; color:var(--text-muted); text-align:center; margin-top:4px; max-width:64px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .music-player-bar { position:fixed; bottom:70px; left:8px; right:8px; height:56px; background:rgba(22,22,24,0.97); backdrop-filter:blur(16px); border-radius:16px; border:1px solid rgba(255,255,255,0.08); display:none; align-items:center; padding:0 14px; gap:12px; z-index:200; }
-        .music-player-bar.active { display:flex; animation:modalPopIn 0.2s ease; }
-        .music-player-cover { width:40px; height:40px; border-radius:8px; background:var(--second); flex-shrink:0; }
-        .music-player-info { flex:1; overflow:hidden; }
-        .music-player-title { font-weight:700; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .music-player-artist { font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .music-player-btn { width:36px; height:36px; border-radius:50%; background:var(--accent); border:none; color:white; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
-
-
-        /* ===== Meow v4.5: Music, Stories, Video Stickers ===== */
-        .story-viewer-progress { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.25); z-index: 100; display: flex; gap: 4px; padding: 0 8px; }
-        .story-progress-segment { flex: 1; height: 100%; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden; }
-        .story-progress-fill { height: 100%; background: white; width: 0%; transition: width 0.1s linear; }
-        .story-ring.has-unseen { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
-        .story-ring.seen { background: var(--text-muted); }
-        .story-ring-inner { width: 100%; height: 100%; border-radius: 50%; background: var(--bg-dark); border: 2px solid var(--bg-dark); overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .story-ring-inner img { width: 100%; height: 100%; object-fit: cover; }
-        .story-add-btn { width: 64px; height: 64px; border-radius: 50%; border: 2px dashed var(--accent); display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 24px; cursor: pointer; flex-shrink: 0; background: rgba(31,128,224,0.05); }
-        .story-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; flex-shrink: 0; }
-        .video-sticker-container { width: 180px; height: 180px; border-radius: 12px; overflow: hidden; background: #111; }
-        .video-sticker-container video { width: 100%; height: 100%; object-fit: cover; }
-        .profile-header-online { display: inline-flex; align-items: center; gap: 6px; color: var(--online); font-size: 13px; font-weight: 600; margin-top: 4px; }
-        .profile-header-online::before { content: ""; width: 8px; height: 8px; background: var(--online); border-radius: 50%; display: inline-block; animation: onlinePulse 2s infinite; }
-        @keyframes onlinePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        .profile-card-enhanced { background: rgba(255,255,255,0.02); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 16px; }
-        .profile-stat-row { display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); margin: 12px 0; }
-        .profile-stat { text-align: center; }
-        .profile-stat-value { font-size: 18px; font-weight: 800; color: white; }
-        .profile-stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }
-        .music-wave-bar { display: inline-block; width: 3px; background: var(--accent); border-radius: 2px; margin: 0 1px; animation: musicWave 0.5s ease-in-out infinite alternate; }
-        @keyframes musicWave { from { height: 4px; } to { height: 16px; } }
-        .music-visualizer { display: flex; align-items: flex-end; height: 20px; gap: 2px; }
-
-
-        .profile-hero { background: rgba(255,255,255,0.02); border-radius: 24px; padding: 24px 20px; text-align: center; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 20px; position: relative; overflow: hidden; }
-        .profile-hero::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 50% 50%, rgba(31,128,224,0.08), transparent 70%); pointer-events: none; }
-        .profile-avatar-large { width: 100px; height: 100px; border-radius: 50%; background-size: cover; background-position: center; margin: 0 auto 12px; position: relative; z-index: 2; border: 3px solid rgba(31,128,224,0.3); box-shadow: 0 4px 20px rgba(31,128,224,0.2); display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 800; }
-        .profile-name-large { font-size: 22px; font-weight: 800; position: relative; z-index: 2; }
-        .profile-username-large { color: var(--accent); font-size: 14px; font-weight: 700; margin-top: 4px; position: relative; z-index: 2; }
-        .profile-bio-text { color: var(--text-muted); font-size: 14px; margin-top: 8px; line-height: 1.4; position: relative; z-index: 2; }
-        .profile-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
-        .profile-action-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 12px; color: white; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .profile-action-btn:hover { background: rgba(255,255,255,0.1); }
-        .profile-action-btn.primary { background: var(--accent); border-color: var(--accent); }
-        .profile-action-btn.primary:hover { background: #4A9FF0; }
-        .profile-action-btn.danger { background: rgba(255,59,48,0.1); border-color: rgba(255,59,48,0.2); color: var(--error); }
-        .profile-action-btn.danger:hover { background: rgba(255,59,48,0.2); }
-        .video-sticker-msg { width: 180px; height: 180px; border-radius: 14px; overflow: hidden; background: #111; cursor: pointer; position: relative; }
-        .video-sticker-msg video { width: 100%; height: 100%; object-fit: cover; }
-        .video-sticker-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.2s; }
-        .video-sticker-msg:hover .video-sticker-play { opacity: 1; }
-        .video-sticker-badge { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
-
-</style>
+    </style>
 </head>
 <body>
 
@@ -1804,7 +1737,7 @@
                     <path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3.5 3 3.5s3-1.5 3-3.5c0-1.66-1.34-3-3-3zm-4.5-3c-.83 0-1.5.67-1.5 1.5s.5 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.5 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5zm-11-4C5.17 7 4.5 7.67 4.5 8.5S5 10.5 6 10.5s1.5-1 1.5-2-.67-1.5-1.5-1.5zm13 0c-.83 0-1.5.67-1.5 1.5s.5 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5z"/>
                 </svg>
             </div>
-            <h1 style="font-size: 24px; margin-bottom: 6px;">Meow</h1>
+            <h1 style="font-size: 24px; margin-bottom: 6px;">VK Meow</h1>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Безопасный мессенджер нового поколения</p>
             
             <input type="email" id="login-email" class="search-bar" style="margin-bottom: 12px; width:100%;" placeholder="Электронная почта">
@@ -1816,7 +1749,7 @@
     </div>
 
     <div class="header-bar" id="app-header">
-        <div class="header-title" id="header-main-title">Meow</div>
+        <div class="header-title" id="header-main-title">VK Meow</div>
         <div class="header-buttons">
             <button class="header-btn" title="Избранное" onclick="openCloudChat()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
@@ -1966,22 +1899,7 @@
                     <input type="checkbox" id="semi-transparent-dialogs" class="modern-checkbox" onchange="toggleSemiTransparentDialogs(this.checked)">
                 </label>
 
-                
-                <h3 style="font-size: 18px; font-weight: 800; margin: 24px 0 4px 0;">Музыка и истории</h3>
-                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">КТО ВИДИТ МОЮ МУЗЫКУ</label>
-                <select id="privacy-music" class="search-bar" style="width: 100%; margin-bottom: 10px; appearance: none;" onchange="savePrivacySettings()">
-                    <option value="all">Все</option>
-                    <option value="contacts">Только контакты</option>
-                    <option value="none">Никто</option>
-                </select>
-                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">КТО ВИДИТ МОИ ИСТОРИИ</label>
-                <select id="privacy-stories" class="search-bar" style="width: 100%; margin-bottom: 10px; appearance: none;" onchange="savePrivacySettings()">
-                    <option value="all">Все</option>
-                    <option value="contacts">Только контакты</option>
-                    <option value="none">Никто</option>
-                </select>
-
-<h3 style="font-size: 18px; font-weight: 800; margin: 24px 0 4px 0; color: var(--error);">Опасная зона</h3>
+                <h3 style="font-size: 18px; font-weight: 800; margin: 24px 0 4px 0; color: var(--error);">Опасная зона</h3>
                 <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Полное удаление ваших следов из мессенджера</p>
                 <button class="menu-btn danger" onclick="deleteAccountPermanently()">Удалить аккаунт навсегда</button>
             </div>
@@ -2014,30 +1932,7 @@
                 <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ВАШ УНИКАЛЬНЫЙ НИКНЕЙМ (@)</label>
                 <input type="text" id="setting-username" class="search-bar" placeholder="username">
 
-                
-                <h3 style="font-size: 18px; font-weight: 800; margin: 24px 0 4px 0;">🎵 Моя музыка</h3>
-                <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 10px;">Загрузите трек, который отобразится в вашем профиле</p>
-                <input type="file" id="profile-music-upload" style="display: none;" accept="audio/*" onchange="handleMusicUpload(this.files[0])">
-                <button class="menu-btn" onclick="document.getElementById('profile-music-upload').click()" style="margin-bottom: 10px;">📤 Загрузить трек</button>
-                <div id="my-music-display" style="display: none;">
-                    <div class="profile-music-card" onclick="playMyMusic()">
-                        <div class="profile-music-cover" id="my-music-cover">🎵</div>
-                        <div class="profile-music-info">
-                            <div class="profile-music-title" id="my-music-title">Без названия</div>
-                            <div class="profile-music-artist" id="my-music-artist">Неизвестный исполнитель</div>
-                        </div>
-                        <div style="color: var(--accent); font-size: 12px; font-weight: 700;">▶ Слушать</div>
-                    </div>
-                    <button class="menu-btn danger" style="margin-top: 8px;" onclick="removeMyMusic()">🗑 Удалить трек</button>
-                </div>
-
-                <h3 style="font-size: 18px; font-weight: 800; margin: 24px 0 4px 0;">📸 Истории</h3>
-                <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 10px;">Фото и видео, которые исчезнут через 24 часа</p>
-                <input type="file" id="story-upload" style="display: none;" accept="image/*,video/*" onchange="handleStoryUpload(this.files[0])">
-                <button class="menu-btn" onclick="document.getElementById('story-upload').click()" style="margin-bottom: 10px;">➕ Добавить историю</button>
-                <div class="stories-row" id="my-stories-row"></div>
-
-<button class="search-action-btn" style="width: 100%; margin-top: 10px; height: 48px; justify-content: center;" onclick="saveProfileSettings()">
+                <button class="search-action-btn" style="width: 100%; margin-top: 10px; height: 48px; justify-content: center;" onclick="saveProfileSettings()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right: 6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Сохранить изменения
                 </button>
             </div>
@@ -2087,18 +1982,19 @@
                     <div class="chat-header-info">
                         <div class="chat-header-title">
                             <span id="chat-header-title">Загрузка...</span>
-                            </div>
+                            <svg id="header-shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
                         <div class="chat-header-status" id="chat-header-status">офлайн</div>
                     </div>
                 </div>
             </div>
             
             <div style="display: flex; align-items: center; gap: 4px; position: relative;">
-                <!-- Замок убран из шапки -->
-                
-                <button class="header-btn" id="call-btn" style="color: var(--accent);" onclick="handleCallButtonClick()" title="Звонок (удерживайте — видео)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <button class="header-btn" id="call-btn" style="color: var(--accent); display: none;" onclick="handleCallButtonClick()" title="Звонок (нажмите — аудио, удерживайте ~1с — видео)">
+                    <span id="call-btn-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
                 </button>
+                
+                
                 <button class="header-btn" onclick="toggleHeaderMenu(event)" title="Меню">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                 </button>
@@ -2110,13 +2006,10 @@
                     <button id="dropdown-add-contact-btn" class="menu-btn" style="background:transparent; margin-bottom:0; text-align:left; padding:12px 16px; font-size:13px; display:none; align-items:center; gap:8px; border-radius:0;" onclick="quickAddActivePeerToContacts(); toggleHeaderMenu(event);">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg> Добавить в контакты
                     </button>
+                    <button class="menu-btn" style="background:transparent; margin-bottom:0; text-align:left; padding:12px 16px; font-size:13px; display:flex; align-items:center; gap:8px; border-radius:0;" onclick="exportActiveChat(); toggleHeaderMenu(event);">
                     <button class="menu-btn" style="background:transparent; margin-bottom:0; text-align:left; padding:12px 16px; font-size:13px; display:flex; align-items:center; gap:8px; border-radius:0;" onclick="showE2EEVerification(); toggleHeaderMenu(event);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Сквозное шифрование
-                </button>
-                <button class="menu-btn" style="background:transparent; margin-bottom:0; text-align:left; padding:12px 16px; font-size:13px; display:flex; align-items:center; gap:8px; border-radius:0;" onclick="openClearHistoryModal(); toggleHeaderMenu(event);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Очистить историю
-                </button>
-                <button class="menu-btn" style="background:transparent; margin-bottom:0; text-align:left; padding:12px 16px; font-size:13px; display:flex; align-items:center; gap:8px; border-radius:0;" onclick="exportActiveChat(); toggleHeaderMenu(event);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="color:var(--secure)"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Верификация ключа
+                    </button>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Экспорт чата (.txt)
                     </button>
                 </div>
@@ -2231,40 +2124,45 @@
     </div>
 
     <div class="modal-overlay" id="peer-profile-modal">
-        <div class="modal-card" style="text-align: center;">
-            <div class="chat-avatar" id="peer-profile-av" style="width: 100px; height: 100px; font-size: 36px; margin: 0 auto 16px auto; background-color: var(--accent);">?</div>
-            <h3 id="peer-profile-name" style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">Имя</h3>
-            <p id="peer-profile-username" style="color: var(--accent); font-weight: 700; font-size: 14px; margin-bottom: 12px;">@username</p>
-            <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 14px; line-height: 1.4; margin-bottom: 16px;">Описание отсутствует</p>
-            
-            <button class="menu-btn" id="peer-add-contact-modal-btn" style="display: none; background: var(--secure);" onclick="quickAddActivePeerToContacts(); closeModal('peer-profile-modal');">Добавить в контакты</button>
-            <button class="menu-btn danger" id="peer-remove-contact-modal-btn" style="display: none;" onclick="deleteContactFromProfile()">Удалить из контактов</button>
+        <div class="modal-card" style="text-align: center; padding: 28px 24px;">
+            <div style="position: relative; display: inline-block; margin-bottom: 16px;">
+                <div class="chat-avatar" id="peer-profile-av" style="width: 110px; height: 110px; font-size: 42px; margin: 0 auto; background-color: var(--accent); box-shadow: 0 4px 20px rgba(0,0,0,0.4); border: 3px solid rgba(255,255,255,0.08);">?</div>
+                <div id="peer-profile-status-dot" style="position: absolute; bottom: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; background: var(--offline-dot); border: 3px solid #161618; display: none;"></div>
+            </div>
+            <h3 id="peer-profile-name" style="font-size: 22px; font-weight: 800; margin-bottom: 3px; letter-spacing: -0.3px;">Имя</h3>
+            <p id="peer-profile-username" style="color: var(--accent); font-weight: 700; font-size: 14px; margin-bottom: 6px;">@username</p>
+            <div id="peer-profile-online-status" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px; min-height: 18px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--offline-dot); display: inline-block;"></span>
+                <span>офлайн</span>
+            </div>
+            <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 14px; line-height: 1.5; margin-bottom: 20px; padding: 0 8px;">Описание отсутствует</p>
+
+            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 16px;">
+                <button class="menu-btn" id="peer-add-contact-modal-btn" style="display: none; flex: 1; background: var(--secure); font-weight: 700; margin-bottom: 0;" onclick="quickAddActivePeerToContacts(); closeModal('peer-profile-modal');">Добавить в контакты</button>
+                <button class="menu-btn" id="peer-remove-contact-modal-btn" style="display: none; flex: 1; background: var(--error); font-weight: 700; margin-bottom: 0;" onclick="deleteContactFromProfile()">Удалить из контактов</button>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; text-align: left;">🔐 Безопасность</div>
+                <button class="menu-btn" style="background: rgba(0,199,129,0.12); color: var(--secure); border: 1px dashed rgba(0,199,129,0.35); margin-bottom: 8px; font-weight: 700;" onclick="showE2EEVerification(); closeModal('peer-profile-modal');">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right:6px; vertical-align:middle;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Верификация ключа E2EE
+                </button>
+                <button class="menu-btn" style="background: rgba(31,128,224,0.12); color: var(--accent); border: 1px dashed rgba(31,128,224,0.35); margin-bottom: 0; font-weight: 700;" onclick="forceKeyExchange(); closeModal('peer-profile-modal');">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right:6px; vertical-align:middle;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    🔄 Принудительный обмен ключами
+                </button>
+            </div>
 
             <input type="file" id="personal-wallpaper-upload" style="display: none;" accept="image/*" onchange="processAndSetCrop(this.files[0], 'personal-wallpaper')">
-            <button class="menu-btn" style="background: var(--accent);" id="set-personal-wallpaper-btn" onclick="document.getElementById('personal-wallpaper-upload').click()">Свой фон для этого чата</button>
-            <button class="menu-btn danger" style="display: none;" id="reset-personal-wallpaper-btn" onclick="resetWallpaper(false)">Сбросить фон чата</button>
+            <button class="menu-btn" style="background: rgba(255,255,255,0.06); margin-bottom: 8px;" id="set-personal-wallpaper-btn" onclick="document.getElementById('personal-wallpaper-upload').click()">🖼 Свой фон для этого чата</button>
+            <button class="menu-btn danger" style="display: none; margin-bottom: 8px;" id="reset-personal-wallpaper-btn" onclick="resetWallpaper(false)">Сбросить фон чата</button>
 
-            <button class="menu-btn danger" id="peer-block-btn" style="display: none;" onclick="toggleBlockActivePeer()">Заблокировать пользователя</button>
+            <button class="menu-btn" id="peer-block-btn" style="display: none; margin-bottom: 8px; background: rgba(255,255,255,0.06);" onclick="toggleBlockActivePeer()">Заблокировать пользователя</button>
 
-            
-            <div id="peer-stories-section" style="display: none; margin-top: 16px;">
-                <div style="font-size: 12px; font-weight: bold; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Истории</div>
-                <div class="stories-row" id="peer-stories-row"></div>
-            </div>
-            <div id="peer-music-section" style="display: none; margin-top: 16px;">
-                <div style="font-size: 12px; font-weight: bold; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Музыка</div>
-                <div class="profile-music-card" id="peer-music-card" onclick="playPeerMusic()">
-                    <div class="profile-music-cover" id="peer-music-cover">🎵</div>
-                    <div class="profile-music-info">
-                        <div class="profile-music-title" id="peer-music-title">Без названия</div>
-                        <div class="profile-music-artist" id="peer-music-artist">Неизвестный исполнитель</div>
-                    </div>
-                    <div style="color: var(--accent); font-size: 12px; font-weight: 700;">▶</div>
-                </div>
-            </div>
-
-<button class="menu-btn" onclick="closeModal('peer-profile-modal')">Закрыть</button>
+            <button class="menu-btn" style="background: transparent; color: var(--text-muted);" onclick="closeModal('peer-profile-modal')">Закрыть</button>
         </div>
+    </div>
     </div>
 
     </div>
@@ -2422,12 +2320,7 @@
             <button class="menu-btn" style="display: flex; align-items: center; gap: 10px; text-align: left;" onclick="closeModal('attach-menu-modal'); openPollModal();">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" style="color: var(--secure); flex-shrink: 0;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Опрос
             </button>
-            <button class="menu-btn" style="display: flex; align-items: center; gap: 10px; text-align: left;" onclick="closeModal('attach-menu-modal'); document.getElementById('video-sticker-upload').click();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" style="color: #FF9500; flex-shrink: 0;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg> Видео-стикер
-            </button>
-            <input type="file" id="video-sticker-upload" style="display: none;" accept="video/webm" onchange="handleVideoStickerUpload(this.files[0]); this.value='';">
-            
-<button class="menu-btn" style="background: transparent;" onclick="closeModal('attach-menu-modal')">Отмена</button>
+            <button class="menu-btn" style="background: transparent;" onclick="closeModal('attach-menu-modal')">Отмена</button>
         </div>
     </div>
 
@@ -2659,7 +2552,7 @@
     <!-- ===== v3: экран блокировки PIN ===== -->
     <div id="pin-lock-screen">
         <svg viewBox="0 0 100 100" width="52" height="52" fill="var(--accent)"><circle cx="35" cy="30" r="14"/><circle cx="65" cy="30" r="14"/><ellipse cx="50" cy="62" rx="34" ry="28"/><circle cx="35" cy="60" r="7" fill="white"/><circle cx="65" cy="60" r="7" fill="white"/><circle cx="37" cy="62" r="3.5" fill="black"/><circle cx="63" cy="62" r="3.5" fill="black"/><ellipse cx="50" cy="73" rx="5" ry="3.5" fill="white"/></svg>
-        <div style="font-size: 18px; font-weight: 800;">Meow заблокирован</div>
+        <div style="font-size: 18px; font-weight: 800;">VK Meow заблокирован</div>
         <div class="pin-dots" id="pin-lock-dots">
             <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
         </div>
@@ -4183,9 +4076,12 @@
             const removeBtn = document.getElementById('peer-remove-contact-modal-btn');
             const wallBtn = document.getElementById('set-personal-wallpaper-btn');
             const wallReset = document.getElementById('reset-personal-wallpaper-btn');
+            const statusDot = document.getElementById('peer-profile-status-dot');
+            const onlineStatus = document.getElementById('peer-profile-online-status');
 
             addBtn.style.display = "none";
             removeBtn.style.display = "none";
+            if (statusDot) statusDot.style.display = 'none';
 
             getCachedProfile(currentPeer, (cached) => {
                 const fullName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
@@ -4219,8 +4115,54 @@
                     blockBtn.classList.add('danger');
                     blockBtn.style.background = "";
                 }
+
+                // Загружаем статус онлайн для профиля
+                loadProfileOnlineStatus(currentPeer);
             });
             openModal('peer-profile-modal');
+        }
+
+        async function loadProfileOnlineStatus(peerId) {
+            const statusDot = document.getElementById('peer-profile-status-dot');
+            const onlineStatus = document.getElementById('peer-profile-online-status');
+            if (!onlineStatus) return;
+            try {
+                const [presSnap, privSnap, contSnap] = await Promise.all([
+                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/presence`)),
+                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy`)),
+                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`))
+                ]);
+                let statusText = "офлайн";
+                let dotColor = "var(--offline-dot)";
+                let dotDisplay = "none";
+                let isOnline = false;
+                if (presSnap.exists()) {
+                    const pres = presSnap.val();
+                    const decLastSeen = normalizePrivacyVal(privSnap.exists() ? privSnap.val().lastSeen : "all", profileKeysCache[peerId]);
+                    const weAreContact = contSnap.exists();
+                    const hideOnline = (decLastSeen === "none") || (decLastSeen === "contacts" && !weAreContact);
+                    if (pres.status === "online" && !hideOnline) {
+                        statusText = "в сети";
+                        dotColor = "var(--online)";
+                        dotDisplay = "block";
+                        isOnline = true;
+                    } else {
+                        statusText = hideOnline ? "был(а) недавно" : formatFriendlyLastSeen(pres.lastSeen);
+                        if (!hideOnline) dotDisplay = "block";
+                    }
+                }
+                if (myBlockedUsers[peerId]) {
+                    statusText = "заблокирован 🚫";
+                    dotColor = "var(--error)";
+                }
+                onlineStatus.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background: ${dotColor}; display: inline-block; flex-shrink: 0;"></span><span>${statusText}</span>`;
+                if (statusDot) {
+                    statusDot.style.background = dotColor;
+                    statusDot.style.display = dotDisplay;
+                }
+            } catch (e) {
+                onlineStatus.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background: var(--offline-dot); display: inline-block;"></span><span>офлайн</span>`;
+            }
         }
 
         async function openChatWindow(peerId, roomId) {
@@ -7306,12 +7248,56 @@
         };
 
         function updateCallButtonsVisibility() {
-            const a = document.getElementById('audio-call-btn');
-            const v = document.getElementById('video-call-btn');
-            if (!a || !v) return;
+            const btn = document.getElementById('call-btn');
+            if (!btn) return;
             const show = !!(currentPeer && currentPeer !== myUid);
-            a.style.display = show ? 'flex' : 'none';
-            v.style.display = show ? 'flex' : 'none';
+            btn.style.display = show ? 'flex' : 'none';
+        }
+
+        let callBtnMode = 'audio'; // 'audio' | 'video'
+        let callBtnPressTimer = null;
+        let callBtnHoldTriggered = false;
+        let callBtnSuppressClickUntil = 0;
+
+        function handleCallButtonClick() {
+            if (Date.now() < callBtnSuppressClickUntil) return;
+            if (callBtnHoldTriggered) return;
+            startCall(callBtnMode);
+        }
+
+        function initCallButtonGestures() {
+            const btn = document.getElementById('call-btn');
+            if (!btn || btn.dataset.callBound) return;
+            btn.dataset.callBound = "1";
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                callBtnHoldTriggered = false;
+                try { btn.setPointerCapture(e.pointerId); } catch (err) {}
+                callBtnPressTimer = setTimeout(() => {
+                    callBtnHoldTriggered = true;
+                    callBtnMode = (callBtnMode === 'audio') ? 'video' : 'audio';
+                    const wrap = document.getElementById('call-btn-icon-wrap');
+                    if (wrap) {
+                        if (callBtnMode === 'video') {
+                            wrap.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`;
+                            btn.title = "Видеозвонок (нажмите — позвонить, удерживайте — аудио)";
+                        } else {
+                            wrap.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`;
+                            btn.title = "Аудиозвонок (нажмите — позвонить, удерживайте — видео)";
+                        }
+                    }
+                    meowVibrate(10);
+                    callBtnSuppressClickUntil = Date.now() + 400;
+                }, 700);
+            });
+            btn.addEventListener('pointerup', () => {
+                clearTimeout(callBtnPressTimer);
+                setTimeout(() => { callBtnHoldTriggered = false; }, 300);
+            });
+            btn.addEventListener('pointercancel', () => {
+                clearTimeout(callBtnPressTimer);
+                callBtnHoldTriggered = false;
+            });
         }
 
         function stopRingtone() {
@@ -8531,7 +8517,7 @@
                     badge.style.display = 'none';
                 }
             }
-            const baseTitle = "Meow";
+            const baseTitle = "VK Meow Messenger Pro";
             document.title = total > 0 ? `(${total}) ${baseTitle}` : baseTitle;
         }
 
@@ -8978,1102 +8964,6 @@
             }
         });
         /* Мяу, всё готово! Мессенджер работает стабильно, чисто, быстро и полностью безопасно. Приятного использования! */
-    
-
-// ================== MEOW v4 PATCHES ==================
-
-// 1. ОДНА КНОПКА ЗВОНКА (как композер: тап = аудио, удержание ~800мс = видео)
-let callBtnPressTimer = null;
-let callBtnHoldTriggered = false;
-const callBtnEl = document.getElementById('call-btn');
-if (callBtnEl) {
-    callBtnEl.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        callBtnHoldTriggered = false;
-        try { callBtnEl.setPointerCapture(e.pointerId); } catch(err){}
-        callBtnPressTimer = setTimeout(() => {
-            callBtnHoldTriggered = true;
-            meowVibrate(18);
-            startCall('video');
-        }, 650);
-    });
-    callBtnEl.addEventListener('pointerup', () => {
-        clearTimeout(callBtnPressTimer);
-        if (!callBtnHoldTriggered) startCall('audio');
-    });
-    callBtnEl.addEventListener('pointercancel', () => {
-        clearTimeout(callBtnPressTimer);
-    });
-}
-function handleCallButtonClick() { /* обрабатывается через pointer events */ }
-
-// 2. ОЧИСТИТЬ ИСТОРИЮ
-function openClearHistoryModal() {
-    document.getElementById('clear-history-both-checkbox').checked = false;
-    openModal('clear-history-modal');
-}
-async function confirmClearHistory() {
-    closeModal('clear-history-modal');
-    if (!currentRoomId) return;
-    const both = document.getElementById('clear-history-both-checkbox').checked;
-    const snap = await window.fb.get(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`));
-    if (snap.exists()) {
-        const msgs = snap.val();
-        const updates = {};
-        Object.keys(msgs).forEach(k => { updates[`messages/${currentRoomId}/list/${k}`] = null; });
-        await window.fb.update(window.fb.ref(window.fb.db), updates);
-    }
-    if (both) {
-        await window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}`));
-    }
-    activeChatMessagesData = {};
-    renderActiveChatMessages();
-    alert(both ? 'История удалена у обоих' : 'История очищена у вас');
-}
-
-// 3. АВТО-УДАЛЕНИЕ БИТЫХ СООБЩЕНИЙ (через 1 час)
-setInterval(() => {
-    if (!currentRoomId || !activeChatMessagesData) return;
-    const now = Date.now();
-    const hour = 3600000;
-    Object.entries(activeChatMessagesData).forEach(([msgId, m]) => {
-        if (!m || !m.text) return;
-        if (m.text.includes('🔒 Сообщение зашифровано другим ключом') && m.time && (now - m.time > hour)) {
-            window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`));
-        }
-    });
-}, 30000); // проверка каждые 30 сек
-
-// 4. ЗАДЕРЖКА РЕАКЦИЙ (1 секунда перед удалением)
-let reactionDebounceTimers = {};
-async function toggleReactionDirectDebounced(msgId, emoji) {
-    const key = msgId + '_' + emoji;
-    if (reactionDebounceTimers[key]) {
-        clearTimeout(reactionDebounceTimers[key]);
-        delete reactionDebounceTimers[key];
-        return; // игнорируем повторный тап в течение 1 сек
-    }
-    await toggleReactionDirect(msgId, emoji);
-    reactionDebounceTimers[key] = setTimeout(() => {
-        delete reactionDebounceTimers[key];
-    }, 1000);
-}
-// Переопределяем глобальную функцию для использования в UI
-const _origToggleReaction = toggleReactionDirect;
-toggleReactionDirect = async function(msgId, emoji) {
-    const key = msgId + '_' + emoji;
-    if (reactionDebounceTimers[key]) return;
-    await _origToggleReaction(msgId, emoji);
-    reactionDebounceTimers[key] = setTimeout(() => delete reactionDebounceTimers[key], 1000);
-};
-
-// 5. ПОЛНОЭКРАННЫЙ РЕЖИМ
-document.addEventListener('click', (e) => {
-    if (e.target.closest('.header-btn') || e.target.closest('.tab-button') || e.target.closest('.chat-row')) {
-        try {
-            const el = document.documentElement;
-            if (el.requestFullscreen) el.requestFullscreen();
-            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-            else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
-            else if (el.msRequestFullscreen) el.msRequestFullscreen();
-        } catch(err){}
-    }
-});
-
-// 6. СВАЙП ПАПОК (вправо/влево по списку чатов)
-let folderSwipeStartX = 0;
-const tab0 = document.getElementById('tab-0');
-if (tab0) {
-    tab0.addEventListener('touchstart', (e) => { folderSwipeStartX = e.touches[0].clientX; }, { passive: true });
-    tab0.addEventListener('touchend', (e) => {
-        const diff = folderSwipeStartX - e.changedTouches[0].clientX;
-        if (Math.abs(diff) < 80) return;
-        const folderIds = ['all', 'personal', 'archive', ...Object.keys(customFolders)];
-        const idx = folderIds.indexOf(activeFolder);
-        if (diff > 0 && idx < folderIds.length - 1) switchFolder(folderIds[idx + 1]);
-        else if (diff < 0 && idx > 0) switchFolder(folderIds[idx - 1]);
-    }, { passive: true });
-}
-
-// 7. ДОБАВЛЕНИЕ КОНТАКТА ИЗ СПИСКА ЧАТОВ (в dropdown чат-опций)
-async function addToContactsFromChat(peerId) {
-    if (!peerId || peerId === myUid) return;
-    selectedContactUid = peerId;
-    isEditingContact = false;
-    getCachedProfile(peerId, (prof) => {
-        document.getElementById('contact-custom-name').value = prof.name || "";
-        document.getElementById('contact-custom-lastname').value = prof.lastname || "";
-        tempContactAvatarBase64 = prof.avatar || "";
-        const avPreview = document.getElementById('contact-avatar-preview');
-        if (tempContactAvatarBase64) { avPreview.style.backgroundImage = `url(${tempContactAvatarBase64})`; avPreview.innerText = ""; }
-        else { avPreview.style.backgroundImage = "none"; avPreview.innerText = "?"; }
-        document.getElementById('contact-search-step').style.display = "none";
-        document.getElementById('contact-edit-step').style.display = "block";
-        openModal('add-contact-modal');
-    });
-}
-
-// 8. ЦИТИРОВАНИЕ ТЕКСТА (выделение → цитата)
-let textSelectionQuote = null;
-document.addEventListener('selectionchange', () => {
-    const sel = window.getSelection();
-    const txt = sel.toString().trim();
-    if (txt && txt.length > 0 && txt.length < 500 && document.getElementById('chat-window').classList.contains('active')) {
-        textSelectionQuote = txt;
-    } else {
-        textSelectionQuote = null;
-    }
-});
-// Перехватываем отправку: если есть выделение, цитируем его
-const _origHandleSend = handleSendClick;
-handleSendClick = async function() {
-    const sel = window.getSelection();
-    const selectedText = sel ? sel.toString().trim() : "";
-    if (selectedText && selectedText.length > 0 && selectedText.length < 500 && !replyTargetMessageId) {
-        replyTargetMessageId = 'selection_' + Date.now();
-        replyTargetSenderName = 'Выделенный текст';
-        replyTargetText = selectedText;
-        setupReplyUI();
-        sel.removeAllRanges();
-    }
-    return _origHandleSend.apply(this, arguments);
-};
-
-// 9. ФИКС БАГА ПУСТОГО СПИСКА ДИАЛОГОВ
-const _origLoadDialogs = loadDialogs;
-loadDialogs = function() {
-    try {
-        _origLoadDialogs();
-    } catch(e) {
-        console.error('loadDialogs error', e);
-        setTimeout(() => {
-            if (document.getElementById('chats-list-container').innerHTML === '') {
-                _origLoadDialogs();
-            }
-        }, 300);
-    }
-};
-// Также принудительно перезагружаем при закрытии чата
-const _origCloseChat = closeChat;
-closeChat = function() {
-    _origCloseChat();
-    setTimeout(loadDialogs, 150);
-};
-
-// 10. УЛУЧШЕНИЕ ЗВОНКОВ — переключение камеры/микрофона во время звонка
-async function toggleCallVideo() {
-    if (!pc || !localStream) return;
-    const hasVideo = localStream.getVideoTracks().length > 0;
-    if (hasVideo) {
-        // выключаем камеру (переходим в аудио-режим, но звонок продолжается)
-        localStream.getVideoTracks().forEach(t => { t.stop(); localStream.removeTrack(t); });
-        const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
-        if (sender) sender.replaceTrack(null);
-        callVideoOn = false;
-        document.getElementById('call-video-toggle-btn').classList.add('off');
-        document.getElementById('call-local-video').style.display = 'none';
-    } else {
-        // включаем камеру
-        try {
-            const vStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: callFacing } });
-            const vTrack = vStream.getVideoTracks()[0];
-            localStream.addTrack(vTrack);
-            const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
-            if (sender) { await sender.replaceTrack(vTrack); }
-            else { pc.addTrack(vTrack, localStream); }
-            callVideoOn = true;
-            document.getElementById('call-video-toggle-btn').classList.remove('off');
-            const lv = document.getElementById('call-local-video');
-            lv.srcObject = localStream; lv.style.display = 'block';
-        } catch(e) { alert('Не удалось включить камеру'); }
-    }
-}
-async function toggleCallAudio() {
-    if (!localStream) return;
-    localStream.getAudioTracks().forEach(t => { t.enabled = !t.enabled; });
-    document.getElementById('call-mute-btn').classList.toggle('off', !localStream.getAudioTracks()[0]?.enabled);
-}
-// Переопределяем toggleCallMute для корректной работы
-const _origToggleCallMute = toggleCallMute;
-toggleCallMute = function() {
-    if (!localStream) return;
-    const audioTrack = localStream.getAudioTracks()[0];
-    if (audioTrack) { audioTrack.enabled = !audioTrack.enabled; }
-    callMuted = !callMuted;
-    const btn = document.getElementById('call-mute-btn');
-    if (btn) btn.classList.toggle('off', callMuted);
-};
-
-// 11. ЗАКРЕПЛЁННЫЕ СООБЩЕНИЯ — E2EE (уже есть, но проверим и зашифруем если plaintext)
-const _origTriggerPinFromMenu = triggerPinFromMenu;
-triggerPinFromMenu = async function() {
-    closeModal('msg-options-modal');
-    if (!activeMenuMsgId || !activeMenuMsgObj) return;
-    let plainText = activeMenuMsgObj.text || "Медиа";
-    // Если уже зашифровано — оставляем как есть, если нет — шифруем
-    if (!plainText.startsWith("[MEOW]") && activeRoomSharedKey) {
-        plainText = "[MEOW]" + aesEncrypt(JSON.stringify({ text: plainText }), activeRoomSharedKey);
-    }
-    await window.fb.set(window.fb.ref(window.fb.db, `messages/${currentRoomId}/pinned`), {
-        msgId: activeMenuMsgId, text: plainText, kv: activeRoomKv
-    });
-};
-
-// 12. ПРОФИЛИ — улучшение: онлайн-статус, кнопка обмена ключей
-function showActivePeerProfileEnhanced() {
-    showActivePeerProfile();
-    // Добавляем статус в модалку профиля
-    const modal = document.getElementById('peer-profile-modal');
-    if (!modal) return;
-    let statusDiv = document.getElementById('peer-profile-status');
-    if (!statusDiv) {
-        statusDiv = document.createElement('div');
-        statusDiv.id = 'peer-profile-status';
-        statusDiv.style.cssText = 'color: var(--text-muted); font-size: 13px; margin-bottom: 12px;';
-        const bio = document.getElementById('peer-profile-bio');
-        if (bio && bio.parentNode) bio.parentNode.insertBefore(statusDiv, bio);
-    }
-    if (currentPeer && currentPeer !== myUid) {
-        const presRef = window.fb.ref(window.fb.db, `users/${currentPeer}/presence`);
-        window.fb.get(presRef).then(snap => {
-            if (snap.exists()) {
-                const p = snap.val();
-                statusDiv.innerText = p.status === 'online' ? '🟢 в сети' : (p.lastSeen ? 'был(а) ' + formatFriendlyLastSeen(p.lastSeen) : 'офлайн');
-            } else { statusDiv.innerText = 'офлайн'; }
-        });
-    }
-}
-// Переопределяем showActivePeerProfile
-const _origShowActivePeerProfile = showActivePeerProfile;
-showActivePeerProfile = function() { showActivePeerProfileEnhanced(); };
-
-// 13. МУЗЫКА В ПРОФИЛЕ (базовая реализация)
-let myMusicTrack = null;
-function openMusicPicker() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'audio/*';
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const base64 = await fileToBase64(file);
-        const meta = { name: file.name.replace(/\.[^/.]+$/, ""), artist: "Unknown", cover: "", data: base64 };
-        // Пытаемся извлечь метаданные через Audio (очень базово)
-        try {
-            const audio = new Audio(URL.createObjectURL(file));
-            await new Promise(r => { audio.onloadedmetadata = r; audio.onerror = r; setTimeout(r, 500); });
-            meta.duration = audio.duration;
-        } catch(e){}
-        await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile/music`), meta);
-        alert('Музыка обновлена!');
-    };
-    input.click();
-}
-
-// 14. ИСТОРИИ (Stories) — базовая структура
-async function postStory() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*,video/*';
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const base64 = await fileToBase64(file);
-        const story = { media: base64, type: file.type.startsWith('video') ? 'video' : 'image', time: Date.now(), caption: '' };
-        await window.fb.push(window.fb.ref(window.fb.db, `users/${myUid}/stories`), story);
-        alert('История опубликована!');
-    };
-    input.click();
-}
-
-// 15. СТИКЕРЫ/КРУЖКИ В СПИСКЕ ЧАТОВ — превью
-// Уже есть для фото, добавляем для стикеров и видеоноток
-const _origDecryptAndRenderLastMsg = decryptAndRenderLastMsg;
-decryptAndRenderLastMsg = async function(peerId, encryptedText, elementNode, msgId, kv, senderId, isRead) {
-    let displayedText = "Сообщение";
-    let thumbHtml = "";
-    const obj = await decryptMessageCached(msgId, encryptedText, kv, peerId);
-    if (obj) {
-        if (obj.sticker || obj.animatedSticker) {
-            displayedText = "Стикер";
-            if (obj.fileData) {
-                const t = await buildLastMsgThumb(msgId, obj.fileData);
-                if (t) thumbHtml = `<span class="dlg-media-thumb" style="background-image:url(${t}); border-radius:50%;"></span>`;
-            }
-        } else if (obj.videoNote) {
-            displayedText = "📹 Видеосообщение";
-            if (obj.fileData) {
-                const t = await buildLastMsgThumb(msgId, obj.fileData);
-                if (t) thumbHtml = `<span class="dlg-media-thumb" style="background-image:url(${t}); border-radius:50%;"></span>`;
-            }
-        }
-    }
-    // Вызываем оригинал для остального
-    return _origDecryptAndRenderLastMsg(peerId, encryptedText, elementNode, msgId, kv, senderId, isRead);
-};
-// Переопределение thumb для стикеров — используем canvas для круглого превью
-const _origBuildLastMsgThumb = buildLastMsgThumb;
-buildLastMsgThumb = async function(msgId, dataUrl) {
-    if (msgThumbCache[msgId]) return msgThumbCache[msgId];
-    const thumb = await new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-            try {
-                const S = 48;
-                const c = document.createElement('canvas');
-                c.width = S; c.height = S;
-                const ctx = c.getContext('2d');
-                ctx.beginPath();
-                ctx.arc(S/2, S/2, S/2, 0, Math.PI*2);
-                ctx.closePath();
-                ctx.clip();
-                const ratio = Math.max(S / img.width, S / img.height);
-                const w = img.width * ratio, h = img.height * ratio;
-                ctx.drawImage(img, (S - w) / 2, (S - h) / 2, w, h);
-                resolve(c.toDataURL('image/jpeg', 0.7));
-            } catch (e) { resolve(""); }
-        };
-        img.onerror = () => resolve("");
-        img.src = dataUrl;
-    });
-    msgThumbCache[msgId] = thumb;
-    return thumb;
-};
-
-// 16. ДОБАВЛЕНИЕ КОНТАКТА ИЗ ЧАТОВ — кнопка в chat-options-modal
-const chatOptionsModalOld = document.getElementById('chat-options-modal');
-if (chatOptionsModalOld) {
-    const addContactBtn = document.createElement('button');
-    addContactBtn.className = 'menu-btn';
-    addContactBtn.id = 'chat-options-add-contact-btn';
-    addContactBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg> Добавить в контакты`;
-    addContactBtn.onclick = () => { addToContactsFromChat(activeMenuPeerId); closeModal('chat-options-modal'); };
-    const firstBtn = chatOptionsModalOld.querySelector('.menu-btn');
-    if (firstBtn) firstBtn.parentNode.insertBefore(addContactBtn, firstBtn);
-}
-
-// 17. УЛУЧШЕННЫЕ TURN СЕРВЕРА ДЛЯ РОССИИ
-const RTC_CONFIG_RU = {
-    iceServers: [
-        { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302"] },
-        { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
-        { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
-        { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" },
-        { urls: "turn:turn.anyfirewall.com:443?transport=tcp", username: "webrtc", credential: "webrtc" },
-        { urls: "turn:turn01.hubl.in?transport=udp" },
-        { urls: "turn:turn02.hubl.in?transport=tcp" }
-    ],
-    iceTransportPolicy: 'all',
-    bundlePolicy: 'max-bundle',
-    rtcpMuxPolicy: 'require'
-};
-// Заменяем глобальную конфигурацию
-window.RTC_CONFIG = RTC_CONFIG_RU;
-
-// 18. ИСПРАВЛЕНИЕ: renderActiveChatMessages — проверка на пустой объект
-const _origRenderActiveChatMessages = renderActiveChatMessages;
-renderActiveChatMessages = async function() {
-    if (!activeChatMessagesData) activeChatMessagesData = {};
-    return _origRenderActiveChatMessages();
-};
-
-// ================== END PATCHES ==================
-
-
-
-// ================== MEOW v4.5: MUSIC, STORIES, VIDEO STICKERS ==================
-
-// ===== МУЗЫКА =====
-let currentAudio = null;
-let currentMusicData = null;
-let isPlaying = false;
-let myMusicData = null;
-let peerMusicData = null;
-
-async function handleMusicUpload(file) {
-    if (!file) return;
-    if (file.size > 15 * 1024 * 1024) { alert("Файл слишком большой (макс 15 МБ)"); return; }
-    const base64 = await fileToBase64(file);
-    // Извлекаем метаданные
-    let title = file.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ");
-    let artist = "Неизвестный исполнитель";
-    let cover = "";
-    let duration = 0;
-
-    try {
-        const audio = new Audio(URL.createObjectURL(file));
-        await new Promise((res, rej) => { audio.onloadedmetadata = res; audio.onerror = rej; setTimeout(res, 800); });
-        duration = audio.duration || 0;
-    } catch(e) {}
-
-    myMusicData = { data: base64, title, artist, cover, duration, type: file.type, time: Date.now() };
-    await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/profile/music`), myMusicData);
-    renderMyMusic();
-    alert("Трек загружен!");
-}
-
-function renderMyMusic() {
-    const display = document.getElementById('my-music-display');
-    if (!display || !myMusicData) { if (display) display.style.display = 'none'; return; }
-    display.style.display = 'block';
-    document.getElementById('my-music-title').innerText = myMusicData.title || "Без названия";
-    document.getElementById('my-music-artist').innerText = myMusicData.artist || "Неизвестный исполнитель";
-    const cover = document.getElementById('my-music-cover');
-    if (myMusicData.cover) { cover.style.backgroundImage = `url(${myMusicData.cover})`; cover.innerText = ""; }
-    else { cover.style.backgroundImage = "none"; cover.innerText = "🎵"; }
-}
-
-function removeMyMusic() {
-    if (!confirm("Удалить трек?")) return;
-    window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/profile/music`));
-    myMusicData = null;
-    renderMyMusic();
-    closePlayer();
-}
-
-function playMyMusic() {
-    if (!myMusicData) return;
-    playMusicTrack(myMusicData, true);
-}
-
-function playPeerMusic() {
-    if (!peerMusicData) return;
-    playMusicTrack(peerMusicData, false);
-}
-
-function playMusicTrack(track, isMine) {
-    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-    currentMusicData = track;
-
-    const bar = document.getElementById('music-player-bar');
-    bar.classList.add('active');
-    document.getElementById('player-title').innerText = track.title || "Без названия";
-    document.getElementById('player-artist').innerText = track.artist || "Неизвестный исполнитель";
-    const cover = document.getElementById('player-cover');
-    if (track.cover) { cover.style.backgroundImage = `url(${track.cover})`; cover.innerText = ""; }
-    else { cover.style.backgroundImage = "none"; cover.innerText = "🎵"; }
-
-    if (track.data) {
-        currentAudio = new Audio(track.data);
-        currentAudio.play().catch(() => {});
-        isPlaying = true;
-        document.getElementById('player-play-btn').innerText = "⏸";
-        currentAudio.onended = () => { isPlaying = false; document.getElementById('player-play-btn').innerText = "▶"; };
-    }
-}
-
-function togglePlayer() {
-    if (!currentAudio) return;
-    if (isPlaying) { currentAudio.pause(); isPlaying = false; document.getElementById('player-play-btn').innerText = "▶"; }
-    else { currentAudio.play(); isPlaying = true; document.getElementById('player-play-btn').innerText = "⏸"; }
-}
-
-function closePlayer() {
-    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-    isPlaying = false;
-    document.getElementById('music-player-bar').classList.remove('active');
-}
-
-async function loadMyMusic() {
-    const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile/music`));
-    if (snap.exists()) { myMusicData = snap.val(); renderMyMusic(); }
-}
-
-// ===== ИСТОРИИ =====
-let myStories = [];
-let peerStories = [];
-let currentStoryIndex = 0;
-let currentStoryList = [];
-let storyTimer = null;
-let storyProgressTimer = null;
-
-async function handleStoryUpload(file) {
-    if (!file) return;
-    if (file.size > 20 * 1024 * 1024) { alert("Файл слишком большой (макс 20 МБ)"); return; }
-    const base64 = await fileToBase64(file);
-    const isVideo = file.type.startsWith('video/');
-    const story = {
-        media: base64,
-        type: isVideo ? 'video' : 'image',
-        time: Date.now(),
-        expiresAt: Date.now() + 24 * 60 * 60 * 1000,
-        caption: ""
-    };
-    await window.fb.push(window.fb.ref(window.fb.db, `users/${myUid}/stories`), story);
-    loadMyStories();
-    alert("История добавлена!");
-}
-
-async function loadMyStories() {
-    const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/stories`));
-    const now = Date.now();
-    myStories = [];
-    if (snap.exists()) {
-        Object.entries(snap.val()).forEach(([id, s]) => {
-            if (s.expiresAt > now) myStories.push({ id, ...s });
-            else window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/stories/${id}`));
-        });
-    }
-    myStories.sort((a, b) => b.time - a.time);
-    renderStoriesRow('my-stories-row', myStories, true);
-}
-
-function renderStoriesRow(containerId, stories, isMine) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = "";
-    if (isMine) {
-        const addBtn = document.createElement('div');
-        addBtn.className = 'story-add-btn';
-        addBtn.innerText = "+";
-        addBtn.onclick = () => document.getElementById('story-upload').click();
-        container.appendChild(addBtn);
-    }
-    stories.forEach((s, idx) => {
-        const item = document.createElement('div');
-        item.className = 'story-item';
-        item.onclick = () => openStoryViewer(stories, idx, isMine ? myNameCombined : (profileCache[currentPeer]?.name || "Пользователь"), isMine ? myProfileAvatarFetched : (profileCache[currentPeer]?.avatar || ""));
-        const ring = document.createElement('div');
-        ring.className = 'story-ring has-unseen';
-        const inner = document.createElement('div');
-        inner.className = 'story-ring-inner';
-        if (s.media) {
-            const img = document.createElement('img');
-            img.src = s.media;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            inner.appendChild(img);
-        } else { inner.innerText = isMine ? myNameCombined[0] : "?"; }
-        ring.appendChild(inner);
-        item.appendChild(ring);
-        const name = document.createElement('div');
-        name.className = 'story-username';
-        name.innerText = isMine ? "Вы" : (profileCache[currentPeer]?.name || "История");
-        item.appendChild(name);
-        container.appendChild(item);
-    });
-}
-
-function openStoryViewer(stories, index, peerName, peerAvatar) {
-    currentStoryList = stories;
-    currentStoryIndex = index;
-    const modal = document.getElementById('story-viewer-modal');
-    modal.classList.add('active');
-    document.getElementById('story-viewer-name').innerText = peerName || "История";
-    const av = document.getElementById('story-viewer-avatar');
-    if (peerAvatar) { av.style.backgroundImage = `url(${peerAvatar})`; av.innerText = ""; }
-    else { av.style.backgroundImage = "none"; av.innerText = (peerName || "?")[0]; }
-    showCurrentStory();
-}
-
-function showCurrentStory() {
-    const s = currentStoryList[currentStoryIndex];
-    if (!s) { closeStoryViewer(); return; }
-    const img = document.getElementById('story-viewer-img');
-    const vid = document.getElementById('story-viewer-video');
-    const caption = document.getElementById('story-viewer-caption');
-    document.getElementById('story-viewer-time').innerText = formatFriendlyLastSeen(s.time);
-
-    clearInterval(storyTimer);
-    clearInterval(storyProgressTimer);
-    document.getElementById('story-progress-bar').style.width = '0%';
-
-    if (s.type === 'video') {
-        img.style.display = 'none';
-        vid.style.display = 'block';
-        vid.src = s.media;
-        vid.play().catch(() => {});
-        let dur = 0;
-        vid.onloadedmetadata = () => { dur = vid.duration * 1000; startStoryProgress(dur); };
-        vid.onended = () => nextStory();
-        if (vid.readyState >= 2) { dur = vid.duration * 1000; startStoryProgress(dur); }
-    } else {
-        vid.style.display = 'none';
-        img.style.display = 'block';
-        img.src = s.media;
-        startStoryProgress(5000);
-        storyTimer = setTimeout(nextStory, 5000);
-    }
-    if (s.caption) { caption.innerText = s.caption; caption.style.display = 'block'; }
-    else caption.style.display = 'none';
-}
-
-function startStoryProgress(duration) {
-    const bar = document.getElementById('story-progress-bar');
-    bar.style.transition = 'none';
-    bar.style.width = '0%';
-    setTimeout(() => {
-        bar.style.transition = `width ${duration}ms linear`;
-        bar.style.width = '100%';
-    }, 50);
-}
-
-function nextStory() {
-    if (currentStoryIndex < currentStoryList.length - 1) {
-        currentStoryIndex++;
-        showCurrentStory();
-    } else closeStoryViewer();
-}
-
-function prevStory() {
-    if (currentStoryIndex > 0) {
-        currentStoryIndex--;
-        showCurrentStory();
-    }
-}
-
-function closeStoryViewer() {
-    clearInterval(storyTimer);
-    clearInterval(storyProgressTimer);
-    document.getElementById('story-viewer-modal').classList.remove('active');
-    const vid = document.getElementById('story-viewer-video');
-    vid.pause(); vid.src = "";
-}
-
-async function loadPeerStories(peerId) {
-    const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/stories`));
-    const now = Date.now();
-    peerStories = [];
-    if (snap.exists()) {
-        Object.entries(snap.val()).forEach(([id, s]) => { if (s.expiresAt > now) peerStories.push({ id, ...s }); });
-    }
-    peerStories.sort((a, b) => b.time - a.time);
-    const section = document.getElementById('peer-stories-section');
-    if (peerStories.length > 0) {
-        section.style.display = 'block';
-        renderStoriesRow('peer-stories-row', peerStories, false);
-    } else section.style.display = 'none';
-}
-
-// ===== ВИДЕО-СТИКЕРЫ =====
-async function handleVideoStickerUpload(file) {
-    if (!file || !activeRoomSharedKey) return;
-    if (!file.type.includes('webm')) { alert("Только .webm файлы"); return; }
-    const base64 = await fileToBase64(file);
-    const payload = { sticker: true, videoSticker: true, fileData: base64, fileType: 'video/webm' };
-    sendEncryptedPayload(payload);
-}
-
-// Перехватываем рендер сообщений для видео-стикеров
-const _origRenderActiveChatMessages_v2 = renderActiveChatMessages;
-renderActiveChatMessages = async function() {
-    await _origRenderActiveChatMessages_v2();
-    // Дополнительно обрабатываем видео-стикеры после рендера
-    document.querySelectorAll('.msg-sticker').forEach(el => {
-        const vid = el.querySelector('video');
-        if (vid && !vid.dataset.handled) {
-            vid.dataset.handled = "1";
-            vid.loop = true;
-            vid.muted = true;
-            vid.playsInline = true;
-            el.onclick = () => { if (vid.paused) vid.play(); else vid.pause(); };
-        }
-    });
-};
-
-// ===== УЛУЧШЕННЫЙ ПРОФИЛЬ =====
-const _origShowActivePeerProfile_v2 = showActivePeerProfile;
-showActivePeerProfile = async function() {
-    _origShowActivePeerProfile_v2();
-    if (!currentPeer || currentPeer === myUid) return;
-
-    // Загружаем музыку собеседника
-    const musicSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${currentPeer}/profile/music`));
-    const musicSection = document.getElementById('peer-music-section');
-    if (musicSnap.exists()) {
-        const m = musicSnap.val();
-        // Проверяем приватность музыки
-        const privSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${currentPeer}/privacy`));
-        let canSee = true;
-        if (privSnap.exists()) {
-            const p = privSnap.val();
-            const musicPriv = p.music || "all";
-            if (musicPriv === "none") canSee = false;
-            if (musicPriv === "contacts") {
-                const contSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${currentPeer}/contacts/${myUid}`));
-                if (!contSnap.exists()) canSee = false;
-            }
-        }
-        if (canSee) {
-            peerMusicData = m;
-            musicSection.style.display = 'block';
-            document.getElementById('peer-music-title').innerText = m.title || "Без названия";
-            document.getElementById('peer-music-artist').innerText = m.artist || "Неизвестный исполнитель";
-            const cover = document.getElementById('peer-music-cover');
-            if (m.cover) { cover.style.backgroundImage = `url(${m.cover})`; cover.innerText = ""; }
-            else { cover.style.backgroundImage = "none"; cover.innerText = "🎵"; }
-        } else musicSection.style.display = 'none';
-    } else musicSection.style.display = 'none';
-
-    // Загружаем stories
-    await loadPeerStories(currentPeer);
-
-    // Онлайн-статус в профиле
-    const presSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${currentPeer}/presence`));
-    const nameEl = document.getElementById('peer-profile-name');
-    if (presSnap.exists() && nameEl) {
-        const p = presSnap.val();
-        if (p.status === 'online') {
-            const onlineBadge = document.createElement('span');
-            onlineBadge.className = 'profile-header-online';
-            onlineBadge.innerText = 'в сети';
-            if (!nameEl.querySelector('.profile-header-online')) nameEl.appendChild(onlineBadge);
-        }
-    }
-};
-
-// Загружаем свою музыку при открытии профиля
-const _origLoadProfileSettings = loadProfileSettings;
-loadProfileSettings = async function() {
-    await _origLoadProfileSettings();
-    await loadMyMusic();
-    await loadMyStories();
-};
-
-// ===== ПРИВАТНОСТЬ МУЗЫКИ/ИСТОРИЙ =====
-const _origSavePrivacySettings = savePrivacySettings;
-savePrivacySettings = async function() {
-    await _origSavePrivacySettings();
-    const musicPriv = document.getElementById('privacy-music')?.value || "all";
-    const storiesPriv = document.getElementById('privacy-stories')?.value || "all";
-    await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/privacy`), {
-        music: musicPriv,
-        stories: storiesPriv
-    });
-};
-
-const _origLoadMyPrivacySettings = loadMyPrivacySettings;
-loadMyPrivacySettings = async function() {
-    await _origLoadMyPrivacySettings();
-    const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/privacy`));
-    if (snap.exists()) {
-        const p = snap.val();
-        if (document.getElementById('privacy-music')) document.getElementById('privacy-music').value = p.music || "all";
-        if (document.getElementById('privacy-stories')) document.getElementById('privacy-stories').value = p.stories || "all";
-    }
-};
-
-// ===== АВТО-УДАЛЕНИЕ ИСТОРИЙ (каждые 5 минут) =====
-setInterval(async () => {
-    if (!myUid) return;
-    const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/stories`));
-    const now = Date.now();
-    if (snap.exists()) {
-        Object.entries(snap.val()).forEach(([id, s]) => {
-            if (s.expiresAt <= now) window.fb.remove(window.fb.ref(window.fb.db, `users/${myUid}/stories/${id}`));
-        });
-    }
-}, 300000);
-
-// ================== END v4.5 PATCHES ==================
-
-
-
-// ================== MEOW v4.6: FINAL POLISH ==================
-
-// 1. УЛУЧШЕННЫЙ РЕНДЕРИНГ ПРОФИЛЯ (hero-секция)
-const _origLoadProfileSettings_v3 = loadProfileSettings;
-loadProfileSettings = async function() {
-    await _origLoadProfileSettings_v3();
-    // Улучшаем визуал tab-3
-    const tab3 = document.getElementById('tab-3');
-    if (tab3) {
-        const oldHero = tab3.querySelector('.profile-hero');
-        if (!oldHero) {
-            const firstChild = tab3.firstElementChild;
-            const hero = document.createElement('div');
-            hero.className = 'profile-hero';
-            hero.innerHTML = `
-                <div class="profile-avatar-large" id="hero-avatar" style="background-color: var(--accent); cursor: pointer;" onclick="document.getElementById('profile-avatar-upload').click()">?</div>
-                <div class="profile-name-large" id="hero-name">Профиль</div>
-                <div class="profile-username-large" id="hero-username"></div>
-                <div class="profile-bio-text" id="hero-bio">Описание отсутствует</div>
-                <div class="profile-action-grid">
-                    <button class="profile-action-btn primary" onclick="saveProfileSettings()">💾 Сохранить</button>
-                    <button class="profile-action-btn" onclick="logoutAction()">🚪 Выйти</button>
-                </div>
-            `;
-            tab3.insertBefore(hero, firstChild.nextSibling);
-            // Скрываем старый заголовок
-            const h2 = tab3.querySelector('h2');
-            if (h2) h2.style.display = 'none';
-            const p = tab3.querySelector('p');
-            if (p) p.style.display = 'none';
-        }
-        // Обновляем hero
-        const name = document.getElementById('setting-name')?.value || "Пользователь";
-        const last = document.getElementById('setting-lastname')?.value || "";
-        const uname = document.getElementById('setting-username')?.value || "";
-        const bio = document.getElementById('setting-bio')?.value || "";
-        const fullName = name + (last ? " " + last : "");
-        document.getElementById('hero-name').innerText = fullName;
-        document.getElementById('hero-username').innerText = uname ? "@" + uname : "";
-        document.getElementById('hero-bio').innerText = bio || "Описание отсутствует";
-        const hAv = document.getElementById('hero-avatar');
-        const myAv = document.getElementById('my-profile-avatar');
-        if (myAv && hAv) {
-            hAv.style.backgroundImage = myAv.style.backgroundImage;
-            hAv.style.backgroundColor = myAv.style.backgroundColor;
-            hAv.innerText = myAv.innerText;
-        }
-    }
-};
-
-// 2. ВИДЕО-СТИКЕРЫ В СПИСКЕ ЧАТОВ (превью)
-const _origDecryptAndRenderLastMsg_v3 = decryptAndRenderLastMsg;
-decryptAndRenderLastMsg = async function(peerId, encryptedText, elementNode, msgId, kv, senderId, isRead) {
-    let displayedText = "Сообщение";
-    let thumbHtml = "";
-    const obj = await decryptMessageCached(msgId, encryptedText, kv, peerId);
-    if (obj) {
-        if (obj.videoSticker) {
-            displayedText = "🎬 Видео-стикер";
-            thumbHtml = `<span class="dlg-media-thumb" style="background:var(--accent); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px;">🎬</span>`;
-        } else if (obj.sticker || obj.animatedSticker) {
-            displayedText = "Стикер";
-            if (obj.fileData) {
-                const t = await buildLastMsgThumb(msgId, obj.fileData);
-                if (t) thumbHtml = `<span class="dlg-media-thumb" style="background-image:url(${t}); border-radius:50%;"></span>`;
-            }
-        } else if (obj.videoNote) {
-            displayedText = "📹 Видеосообщение";
-            if (obj.fileData) {
-                const t = await buildLastMsgThumb(msgId, obj.fileData);
-                if (t) thumbHtml = `<span class="dlg-media-thumb" style="background-image:url(${t}); border-radius:50%;"></span>`;
-            }
-        }
-    }
-    // Если это не стикер/видео-стикер, вызываем оригинал
-    if (!obj || (!obj.videoSticker && !obj.sticker && !obj.animatedSticker && !obj.videoNote)) {
-        return _origDecryptAndRenderLastMsg_v3(peerId, encryptedText, elementNode, msgId, kv, senderId, isRead);
-    }
-    if (elementNode) {
-        let ticksPrefix = "";
-        if (senderId && senderId === myUid && peerId !== myUid) {
-            ticksPrefix = isRead ? `<span style="color:#64B5F6; font-weight:bold; margin-right:3px;">✓✓</span>` : `<span style="margin-right:3px;">✓</span>`;
-        }
-        elementNode.innerHTML = ticksPrefix + thumbHtml + `<span style="overflow:hidden;text-overflow:ellipsis;">${escapeHTML(displayedText)}</span>`;
-    }
-    return displayedText;
-};
-
-// 3. УЛУЧШЕННАЯ СТАБИЛЬНОСТЬ ЗВОНКОВ
-const _origSetupPeerConnectionCommon = setupPeerConnectionCommon;
-setupPeerConnectionCommon = function(role) {
-    callRemoteDescSet = false;
-    callCandidatesBuf = [];
-    localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
-    remoteStream = new MediaStream();
-    const rv = document.getElementById('call-remote-video');
-    rv.srcObject = remoteStream;
-    pc.ontrack = (e) => {
-        if (e.streams && e.streams[0]) {
-            e.streams[0].getTracks().forEach(t => {
-                if (!remoteStream.getTracks().includes(t)) remoteStream.addTrack(t);
-            });
-        } else if (e.track) {
-            remoteStream.addTrack(e.track);
-        }
-        rv.play().catch(() => {});
-    };
-    pc.onicecandidate = (e) => {
-        if (e.candidate) {
-            window.fb.push(window.fb.ref(window.fb.db, `calls/${callRoomId}/cands_${role}`), e.candidate.toJSON());
-        }
-    };
-    pc.onconnectionstatechange = () => {
-        if (!pc) return;
-        if (pc.connectionState === 'connected') onCallConnected();
-        else if (pc.connectionState === 'failed') {
-            // Пробуем переподключиться один раз
-            setTimeout(() => {
-                if (pc && pc.connectionState === 'failed') {
-                    try { pc.restartIce(); } catch(e) {}
-                }
-            }, 2000);
-        } else if (pc.connectionState === 'closed') {
-            if (callState) endCallCleanup();
-        }
-    };
-    pc.oniceconnectionstatechange = () => {
-        if (pc && pc.iceConnectionState === 'disconnected') {
-            setTimeout(() => {
-                if (pc && pc.iceConnectionState === 'disconnected' && callState) {
-                    // Не сразу закрываем, даём шанс на восстановление
-                    setTimeout(() => {
-                        if (pc && pc.iceConnectionState === 'disconnected' && callState) endCallCleanup();
-                    }, 5000);
-                }
-            }, 3000);
-        }
-    };
-};
-
-// 4. ЗАКРЕПЛЁННЫЕ СООБЩЕНИЯ — ГАРАНТИРОВАННОЕ E2EE
-const _origUnsubPinnedMessage = unsubPinnedMessage;
-// Переопределяем обработчик pinned
-const _origOnValuePinned = window.fb.onValue;
-// Нет, лучше патчить внутри openChatWindow
-const _origOpenChatWindow_v2 = openChatWindow;
-openChatWindow = async function(peerId, roomId) {
-    await _origOpenChatWindow_v2(peerId, roomId);
-    // Переподписываемся на pinned с дешифровкой
-    if (unsubPinnedMessage) unsubPinnedMessage();
-    unsubPinnedMessage = window.fb.onValue(window.fb.ref(window.fb.db, `messages/${currentRoomId}/pinned`), async (pSnap) => {
-        const pinBar = document.getElementById('pinned-message-bar');
-        if (pSnap.exists()) {
-            const pData = pSnap.val();
-            let decryptedText = pData.text;
-            // Если зашифровано — дешифруем
-            if (decryptedText && decryptedText.startsWith("[MEOW]")) {
-                const cipher = decryptedText.substring(6);
-                const plain = aesDecrypt(cipher, activeRoomSharedKey);
-                try { const o = JSON.parse(plain); decryptedText = o.text || "Медиа"; } catch(e){ decryptedText = plain || "Медиа"; }
-            }
-            document.getElementById('pinned-bar-text').textContent = decryptedText;
-            pinBar.style.display = "flex";
-            pinBar.setAttribute('data-target-msg-id', pData.msgId);
-        } else {
-            pinBar.style.display = "none";
-            pinBar.removeAttribute('data-target-msg-id');
-        }
-    });
-};
-
-// 5. ДОБАВЛЕНИЕ В КОНТАКТЫ ИЗ ЧАТОВ (гарантия работы)
-const _origOpenChatOptions = openChatOptions;
-openChatOptions = async function(peerId, name) {
-    await _origOpenChatOptions(peerId, name);
-    activeMenuPeerId = peerId;
-    // Добавляем кнопку "Добавить в контакты" если ещё не в контактах
-    const modal = document.getElementById('chat-options-modal');
-    if (modal && !myContacts[peerId] && peerId !== myUid) {
-        let addBtn = document.getElementById('chat-options-add-contact-btn');
-        if (!addBtn) {
-            addBtn = document.createElement('button');
-            addBtn.id = 'chat-options-add-contact-btn';
-            addBtn.className = 'menu-btn';
-            addBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg> Добавить в контакты`;
-            addBtn.onclick = () => { addToContactsFromChat(activeMenuPeerId); closeModal('chat-options-modal'); };
-            const firstBtn = modal.querySelector('.menu-btn');
-            if (firstBtn) firstBtn.parentNode.insertBefore(addBtn, firstBtn);
-        }
-        addBtn.style.display = 'block';
-    } else if (modal) {
-        const addBtn = document.getElementById('chat-options-add-contact-btn');
-        if (addBtn) addBtn.style.display = 'none';
-    }
-};
-
-// 6. УЛУЧШЕНИЕ РЕНДЕРА СООБЩЕНИЙ (видео-стикеры)
-const _origBuildVideoNoteHtml = buildVideoNoteHtml;
-buildVideoNoteHtml = function(msgId, blobUrl, duration) {
-    // Проверяем, является ли это видео-стикером (маленький размер, короткая длительность)
-    if (duration && duration <= 5) {
-        return `<div class="video-sticker-msg" onclick="event.stopPropagation(); toggleVideoSticker(this)">
-            <video src="${escapeHTML(blobUrl)}" loop playsinline muted preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video>
-            <div class="video-sticker-play"><span style="font-size:32px;">▶</span></div>
-            <div class="video-sticker-badge">${formatVoiceTime(duration)}</div>
-        </div>`;
-    }
-    return _origBuildVideoNoteHtml(msgId, blobUrl, duration);
-};
-
-function toggleVideoSticker(el) {
-    const vid = el.querySelector('video');
-    if (!vid) return;
-    if (vid.paused) { vid.play(); el.querySelector('.video-sticker-play').style.opacity = '0'; }
-    else { vid.pause(); el.querySelector('.video-sticker-play').style.opacity = '1'; }
-}
-
-// 7. ПРОВЕРКА И ОЧИСТКА БИТЫХ СООБЩЕНИЙ (усиленная)
-setInterval(async () => {
-    if (!currentRoomId || !activeChatMessagesData) return;
-    const now = Date.now();
-    const hour = 3600000;
-    let hasDeleted = false;
-    Object.entries(activeChatMessagesData).forEach(([msgId, m]) => {
-        if (!m || !m.text) return;
-        const isBroken = m.text.includes('🔒 Сообщение зашифровано другим ключом') || 
-                          m.text.includes('[Ошибка дешифрования]');
-        if (isBroken && m.time && (now - m.time > hour)) {
-            window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`));
-            hasDeleted = true;
-        }
-    });
-    if (hasDeleted) {
-        // Обновляем UI если удалили что-то
-        setTimeout(() => renderActiveChatMessages(), 500);
-    }
-}, 30000);
-
-// 8. УЛУЧШЕНИЕ СПИСКА ДИАЛОГОВ (гарантия от пустого списка)
-const _origLoadDialogs_v2 = loadDialogs;
-loadDialogs = function() {
-    try {
-        _origLoadDialogs_v2();
-    } catch(e) {
-        console.error('loadDialogs critical error', e);
-        setTimeout(() => {
-            const container = document.getElementById('chats-list-container');
-            if (!container || container.innerHTML === '') {
-                _origLoadDialogs_v2();
-            }
-        }, 400);
-    }
-};
-
-// ================== END v4.6 ==================
-
-</script>
-
-    <div class="modal-overlay" id="clear-history-modal">
-        <div class="modal-card" style="max-width: 320px;">
-            <h3 style="margin-bottom: 12px; text-align: center;">Очистить историю?</h3>
-            <label class="modern-checkbox-container" for="clear-history-both-checkbox">
-                <span class="modern-checkbox-label">Удалить для обоих</span>
-                <input type="checkbox" id="clear-history-both-checkbox" class="modern-checkbox">
-            </label>
-            <div style="display: flex; gap: 8px;">
-                <button class="menu-btn" style="margin-bottom: 0; background: transparent;" onclick="closeModal('clear-history-modal')">Отмена</button>
-                <button class="menu-btn danger" style="margin-bottom: 0; flex: 1;" onclick="confirmClearHistory()">Очистить</button>
-            </div>
-        </div>
-    </div>
-
-
-    <div class="music-player-bar" id="music-player-bar">
-        <div class="music-player-cover" id="player-cover">🎵</div>
-        <div class="music-player-info">
-            <div class="music-player-title" id="player-title">Название</div>
-            <div class="music-player-artist" id="player-artist">Исполнитель</div>
-        </div>
-        <button class="music-player-btn" id="player-play-btn" onclick="togglePlayer()">▶</button>
-        <button class="music-player-btn" style="background: var(--second);" onclick="closePlayer()">✕</button>
-    </div>
-
-
-    <div class="modal-overlay" id="story-viewer-modal" style="background: #000; z-index: 5000;">
-        <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: rgba(255,255,255,0.2); z-index: 10;">
-            <div id="story-progress-bar" style="height: 100%; background: white; width: 0%; transition: width 0.1s linear;"></div>
-        </div>
-        <span style="position: absolute; top: 16px; right: 16px; font-size: 28px; cursor: pointer; z-index: 10; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5);" onclick="closeStoryViewer()">✕</span>
-        <div style="position: absolute; top: 16px; left: 16px; z-index: 10; display: flex; align-items: center; gap: 10px;">
-            <div class="chat-avatar" id="story-viewer-avatar" style="width: 36px; height: 36px; font-size: 14px;">?</div>
-            <div>
-                <div style="font-weight: 700; font-size: 14px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.6);" id="story-viewer-name">Имя</div>
-                <div style="font-size: 11px; color: rgba(255,255,255,0.8);" id="story-viewer-time">Только что</div>
-            </div>
-        </div>
-        <div id="story-viewer-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000;">
-            <img id="story-viewer-img" style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;" />
-            <video id="story-viewer-video" style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;" autoplay playsinline></video>
-        </div>
-        <div id="story-viewer-caption" style="position: absolute; bottom: 40px; left: 16px; right: 16px; text-align: center; font-size: 16px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8); display: none;"></div>
-        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 30%; z-index: 5; cursor: pointer;" onclick="prevStory()"></div>
-        <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 30%; z-index: 5; cursor: pointer;" onclick="nextStory()"></div>
-    </div>
-
+    </script>
 </body>
 </html>
