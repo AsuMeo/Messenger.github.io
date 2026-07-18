@@ -24,7 +24,7 @@ window.meowRemoveFromOutbox=async(id)=>{const db=await openDB();return new Promi
 window.meowRequestSync=async()=>{if('serviceWorker'in navigator&&'SyncManager'in window){try{const reg=await navigator.serviceWorker.ready;await reg.sync.register('send-message');}catch(e){}}};
 window.meowShowToast=(text)=>{let el=document.getElementById('offline-toast');if(!el){el=document.createElement('div');el.id='offline-toast';el.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(31,128,224,0.95);color:white;padding:10px 18px;border-radius:22px;font-size:13px;font-weight:700;z-index:9999;backdrop-filter:blur(8px);box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:opacity 0.3s;opacity:0;pointer-events:none;';document.body.appendChild(el);}el.innerText=text;el.style.opacity='1';clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',3200);};
 if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').then(r=>console.log('SW ok')).catch(e=>console.log('SW err',e));}
-window.addEventListener('online',()=>{const ind=document.getElementById('offline-indicator');if(ind)ind.style.display='none';setTimeout(()=>{if(window.sendQueuedMessages)window.sendQueuedMessages();},300);});
+window.addEventListener('online',()=>{const ind=document.getElementById('offline-indicator');if(ind)ind.style.display='none';if(window.sendQueuedMessages)window.sendQueuedMessages();});
 window.addEventListener('offline',()=>{const ind=document.getElementById('offline-indicator');if(ind)ind.style.display='flex';});
 navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_QUEUED_MESSAGES'&&window.sendQueuedMessages)window.sendQueuedMessages();});
 })();
@@ -4298,6 +4298,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             updateCallButtonsVisibility();
             evaluateActiveChatProtection();
             enforceChatAutoDelete();
+            initTextQuoteSelection();
             clearManualUnreadFlag(peerId);
         }
 
@@ -5517,6 +5518,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
             if (index === 0) {
                 loadDialogs();
+                initFolderSwipe();
             } else if (index === 1) {
                 renderContactsList();
             } else if (index === 2) {
@@ -8922,12 +8924,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             if (menu) menu.style.display = 'none';
         }
         function toggleFullscreen() {
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            if (isMobile) {
-                document.body.style.height = "101vh";
-                setTimeout(() => { window.scrollTo(0, 1); document.body.style.height = ""; }, 60);
-                return;
-            }
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
             } else {
@@ -8935,29 +8931,23 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         }
 
-                let _isFlushingQueue = false;
-        async function sendQueuedMessages() {
-            if (_isFlushingQueue || !navigator.onLine || !myUid) return;
-            _isFlushingQueue = true;
-            try {
-                const items = await window.meowGetOutbox();
-                if (!items.length) return;
-                for (const item of items) {
-                    try {
-                        await window.fb.push(window.fb.ref(window.fb.db, `messages/${item.roomId}/list`), item.dbPacket);
-                        const nowTime = Date.now();
-                        await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${item.peerId}`), { lastTime: nowTime });
-                        if (item.peerId !== myUid) {
-                            await window.fb.update(window.fb.ref(window.fb.db, `users/${item.peerId}/chats/${myUid}`), { lastTime: nowTime });
-                        }
-                        await window.meowRemoveFromOutbox(item.id);
-                    } catch (e) { break; }
-                }
-                const remaining = await window.meowGetOutbox();
-                if (remaining.length === 0) window.meowShowToast("Все сообщения отправлены");
-            } finally {
-                _isFlushingQueue = false;
+                async function sendQueuedMessages() {
+            if (!navigator.onLine || !myUid) return;
+            const items = await window.meowGetOutbox();
+            if (!items.length) return;
+            for (const item of items) {
+                try {
+                    await window.fb.push(window.fb.ref(window.fb.db, `messages/${item.roomId}/list`), item.dbPacket);
+                    const nowTime = Date.now();
+                    await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${item.peerId}`), { lastTime: nowTime });
+                    if (item.peerId !== myUid) {
+                        await window.fb.update(window.fb.ref(window.fb.db, `users/${item.peerId}/chats/${myUid}`), { lastTime: nowTime });
+                    }
+                    await window.meowRemoveFromOutbox(item.id);
+                } catch (e) { break; }
             }
+            const remaining = await window.meowGetOutbox();
+            if (remaining.length === 0) window.meowShowToast("Все сообщения отправлены");
         }
 
         window.sendQueuedMessages = sendQueuedMessages;
@@ -9021,6 +9011,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 await touchMyLastActive();
                 initComposer();
                 initStickers();
+                initFolderSwipe();
+                initTextQuoteSelection();
                 initCallSystem();
                 initV3GlobalGuards();
                 sweepExpiredAccounts();
