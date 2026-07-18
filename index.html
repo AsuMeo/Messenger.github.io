@@ -1754,6 +1754,9 @@
             <button class="header-btn" title="Избранное" onclick="openCloudChat()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
             </button>
+            <button class="header-btn" title="Полноэкранный режим" onclick="toggleFullscreen()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            </button>
             <button class="header-btn" title="Выйти" onclick="logoutAction()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
@@ -1990,9 +1993,17 @@
             </div>
             
             <div style="display: flex; align-items: center; gap: 4px; position: relative;">
-                <button class="header-btn" id="call-btn" style="color: var(--accent); display: none;" onclick="handleCallButtonClick()" title="Звонок (нажмите — аудио, удерживайте ~1с — видео)">
+                <button class="header-btn" id="call-btn" style="color: var(--accent); display: none;" onclick="toggleCallMenu(event)" title="Звонок">
                     <span id="call-btn-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
                 </button>
+                <div id="call-dropdown-menu" style="display: none; position: absolute; top: 50px; right: 44px; background: var(--bg-bar); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; width: 190px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); overflow: hidden;">
+                    <button class="menu-btn" style="background:transparent; margin-bottom:0; text-align:left; padding:12px 16px; font-size:13px; display:flex; align-items:center; gap:8px; border-radius:0;" onclick="startCall('audio'); closeCallMenu();">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Аудиозвонок
+                    </button>
+                    <button class="menu-btn" style="background:transparent; margin-bottom:0; text-align:left; padding:12px 16px; font-size:13px; display:flex; align-items:center; gap:8px; border-radius:0;" onclick="startCall('video'); closeCallMenu();">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg> Видеозвонок
+                    </button>
+                </div>
                 
                 
                 <button class="header-btn" onclick="toggleHeaderMenu(event)" title="Меню">
@@ -3982,6 +3993,10 @@
             const menu = document.getElementById('header-dropdown-menu');
             if (menu && !e.target.closest('#header-dropdown-menu') && !e.target.closest('.header-btn')) {
                 menu.style.display = 'none';
+            }
+            const callMenu = document.getElementById('call-dropdown-menu');
+            if (callMenu && !e.target.closest('#call-dropdown-menu') && !e.target.closest('#call-btn')) {
+                callMenu.style.display = 'none';
             }
         });
 
@@ -8863,6 +8878,27 @@
         window.stopVideoNoteRecording = stopVideoNoteRecording;
         window.cancelVoiceRecording = cancelVoiceRecording;
         window.stopVoiceRecording = stopVoiceRecording;
+        function toggleCallMenu(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('call-dropdown-menu');
+            if (!menu) return;
+            menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'block' : 'none';
+        }
+        function closeCallMenu() {
+            const menu = document.getElementById('call-dropdown-menu');
+            if (menu) menu.style.display = 'none';
+        }
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+                window.toggleCallMenu = toggleCallMenu;
+        window.closeCallMenu = closeCallMenu;
+        window.toggleFullscreen = toggleFullscreen;
         window.handleCallButtonClick = handleCallButtonClick;
         window.startCall = startCall;
         window.acceptCall = acceptCall;
