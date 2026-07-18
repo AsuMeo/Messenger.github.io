@@ -13,7 +13,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie.js/5.12.2/lottie.min.js"></script>
 
-    <script type="module">
+    <script>
+(function(){
+const DB_NAME='MeowDB',DB_VERSION=1;
+let dbP;
+function openDB(){if(dbP)return dbP;dbP=new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,DB_VERSION);r.onerror=()=>rej(r.error);r.onsuccess=()=>res(r.result);r.onupgradeneeded=(e)=>{const d=e.target.result;if(!d.objectStoreNames.contains('outbox'))d.createObjectStore('outbox',{keyPath:'id',autoIncrement:true});};});return dbP;}
+window.meowSaveToOutbox=async(data)=>{const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction('outbox','readwrite');tx.objectStore('outbox').add(data);tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});};
+window.meowGetOutbox=async()=>{const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction('outbox','readonly');const r=tx.objectStore('outbox').getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});};
+window.meowRemoveFromOutbox=async(id)=>{const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction('outbox','readwrite');tx.objectStore('outbox').delete(id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});};
+window.meowRequestSync=async()=>{if('serviceWorker'in navigator&&'SyncManager'in window){try{const reg=await navigator.serviceWorker.ready;await reg.sync.register('send-message');}catch(e){}}};
+window.meowShowToast=(text)=>{let el=document.getElementById('offline-toast');if(!el){el=document.createElement('div');el.id='offline-toast';el.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(31,128,224,0.95);color:white;padding:10px 18px;border-radius:22px;font-size:13px;font-weight:700;z-index:9999;backdrop-filter:blur(8px);box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:opacity 0.3s;opacity:0;pointer-events:none;';document.body.appendChild(el);}el.innerText=text;el.style.opacity='1';clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',3200);};
+if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').then(r=>console.log('SW ok')).catch(e=>console.log('SW err',e));}
+window.addEventListener('online',()=>{const ind=document.getElementById('offline-indicator');if(ind)ind.style.display='none';if(window.sendQueuedMessages)window.sendQueuedMessages();});
+window.addEventListener('offline',()=>{const ind=document.getElementById('offline-indicator');if(ind)ind.style.display='flex';});
+navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_QUEUED_MESSAGES'&&window.sendQueuedMessages)window.sendQueuedMessages();});
+})();
+</script>
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, get, update, remove, onDisconnect, query, orderByKey, startAt, endAt } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -1727,6 +1743,7 @@
     </style>
 </head>
 <body>
+    <div id="offline-indicator" style="position:fixed;top:0;left:0;right:0;height:28px;background:var(--error);color:white;font-size:12px;font-weight:700;display:none;align-items:center;justify-content:center;z-index:9999;letter-spacing:0.5px;">Нет подключения к интернету — сообщения отправятся позже</div>
 
     <div id="global-wallpaper-overlay"></div>
 
@@ -4877,6 +4894,22 @@
                 alert("Ключ шифрования недоступен. Нажмите на зелёный замок сверху и обновите ключи.");
                 return;
             }
+
+            // Offline queue
+            if (!navigator.onLine) {
+                const messagePayload = { text: txt };
+                if (DICE_EMOJIS.includes(txt)) messagePayload.dice = { emoji: txt, value: 1 + Math.floor(Math.random() * 6) };
+                if (replyTargetMessageId) messagePayload.replyTo = { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText };
+                const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(messagePayload), activeRoomSharedKey);
+                const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
+                if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
+                if (sendSilentNext) { dbPacket.silent = true; sendSilentNext = false; }
+                await window.meowSaveToOutbox({ roomId: currentRoomId, peerId: currentPeer, dbPacket, replyTo: replyTargetMessageId ? { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText } : null, burnMode: isBurnModeActive, burnDelay: burnDelayMs, createdAt: Date.now() });
+                cancelReply(); stopTypingImmediately(); input.value = ""; input.style.height = "auto"; updateComposerButton(); clearActiveDraft(); window.meowRequestSync();
+                window.meowShowToast("Сообщение сохранено. Отправится при появлении интернета.");
+                return;
+            }
+
             ensureMeowAudioCtx();
 
             if (editTargetMessageId) {
@@ -8896,7 +8929,27 @@
             }
         }
 
-                window.toggleCallMenu = toggleCallMenu;
+                async function sendQueuedMessages() {
+            if (!navigator.onLine || !myUid) return;
+            const items = await window.meowGetOutbox();
+            if (!items.length) return;
+            for (const item of items) {
+                try {
+                    await window.fb.push(window.fb.ref(window.fb.db, `messages/${item.roomId}/list`), item.dbPacket);
+                    const nowTime = Date.now();
+                    await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${item.peerId}`), { lastTime: nowTime });
+                    if (item.peerId !== myUid) {
+                        await window.fb.update(window.fb.ref(window.fb.db, `users/${item.peerId}/chats/${myUid}`), { lastTime: nowTime });
+                    }
+                    await window.meowRemoveFromOutbox(item.id);
+                } catch (e) { break; }
+            }
+            const remaining = await window.meowGetOutbox();
+            if (remaining.length === 0) window.meowShowToast("Все сообщения отправлены");
+        }
+
+        window.sendQueuedMessages = sendQueuedMessages;
+        window.toggleCallMenu = toggleCallMenu;
         window.closeCallMenu = closeCallMenu;
         window.toggleFullscreen = toggleFullscreen;
         window.handleCallButtonClick = handleCallButtonClick;
