@@ -1990,10 +1990,15 @@
             </div>
             
             <div style="display: flex; align-items: center; gap: 4px; position: relative;">
-                <button class="header-btn" id="call-btn" style="color: var(--accent); display: none;" onclick="handleCallButtonClick()" title="Звонок (нажмите — аудио, удерживайте ~1с — видео)">
-                    <span id="call-btn-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+                <button class="header-btn" id="audio-call-btn" style="color: var(--accent); display: none;" onclick="startCall('audio')" title="Аудиозвонок">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                 </button>
-                
+                <button class="header-btn" id="video-call-btn" style="color: var(--accent); display: none;" onclick="startCall('video')" title="Видеозвонок">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                </button>
+                <button class="header-btn" style="color: var(--secure)" onclick="showE2EEVerification()" title="Верификация ключа">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </button>
                 
                 <button class="header-btn" onclick="toggleHeaderMenu(event)" title="Меню">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
@@ -2007,9 +2012,6 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg> Добавить в контакты
                     </button>
                     <button class="menu-btn" style="background:transparent; margin-bottom:0; text-align:left; padding:12px 16px; font-size:13px; display:flex; align-items:center; gap:8px; border-radius:0;" onclick="exportActiveChat(); toggleHeaderMenu(event);">
-                    <button class="menu-btn" style="background:transparent; margin-bottom:0; text-align:left; padding:12px 16px; font-size:13px; display:flex; align-items:center; gap:8px; border-radius:0;" onclick="showE2EEVerification(); toggleHeaderMenu(event);">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="color:var(--secure)"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Верификация ключа
-                    </button>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Экспорт чата (.txt)
                     </button>
                 </div>
@@ -2124,45 +2126,23 @@
     </div>
 
     <div class="modal-overlay" id="peer-profile-modal">
-        <div class="modal-card" style="text-align: center; padding: 28px 24px;">
-            <div style="position: relative; display: inline-block; margin-bottom: 16px;">
-                <div class="chat-avatar" id="peer-profile-av" style="width: 110px; height: 110px; font-size: 42px; margin: 0 auto; background-color: var(--accent); box-shadow: 0 4px 20px rgba(0,0,0,0.4); border: 3px solid rgba(255,255,255,0.08);">?</div>
-                <div id="peer-profile-status-dot" style="position: absolute; bottom: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; background: var(--offline-dot); border: 3px solid #161618; display: none;"></div>
-            </div>
-            <h3 id="peer-profile-name" style="font-size: 22px; font-weight: 800; margin-bottom: 3px; letter-spacing: -0.3px;">Имя</h3>
-            <p id="peer-profile-username" style="color: var(--accent); font-weight: 700; font-size: 14px; margin-bottom: 6px;">@username</p>
-            <div id="peer-profile-online-status" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px; min-height: 18px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--offline-dot); display: inline-block;"></span>
-                <span>офлайн</span>
-            </div>
-            <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 14px; line-height: 1.5; margin-bottom: 20px; padding: 0 8px;">Описание отсутствует</p>
-
-            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 16px;">
-                <button class="menu-btn" id="peer-add-contact-modal-btn" style="display: none; flex: 1; background: var(--secure); font-weight: 700; margin-bottom: 0;" onclick="quickAddActivePeerToContacts(); closeModal('peer-profile-modal');">Добавить в контакты</button>
-                <button class="menu-btn" id="peer-remove-contact-modal-btn" style="display: none; flex: 1; background: var(--error); font-weight: 700; margin-bottom: 0;" onclick="deleteContactFromProfile()">Удалить из контактов</button>
-            </div>
-
-            <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.05);">
-                <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; text-align: left;">🔐 Безопасность</div>
-                <button class="menu-btn" style="background: rgba(0,199,129,0.12); color: var(--secure); border: 1px dashed rgba(0,199,129,0.35); margin-bottom: 8px; font-weight: 700;" onclick="showE2EEVerification(); closeModal('peer-profile-modal');">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right:6px; vertical-align:middle;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    Верификация ключа E2EE
-                </button>
-                <button class="menu-btn" style="background: rgba(31,128,224,0.12); color: var(--accent); border: 1px dashed rgba(31,128,224,0.35); margin-bottom: 0; font-weight: 700;" onclick="forceKeyExchange(); closeModal('peer-profile-modal');">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right:6px; vertical-align:middle;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                    🔄 Принудительный обмен ключами
-                </button>
-            </div>
+        <div class="modal-card" style="text-align: center;">
+            <div class="chat-avatar" id="peer-profile-av" style="width: 100px; height: 100px; font-size: 36px; margin: 0 auto 16px auto; background-color: var(--accent);">?</div>
+            <h3 id="peer-profile-name" style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">Имя</h3>
+            <p id="peer-profile-username" style="color: var(--accent); font-weight: 700; font-size: 14px; margin-bottom: 12px;">@username</p>
+            <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 14px; line-height: 1.4; margin-bottom: 16px;">Описание отсутствует</p>
+            
+            <button class="menu-btn" id="peer-add-contact-modal-btn" style="display: none; background: var(--secure);" onclick="quickAddActivePeerToContacts(); closeModal('peer-profile-modal');">Добавить в контакты</button>
+            <button class="menu-btn danger" id="peer-remove-contact-modal-btn" style="display: none;" onclick="deleteContactFromProfile()">Удалить из контактов</button>
 
             <input type="file" id="personal-wallpaper-upload" style="display: none;" accept="image/*" onchange="processAndSetCrop(this.files[0], 'personal-wallpaper')">
-            <button class="menu-btn" style="background: rgba(255,255,255,0.06); margin-bottom: 8px;" id="set-personal-wallpaper-btn" onclick="document.getElementById('personal-wallpaper-upload').click()">🖼 Свой фон для этого чата</button>
-            <button class="menu-btn danger" style="display: none; margin-bottom: 8px;" id="reset-personal-wallpaper-btn" onclick="resetWallpaper(false)">Сбросить фон чата</button>
+            <button class="menu-btn" style="background: var(--accent);" id="set-personal-wallpaper-btn" onclick="document.getElementById('personal-wallpaper-upload').click()">Свой фон для этого чата</button>
+            <button class="menu-btn danger" style="display: none;" id="reset-personal-wallpaper-btn" onclick="resetWallpaper(false)">Сбросить фон чата</button>
 
-            <button class="menu-btn" id="peer-block-btn" style="display: none; margin-bottom: 8px; background: rgba(255,255,255,0.06);" onclick="toggleBlockActivePeer()">Заблокировать пользователя</button>
+            <button class="menu-btn danger" id="peer-block-btn" style="display: none;" onclick="toggleBlockActivePeer()">Заблокировать пользователя</button>
 
-            <button class="menu-btn" style="background: transparent; color: var(--text-muted);" onclick="closeModal('peer-profile-modal')">Закрыть</button>
+            <button class="menu-btn" onclick="closeModal('peer-profile-modal')">Закрыть</button>
         </div>
-    </div>
     </div>
 
     </div>
@@ -4076,12 +4056,9 @@
             const removeBtn = document.getElementById('peer-remove-contact-modal-btn');
             const wallBtn = document.getElementById('set-personal-wallpaper-btn');
             const wallReset = document.getElementById('reset-personal-wallpaper-btn');
-            const statusDot = document.getElementById('peer-profile-status-dot');
-            const onlineStatus = document.getElementById('peer-profile-online-status');
 
             addBtn.style.display = "none";
             removeBtn.style.display = "none";
-            if (statusDot) statusDot.style.display = 'none';
 
             getCachedProfile(currentPeer, (cached) => {
                 const fullName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
@@ -4115,54 +4092,8 @@
                     blockBtn.classList.add('danger');
                     blockBtn.style.background = "";
                 }
-
-                // Загружаем статус онлайн для профиля
-                loadProfileOnlineStatus(currentPeer);
             });
             openModal('peer-profile-modal');
-        }
-
-        async function loadProfileOnlineStatus(peerId) {
-            const statusDot = document.getElementById('peer-profile-status-dot');
-            const onlineStatus = document.getElementById('peer-profile-online-status');
-            if (!onlineStatus) return;
-            try {
-                const [presSnap, privSnap, contSnap] = await Promise.all([
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/presence`)),
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy`)),
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`))
-                ]);
-                let statusText = "офлайн";
-                let dotColor = "var(--offline-dot)";
-                let dotDisplay = "none";
-                let isOnline = false;
-                if (presSnap.exists()) {
-                    const pres = presSnap.val();
-                    const decLastSeen = normalizePrivacyVal(privSnap.exists() ? privSnap.val().lastSeen : "all", profileKeysCache[peerId]);
-                    const weAreContact = contSnap.exists();
-                    const hideOnline = (decLastSeen === "none") || (decLastSeen === "contacts" && !weAreContact);
-                    if (pres.status === "online" && !hideOnline) {
-                        statusText = "в сети";
-                        dotColor = "var(--online)";
-                        dotDisplay = "block";
-                        isOnline = true;
-                    } else {
-                        statusText = hideOnline ? "был(а) недавно" : formatFriendlyLastSeen(pres.lastSeen);
-                        if (!hideOnline) dotDisplay = "block";
-                    }
-                }
-                if (myBlockedUsers[peerId]) {
-                    statusText = "заблокирован 🚫";
-                    dotColor = "var(--error)";
-                }
-                onlineStatus.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background: ${dotColor}; display: inline-block; flex-shrink: 0;"></span><span>${statusText}</span>`;
-                if (statusDot) {
-                    statusDot.style.background = dotColor;
-                    statusDot.style.display = dotDisplay;
-                }
-            } catch (e) {
-                onlineStatus.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background: var(--offline-dot); display: inline-block;"></span><span>офлайн</span>`;
-            }
         }
 
         async function openChatWindow(peerId, roomId) {
@@ -7248,56 +7179,12 @@
         };
 
         function updateCallButtonsVisibility() {
-            const btn = document.getElementById('call-btn');
-            if (!btn) return;
+            const a = document.getElementById('audio-call-btn');
+            const v = document.getElementById('video-call-btn');
+            if (!a || !v) return;
             const show = !!(currentPeer && currentPeer !== myUid);
-            btn.style.display = show ? 'flex' : 'none';
-        }
-
-        let callBtnMode = 'audio'; // 'audio' | 'video'
-        let callBtnPressTimer = null;
-        let callBtnHoldTriggered = false;
-        let callBtnSuppressClickUntil = 0;
-
-        function handleCallButtonClick() {
-            if (Date.now() < callBtnSuppressClickUntil) return;
-            if (callBtnHoldTriggered) return;
-            startCall(callBtnMode);
-        }
-
-        function initCallButtonGestures() {
-            const btn = document.getElementById('call-btn');
-            if (!btn || btn.dataset.callBound) return;
-            btn.dataset.callBound = "1";
-            btn.addEventListener('pointerdown', (e) => {
-                e.preventDefault();
-                callBtnHoldTriggered = false;
-                try { btn.setPointerCapture(e.pointerId); } catch (err) {}
-                callBtnPressTimer = setTimeout(() => {
-                    callBtnHoldTriggered = true;
-                    callBtnMode = (callBtnMode === 'audio') ? 'video' : 'audio';
-                    const wrap = document.getElementById('call-btn-icon-wrap');
-                    if (wrap) {
-                        if (callBtnMode === 'video') {
-                            wrap.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`;
-                            btn.title = "Видеозвонок (нажмите — позвонить, удерживайте — аудио)";
-                        } else {
-                            wrap.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`;
-                            btn.title = "Аудиозвонок (нажмите — позвонить, удерживайте — видео)";
-                        }
-                    }
-                    meowVibrate(10);
-                    callBtnSuppressClickUntil = Date.now() + 400;
-                }, 700);
-            });
-            btn.addEventListener('pointerup', () => {
-                clearTimeout(callBtnPressTimer);
-                setTimeout(() => { callBtnHoldTriggered = false; }, 300);
-            });
-            btn.addEventListener('pointercancel', () => {
-                clearTimeout(callBtnPressTimer);
-                callBtnHoldTriggered = false;
-            });
+            a.style.display = show ? 'flex' : 'none';
+            v.style.display = show ? 'flex' : 'none';
         }
 
         function stopRingtone() {
