@@ -1740,6 +1740,44 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         .tab-badge { position: absolute; top: 6px; right: calc(50% - 26px); background: var(--accent); color: white; font-size: 10px; font-weight: 800; min-width: 17px; height: 17px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 5px; animation: modalPopIn 0.2s ease; }
 
         .forwarded-label { font-size: 11px; color: rgba(255,255,255,0.55); font-style: italic; margin: 2px 10px 0 10px; }
+
+        /* ===== folder swipe animations ===== */
+        .folder-swiper { position: relative; overflow: hidden; }
+        .folder-swiper-track { display: flex; transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94); will-change: transform; }
+        .folder-swiper-track.dragging { transition: none; }
+        .folder-tab-content { min-width: 100%; flex-shrink: 0; }
+        .folder-swipe-hint { position: absolute; top: 50%; transform: translateY(-50%); font-size: 28px; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 50; }
+        .folder-swipe-hint.show { opacity: 0.35; }
+        .folder-swipe-hint.left { left: 8px; }
+        .folder-swipe-hint.right { right: 8px; }
+
+        /* ===== text quote selection ===== */
+        .quote-selection-popup {
+            position: absolute;
+            background: var(--bg-bar);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 6px 12px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 200;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            animation: modalPopIn 0.15s ease;
+        }
+        .quote-selection-popup.show { display: flex; }
+        .quote-selection-popup button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+        .quote-selection-popup button:hover { background: rgba(255,255,255,0.08); }
     </style>
 </head>
 <body>
@@ -2257,6 +2295,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             <button class="menu-btn" id="archive-chat-btn" onclick="toggleArchiveChat()">📥 Отправить в архив</button>
             <button class="menu-btn" id="manual-unread-btn" onclick="toggleManualUnread()">🔵 Пометить непрочитанным</button>
             <button class="menu-btn" id="autodelete-chat-btn" onclick="openAutoDeleteMenu()">⏳ Авто-удаление: выкл</button>
+            <button class="menu-btn" id="add-to-contacts-chat-btn" onclick="addActivePeerToContactsFromChat()" style="display:none;">➕ Добавить в контакты</button>
             <button class="menu-btn danger" id="clear-history-btn" style="background: #8E6A00;" onclick="clearChatHistoryAction()">🧹 Очистить историю</button>
             <button class="menu-btn danger" id="delete-chat-btn" onclick="triggerDeleteChatFromOptions()">Удалить диалог</button>
             <button class="menu-btn" style="background: transparent;" onclick="closeModal('chat-options-modal')">Отмена</button>
@@ -3354,12 +3393,32 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 document.getElementById('mute-chat-btn').innerText = meta.muted ? "🔔 Включить звук" : "🔕 Отключить звук";
                 document.getElementById('archive-chat-btn').innerText = meta.archived ? "📤 Вернуть из архива" : "📥 Отправить в архив";
                 document.getElementById('manual-unread-btn').innerText = meta.manualUnread ? "⚪ Пометить прочитанным" : "🔵 Пометить непрочитанным";
+                const addBtn = document.getElementById('add-to-contacts-chat-btn');
+                if (addBtn) addBtn.style.display = (activeMenuPeerId && activeMenuPeerId !== myUid && !myContacts[activeMenuPeerId]) ? 'block' : 'none';
                 try {
                     const adSnap = await window.fb.get(window.fb.ref(window.fb.db, `messages/${meta.roomId}/meta/autoDeleteSec`));
                     const sec = adSnap.exists() ? (parseInt(adSnap.val()) || 0) : 0;
                     document.getElementById('autodelete-chat-btn').innerText = sec >= 604800 ? "⏳ Авто-удаление: 7 дней" : (sec >= 86400 ? "⏳ Авто-удаление: 24 часа" : "⏳ Авто-удаление: выкл");
                 } catch (e2) {}
             } catch (e) {}
+        }
+
+        async function addActivePeerToContactsFromChat() {
+            if (!activeMenuPeerId || activeMenuPeerId === myUid) return;
+            selectedContactUid = activeMenuPeerId;
+            isEditingContact = false;
+            getCachedProfile(activeMenuPeerId, (prof) => {
+                document.getElementById('contact-custom-name').value = prof.name || "";
+                document.getElementById('contact-custom-lastname').value = prof.lastname || "";
+                tempContactAvatarBase64 = prof.avatar || "";
+                const avPreview = document.getElementById('contact-avatar-preview');
+                if (tempContactAvatarBase64) { avPreview.style.backgroundImage = `url(${tempContactAvatarBase64})`; avPreview.innerText = ""; }
+                else { avPreview.style.backgroundImage = "none"; avPreview.innerText = "?"; }
+                document.getElementById('contact-search-step').style.display = "none";
+                document.getElementById('contact-edit-step').style.display = "block";
+                openModal('add-contact-modal');
+            });
+            closeModal('chat-options-modal');
         }
 
         async function togglePinChat() {
@@ -4902,7 +4961,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 if (DICE_EMOJIS.includes(txt)) messagePayload.dice = { emoji: txt, value: 1 + Math.floor(Math.random() * 6) };
                 if (replyTargetMessageId) messagePayload.replyTo = { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText };
                 const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(messagePayload), activeRoomSharedKey);
-                const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
+                const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+                const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
                 if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
                 if (sendSilentNext) { dbPacket.silent = true; sendSilentNext = false; }
                 await window.meowSaveToOutbox({ roomId: currentRoomId, peerId: currentPeer, dbPacket, replyTo: replyTargetMessageId ? { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText } : null, burnMode: isBurnModeActive, burnDelay: burnDelayMs, createdAt: Date.now() });
@@ -4934,7 +4994,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
 
             const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(messagePayload), activeRoomSharedKey);
-            const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
+            const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+            const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
             if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
             if (sendSilentNext) { dbPacket.silent = true; sendSilentNext = false; }
 
@@ -5754,6 +5815,104 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 });
             }
             renderFolderTabs();
+        }
+
+        // ===== FOLDER SWIPE (like Telegram) =====
+        let folderSwipeStartX = 0, folderSwipeCurrentX = 0, folderSwipeDragging = false;
+        const folderOrder = ['all', 'personal', 'archive'];
+        function getFolderIndex() { return folderOrder.indexOf(activeFolder) >= 0 ? folderOrder.indexOf(activeFolder) : -1; }
+        function initFolderSwipe() {
+            const container = document.getElementById('tab-0');
+            if (!container) return;
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length !== 1) return;
+                if (e.target.closest('input') || e.target.closest('.folders-scroll-container') || e.target.closest('.chat-row')) return;
+                folderSwipeStartX = e.touches[0].clientX;
+                folderSwipeDragging = true;
+                folderSwipeCurrentX = folderSwipeStartX;
+            }, { passive: true });
+            container.addEventListener('touchmove', (e) => {
+                if (!folderSwipeDragging) return;
+                folderSwipeCurrentX = e.touches[0].clientX;
+                const dx = folderSwipeCurrentX - folderSwipeStartX;
+                if (Math.abs(dx) > 20) e.preventDefault();
+            }, { passive: false });
+            container.addEventListener('touchend', (e) => {
+                if (!folderSwipeDragging) return;
+                folderSwipeDragging = false;
+                const dx = folderSwipeCurrentX - folderSwipeStartX;
+                const idx = getFolderIndex();
+                if (idx < 0) return;
+                if (dx < -70 && idx < folderOrder.length - 1) {
+                    switchFolder(folderOrder[idx + 1]);
+                    meowVibrate(10);
+                } else if (dx > 70 && idx > 0) {
+                    switchFolder(folderOrder[idx - 1]);
+                    meowVibrate(10);
+                }
+            }, { passive: true });
+        }
+
+        // ===== TEXT QUOTE SELECTION (like Telegram) =====
+        let quotePopup = null;
+        let quoteSelectionRange = null;
+        function initTextQuoteSelection() {
+            const feed = document.getElementById('chat-feed');
+            if (!feed) return;
+            if (!quotePopup) {
+                quotePopup = document.createElement('div');
+                quotePopup.className = 'quote-selection-popup';
+                quotePopup.innerHTML = '<button onclick="quoteSelectedText()">💬 Цитировать</button><button onclick="copySelectedText()">📋 Копировать</button>';
+                document.body.appendChild(quotePopup);
+            }
+            feed.addEventListener('mouseup', handleTextSelection);
+            feed.addEventListener('touchend', handleTextSelection, { passive: true });
+            document.addEventListener('selectionchange', () => {
+                const sel = window.getSelection();
+                if (!sel || sel.isCollapsed) hideQuotePopup();
+            });
+        }
+        function handleTextSelection(e) {
+            const sel = window.getSelection();
+            if (!sel || sel.isCollapsed || sel.toString().trim().length === 0) { hideQuotePopup(); return; }
+            const range = sel.getRangeAt(0);
+            const container = range.commonAncestorContainer;
+            let msgEl = container.nodeType === 3 ? container.parentElement : container;
+            while (msgEl && !msgEl.classList.contains('msg-text')) msgEl = msgEl.parentElement;
+            if (!msgEl) { hideQuotePopup(); return; }
+            quoteSelectionRange = { text: sel.toString().trim(), msgId: msgEl.closest('.msg-container')?.id?.replace('msg-', '') };
+            if (!quoteSelectionRange.msgId) { hideQuotePopup(); return; }
+            const rect = range.getBoundingClientRect();
+            quotePopup.style.left = Math.max(8, Math.min(window.innerWidth - quotePopup.offsetWidth - 8, rect.left + rect.width / 2 - quotePopup.offsetWidth / 2)) + 'px';
+            quotePopup.style.top = (rect.top - quotePopup.offsetHeight - 10) + 'px';
+            quotePopup.classList.add('show');
+        }
+        function hideQuotePopup() { if (quotePopup) quotePopup.classList.remove('show'); quoteSelectionRange = null; }
+        function quoteSelectedText() {
+            if (!quoteSelectionRange || !quoteSelectionRange.msgId) return;
+            const msg = activeChatMessagesData[quoteSelectionRange.msgId];
+            if (!msg) return;
+            const sender = msg.sender;
+            let senderName = sender === myUid ? "Вы" : "Собеседник";
+            getCachedProfile(sender, (p) => {
+                senderName = (p.name || "Собеседник") + (p.lastname ? " " + p.lastname : "");
+                replyTargetMessageId = quoteSelectionRange.msgId;
+                replyTargetText = quoteSelectionRange.text.length > 60 ? quoteSelectionRange.text.slice(0, 60) + "…" : quoteSelectionRange.text;
+                replyTargetSenderName = senderName;
+                editTargetMessageId = null;
+                setupReplyUI();
+                hideQuotePopup();
+                window.getSelection().removeAllRanges();
+                meowVibrate(8);
+            });
+        }
+        function copySelectedText() {
+            if (!quoteSelectionRange) return;
+            navigator.clipboard.writeText(quoteSelectionRange.text).then(() => {
+                hideQuotePopup();
+                window.getSelection().removeAllRanges();
+                meowVibrate(6);
+            }).catch(() => {});
         }
 
         function renderFolderTabs() {
@@ -8924,11 +9083,21 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             if (menu) menu.style.display = 'none';
         }
         function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            } else {
-                if (document.exitFullscreen) document.exitFullscreen();
-            }
+            try {
+                const doc = document.documentElement;
+                const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+                if (!isFull) {
+                    if (doc.requestFullscreen) doc.requestFullscreen().catch(()=>{});
+                    else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen();
+                    else if (doc.mozRequestFullScreen) doc.mozRequestFullScreen();
+                    else if (doc.msRequestFullscreen) doc.msRequestFullscreen();
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                    else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+                    else if (document.msExitFullscreen) document.msExitFullscreen();
+                }
+            } catch(e) {}
         }
 
                 async function sendQueuedMessages() {
@@ -8937,6 +9106,14 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             if (!items.length) return;
             for (const item of items) {
                 try {
+                    if (item.dbPacket && item.dbPacket.clientMsgId) {
+                        const listSnap = await window.fb.get(window.fb.ref(window.fb.db, `messages/${item.roomId}/list`));
+                        if (listSnap.exists()) {
+                            const msgs = listSnap.val();
+                            const already = Object.values(msgs).some(m => m.clientMsgId === item.dbPacket.clientMsgId);
+                            if (already) { await window.meowRemoveFromOutbox(item.id); continue; }
+                        }
+                    }
                     await window.fb.push(window.fb.ref(window.fb.db, `messages/${item.roomId}/list`), item.dbPacket);
                     const nowTime = Date.now();
                     await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${item.peerId}`), { lastTime: nowTime });
