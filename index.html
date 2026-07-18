@@ -31,7 +31,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 </script>
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, get, update, remove, onDisconnect, query, orderByKey, startAt, endAt, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, get, update, remove, onDisconnect, query, orderByKey, startAt, endAt } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -46,7 +46,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        try { enableIndexedDbPersistence(db).catch(()=>{}); } catch(e) {}
         const auth = getAuth(app);
 
         window.fb = { db, auth, ref, set, push, onValue, get, update, remove, onDisconnect, query, orderByKey, startAt, endAt, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut };
