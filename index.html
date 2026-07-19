@@ -1763,6 +1763,10 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             font-style: italic;
             position: relative;
         }
+        .msg-container.out .msg-text blockquote {
+            background: rgba(255, 255, 255, 0.18);
+            border-left-color: rgba(255, 255, 255, 0.7);
+        }
         .msg-text blockquote::after {
             content: "\201D";
             position: absolute;
@@ -1773,6 +1777,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             opacity: 0.5;
             line-height: 1;
             font-family: Georgia, serif;
+        }
+        .msg-container.out .msg-text blockquote::after {
+            color: rgba(255, 255, 255, 0.7);
         }
         .msg-text blockquote p { margin: 0; }
     </style>
@@ -6119,8 +6126,12 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
         // ======== ФОРМАТИРОВАНИЕ ТЕКСТА (**жирный**, *курсив*, `код`, ||спойлер||, ссылки) ========
         function formatMessageText(raw) {
-            let t = escapeHTML(raw);
-            t = t.replace(/&([^&\n]+)&/g, '<blockquote>$1</blockquote>');
+            let quotes = [];
+            let t = raw.replace(/&([^&\n]+)&/g, function(match, p1) {
+                quotes.push(escapeHTML(p1));
+                return '\x00QUOTE_' + (quotes.length - 1) + '\x00';
+            });
+            t = escapeHTML(t);
             t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>');
             t = t.replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>');
             t = t.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<i>$2</i>');
@@ -6132,6 +6143,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">' + url + '</a>' + trail;
             });
             t = t.replace(/\n/g, '<br>');
+            quotes.forEach(function(q, i) {
+                t = t.replace('\x00QUOTE_' + i + '\x00', '<blockquote>' + q + '</blockquote>');
+            });
             return t;
         }
 
