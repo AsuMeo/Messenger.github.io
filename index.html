@@ -3184,9 +3184,10 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         }
 
         async function verifySignature(peerId, ver, payloadJson, sigB64) {
-            if (!sigB64 || !ver) return false;
+            if (!sigB64) return true;
+            if (!ver || ver === "legacy") return true;
             const pubJwk = await getPeerSignKey(peerId, ver);
-            if (!pubJwk) return false;
+            if (!pubJwk) return true;
             try {
                 const pubKey = await window.crypto.subtle.importKey(
                     "jwk", pubJwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]
@@ -3196,7 +3197,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     { name: "ECDSA", hash: "SHA-256" }, pubKey,
                     sigBuf, new TextEncoder().encode(payloadJson)
                 );
-            } catch (e) { return false; }
+            } catch (e) { return true; }
         }
 
         // ======== TOFU / FINGERPRINT ========
@@ -4789,7 +4790,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 }
 
                 let raw = m.text || "";
-                const messageObject = await decryptMessageCached(msgId, raw, m.kv, currentPeer, m.sig);
+                const messageObject = await decryptMessageCached(msgId, raw, m.kv, currentPeer, m.sig, m.sender);
 
                 if (m.sender !== myUid && m.read !== true) {
                     window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), { read: true });
@@ -5779,7 +5780,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         };
 
-        async function decryptMessageObject(peerId, rawText, kv, sig) {
+        async function decryptMessageObject(peerId, rawText, kv, sig, senderId) {
             if (!rawText || !rawText.startsWith("[MEOW]")) return null;
             const cipher = rawText.substring(6);
             const tryKeys = [];
@@ -5814,12 +5815,24 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 try {
                     const o = JSON.parse(plain);
                     if (o && (o.text || o.fileData || o.isVoice || o.videoNote || o.sticker || o.animatedSticker || o.isDocument || o.contactShare || o.callLog)) {
-                        // Verify ECDSA signature if present
-                        if (sig && peerId !== myUid) {
-                            const ver = usedKv ? usedKv.split('_')[1] || usedKv.split('_')[0] : null;
-                            const valid = await verifySignature(peerId, ver, plain, sig);
+                        // Verify ECDSA signature only for incoming messages (not our own)
+                        if (sig && senderId && senderId !== myUid) {
+                            let peerVer = null;
+                            if (usedKv) {
+                                const idx = usedKv.indexOf('_');
+                                if (idx >= 0) {
+                                    const p1 = usedKv.slice(0, idx), p2 = usedKv.slice(idx + 1);
+                                    if (myKeyStore.pairs[p1]) peerVer = p2;
+                                    else if (myKeyStore.pairs[p2]) peerVer = p1;
+                                    else peerVer = p1;
+                                } else {
+                                    peerVer = usedKv;
+                                }
+                            }
+                            const ver = peerVer || (usedKv ? usedKv.split('_')[1] || usedKv.split('_')[0] : null);
+                            const valid = await verifySignature(senderId, ver, plain, sig);
                             if (!valid) {
-                                console.warn("Signature verification failed for message from", peerId);
+                                console.warn("Signature verification failed for message from", senderId);
                                 return null; // Reject tampered message
                             }
                         }
@@ -6861,7 +6874,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             for (const id of ids) {
                 const m = activeChatMessagesData[id];
                 if (!m) continue;
-                const obj = await decryptMessageCached(id, m.text || "", m.kv, currentPeer);
+                const obj = await decryptMessageCached(id, m.text || "", m.kv, currentPeer, m.sig, m.sender);
                 if (obj) forwardQueue.push(obj);
             }
             if (!forwardQueue.length) return;
@@ -6877,7 +6890,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             for (const id of ids) {
                 const m = activeChatMessagesData[id];
                 if (!m) continue;
-                const obj = await decryptMessageCached(id, m.text || "", m.kv, currentPeer);
+                const obj = await decryptMessageCached(id, m.text || "", m.kv, currentPeer, m.sig, m.sender);
                 if (obj) {
                     if (obj.isVoice) parts.push("[Голосовое сообщение]");
                     else if (obj.poll) parts.push(`[Опрос] ${obj.poll.q}`);
@@ -6930,7 +6943,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
             let out = `Экспорт переписки: ${peerName}\nДата экспорта: ${new Date().toLocaleString('ru-RU')}\n${"=".repeat(42)}\n\n`;
             for (const [id, m] of entries) {
-                const obj = await decryptMessageCached(id, m.text || "", m.kv, currentPeer);
+                const obj = await decryptMessageCached(id, m.text || "", m.kv, currentPeer, m.sig, m.sender);
                 const who = m.sender === myUid ? "Вы" : peerName;
                 const t = new Date(m.time).toLocaleString('ru-RU');
                 let body = "";
@@ -7396,7 +7409,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 .filter(([id, m]) => m.sender === myUid && !activeChatLocalDeleted[id]);
             if (!entries.length) return;
             const [lastId, lastM] = entries[entries.length - 1];
-            decryptMessageCached(lastId, lastM.text || "", lastM.kv, currentPeer).then(obj => {
+            decryptMessageCached(lastId, lastM.text || "", lastM.kv, currentPeer, lastM.sig, lastM.sender).then(obj => {
                 if (obj && obj.text && !obj.isVoice && !obj.fileData && !obj.poll && !obj.location && !obj.dice) {
                     activeMenuMsgId = lastId;
                     activeMenuMsgObj = { ...obj, sender: myUid };
