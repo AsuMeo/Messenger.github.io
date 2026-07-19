@@ -5477,6 +5477,10 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 tempProfileAvatarBase64 = resultBase64;
                 const myAv = document.getElementById('my-profile-avatar');
                 myAv.style.backgroundImage = `url(${resultBase64})`; myAv.innerText = "";
+                // Auto-save avatar to Firebase immediately
+                if (myUid) {
+                    window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), { avatar: resultBase64 });
+                }
             } else if (cropperMode === 'contact-avatar') {
                 tempContactAvatarBase64 = resultBase64;
                 const cAv = document.getElementById('contact-avatar-preview');
@@ -5787,13 +5791,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
 
             await window.fb.set(usernameRef, myUid);
-            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
-                name: name,
-                lastname: lastname,
-                bio: bio,
-                avatar: tempProfileAvatarBase64,
-                username: uname
-            });
+            const upd = { name: name, lastname: lastname, bio: bio, username: uname };
+            if (tempProfileAvatarBase64) upd.avatar = tempProfileAvatarBase64;
+            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), upd);
 
             myNameCombined = name + (lastname ? " " + lastname : "");
             myProfileAvatarFetched = tempProfileAvatarBase64;
@@ -5851,8 +5851,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         }
 
-        function openEditProfileModal() {
-            loadProfileSettings();
+        async function openEditProfileModal() {
+            await loadProfileSettings();
             openModal('edit-profile-modal');
         }
 
@@ -5869,6 +5869,72 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 window.meowShowToast("Никнейм скопирован");
             }).catch(() => {});
         }
+        async function startMyProfileRealtime() {
+            if (!myUid) return;
+            window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/profile`), (snap) => {
+                if (!snap.exists()) return;
+                const prof = snap.val();
+                const myKey = getMyProfileKey();
+                const decName = legacyOrPlain(prof.name, myKey) || "";
+                const decLast = legacyOrPlain(prof.lastname, myKey) || "";
+                const decBio = legacyOrPlain(prof.bio, myKey) || "";
+                const decAvatar = legacyOrPlain(prof.avatar, myKey) || "";
+                const uname = prof.username || "";
+
+                const fullName = decName + (decLast ? " " + decLast : "");
+                myNameCombined = fullName;
+                myProfileAvatarFetched = decAvatar;
+                tempProfileAvatarBase64 = decAvatar;
+
+                const avEl = document.getElementById('my-profile-avatar');
+                if (avEl) {
+                    if (decAvatar) {
+                        avEl.style.backgroundImage = `url(${decAvatar})`;
+                        avEl.innerText = "";
+                    } else {
+                        avEl.style.backgroundImage = "none";
+                        avEl.innerText = (decName || "?")[0].toUpperCase();
+                    }
+                }
+
+                const nameEl = document.getElementById('profile-display-name');
+                if (nameEl) nameEl.innerText = fullName || "Пользователь";
+
+                const userEl = document.getElementById('profile-display-username');
+                if (userEl) userEl.innerText = "@" + uname;
+
+                const bioEl = document.getElementById('profile-display-bio');
+                if (bioEl) bioEl.innerText = decBio;
+
+                // Update bottom tab icon
+                const bottomIcon = document.getElementById('bottom-profile-icon-container');
+                if (bottomIcon) {
+                    if (decAvatar) {
+                        bottomIcon.innerHTML = `<div class="chat-avatar" style="width:24px; height:24px; background-image:url(${decAvatar}); background-size:cover; border-radius:50%;"></div>`;
+                    } else {
+                        bottomIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+                    }
+                }
+
+                // Update header avatar if in cloud chat
+                if (currentPeer === myUid) {
+                    const headerAv = document.getElementById('chat-header-av');
+                    if (headerAv && decAvatar) {
+                        headerAv.style.backgroundImage = `url(${decAvatar})`;
+                        headerAv.innerText = "";
+                        headerAv.style.backgroundColor = "transparent";
+                    }
+                }
+
+                // Update cloud chat row avatar
+                const cloudAv = document.getElementById(`avatar-${myUid}`);
+                if (cloudAv && decAvatar) {
+                    cloudAv.style.backgroundImage = `url(${decAvatar})`;
+                    cloudAv.innerText = "";
+                }
+            });
+        }
+
         async function deleteAccountPermanently() {
             if (confirm("Вы уверены? Данные будут стерты навсегда!")) {
                 const pSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
@@ -9312,6 +9378,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 document.getElementById('login-screen').style.display = "none";
                 
                 await initE2EE();
+                startMyProfileRealtime();
                 
                 window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/contacts`), (snap) => {
                     myContacts = snap.val() || {};
