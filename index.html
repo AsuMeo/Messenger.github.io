@@ -3011,29 +3011,56 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             const key = CryptoJS.enc.Hex.parse(keyHex);
             const iv = CryptoJS.lib.WordArray.random(16);
             const encrypted = CryptoJS.AES.encrypt(text, key, { iv: iv });
-            return iv.toString() + encrypted.toString();
+            const hmac = CryptoJS.HmacSHA256(iv.toString() + encrypted.toString(), key);
+            return iv.toString() + encrypted.toString() + hmac.toString();
         }
 
-        function aesDecrypt(cipherWithIv, keyHex) {
+        function aesDecrypt(cipherWithIvHmac, keyHex) {
             try {
-                if (!cipherWithIv || !keyHex) return "";
+                if (!cipherWithIvHmac || !keyHex || cipherWithIvHmac.length < 64) return "";
                 const key = CryptoJS.enc.Hex.parse(keyHex);
-                const iv = CryptoJS.enc.Hex.parse(cipherWithIv.slice(0, 32));
-                const cipher = cipherWithIv.slice(32);
+                const iv = CryptoJS.enc.Hex.parse(cipherWithIvHmac.slice(0, 32));
+                const cipher = cipherWithIvHmac.slice(32, -64);
+                const hmacReceived = cipherWithIvHmac.slice(-64);
+                if (cipher.length < 1) return "";
+                const hmacComputed = CryptoJS.HmacSHA256(iv.toString() + cipher, key).toString();
+                if (hmacReceived !== hmacComputed) return "";
                 const decrypted = CryptoJS.AES.decrypt(cipher, key, { iv: iv });
-                return decrypted.toString(CryptoJS.enc.Utf8);
+                const result = decrypted.toString(CryptoJS.enc.Utf8);
+                return result || "";
             } catch (e) {
-                return "[Ошибка дешифрования]";
+                return "";
             }
         }
 
         function getMyProfileKey() {
             let key = localStorage.getItem(`meow_prof_key_${myUid}`);
             if (!key) {
-                key = CryptoJS.lib.WordArray.random(32).toString();
+                const entropy = CryptoJS.lib.WordArray.random(32).toString() + Date.now().toString() + (navigator.userAgent || '');
+                key = CryptoJS.SHA256(entropy).toString();
                 localStorage.setItem(`meow_prof_key_${myUid}`, key);
             }
             return key;
+        }
+
+        // ======== KEYSTORE ENCRYPTION HELPERS ========
+        function getKeystoreKey() {
+            let k = localStorage.getItem(`meow_ks_key_${myUid}`);
+            if (!k) {
+                k = CryptoJS.lib.WordArray.random(32).toString();
+                localStorage.setItem(`meow_ks_key_${myUid}`, k);
+            }
+            return k;
+        }
+
+        function encryptKeyStore() {
+            if (!myKeyStore) return;
+            const key = CryptoJS.enc.Hex.parse(getKeystoreKey());
+            const plain = JSON.stringify(myKeyStore);
+            const iv = CryptoJS.lib.WordArray.random(16);
+            const encrypted = CryptoJS.AES.encrypt(plain, key, { iv: iv });
+            const hmac = CryptoJS.HmacSHA256(iv.toString() + encrypted.toString(), key);
+            localStorage.setItem(`meow_keystore_${myUid}`, iv.toString() + encrypted.toString() + hmac.toString());
         }
 
         // ======== НОВАЯ СИСТЕМА КЛЮЧЕЙ E2EE v2 (версии + история ключей) ========
@@ -3063,7 +3090,23 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         async function loadMyKeyStore() {
             const raw = localStorage.getItem(`meow_keystore_${myUid}`);
             if (raw) {
-                try { myKeyStore = JSON.parse(raw); } catch (e) { myKeyStore = null; }
+                if (raw.startsWith('{')) {
+                    // Legacy plaintext keystore — migrate to encrypted
+                    try { myKeyStore = JSON.parse(raw); } catch (e) { myKeyStore = null; }
+                } else {
+                    // Encrypted keystore
+                    try {
+                        const key = CryptoJS.enc.Hex.parse(getKeystoreKey());
+                        const iv = CryptoJS.enc.Hex.parse(raw.slice(0, 32));
+                        const cipher = raw.slice(32, -64);
+                        const hmacReceived = raw.slice(-64);
+                        if (cipher.length < 1) throw new Error('bad cipher');
+                        const hmacComputed = CryptoJS.HmacSHA256(iv.toString() + cipher, key).toString();
+                        if (hmacReceived !== hmacComputed) throw new Error('HMAC mismatch');
+                        const decrypted = CryptoJS.AES.decrypt(cipher, key, { iv: iv });
+                        myKeyStore = JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
+                    } catch (e) { myKeyStore = null; }
+                }
             }
             if (!myKeyStore || !myKeyStore.pairs) {
                 myKeyStore = { current: null, pairs: {} };
@@ -3090,7 +3133,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         }
 
         async function saveMyKeyStoreAndPublish() {
-            localStorage.setItem(`meow_keystore_${myUid}`, JSON.stringify(myKeyStore));
+            encryptKeyStore();
             const cur = myKeyStore.current;
             const pubJwk = myKeyStore.pairs[cur].pub;
             const upd = {};
@@ -3145,7 +3188,15 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 const sharedBits = await window.crypto.subtle.deriveBits(
                     { name: "ECDH", public: peerPubKeyObj }, myPrivKeyObj, 256
                 );
-                const buffer = new Uint8Array(sharedBits);
+                // HKDF-SHA256 instead of raw ECDH output
+                const ikm = new Uint8Array(sharedBits);
+                const salt = new Uint8Array(0);
+                const info = new TextEncoder().encode("MeowMessageKey/v1");
+                const baseKey = await window.crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
+                const derivedBits = await window.crypto.subtle.deriveBits(
+                    { name: "HKDF", hash: "SHA-256", salt: salt, info: info }, baseKey, 256
+                );
+                const buffer = new Uint8Array(derivedBits);
                 return Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join('');
             } catch (e) {
                 return null;
@@ -9548,32 +9599,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         window.openEditProfileModal = openEditProfileModal;
         window.viewMyAvatarFull = viewMyAvatarFull;
         window.copyMyUsername = copyMyUsername;
-
-        // FIX: Peer profile action buttons (module scope + chat open)
-        (function() {
-            var chatBtn = document.getElementById('peer-profile-chat-btn');
-            var muteBtn = document.getElementById('peer-profile-mute-btn');
-            var callBtn = document.getElementById('peer-profile-call-btn');
-            var videoBtn = document.getElementById('peer-profile-video-btn');
-            if (chatBtn) {
-                chatBtn.onclick = function() {
-                    closeModal('peer-profile-modal');
-                    if (profileViewPeerId) {
-                        if (profileViewPeerId === myUid) {
-                            openCloudChat();
-                        } else {
-                            window.fb.get(window.fb.ref(window.fb.db, 'users/' + myUid + '/chats/' + profileViewPeerId)).then(function(snap) {
-                                var roomId = snap.exists() ? snap.val().roomId : [myUid, profileViewPeerId].sort().join('_');
-                                openChatWindow(profileViewPeerId, roomId);
-                            });
-                        }
-                    }
-                };
-            }
-            if (muteBtn) muteBtn.onclick = toggleMuteActivePeer;
-            if (callBtn) callBtn.onclick = startCallFromProfile;
-            if (videoBtn) videoBtn.onclick = startVideoCallFromProfile;
-        })();
 </script>
     <div class="modal-overlay" id="edit-profile-modal">
         <div class="modal-card">
