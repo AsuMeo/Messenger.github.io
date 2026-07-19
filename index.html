@@ -3242,7 +3242,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
         async function initE2EE() {
             await loadMyKeyStore();
-            await cleanupOldKeys();
             if (!myKeyStore.current || !myKeyStore.pairs[myKeyStore.current]) {
                 await generateAndAddKeypair();
             }
@@ -4585,32 +4584,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         }
 
-
-        async function autoRotateKeysIfNeeded(peerId) {
-            if (!myKeyStore || !myKeyStore.current) return false;
-            const cur = myKeyStore.current;
-            if (cur === "legacy") return false;
-            const ts = parseInt(cur.slice(1), 36);
-            if (isNaN(ts)) return false;
-            const age = Date.now() - ts;
-            const rotateInterval = 7 * 24 * 60 * 60 * 1000; // 7 days
-            if (age < rotateInterval) return false;
-            await generateAndAddKeypair();
-            await saveMyKeyStoreAndPublish();
-            if (peerId && peerId !== myUid) {
-                const info = await getPeerCurrentKeyInfo(peerId, true);
-                if (info.pub) {
-                    activeRoomKv = `${myKeyStore.current}_${info.ver || 'legacy'}`;
-                    activeRoomSharedKey = await getSharedKeyForKv(peerId, activeRoomKv);
-                }
-            } else if (peerId === myUid) {
-                activeRoomKv = `self_${myKeyStore.current}`;
-                activeRoomSharedKey = getSelfChatKey(myKeyStore.current);
-            }
-            derivedKeysCache = {};
-            return true;
-        }
-
         async function openChatWindow(peerId, roomId) {
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
@@ -4646,8 +4619,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     activeRoomSharedKey = null;
                 }
             }
-            // Forward Secrecy: auto-rotate keys if older than 7 days
-            await autoRotateKeysIfNeeded(peerId);
             loadActiveChatWallpaper();
 
             // TOFU verification on chat open
