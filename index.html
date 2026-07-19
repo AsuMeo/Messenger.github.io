@@ -1809,7 +1809,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             <button class="header-btn" title="Избранное" onclick="openCloudChat()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
             </button>
-
+            <button class="header-btn" title="Полноэкранный режим" onclick="toggleFullscreen()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            </button>
             <button class="header-btn" title="Выйти" onclick="logoutAction()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
@@ -2338,21 +2340,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         </div>
     </div>
 
-    <div class="modal-overlay" id="clear-history-modal">
-        <div class="modal-card" style="max-width: 320px;">
-            <h3 style="margin-bottom: 12px; text-align: center; font-size: 16px;">Очистить историю?</h3>
-            <p style="color: var(--text-muted); font-size: 12px; text-align: center; margin-bottom: 12px;">Сообщения будут удалены, но сам чат останется</p>
-            <label class="modern-checkbox-container" for="clear-history-both-checkbox">
-                <span class="modern-checkbox-label">Очистить у обоих</span>
-                <input type="checkbox" id="clear-history-both-checkbox" class="modern-checkbox">
-            </label>
-            <div style="display: flex; gap: 8px;">
-                <button class="menu-btn" style="margin-bottom: 0; background: transparent;" onclick="closeModal('clear-history-modal')">Отмена</button>
-                <button class="menu-btn danger" style="margin-bottom: 0; flex: 1;" onclick="clearHistoryConfirm()">Очистить</button>
-            </div>
-        </div>
-    </div>
-
     <div class="modal-overlay" id="add-contact-modal">
         <div class="modal-card">
             <h3 style="margin-bottom: 12px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;" id="contact-modal-title">
@@ -2825,7 +2812,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         let burnDelayMs = parseInt(localStorage.getItem('meow_burn_delay') || "10000");
         let suppressBurnClick = false;
         let activeChatAutoDeleteSec = 0;
-        let reactionTimestamps = {};
         let unsubAutoDeleteMeta = null;
         let unreadByChatMap = {};
         let galleryItems = [];
@@ -3452,33 +3438,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             if (activeMenuPeerId) {
                 triggerChatDeletion(activeMenuPeerId);
             }
-        }
-
-        function clearChatHistoryAction() {
-            closeModal('chat-options-modal');
-            document.getElementById('clear-history-both-checkbox').checked = false;
-            openModal('clear-history-modal');
-        }
-
-        async function clearHistoryConfirm() {
-            closeModal('clear-history-modal');
-            if (!activeMenuPeerId) return;
-            const roomId = [myUid, activeMenuPeerId].sort().join("_");
-            const both = document.getElementById('clear-history-both-checkbox').checked;
-            if (both) {
-                await window.fb.remove(window.fb.ref(window.fb.db, `messages/${roomId}/list`));
-            } else {
-                const msgsSnap = await window.fb.get(window.fb.ref(window.fb.db, `messages/${roomId}/list`));
-                if (msgsSnap.exists()) {
-                    const updates = {};
-                    Object.keys(msgsSnap.val()).forEach(msgId => {
-                        updates[`users/${myUid}/deletedMessages/${roomId}/${msgId}`] = true;
-                    });
-                    if (Object.keys(updates).length) await window.fb.update(window.fb.ref(window.fb.db), updates);
-                }
-            }
-            activeMenuPeerId = null;
-            loadDialogs();
         }
 
         function setupDialogPresenceRealtime(peerId, roomId) {
@@ -4491,12 +4450,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 let container = document.getElementById(`msg-${msgId}`);
 
                 if (!messageObject) {
-                    // Автоудаление нерасшифрованных сообщений после 1 часа
-                    if (rawText && rawText.startsWith("[MEOW]") && m.time && (Date.now() - m.time > 3600000)) {
-                        window.fb.remove(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`));
-                        continue;
-                    }
-                    // Не удалось расшифровать — показываем заглушку с повтором
+                    // Не удалось расшифровать — НЕ удаляем сообщение, показываем заглушку с повтором
                     if (!container) {
                         container = document.createElement('div');
                         container.className = `msg-container ${m.sender === myUid ? 'out' : 'in'} is-text-container`;
@@ -4774,14 +4728,10 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             if (!currentRoomId) return;
             const rxRef = window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}/reactions/${myUid}`);
             const snap = await window.fb.get(rxRef);
-            const key = msgId + '_' + emoji;
             if (snap.exists() && snap.val() === emoji) {
-                const lastSet = reactionTimestamps[key] || 0;
-                if (Date.now() - lastSet < 1000) return;
                 await window.fb.remove(rxRef);
             } else {
                 await window.fb.set(rxRef, emoji);
-                reactionTimestamps[key] = Date.now();
             }
         }
 
@@ -5912,7 +5862,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             if (!quotePopup) {
                 quotePopup = document.createElement('div');
                 quotePopup.className = 'quote-selection-popup';
-                quotePopup.innerHTML = '<button onclick="quoteSelectedText()">💬 Цитировать</button>';
+                quotePopup.innerHTML = '<button onclick="quoteSelectedText()">💬 Цитировать</button><button onclick="copySelectedText()">📋 Копировать</button>';
                 document.body.appendChild(quotePopup);
             }
             feed.addEventListener('mouseup', handleTextSelection);
@@ -5933,18 +5883,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             quoteSelectionRange = { text: sel.toString().trim(), msgId: msgEl.closest('.msg-container')?.id?.replace('msg-', '') };
             if (!quoteSelectionRange.msgId) { hideQuotePopup(); return; }
             const rect = range.getBoundingClientRect();
-            quotePopup.style.visibility = 'hidden';
+            quotePopup.style.left = Math.max(8, Math.min(window.innerWidth - quotePopup.offsetWidth - 8, rect.left + rect.width / 2 - quotePopup.offsetWidth / 2)) + 'px';
+            quotePopup.style.top = (rect.top - quotePopup.offsetHeight - 10) + 'px';
             quotePopup.classList.add('show');
-            const pw = quotePopup.offsetWidth || 110;
-            const ph = quotePopup.offsetHeight || 36;
-            quotePopup.style.visibility = '';
-            let left = rect.left + rect.width / 2 - pw / 2;
-            let top = rect.top - ph - 10;
-            if (left < 8) left = 8;
-            if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
-            if (top < 8) top = rect.bottom + 10;
-            quotePopup.style.left = left + 'px';
-            quotePopup.style.top = top + 'px';
         }
         function hideQuotePopup() { if (quotePopup) quotePopup.classList.remove('show'); quoteSelectionRange = null; }
         function quoteSelectedText() {
@@ -9299,134 +9240,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         });
         /* Мяу, всё готово! Мессенджер работает стабильно, чисто, быстро и полностью безопасно. Приятного использования! */
-    
-// === EXPORT FUNCTIONS FOR INLINE HTML HANDLERS ===
-window.acceptCall = acceptCall;
-window.addActivePeerToContactsFromChat = addActivePeerToContactsFromChat;
-window.addPollOptionInput = addPollOptionInput;
-window.addReactionFromMenu = addReactionFromMenu;
-window.applyCroppedResult = applyCroppedResult;
-window.authAction = authAction;
-window.cancelContactEditStep = cancelContactEditStep;
-window.cancelCropping = cancelCropping;
-window.cancelReply = cancelReply;
-window.cancelVideoNoteRecording = cancelVideoNoteRecording;
-window.cancelVoiceRecording = cancelVoiceRecording;
-window.clearChatHistoryAction = clearChatHistoryAction;
-window.clearHistoryConfirm = clearHistoryConfirm;
-window.closeCallMenu = closeCallMenu;
-window.closeChat = closeChat;
-window.closeChatSearch = closeChatSearch;
-window.closeMediaViewer = closeMediaViewer;
-window.closeModal = closeModal;
-window.copyActiveMessageText = copyActiveMessageText;
-window.copySelectedMessages = copySelectedMessages;
-window.createNewFolderAction = createNewFolderAction;
-window.createPollAction = createPollAction;
-window.cycleVoiceSpeed = cycleVoiceSpeed;
-window.deleteAccountPermanently = deleteAccountPermanently;
-window.deleteChatConfirm = deleteChatConfirm;
-window.deleteContact = deleteContact;
-window.deleteContactFromProfile = deleteContactFromProfile;
-window.deleteMessageConfirm = deleteMessageConfirm;
-window.deleteScheduledItem = deleteScheduledItem;
-window.deleteSelectedMessages = deleteSelectedMessages;
-window.disablePinLock = disablePinLock;
-window.downloadDocument = downloadDocument;
-window.downloadGalleryItem = downloadGalleryItem;
-window.editContact = editContact;
-window.endCallButton = endCallButton;
-window.enterSelectModeFromMenu = enterSelectModeFromMenu;
-window.exitSelectMode = exitSelectMode;
-window.exportActiveChat = exportActiveChat;
-window.filterContacts = filterContacts;
-window.filterDialogsAndGlobalSearch = filterDialogsAndGlobalSearch;
-window.flipCallCamera = flipCallCamera;
-window.flipVideoNoteCamera = flipVideoNoteCamera;
-window.forceKeyExchange = forceKeyExchange;
-window.forwardSelectedMessages = forwardSelectedMessages;
-window.galleryNav = galleryNav;
-window.handleDocumentSelected = handleDocumentSelected;
-window.handleMediaFilesSelected = handleMediaFilesSelected;
-window.handleStickerFileChosen = handleStickerFileChosen;
-window.insertEmojiAtCursor = insertEmojiAtCursor;
-window.logoutAction = logoutAction;
-window.navigateSearchMatch = navigateSearchMatch;
-window.openAttachMenu = openAttachMenu;
-window.openAutoDeleteMenu = openAutoDeleteMenu;
-window.openCloudChat = openCloudChat;
-window.openContactSharePicker = openContactSharePicker;
-window.openModal = openModal;
-window.openPinSetup = openPinSetup;
-window.openPollModal = openPollModal;
-window.openProtectionExceptPicker = openProtectionExceptPicker;
-window.openScheduledList = openScheduledList;
-window.openStickerEditorWithFile = openStickerEditorWithFile;
-window.performMessageSearch = performMessageSearch;
-window.pinLockBackspace = pinLockBackspace;
-window.pinLockDigit = pinLockDigit;
-window.pinSetupBackspace = pinSetupBackspace;
-window.pinSetupDigit = pinSetupDigit;
-window.processAndSetCrop = processAndSetCrop;
-window.quickAddActivePeerToContacts = quickAddActivePeerToContacts;
-window.quoteSelectedText = quoteSelectedText;
-window.resetWallpaper = resetWallpaper;
-window.rotateCropperImage = rotateCropperImage;
-window.saveActiveDraft = saveActiveDraft;
-window.saveContact = saveContact;
-window.savePrivacySettings = savePrivacySettings;
-window.saveProfileSettings = saveProfileSettings;
-window.saveProtectionExceptions = saveProtectionExceptions;
-window.saveQuickReactionSetting = saveQuickReactionSetting;
-window.saveStickerFromEditor = saveStickerFromEditor;
-window.scheduleMessageCustom = scheduleMessageCustom;
-window.scheduleMessageIn = scheduleMessageIn;
-window.scrollFeedToBottom = scrollFeedToBottom;
-window.scrollToMessage = scrollToMessage;
-window.scrollToPinnedMessage = scrollToPinnedMessage;
-window.searchUserForContact = searchUserForContact;
-window.seekVoice = seekVoice;
-window.sendScheduledItemNow = sendScheduledItemNow;
-window.sendSilentNow = sendSilentNow;
-window.setBurnDelay = setBurnDelay;
-window.setChatAutoDelete = setChatAutoDelete;
-window.shareMyLocation = shareMyLocation;
-window.showActivePeerProfile = showActivePeerProfile;
-window.showE2EEVerification = showE2EEVerification;
-window.startCall = startCall;
-window.startContactChat = startContactChat;
-window.stopVideoNoteRecording = stopVideoNoteRecording;
-window.stopVoiceRecording = stopVoiceRecording;
-window.switchEmojiPanelTab = switchEmojiPanelTab;
-window.switchFolder = switchFolder;
-window.switchTab = switchTab;
-window.toggleArchiveChat = toggleArchiveChat;
-window.toggleBlockActivePeer = toggleBlockActivePeer;
-window.toggleBurnMode = toggleBurnMode;
-window.toggleCallMenu = toggleCallMenu;
-window.toggleCallMute = toggleCallMute;
-window.toggleCallVideo = toggleCallVideo;
-window.toggleChatSearchSubBar = toggleChatSearchSubBar;
-window.toggleEmojiPanel = toggleEmojiPanel;
-window.toggleHeaderMenu = toggleHeaderMenu;
-window.toggleManualUnread = toggleManualUnread;
-window.toggleMuteChat = toggleMuteChat;
-window.togglePinChat = togglePinChat;
-window.toggleReactionDirect = toggleReactionDirect;
-window.toggleSemiTransparentDialogs = toggleSemiTransparentDialogs;
-window.toggleVideoNote = toggleVideoNote;
-window.toggleVoicePlayback = toggleVoicePlayback;
-window.triggerDeleteChatFromOptions = triggerDeleteChatFromOptions;
-window.triggerDeleteFromMenu = triggerDeleteFromMenu;
-window.triggerEditFromMenu = triggerEditFromMenu;
-window.triggerForwardFromMenu = triggerForwardFromMenu;
-window.triggerPinFromMenu = triggerPinFromMenu;
-window.triggerTypingStatus = triggerTypingStatus;
-window.unpinActiveMessage = unpinActiveMessage;
-window.updateComposerButton = updateComposerButton;
-window.updateProtectionExceptBtn = updateProtectionExceptBtn;
-window.viewMediaFull = viewMediaFull;
-window.votePoll = votePoll;
-</script>
+    </script>
 </body>
 </html>
