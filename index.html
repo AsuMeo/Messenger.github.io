@@ -4621,6 +4621,15 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
             loadActiveChatWallpaper();
 
+            // TOFU verification on chat open
+            if (!isCloud) {
+                tofuVerifyPeer(peerId).then(tofuResult => {
+                    if (!tofuResult.ok && tofuResult.changed) {
+                        console.warn("[TOFU] Peer key changed for", peerId, "— possible MITM!");
+                    }
+                });
+            }
+
             const badgeContainer = document.getElementById(`badge-container-${peerId}`);
             if (badgeContainer) badgeContainer.innerHTML = "";
 
