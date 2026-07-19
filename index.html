@@ -9454,7 +9454,12 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         });
         /* Мяу, всё готово! Мессенджер работает стабильно, чисто, быстро и полностью безопасно. Приятного использования! */
-    </script>
+    
+        // Expose new profile functions to global scope for HTML onclick handlers
+        window.openEditProfileModal = openEditProfileModal;
+        window.viewMyAvatarFull = viewMyAvatarFull;
+        window.copyMyUsername = copyMyUsername;
+</script>
     <div class="modal-overlay" id="edit-profile-modal">
         <div class="modal-card">
             <h3 style="margin-bottom: 16px; text-align: center;">Изменить профиль</h3>
