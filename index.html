@@ -5923,7 +5923,10 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             const metaSnap = await window.fb.get(window.fb.ref(window.fb.db, refPath));
             const meta = metaSnap.exists() ? metaSnap.val() : {};
             const newMuted = !meta.muted;
-            await window.fb.update(window.fb.ref(window.fb.db, refPath), { muted: newMuted });
+            await window.fb.update(window.fb.ref(window.fb.db, refPath), { roomId: meta.roomId || [myUid, pid].sort().join("_"), lastTime: meta.lastTime || Date.now(), muted: newMuted });
+            if (currentPeer === pid) activeChatIsMuted = newMuted;
+            const muteLabel = document.getElementById('peer-profile-mute-label');
+            if (muteLabel) muteLabel.innerText = newMuted ? "Вкл. звук" : "Звук";
             meowVibrate(8);
             window.meowShowToast(newMuted ? "🔕 Уведомления отключены" : "🔔 Уведомления включены");
             loadDialogs();
@@ -5933,7 +5936,13 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             const pid = profileViewPeerId || currentPeer;
             if (!pid || pid === myUid) { alert("Нельзя позвонить себе!"); return; }
             closeModal('peer-profile-modal');
-            startCall('audio');
+            startCall('audio', pid);
+        }
+        function startVideoCallFromProfile() {
+            const pid = profileViewPeerId || currentPeer;
+            if (!pid || pid === myUid) { alert("Нельзя позвонить себе!"); return; }
+            closeModal('peer-profile-modal');
+            startCall('video', pid);
         }
 
         async function startMyProfileRealtime() {
@@ -7941,93 +7950,86 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             };
         }
 
-        async function startCall(kind) {
-            if (!currentPeer || currentPeer === myUid) return;
+        async function startCall(kind, targetPeerId) {
+            const peerId = targetPeerId || currentPeer;
+            if (!peerId || peerId === myUid) return;
             if (callState) { alert("Звонок уже активен"); return; }
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 alert("Ваш браузер не поддерживает звонки"); return;
             }
-            ensureMeowAudioCtx();
-            try {
-                const [privSnap, contSnap] = await Promise.all([
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${currentPeer}/privacy/calls`)),
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${currentPeer}/contacts/${myUid}`))
-                ]);
-                const callsPriv = privSnap.exists() ? privSnap.val() : "all";
-                if (callsPriv === "none" || (callsPriv === "contacts" && !contSnap.exists())) {
-                    alert("Пользователь ограничил входящие звонки."); return;
-                }
-            } catch (e) {}
-            const roomId = currentRoomId;
-            try {
-                const curSnap = await window.fb.get(window.fb.ref(window.fb.db, `calls/${roomId}/current`));
-                if (curSnap.exists()) {
-                    const cur = curSnap.val();
-                    if (cur.state && cur.state !== 'ended' && Date.now() - (cur.createdAt || 0) < 120000) {
-                        alert("Собеседник уже в звонке"); return;
-                    }
-                }
-            } catch (e) {}
+            const rId = [myUid, peerId].sort().join("_");
+            callPeerId = peerId; callRoomId = rId; callKind = kind; callState = 'outgoing';
+            callAnswered = false; callMuted = false; callVideoOn = kind === 'video';
+            callFacing = 'user'; callRemoteDescSet = false; callCandidatesBuf = [];
 
-            callKind = kind; callPeerId = currentPeer; callRoomId = roomId;
-            callState = 'outgoing'; callAnswered = false;
-            showCallOverlay('outgoing');
-            playRingtoneOutgoing();
-            try {
-                await setupLocalMedia(kind);
-            } catch (e) {
-                endCallCleanup();
-                alert(kind === 'video' ? "Камера или микрофон недоступны! Проверьте разрешения." : "Микрофон недоступен! Проверьте разрешения.");
-                return;
-            }
-            pc = new RTCPeerConnection(RTC_CONFIG);
-            setupPeerConnectionCommon('caller');
-            try {
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                const callNode = {
-                    id: 'call_' + Date.now(), caller: myUid, callee: callPeerId, kind: kind,
-                    state: 'ringing', createdAt: Date.now(),
-                    offer: { type: offer.type, sdp: offer.sdp }
-                };
-                await window.fb.set(window.fb.ref(window.fb.db, `calls/${roomId}/current`), callNode);
-                await window.fb.set(window.fb.ref(window.fb.db, `incomingCalls/${callPeerId}`), { roomId: roomId, caller: myUid, kind: kind, ts: Date.now() });
-                try { window.fb.onDisconnect(window.fb.ref(window.fb.db, `incomingCalls/${callPeerId}`)).remove(); } catch (e) {}
-            } catch (e) {
-                endCallCleanup();
-                alert("Не удалось начать звонок"); return;
-            }
-            const un1 = window.fb.onValue(window.fb.ref(window.fb.db, `calls/${roomId}/current`), async (snap) => {
-                if (!snap.exists() || !pc) return;
-                const c = snap.val();
-                if (c.state === 'active' && c.answer && !callAnswered) {
-                    try {
-                        callRemoteDescSet = true;
-                        await pc.setRemoteDescription(new RTCSessionDescription(c.answer));
-                        flushBufferedCandidates();
-                        onCallConnected();
-                    } catch (e) {}
+            document.getElementById('call-overlay').setAttribute('data-mode', 'outgoing');
+            document.getElementById('call-remote-video').style.display = 'none';
+            document.getElementById('call-local-video').style.display = 'none';
+            document.getElementById('call-mute-btn').style.display = 'flex';
+            document.getElementById('call-video-toggle-btn').style.display = kind === 'video' ? 'flex' : 'none';
+            document.getElementById('call-flip-btn').style.display = kind === 'video' ? 'flex' : 'none';
+            document.getElementById('call-accept-btn').style.display = 'none';
+            document.getElementById('call-end-btn').style.display = 'flex';
+            document.getElementById('call-status-text').innerText = 'Вызов…';
+
+            getCachedProfile(peerId, (p) => {
+                const n = (p.name || "Пользователь") + (p.lastname ? " " + p.lastname : "");
+                document.getElementById('call-peer-name').innerText = n;
+                const av = document.getElementById('call-avatar');
+                if (p.avatar) { av.style.backgroundImage = `url(${p.avatar})`; av.innerText = ""; }
+                else { av.style.backgroundImage = "none"; av.innerText = n[0].toUpperCase(); }
+            });
+
+            document.getElementById('call-overlay').classList.add('active');
+            playRingtone();
+
+            navigator.mediaDevices.getUserMedia({ audio: true, video: kind === 'video' ? { facingMode: 'user' } : false }).then(stream => {
+                localStream = stream;
+                if (kind === 'video') {
+                    const lv = document.getElementById('call-local-video');
+                    lv.srcObject = stream; lv.style.display = 'block';
                 }
-                if (c.state === 'declined' || c.state === 'ended') {
-                    if (!callAnswered) {
-                        stopRingtone();
-                        alert(c.state === 'declined' ? "Собеседник сбросил звонок" : "Звонок завершён");
+                setupPeerConnection(stream, true);
+                const offerRef = window.fb.ref(window.fb.db, `calls/${rId}/offer`);
+                window.fb.onValue(offerRef, async (snap) => {
+                    if (!snap.exists() || callAnswered) return;
+                    const data = snap.val();
+                    if (data.answered && data.answer) {
+                        callAnswered = true; stopRingtone();
+                        document.getElementById('call-status-text').innerText = '00:00';
+                        document.getElementById('call-overlay').setAttribute('data-mode', 'active');
+                        if (!callRemoteDescSet) {
+                            await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                            callRemoteDescSet = true;
+                        }
+                        callCandidatesBuf.forEach(c => pc.addIceCandidate(new RTCIceCandidate(c)));
+                        callCandidatesBuf = [];
+                        callStartTs = Date.now();
+                        if (callTimerInt) clearInterval(callTimerInt);
+                        callTimerInt = setInterval(() => {
+                            const s = Math.floor((Date.now() - callStartTs) / 1000);
+                            const m = Math.floor(s / 60); const sec = s % 60;
+                            document.getElementById('call-status-text').innerText = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+                        }, 1000);
                     }
-                    endCallCleanup();
-                }
-            });
-            const un2 = window.fb.onValue(window.fb.ref(window.fb.db, `calls/${roomId}/cands_callee`), (snap) => {
-                if (!snap.exists() || !pc) return;
-                snap.forEach(c => addRemoteCandidate(c.val()));
-            });
-            callUnsubs.push(un1, un2);
-            callTimeoutId = setTimeout(() => {
-                if (!callAnswered) {
-                    stopRingtone();
-                    alert("Нет ответа");
-                    endCall();
-                }
-            }, 45000);
+                }, { onlyOnce: false });
+                callUnsubs.push(() => window.fb.off(offerRef));
+
+                const candRef = window.fb.ref(window.fb.db, `calls/${rId}/candidates/${peerId}`);
+                window.fb.onValue(candRef, (snap) => {
+                    if (!snap.exists()) return;
+                    const cands = snap.val();
+                    Object.values(cands).forEach(c => {
+                        if (pc.remoteDescription) pc.addIceCandidate(new RTCIceCandidate(c));
+                        else callCandidatesBuf.push(c);
+                    });
+                });
+                callUnsubs.push(() => window.fb.off(candRef));
+
+                callTimeoutId = setTimeout(() => {
+                    if (!callAnswered) { endCallButton(); alert("Нет ответа"); }
+                }, 45000);
+            }).catch(err => { console.error(err); alert("Не удалось получить доступ к микрофону/камере"); endCallCleanup(); });
         }
 
         async function acceptCall() {
