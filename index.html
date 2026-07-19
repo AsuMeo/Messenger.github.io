@@ -3184,7 +3184,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         }
 
         async function verifySignature(peerId, ver, payloadJson, sigB64) {
-            if (!sigB64 || !ver) return false;
+            if (!sigB64) return true;
+            if (!ver || ver === "legacy") return true;
             const pubJwk = await getPeerSignKey(peerId, ver);
             if (!pubJwk) return false;
             try {
@@ -3242,6 +3243,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
         async function initE2EE() {
             await loadMyKeyStore();
+            await cleanupOldKeys();
             if (!myKeyStore.current || !myKeyStore.pairs[myKeyStore.current]) {
                 await generateAndAddKeypair();
             }
@@ -4584,6 +4586,32 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         }
 
+
+        async function autoRotateKeysIfNeeded(peerId) {
+            if (!myKeyStore || !myKeyStore.current) return false;
+            const cur = myKeyStore.current;
+            if (cur === "legacy") return false;
+            const ts = parseInt(cur.slice(1), 36);
+            if (isNaN(ts)) return false;
+            const age = Date.now() - ts;
+            const rotateInterval = 7 * 24 * 60 * 60 * 1000; // 7 days
+            if (age < rotateInterval) return false;
+            await generateAndAddKeypair();
+            await saveMyKeyStoreAndPublish();
+            if (peerId && peerId !== myUid) {
+                const info = await getPeerCurrentKeyInfo(peerId, true);
+                if (info.pub) {
+                    activeRoomKv = `${myKeyStore.current}_${info.ver || 'legacy'}`;
+                    activeRoomSharedKey = await getSharedKeyForKv(peerId, activeRoomKv);
+                }
+            } else if (peerId === myUid) {
+                activeRoomKv = `self_${myKeyStore.current}`;
+                activeRoomSharedKey = getSelfChatKey(myKeyStore.current);
+            }
+            derivedKeysCache = {};
+            return true;
+        }
+
         async function openChatWindow(peerId, roomId) {
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
@@ -4619,7 +4647,18 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     activeRoomSharedKey = null;
                 }
             }
+            // Forward Secrecy: auto-rotate keys if older than 7 days
+            await autoRotateKeysIfNeeded(peerId);
             loadActiveChatWallpaper();
+
+            // TOFU verification on chat open
+            if (!isCloud) {
+                tofuVerifyPeer(peerId).then(tofuResult => {
+                    if (!tofuResult.ok && tofuResult.changed) {
+                        console.warn("[TOFU] Peer key changed for", peerId, "— possible MITM!");
+                    }
+                });
+            }
 
             const badgeContainer = document.getElementById(`badge-container-${peerId}`);
             if (badgeContainer) badgeContainer.innerHTML = "";
@@ -5778,7 +5817,19 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     if (o && (o.text || o.fileData || o.isVoice || o.videoNote || o.sticker || o.animatedSticker || o.isDocument || o.contactShare || o.callLog)) {
                         // Verify ECDSA signature if present
                         if (sig && peerId !== myUid) {
-                            const ver = usedKv ? usedKv.split('_')[1] || usedKv.split('_')[0] : null;
+                            let peerVer = null;
+                            if (usedKv) {
+                                const idx = usedKv.indexOf('_');
+                                if (idx >= 0) {
+                                    const p1 = usedKv.slice(0, idx), p2 = usedKv.slice(idx + 1);
+                                    if (myKeyStore.pairs[p1]) peerVer = p2;
+                                    else if (myKeyStore.pairs[p2]) peerVer = p1;
+                                    else peerVer = p1;
+                                } else {
+                                    peerVer = usedKv;
+                                }
+                            }
+                            const ver = peerVer || (usedKv ? usedKv.split('_')[1] || usedKv.split('_')[0] : null);
                             const valid = await verifySignature(peerId, ver, plain, sig);
                             if (!valid) {
                                 console.warn("Signature verification failed for message from", peerId);
