@@ -4334,6 +4334,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         async function showActivePeerProfile() {
             if (!currentPeer) return;
             if (currentPeer === myUid) return;
+            profileViewPeerId = currentPeer;
 
             const addBtn = document.getElementById('peer-add-contact-modal-btn');
             const removeBtn = document.getElementById('peer-remove-contact-modal-btn');
@@ -5953,6 +5954,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         function startVideoCallFromProfile() {
             const pid = profileViewPeerId || currentPeer;
             if (!pid || pid === myUid) { alert("Нельзя позвонить себе!"); return; }
+            closeModal('peer-profile-modal');
+            startCall('video', pid);
+        }
 
         async function openChatFromProfile() {
             const pid = profileViewPeerId || currentPeer;
@@ -5966,9 +5970,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pid}`), { roomId: rId, lastTime: nowTime });
             await window.fb.set(window.fb.ref(window.fb.db, `users/${pid}/chats/${myUid}`), { roomId: rId, lastTime: nowTime });
             openChatWindow(pid, rId);
-        }
-            closeModal('peer-profile-modal');
-            startCall('video', pid);
         }
 
         async function startMyProfileRealtime() {
