@@ -3127,8 +3127,14 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             );
             const priv = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
             const pub = await window.crypto.subtle.exportKey("jwk", keyPair.publicKey);
+            // Generate ECDSA signing keypair for message authentication
+            const signPair = await window.crypto.subtle.generateKey(
+                { name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]
+            );
+            const signPriv = await window.crypto.subtle.exportKey("jwk", signPair.privateKey);
+            const signPub = await window.crypto.subtle.exportKey("jwk", signPair.publicKey);
             const ver = "v" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
-            myKeyStore.pairs[ver] = { priv, pub };
+            myKeyStore.pairs[ver] = { priv, pub, signPriv, signPub };
             myKeyStore.current = ver;
         }
 
@@ -3136,11 +3142,102 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             encryptKeyStore();
             const cur = myKeyStore.current;
             const pubJwk = myKeyStore.pairs[cur].pub;
+            const signPub = myKeyStore.pairs[cur].signPub;
             const upd = {};
             upd[`users/${myUid}/profile/publicKey`] = JSON.stringify(pubJwk);
             upd[`users/${myUid}/profile/keyVersion`] = cur;
             upd[`users/${myUid}/profile/publicKeys/${cur}`] = JSON.stringify(pubJwk);
+            if (signPub) upd[`users/${myUid}/profile/signPub/${cur}`] = JSON.stringify(signPub);
             await window.fb.update(window.fb.ref(window.fb.db), upd);
+        }
+
+        // ======== ECDSA SIGNING / VERIFICATION ========
+        async function signPayload(payloadJson) {
+            const cur = myKeyStore.current;
+            if (!cur || !myKeyStore.pairs[cur] || !myKeyStore.pairs[cur].signPriv) return null;
+            try {
+                const privKey = await window.crypto.subtle.importKey(
+                    "jwk", myKeyStore.pairs[cur].signPriv,
+                    { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]
+                );
+                const sig = await window.crypto.subtle.sign(
+                    { name: "ECDSA", hash: "SHA-256" }, privKey,
+                    new TextEncoder().encode(payloadJson)
+                );
+                return btoa(String.fromCharCode(...new Uint8Array(sig)));
+            } catch (e) { return null; }
+        }
+
+        async function getPeerSignKey(peerId, ver) {
+            if (!ver || ver === "legacy") return null;
+            const cacheKey = peerId + "_sign_" + ver;
+            if (peerKeyInfoCache[cacheKey]) return peerKeyInfoCache[cacheKey];
+            try {
+                const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile/signPub/${ver}`));
+                if (snap.exists()) {
+                    const pub = JSON.parse(snap.val());
+                    peerKeyInfoCache[cacheKey] = pub;
+                    return pub;
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        async function verifySignature(peerId, ver, payloadJson, sigB64) {
+            if (!sigB64 || !ver) return false;
+            const pubJwk = await getPeerSignKey(peerId, ver);
+            if (!pubJwk) return false;
+            try {
+                const pubKey = await window.crypto.subtle.importKey(
+                    "jwk", pubJwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]
+                );
+                const sigBuf = Uint8Array.from(atob(sigB64), c => c.charCodeAt(0));
+                return await window.crypto.subtle.verify(
+                    { name: "ECDSA", hash: "SHA-256" }, pubKey,
+                    sigBuf, new TextEncoder().encode(payloadJson)
+                );
+            } catch (e) { return false; }
+        }
+
+        // ======== TOFU / FINGERPRINT ========
+        function getTofuKey(peerId) { return `meow_tofu_${myUid}_${peerId}`; }
+
+        async function tofuCheckAndSave(peerId, pubJwk) {
+            const key = getTofuKey(peerId);
+            const fp = CryptoJS.SHA256(JSON.stringify(pubJwk)).toString().slice(0, 32);
+            const saved = localStorage.getItem(key);
+            if (!saved) {
+                localStorage.setItem(key, fp);
+                return { ok: true, changed: false, first: true };
+            }
+            if (saved !== fp) {
+                return { ok: false, changed: true, first: false, saved: saved, current: fp };
+            }
+            return { ok: true, changed: false, first: false };
+        }
+
+        async function tofuVerifyPeer(peerId) {
+            const info = await getPeerCurrentKeyInfo(peerId, true);
+            if (!info.pub) return { ok: true };
+            return await tofuCheckAndSave(peerId, info.pub);
+        }
+
+        // ======== FORWARD SECRECY ========
+        async function cleanupOldKeys() {
+            if (!myKeyStore || !myKeyStore.pairs) return;
+            const now = Date.now();
+            const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+            let changed = false;
+            for (const ver of Object.keys(myKeyStore.pairs)) {
+                if (ver === myKeyStore.current) continue;
+                if (ver === "legacy") continue;
+                const ts = parseInt(ver.slice(1), 36);
+                if (!isNaN(ts) && (now - ts) > maxAge) {
+                    delete myKeyStore.pairs[ver];
+                    changed = true;
+                }
+            }
+            if (changed) encryptKeyStore();
         }
 
         async function initE2EE() {
@@ -4654,7 +4751,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 }
 
                 let raw = m.text || "";
-                const messageObject = await decryptMessageCached(msgId, raw, m.kv, currentPeer);
+                const messageObject = await decryptMessageCached(msgId, raw, m.kv, currentPeer, m.sig);
 
                 if (m.sender !== myUid && m.read !== true) {
                     window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), { read: true });
@@ -5191,11 +5288,14 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 const messagePayload = { text: txt };
                 if (DICE_EMOJIS.includes(txt)) messagePayload.dice = { emoji: txt, value: 1 + Math.floor(Math.random() * 6) };
                 if (replyTargetMessageId) messagePayload.replyTo = { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText };
-                const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(messagePayload), activeRoomSharedKey);
+                if (isBurnModeActive) messagePayload.burnTime = Date.now() + burnDelayMs;
+                if (sendSilentNext) messagePayload.silent = true;
+                const payloadJson = JSON.stringify(messagePayload);
+                const sig = await signPayload(payloadJson);
+                const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
                 const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
                 const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
-                if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
-                if (sendSilentNext) { dbPacket.silent = true; sendSilentNext = false; }
+                if (sig) dbPacket.sig = sig;
                 await window.meowSaveToOutbox({ roomId: currentRoomId, peerId: currentPeer, dbPacket, replyTo: replyTargetMessageId ? { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText } : null, burnMode: isBurnModeActive, burnDelay: burnDelayMs, createdAt: Date.now() });
                 cancelReply(); stopTypingImmediately(); input.value = ""; input.style.height = "auto"; updateComposerButton(); clearActiveDraft(); window.meowRequestSync();
                 window.meowShowToast("Сообщение сохранено. Отправится при появлении интернета.");
@@ -5205,13 +5305,16 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             ensureMeowAudioCtx();
 
             if (editTargetMessageId) {
-                const finalString = "[MEOW]" + aesEncrypt(JSON.stringify({ text: txt }), activeRoomSharedKey);
+                const payload = { text: txt };
+                const payloadJson = JSON.stringify(payload);
+                const sig = await signPayload(payloadJson);
+                const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
                 const editId = editTargetMessageId;
                 cancelReply(); input.value = ""; input.style.height = "auto"; updateComposerButton();
                 clearActiveDraft();
-                window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${editId}`), {
-                    text: finalString, edited: true
-                });
+                const upd = { text: finalString, edited: true };
+                if (sig) upd.sig = sig;
+                window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${editId}`), upd);
                 input.focus();
                 return;
             }
@@ -5223,12 +5326,15 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             if (replyTargetMessageId) {
                 messagePayload.replyTo = { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText };
             }
+            if (isBurnModeActive) messagePayload.burnTime = Date.now() + burnDelayMs;
+            if (sendSilentNext) messagePayload.silent = true;
 
-            const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(messagePayload), activeRoomSharedKey);
+            const payloadJson = JSON.stringify(messagePayload);
+            const sig = await signPayload(payloadJson);
+            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
             const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
-            if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
-            if (sendSilentNext) { dbPacket.silent = true; sendSilentNext = false; }
+            if (sig) dbPacket.sig = sig;
 
             // Оптимистичная отправка: не ждём ответа сервера, UI обновится мгновенно через realtime-слушатель
             cancelReply();
@@ -5272,9 +5378,13 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         }
 
         async function transmitDirectMedia(base64Data, contentType) {
-            const finalString = "[MEOW]" + aesEncrypt(JSON.stringify({ text: "[Медиа]", fileData: base64Data, fileType: contentType }), activeRoomSharedKey);
+            const payload = { text: "[Медиа]", fileData: base64Data, fileType: contentType };
+            if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
+            const payloadJson = JSON.stringify(payload);
+            const sig = await signPayload(payloadJson);
+            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
-            if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
+            if (sig) dbPacket.sig = sig;
             const nowTime = Date.now();
             await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
@@ -5346,8 +5456,11 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 if (obj.poll) payload.poll = obj.poll;
                 if (obj.location) payload.location = obj.location;
                 if (obj.dice) payload.dice = obj.dice;
-                const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(payload), targetSharedKey);
+                const payloadJson = JSON.stringify(payload);
+                const sig = await signPayload(payloadJson);
+                const finalString = "[MEOW]" + aesEncrypt(payloadJson, targetSharedKey);
                 const dbPacket = { sender: myUid, text: finalString, time: ts++, read: false, kv: kv };
+                if (sig) dbPacket.sig = sig;
                 await window.fb.push(window.fb.ref(window.fb.db, `messages/${rId}/list`), dbPacket);
             }
             const nowTime = Date.now();
@@ -5628,10 +5741,11 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         };
 
-        async function decryptMessageObject(peerId, rawText, kv) {
+        async function decryptMessageObject(peerId, rawText, kv, sig) {
             if (!rawText || !rawText.startsWith("[MEOW]")) return null;
             const cipher = rawText.substring(6);
             const tryKeys = [];
+            let usedKv = kv;
             if (peerId === myUid) {
                 if (kv && kv.startsWith("self_")) {
                     const k = getSelfChatKey(kv.slice(5));
@@ -5650,27 +5764,39 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 if (k2) tryKeys.push(k2);
                 const info = await getPeerCurrentKeyInfo(peerId);
                 if (info.pub) {
-                    const k3 = await getSharedKeyForKv(peerId, `${myKeyStore.current}_${info.ver || 'legacy'}`);
+                    usedKv = kv || `${myKeyStore.current}_${info.ver || 'legacy'}`;
+                    const k3 = await getSharedKeyForKv(peerId, usedKv);
                     if (k3) tryKeys.push(k3);
                 }
             }
             for (const key of tryKeys) {
                 if (!key) continue;
                 const plain = aesDecrypt(cipher, key);
-                if (!plain || plain === "[Ошибка дешифрования]") continue;
+                if (!plain) continue;
                 try {
                     const o = JSON.parse(plain);
-                    if (o && (o.text || o.fileData || o.isVoice || o.videoNote || o.sticker || o.animatedSticker || o.isDocument || o.contactShare || o.callLog)) return o;
+                    if (o && (o.text || o.fileData || o.isVoice || o.videoNote || o.sticker || o.animatedSticker || o.isDocument || o.contactShare || o.callLog)) {
+                        // Verify ECDSA signature if present
+                        if (sig && peerId !== myUid) {
+                            const ver = usedKv ? usedKv.split('_')[1] || usedKv.split('_')[0] : null;
+                            const valid = await verifySignature(peerId, ver, plain, sig);
+                            if (!valid) {
+                                console.warn("Signature verification failed for message from", peerId);
+                                return null; // Reject tampered message
+                            }
+                        }
+                        return o;
+                    }
                 } catch (e) {}
             }
             return null;
         }
 
-        async function decryptMessageCached(msgId, rawText, kv, peerId) {
+        async function decryptMessageCached(msgId, rawText, kv, peerId, sig) {
             const c = msgDecryptCache[msgId];
-            if (c && c.src === rawText) return c.obj;
-            const obj = await decryptMessageObject(peerId, rawText, kv);
-            msgDecryptCache[msgId] = { src: rawText, obj: obj };
+            if (c && c.src === rawText && c.sig === sig) return c.obj;
+            const obj = await decryptMessageObject(peerId, rawText, kv, sig);
+            msgDecryptCache[msgId] = { src: rawText, sig: sig, obj: obj };
             return obj;
         }
 
@@ -6988,9 +7114,12 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             if (opts.length < 2) { alert("Нужно минимум 2 варианта ответа!"); return; }
             if (!activeRoomSharedKey) { alert("Ключ шифрования недоступен."); return; }
             const payload = { text: `📊 Опрос: ${q}`, poll: { q, opts } };
-            const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(payload), activeRoomSharedKey);
+            if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
+            const payloadJson = JSON.stringify(payload);
+            const sig = await signPayload(payloadJson);
+            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
-            if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
+            if (sig) dbPacket.sig = sig;
             const nowTime = Date.now();
             closeModal('poll-create-modal');
             playSendSound();
@@ -7037,9 +7166,12 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     const lat = Math.round(pos.coords.latitude * 1000000) / 1000000;
                     const lon = Math.round(pos.coords.longitude * 1000000) / 1000000;
                     const payload = { text: "📍 Геопозиция", location: { lat, lon } };
-                    const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(payload), activeRoomSharedKey);
+                    if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
+                    const payloadJson = JSON.stringify(payload);
+                    const sig = await signPayload(payloadJson);
+                    const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
                     const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
-                    if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
+                    if (sig) dbPacket.sig = sig;
                     const nowTime = Date.now();
                     playSendSound();
                     meowVibrate(10);
