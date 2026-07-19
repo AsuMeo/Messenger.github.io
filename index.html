@@ -4375,8 +4375,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     blockBtn.style.background = "";
                 }
 
-                // Загружаем статус онлайн для профиля
+                // Загружаем статус онлайн и mute для профиля
                 loadProfileOnlineStatus(currentPeer);
+                loadProfileMuteStatus(currentPeer);
             });
             openModal('peer-profile-modal');
         }
@@ -4422,6 +4423,16 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             } catch (e) {
                 onlineStatus.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background: var(--offline-dot); display: inline-block;"></span><span>офлайн</span>`;
             }
+        }
+
+        async function loadProfileMuteStatus(peerId) {
+            const muteBtn = document.getElementById('peer-profile-mute-btn');
+            if (!muteBtn || !myUid) return;
+            try {
+                const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/chats/${peerId}`));
+                const muted = snap.exists() && snap.val().muted;
+                muteBtn.querySelector('span').innerText = muted ? "Вкл. звук" : "Звук";
+            } catch (e) {}
         }
 
         async function openChatWindow(peerId, roomId) {
@@ -5915,18 +5926,25 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }).catch(() => {});
         }
 
-        async function toggleMuteActivePeer() {
+        async async function toggleMuteActivePeer() {
             if (!profileViewPeerId && !currentPeer) return;
             const pid = profileViewPeerId || currentPeer;
-            if (!pid) return;
+            if (!pid || pid === myUid) return;
             const refPath = `users/${myUid}/chats/${pid}`;
-            const metaSnap = await window.fb.get(window.fb.ref(window.fb.db, refPath));
-            const meta = metaSnap.exists() ? metaSnap.val() : {};
-            const newMuted = !meta.muted;
-            await window.fb.update(window.fb.ref(window.fb.db, refPath), { muted: newMuted });
-            meowVibrate(8);
-            window.meowShowToast(newMuted ? "🔕 Уведомления отключены" : "🔔 Уведомления включены");
-            loadDialogs();
+            try {
+                const metaSnap = await window.fb.get(window.fb.ref(window.fb.db, refPath));
+                const meta = metaSnap.exists() ? metaSnap.val() : {};
+                const newMuted = !meta.muted;
+                await window.fb.update(window.fb.ref(window.fb.db, refPath), { muted: newMuted });
+                meowVibrate(8);
+                window.meowShowToast(newMuted ? "🔕 Уведомления отключены" : "🔔 Уведомления включены");
+                // Обновляем иконку кнопки в профиле
+                const muteBtn = document.getElementById('peer-profile-mute-btn');
+                if (muteBtn) {
+                    muteBtn.querySelector('span').innerText = newMuted ? "Вкл. звук" : "Звук";
+                }
+                loadDialogs();
+            } catch (e) {}
         }
 
         function startCallFromProfile() {
