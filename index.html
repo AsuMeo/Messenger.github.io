@@ -2353,7 +2353,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 20px; padding: 0 8px;">Описание отсутствует</p>
 
                 <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap;">
-                    <button class="profile-action-btn" id="peer-profile-chat-btn" onclick="closeModal('peer-profile-modal');">
+                    <button class="profile-action-btn" id="peer-profile-chat-btn" onclick="closeModal('peer-profile-modal'); openChatFromProfile();">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         <span>Чат</span>
                     </button>
@@ -5953,6 +5953,20 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         function startVideoCallFromProfile() {
             const pid = profileViewPeerId || currentPeer;
             if (!pid || pid === myUid) { alert("Нельзя позвонить себе!"); return; }
+
+        async function openChatFromProfile() {
+            const pid = profileViewPeerId || currentPeer;
+            if (!pid) return;
+            if (pid === myUid) {
+                openCloudChat();
+                return;
+            }
+            const rId = [myUid, pid].sort().join("_");
+            const nowTime = Date.now();
+            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pid}`), { roomId: rId, lastTime: nowTime });
+            await window.fb.set(window.fb.ref(window.fb.db, `users/${pid}/chats/${myUid}`), { roomId: rId, lastTime: nowTime });
+            openChatWindow(pid, rId);
+        }
             closeModal('peer-profile-modal');
             startCall('video', pid);
         }
@@ -7972,15 +7986,15 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             ensureMeowAudioCtx();
             try {
                 const [privSnap, contSnap] = await Promise.all([
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${currentPeer}/privacy/calls`)),
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${currentPeer}/contacts/${myUid}`))
+                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy/calls`)),
+                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`))
                 ]);
                 const callsPriv = privSnap.exists() ? privSnap.val() : "all";
                 if (callsPriv === "none" || (callsPriv === "contacts" && !contSnap.exists())) {
                     alert("Пользователь ограничил входящие звонки."); return;
                 }
             } catch (e) {}
-            const roomId = currentRoomId;
+            const roomId = peerId === myUid ? `saved_${myUid}` : [myUid, peerId].sort().join("_");
             try {
                 const curSnap = await window.fb.get(window.fb.ref(window.fb.db, `calls/${roomId}/current`));
                 if (curSnap.exists()) {
