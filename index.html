@@ -1906,22 +1906,22 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         /* ===== Peer Profile v3 (Telegram-style) ===== */
         .peer-profile-card {
             text-align: center;
-            padding: 24px 20px 20px;
+            padding: 28px 20px 24px;
             max-width: 380px;
         }
         .peer-profile-header {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
         .peer-avatar-wrap {
             position: relative;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
         .peer-avatar {
-            width: 110px;
-            height: 110px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             background-size: cover;
             background-position: center;
@@ -1929,50 +1929,32 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 42px;
+            font-size: 46px;
             font-weight: 800;
             color: white;
             border: 3px solid rgba(255,255,255,0.08);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-        }
-        .peer-online-badge {
-            position: absolute;
-            bottom: -4px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(10,10,12,0.9);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            padding: 3px 8px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--online);
-            white-space: nowrap;
-            z-index: 2;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.5);
         }
         .peer-profile-name {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
             color: var(--text-white);
+            margin-bottom: 6px;
             letter-spacing: -0.3px;
             line-height: 1.2;
-            margin-bottom: 4px;
         }
         .peer-profile-status {
             font-size: 13px;
             color: var(--text-muted);
-            min-height: 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
         .peer-action-buttons {
             display: flex;
-            gap: 8px;
-            margin: 14px 0 16px;
-            width: 100%;
+            gap: 10px;
+            margin: 0 0 18px 0;
+            justify-content: center;
         }
         .peer-action-btn {
             flex: 1;
@@ -1982,69 +1964,51 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             gap: 6px;
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 14px;
-            padding: 12px 4px;
+            border-radius: 16px;
+            padding: 14px 4px 12px;
             color: white;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             transition: background 0.15s;
             border: none;
             outline: none;
+            max-width: 100px;
         }
         .peer-action-btn:active {
             background: rgba(255,255,255,0.1);
         }
         .peer-action-btn svg {
-            color: var(--accent);
+            color: white;
+            width: 22px;
+            height: 22px;
         }
-        .peer-username-card {
+        .peer-username-row {
             background: rgba(255,255,255,0.04);
-            border-radius: 14px;
-            padding: 12px 16px;
-            margin-bottom: 12px;
-            text-align: left;
-            cursor: pointer;
-            transition: background 0.15s;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .peer-username-card:active {
-            background: rgba(255,255,255,0.08);
-        }
-        .peer-username-label {
+            border-radius: 12px;
+            padding: 10px 18px;
             font-size: 15px;
             font-weight: 700;
             color: var(--text-white);
-            margin-bottom: 2px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 10px;
+            display: inline-block;
+            min-width: 200px;
         }
-        .peer-username-sublabel {
-            font-size: 12px;
-            color: var(--text-muted);
+        .peer-username-row:active {
+            background: rgba(255,255,255,0.08);
         }
         .peer-bio-text {
             font-size: 13px;
             color: var(--text-muted);
+            text-align: center;
             line-height: 1.4;
-            margin-bottom: 14px;
-            padding: 0 4px;
+            max-width: 320px;
+            margin: 0 auto 16px auto;
+            padding: 0 8px;
         }
-        .peer-security-block {
-            background: rgba(255,255,255,0.03);
-            border-radius: 16px;
-            padding: 14px 14px;
-            margin-bottom: 14px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .peer-security-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 10px;
-            text-align: left;
-        }
-
 </style>
 </head>
 <body>
@@ -2463,44 +2427,47 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
     </div>
 
-    <div     <div class="modal-overlay" id="peer-profile-modal">
+        <div class="modal-overlay" id="peer-profile-modal">
         <div class="modal-card peer-profile-card">
             <div class="peer-profile-header">
                 <div class="peer-avatar-wrap">
                     <div class="peer-avatar" id="peer-profile-av">?</div>
-                    <div class="peer-online-badge" id="peer-online-badge" style="display:none;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="10" height="10"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        <span id="peer-online-badge-text">в сети</span>
-                    </div>
                 </div>
                 <div class="peer-profile-name" id="peer-profile-name">Имя</div>
-                <div class="peer-profile-status" id="peer-profile-online-status">офлайн</div>
+                <div class="peer-profile-status" id="peer-profile-online-status">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span>офлайн</span>
+                </div>
             </div>
 
             <div class="peer-action-buttons">
-                <button class="peer-action-btn" onclick="startChatWithPeerFromProfile()">
+                <button class="peer-action-btn" onclick="openChatFromProfile()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     <span>Чат</span>
                 </button>
                 <button class="peer-action-btn" id="peer-mute-btn" onclick="togglePeerMuteFromProfile()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-                    <span id="peer-mute-btn-text">Звук</span>
+                    <span id="peer-mute-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></span>
+                    <span id="peer-mute-label">Звук</span>
                 </button>
-                <button class="peer-action-btn" onclick="startCallWithPeerFromProfile()">
+                <button class="peer-action-btn" onclick="closeModal('peer-profile-modal'); startCall('audio');">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                     <span>Звонок</span>
                 </button>
             </div>
 
-            <div class="peer-username-card" id="peer-username-card" onclick="copyPeerUsername()">
-                <div class="peer-username-label" id="peer-profile-username">@username</div>
-                <div class="peer-username-sublabel">Имя пользователя</div>
+            <div class="peer-username-row" id="peer-profile-username-row" onclick="copyPeerUsername()">
+                <span id="peer-profile-username">@username</span>
             </div>
 
-            <div class="peer-bio-text" id="peer-profile-bio"></div>
+            <div class="peer-bio-text" id="peer-profile-bio">Описание отсутствует</div>
 
-            <div class="peer-security-block">
-                <div class="peer-security-title">🔐 Безопасность</div>
+            <div style="display: flex; gap: 10px; justify-content: center; margin: 14px 0;">
+                <button class="menu-btn" id="peer-add-contact-modal-btn" style="display: none; flex: 1; background: var(--secure); font-weight: 700; margin-bottom: 0;" onclick="quickAddActivePeerToContacts(); closeModal('peer-profile-modal');">Добавить в контакты</button>
+                <button class="menu-btn" id="peer-remove-contact-modal-btn" style="display: none; flex: 1; background: var(--error); font-weight: 700; margin-bottom: 0;" onclick="deleteContactFromProfile()">Удалить из контактов</button>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; text-align: left;">🔐 Безопасность</div>
                 <button class="menu-btn" style="background: rgba(0,199,129,0.12); color: var(--secure); border: 1px dashed rgba(0,199,129,0.35); margin-bottom: 8px; font-weight: 700;" onclick="showE2EEVerification(); closeModal('peer-profile-modal');">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right:6px; vertical-align:middle;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     Верификация ключа E2EE
@@ -2509,11 +2476,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right:6px; vertical-align:middle;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                     🔄 Принудительный обмен ключами
                 </button>
-            </div>
-
-            <div style="display: flex; gap: 10px; justify-content: center; margin: 16px 0;">
-                <button class="menu-btn" id="peer-add-contact-modal-btn" style="display: none; flex: 1; background: var(--secure); font-weight: 700; margin-bottom: 0;" onclick="quickAddActivePeerToContacts(); closeModal('peer-profile-modal');">Добавить в контакты</button>
-                <button class="menu-btn" id="peer-remove-contact-modal-btn" style="display: none; flex: 1; background: var(--error); font-weight: 700; margin-bottom: 0;" onclick="deleteContactFromProfile()">Удалить из контактов</button>
             </div>
 
             <input type="file" id="personal-wallpaper-upload" style="display: none;" accept="image/*" onchange="processAndSetCrop(this.files[0], 'personal-wallpaper')">
@@ -2525,11 +2487,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             <button class="menu-btn" style="background: transparent; color: var(--text-muted);" onclick="closeModal('peer-profile-modal')">Закрыть</button>
         </div>
     </div>
-    </div>
-    </div>
-
-    </div>
-
     <div class="modal-overlay" id="create-folder-modal">
         <div class="modal-card">
             <h3 style="margin-bottom: 16px; text-align: center;">Создать вкладку-папку</h3>
@@ -4456,14 +4413,57 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         }
 
-        async function showActivePeerProfile() {
+                async function showActivePeerProfile() {
             if (!currentPeer) return;
             if (currentPeer === myUid) return;
-            await openPeerProfile(currentPeer);
+
+            const addBtn = document.getElementById('peer-add-contact-modal-btn');
+            const removeBtn = document.getElementById('peer-remove-contact-modal-btn');
+            const wallBtn = document.getElementById('set-personal-wallpaper-btn');
+            const wallReset = document.getElementById('reset-personal-wallpaper-btn');
+
+            addBtn.style.display = "none";
+            removeBtn.style.display = "none";
+
+            getCachedProfile(currentPeer, (cached) => {
+                const fullName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
+                document.getElementById('peer-profile-name').innerText = fullName;
+                document.getElementById('peer-profile-username').innerText = cached.username ? `@${cached.username}` : "";
+                document.getElementById('peer-profile-bio').innerText = cached.bio || "Описание отсутствует";
+
+                const av = document.getElementById('peer-profile-av');
+                if (cached.avatar) {
+                    av.style.backgroundImage = `url(${cached.avatar})`; av.innerText = "";
+                } else {
+                    av.style.backgroundImage = "none"; av.innerText = fullName[0].toUpperCase();
+                }
+                if (myContacts[currentPeer]) {
+                    removeBtn.style.display = "block";
+                } else {
+                    addBtn.style.display = "block";
+                }
+                wallBtn.style.display = "block";
+                wallReset.style.display = personalWallpaperData[currentPeer] ? "block" : "none";
+
+                profileViewPeerId = currentPeer;
+                const blockBtn = document.getElementById('peer-block-btn');
+                blockBtn.style.display = "block";
+                if (myBlockedUsers[currentPeer]) {
+                    blockBtn.innerText = "Разблокировать пользователя";
+                    blockBtn.classList.remove('danger');
+                    blockBtn.style.background = "var(--secure)";
+                } else {
+                    blockBtn.innerText = "Заблокировать пользователя";
+                    blockBtn.classList.add('danger');
+                    blockBtn.style.background = "";
+                }
+
+                loadProfileOnlineStatus(currentPeer);
+            });
+            openModal('peer-profile-modal');
         }
 
-        async function loadProfileOnlineStatus(peerId) {
-            const statusDot = document.getElementById('peer-profile-status-dot');
+                async function loadProfileOnlineStatus(peerId) {
             const onlineStatus = document.getElementById('peer-profile-online-status');
             if (!onlineStatus) return;
             try {
@@ -4473,8 +4473,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`))
                 ]);
                 let statusText = "офлайн";
-                let dotColor = "var(--offline-dot)";
-                let dotDisplay = "none";
+                let color = "var(--text-muted)";
                 let isOnline = false;
                 if (presSnap.exists()) {
                     const pres = presSnap.val();
@@ -4483,25 +4482,19 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     const hideOnline = (decLastSeen === "none") || (decLastSeen === "contacts" && !weAreContact);
                     if (pres.status === "online" && !hideOnline) {
                         statusText = "в сети";
-                        dotColor = "var(--online)";
-                        dotDisplay = "block";
+                        color = "var(--online)";
                         isOnline = true;
                     } else {
                         statusText = hideOnline ? "был(а) недавно" : formatFriendlyLastSeen(pres.lastSeen);
-                        if (!hideOnline) dotDisplay = "block";
                     }
                 }
                 if (myBlockedUsers[peerId]) {
                     statusText = "заблокирован 🚫";
-                    dotColor = "var(--error)";
+                    color = "var(--error)";
                 }
-                onlineStatus.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background: ${dotColor}; display: inline-block; flex-shrink: 0;"></span><span>${statusText}</span>`;
-                if (statusDot) {
-                    statusDot.style.background = dotColor;
-                    statusDot.style.display = dotDisplay;
-                }
+                onlineStatus.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="color:${color}">${statusText}</span>`;
             } catch (e) {
-                onlineStatus.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background: var(--offline-dot); display: inline-block;"></span><span>офлайн</span>`;
+                onlineStatus.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>офлайн</span>`;
             }
         }
 
@@ -6072,26 +6065,13 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         }
 
-        function showPeerProfile(peerId) {
-            getCachedProfile(peerId, (cached) => {
-                const fullName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
-                document.getElementById('peer-profile-name').innerText = fullName;
-                document.getElementById('peer-profile-username').innerText = cached.username ? `@${cached.username}`
-        async function openPeerProfile(peerId) {
+                function showPeerProfile(peerId) {
             profileViewPeerId = peerId;
-            const addBtn = document.getElementById('peer-add-contact-modal-btn');
-            const removeBtn = document.getElementById('peer-remove-contact-modal-btn');
-            const wallBtn = document.getElementById('set-personal-wallpaper-btn');
-            const wallReset = document.getElementById('reset-personal-wallpaper-btn');
-            const blockBtn = document.getElementById('peer-block-btn');
-            const muteBtn = document.getElementById('peer-mute-btn');
-            const muteText = document.getElementById('peer-mute-btn-text');
-
             getCachedProfile(peerId, (cached) => {
                 const fullName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
                 document.getElementById('peer-profile-name').innerText = fullName;
-                document.getElementById('peer-profile-username').innerText = "@" + (cached.username || "");
-                document.getElementById('peer-profile-bio').innerText = cached.bio || "";
+                document.getElementById('peer-profile-username').innerText = cached.username ? `@${cached.username}` : "";
+                document.getElementById('peer-profile-bio').innerText = cached.bio || "Описание отсутствует";
 
                 const av = document.getElementById('peer-profile-av');
                 if (cached.avatar) {
@@ -6100,120 +6080,27 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     av.style.backgroundImage = "none"; av.innerText = fullName[0].toUpperCase();
                 }
 
-                if (myContacts[peerId]) {
-                    removeBtn.style.display = "block";
-                    addBtn.style.display = "none";
-                } else {
-                    addBtn.style.display = "block";
-                    removeBtn.style.display = "none";
-                }
+                document.getElementById('peer-add-contact-modal-btn').style.display = "none";
+                document.getElementById('peer-remove-contact-modal-btn').style.display = "none";
 
-                wallBtn.style.display = "block";
-                wallReset.style.display = personalWallpaperData[peerId] ? "block" : "none";
+                document.getElementById('set-personal-wallpaper-btn').style.display = "none";
+                document.getElementById('reset-personal-wallpaper-btn').style.display = "none";
+                document.getElementById('peer-block-btn').style.display = "none";
 
-                blockBtn.style.display = "block";
-                if (myBlockedUsers[peerId]) {
-                    blockBtn.innerText = "Разблокировать пользователя";
-                    blockBtn.classList.remove('danger');
-                    blockBtn.style.background = "var(--secure)";
-                } else {
-                    blockBtn.innerText = "Заблокировать пользователя";
-                    blockBtn.classList.add('danger');
-                    blockBtn.style.background = "";
-                }
-
-                // Mute button state
-                const meta = chatMetaCache[peerId];
-                const isMuted = meta && meta.muted;
-                if (isMuted) {
-                    muteText.innerText = "Вкл. звук";
-                    muteBtn.querySelector('svg').innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>';
-                } else {
-                    muteText.innerText = "Звук";
-                    muteBtn.querySelector('svg').innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>';
-                }
-
-                loadPeerProfileOnlineStatus(peerId);
+                loadProfileOnlineStatus(peerId);
+                openModal('peer-profile-modal');
             });
-            openModal('peer-profile-modal');
         }
-
-        async function loadPeerProfileOnlineStatus(peerId) {
-            const badge = document.getElementById('peer-online-badge');
-            const statusText = document.getElementById('peer-profile-online-status');
-            if (!statusText) return;
-            try {
-                const [presSnap, privSnap, contSnap] = await Promise.all([
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/presence`)),
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/privacy`)),
-                    window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/contacts/${myUid}`))
-                ]);
-                let statusStr = "офлайн";
-                let showBadge = false;
-                if (presSnap.exists()) {
-                    const pres = presSnap.val();
-                    const decLastSeen = normalizePrivacyVal(privSnap.exists() ? privSnap.val().lastSeen : "all", profileKeysCache[peerId]);
-                    const weAreContact = contSnap.exists();
-                    const hideOnline = (decLastSeen === "none") || (decLastSeen === "contacts" && !weAreContact);
-                    if (pres.status === "online" && !hideOnline) {
-                        statusStr = "в сети";
-                        showBadge = true;
-                    } else {
-                        statusStr = hideOnline ? "был(а) недавно" : formatFriendlyLastSeen(pres.lastSeen);
-                        if (!hideOnline) showBadge = false;
-                    }
-                }
-                if (myBlockedUsers[peerId]) {
-                    statusStr = "заблокирован 🚫";
-                    showBadge = false;
-                }
-                statusText.innerText = statusStr;
-                if (badge) badge.style.display = showBadge ? 'flex' : 'none';
-            } catch (e) {
-                statusText.innerText = "офлайн";
-                if (badge) badge.style.display = 'none';
-            }
-        }
-
-        function startChatWithPeerFromProfile() {
+        function openChatFromProfile() {
             const pid = profileViewPeerId || currentPeer;
             if (!pid) return;
             closeModal('peer-profile-modal');
-            if (currentPeer === pid && document.getElementById('chat-window').classList.contains('active')) return;
-            const rId = [myUid, pid].sort().join("_");
-            const nowTime = Date.now();
-            window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/chats/${pid}`), { roomId: rId, lastTime: nowTime });
-            window.fb.set(window.fb.ref(window.fb.db, `users/${pid}/chats/${myUid}`), { roomId: rId, lastTime: nowTime });
-            openChatWindow(pid, rId);
-        }
-
-        async function togglePeerMuteFromProfile() {
-            const pid = profileViewPeerId || currentPeer;
-            if (!pid) return;
-            const refPath = `users/${myUid}/chats/${pid}`;
-            const metaSnap = await window.fb.get(window.fb.ref(window.fb.db, refPath));
-            const meta = metaSnap.exists() ? metaSnap.val() : {};
-            const newMuted = !meta.muted;
-            await window.fb.update(window.fb.ref(window.fb.db, refPath), { muted: newMuted });
-            if (currentPeer === pid) activeChatIsMuted = newMuted;
-            // Update button visually
-            const muteBtn = document.getElementById('peer-mute-btn');
-            const muteText = document.getElementById('peer-mute-btn-text');
-            if (newMuted) {
-                muteText.innerText = "Вкл. звук";
-                muteBtn.querySelector('svg').innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>';
+            if (pid === myUid) {
+                openCloudChat();
             } else {
-                muteText.innerText = "Звук";
-                muteBtn.querySelector('svg').innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>';
+                const rId = [myUid, pid].sort().join("_");
+                openChatWindow(pid, rId);
             }
-            meowVibrate(8);
-        }
-
-        function startCallWithPeerFromProfile() {
-            const pid = profileViewPeerId || currentPeer;
-            if (!pid || pid === myUid) return;
-            closeModal('peer-profile-modal');
-            startCall('audio');
         }
 
         function copyPeerUsername() {
@@ -6225,55 +6112,26 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }).catch(() => {});
         }
 
-        // Expose to global scope
-        window.openPeerProfile = openPeerProfile;
-        window.startChatWithPeerFromProfile = startChatWithPeerFromProfile;
-        window.togglePeerMuteFromProfile = togglePeerMuteFromProfile;
-        window.startCallWithPeerFromProfile = startCallWithPeerFromProfile;
-        window.copyPeerUsername = copyPeerUsername;
- : "";
-                document.getElementById('peer-profile-bio').innerText = cached.bio || "Описание отсутствует";
-                
-                const av = document.getElementById('peer-profile-av');
-                if (cached.avatar) {
-                    av.style.backgroundImage = `url(${cached.avatar})`; av.innerText = "";
-                } else {
-                    av.style.backgroundImage = "none"; av.innerText = fullName[0].toUpperCase();
-                }
-
-                document.getElementById('peer-add-contact-modal-btn').style.display = "none";
-                document.getElementById('peer-remove-contact-modal-btn').style.display = "none";
-                
-                document.getElementById('set-personal-wallpaper-btn').style.display = "none";
-                document.getElementById('reset-personal-wallpaper-btn').style.display = "none";
-                document.getElementById('peer-block-btn').style.display = "none";
-                profileViewPeerId = peerId;
-
-                openModal('peer-profile-modal');
-            });
-        }
-
-        function showE2EEVerification() {
-            const el = document.getElementById('e2ee-fingerprint');
-            if (activeRoomSharedKey) {
-                el.innerText = activeRoomSharedKey.match(/.{1,4}/g).slice(0, 4).join("-").toUpperCase();
-            } else {
-                el.innerText = "КЛЮЧ НЕ УСТАНОВЛЕН — ОБНОВИТЕ КЛЮЧИ";
+        async function togglePeerMuteFromProfile() {
+            const pid = profileViewPeerId || currentPeer;
+            if (!pid || pid === myUid) return;
+            const refPath = `users/${myUid}/chats/${pid}`;
+            const metaSnap = await window.fb.get(window.fb.ref(window.fb.db, refPath));
+            const meta = metaSnap.exists() ? metaSnap.val() : {};
+            const newMuted = !meta.muted;
+            await window.fb.update(window.fb.ref(window.fb.db, refPath), { muted: newMuted });
+            const label = document.getElementById('peer-mute-label');
+            const iconWrap = document.getElementById('peer-mute-icon');
+            if (label) label.innerText = newMuted ? "Вкл. звук" : "Звук";
+            if (iconWrap) {
+                iconWrap.innerHTML = newMuted
+                    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`
+                    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
             }
-            openModal('e2ee-verify-modal');
+            meowVibrate(8);
+            loadDialogs();
         }
 
-        function closeMediaViewer() {
-            document.getElementById('media-viewer-content').innerHTML = "";
-            closeModal('media-viewer-modal');
-        }
-
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const r = new FileReader(); r.readAsDataURL(file);
-                r.onload = () => resolve(r.result); r.onerror = reject;
-            });
-        }
 
         async function goOnline() {
             if (!myUid || !window.fb || !window.fb.db) return;
