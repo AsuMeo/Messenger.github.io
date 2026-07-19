@@ -1782,23 +1782,21 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             color: rgba(255, 255, 255, 0.7);
         }
         .msg-text blockquote p { margin: 0; }
-    
-        /* ===== Profile Page v2 (VK-style) ===== */
-        .profile-page {
-            padding: 0 !important;
-            overflow-y: auto;
-            height: 100%;
-        }
-        .profile-header {
+            /* ===== Profile v3 (Telegram-style) ===== */
+        .profile-header-area {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 24px 16px 16px;
+            padding: 28px 16px 20px;
             position: relative;
         }
-        .profile-avatar-large {
-            width: 120px;
-            height: 120px;
+        .profile-avatar-wrap {
+            position: relative;
+            margin-bottom: 14px;
+        }
+        .profile-avatar {
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
             background-size: cover;
             background-position: center;
@@ -1806,242 +1804,105 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
+            font-size: 42px;
             font-weight: 800;
             color: white;
             cursor: pointer;
-            position: relative;
             border: 3px solid rgba(255,255,255,0.08);
             box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            transition: transform 0.2s;
-            flex-shrink: 0;
+            transition: transform 0.2s, opacity 0.2s;
         }
-        .profile-avatar-large:active { transform: scale(0.96); }
-        .profile-avatar-large img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            display: none;
+        .profile-avatar:active {
+            transform: scale(0.96);
+            opacity: 0.85;
+        }
+        .profile-online-badge {
             position: absolute;
-            inset: 0;
-        }
-        .profile-avatar-large span {
-            position: relative;
-            z-index: 2;
-        }
-        .profile-display-name {
-            font-size: 20px;
-            font-weight: 800;
-            margin-top: 12px;
-            color: var(--text-white);
-            letter-spacing: -0.3px;
-        }
-        .profile-status-row {
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10,10,12,0.9);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 4px 10px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            margin-top: 6px;
-            font-size: 13px;
-            color: var(--text-muted);
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--online);
+            white-space: nowrap;
+            z-index: 2;
         }
-        .profile-status-row svg {
-            width: 14px;
-            height: 14px;
-            color: var(--accent);
-            flex-shrink: 0;
+        .profile-name {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-white);
+            margin-bottom: 2px;
+            text-align: center;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
         }
-        .profile-action-row {
+        .profile-action-buttons {
             display: flex;
             gap: 8px;
-            padding: 0 16px;
             margin-top: 16px;
+            width: 100%;
+            max-width: 400px;
         }
         .profile-action-btn {
             flex: 1;
-            height: 40px;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: var(--text-white);
-            font-size: 13px;
-            font-weight: 600;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            cursor: pointer;
-            transition: background 0.2s;
-            font-family: inherit;
-        }
-        .profile-action-btn:hover { background: rgba(255,255,255,0.1); }
-        .profile-action-btn svg {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-        }
-        .profile-music-status {
-            margin: 14px 16px 0;
-            background: rgba(255,255,255,0.04);
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .profile-music-status:active { background: rgba(255,255,255,0.08); }
-        .profile-music-status span:first-child {
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-        .profile-username-card {
-            margin: 14px 16px 0;
-            background: rgba(255,255,255,0.04);
-            border-radius: 14px;
-            padding: 14px 16px;
-        }
-        .profile-username {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-white);
-        }
-        .profile-username-label {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-        .profile-tabs-row {
-            display: flex;
-            margin-top: 16px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            padding: 0 16px;
-            gap: 16px;
-            overflow-x: auto;
-        }
-        .profile-tabs-row::-webkit-scrollbar { display: none; }
-        .profile-tab {
-            padding: 10px 0 12px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-muted);
-            cursor: pointer;
-            position: relative;
-            transition: color 0.2s;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .profile-tab.active {
-            color: var(--accent);
-        }
-        .profile-tab.active::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2.5px;
-            background: var(--accent);
-            border-radius: 2px 2px 0 0;
-        }
-        .profile-tab-content {
-            display: none;
-            padding: 12px 16px 24px;
-            min-height: 200px;
-        }
-        .profile-tab-content.active { display: block; }
-        .profile-posts-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 3px;
-        }
-        .profile-post-item {
-            aspect-ratio: 1;
-            background: var(--second);
-            border-radius: 4px;
-            overflow: hidden;
-            cursor: pointer;
-            position: relative;
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .profile-post-item.empty {
-            background: rgba(255,255,255,0.03);
-            color: var(--text-muted);
-            font-size: 24px;
-        }
-        .profile-post-add {
-            background: rgba(31,128,224,0.12);
-            color: var(--accent);
-            font-size: 28px;
-            font-weight: 300;
-        }
-        .profile-edit-section {
-            padding: 16px;
-            display: none;
-        }
-        .profile-edit-section.active { display: block; }
-        .profile-edit-card {
-            background: rgba(255,255,255,0.03);
-            border-radius: 16px;
-            padding: 20px 16px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .profile-field-label {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-            margin-top: 14px;
-        }
-        .profile-field-label:first-child { margin-top: 0; }
-        #avatar-lightbox {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.92);
-            z-index: 5000;
-            display: none;
-            align-items: center;
-            justify-content: center;
             flex-direction: column;
-            cursor: zoom-out;
-        }
-        #avatar-lightbox.active { display: flex; }
-        #avatar-lightbox img {
-            max-width: 90vw;
-            max-height: 70vh;
-            border-radius: 12px;
-            object-fit: contain;
-            cursor: default;
-        }
-        #avatar-lightbox-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            z-index: 10;
+            gap: 6px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 12px 4px;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+            border: none;
+            outline: none;
         }
+        .profile-action-btn:active {
+            background: rgba(255,255,255,0.1);
+        }
+        .profile-action-btn svg {
+            color: var(--accent);
+        }
+        .profile-username-row {
+            margin-top: 16px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-white);
+            cursor: pointer;
+            transition: background 0.15s;
+            border: 1px solid rgba(255,255,255,0.05);
+            min-width: 200px;
+            text-align: center;
+        }
+        .profile-username-row:active {
+            background: rgba(255,255,255,0.08);
+        }
+        .profile-bio-text {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.4;
+            max-width: 320px;
+            padding: 0 8px;
+        }
+
 </style>
 </head>
 <body>
@@ -2229,91 +2090,44 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             </div>
         </div>
 
-        <div class="tab-panel" id="tab-3" style="padding: 20px 16px;">
-            <div class="profile-page">
-            <div class="profile-header">
-                <div class="profile-avatar-large" id="my-profile-avatar" onclick="openAvatarLightbox()">
-                    <img id="my-profile-avatar-img" alt="Аватар">
-                    <span id="my-profile-avatar-letter">?</span>
+                <div class="tab-panel" id="tab-3">
+            <div class="profile-header-area">
+                <div class="profile-avatar-wrap">
+                    <div class="profile-avatar" id="my-profile-avatar" onclick="viewMyAvatarFull()">?</div>
+                    <div class="profile-online-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <span>в сети</span>
+                    </div>
                 </div>
-                <div class="profile-display-name" id="my-profile-display-name">)</div>
-                <div class="profile-status-row">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    <span>в сети</span>
-                </div>
-            </div>
 
-            <div class="profile-action-row">
-                <button class="profile-action-btn" onclick="document.getElementById('profile-avatar-upload').click()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                    Выбрать фото
-                </button>
-                <button class="profile-action-btn" onclick="toggleProfileEdit()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    Изменить
-                </button>
-                <button class="profile-action-btn" onclick="switchTab(2)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    Настройки
-                </button>
-            </div>
+                <div class="profile-name" id="profile-display-name">Пользователь</div>
 
-            <div class="profile-music-status" id="profile-music-status" onclick="editMusicStatus()">
-                <span>♫</span>
-                <span id="profile-music-text">MONA - Пьяный Готтэм без души хотя бы напиши 😢</span>
-            </div>
-
-            <div class="profile-username-card">
-                <div class="profile-username" id="my-profile-username-display">@username</div>
-                <div class="profile-username-label">Имя пользователя</div>
-            </div>
-
-            <div class="profile-tabs-row">
-                <div class="profile-tab active" onclick="switchProfileTab(this, 'posts')">Публикации</div>
-                <div class="profile-tab" onclick="switchProfileTab(this, 'archive')">Архив публикаций</div>
-                <div class="profile-tab" onclick="switchProfileTab(this, 'gifts')">Подарки</div>
-            </div>
-
-            <div class="profile-tab-content active" id="profile-tab-posts">
-                <div class="profile-posts-grid" id="profile-posts-grid">
-                    <div class="profile-post-item profile-post-add" onclick="addProfilePost()">+</div>
-                </div>
-            </div>
-            <div class="profile-tab-content" id="profile-tab-archive">
-                <div style="text-align:center;color:var(--text-muted);padding:40px 16px;font-size:14px;">Архив публикаций пуст</div>
-            </div>
-            <div class="profile-tab-content" id="profile-tab-gifts">
-                <div style="text-align:center;color:var(--text-muted);padding:40px 16px;font-size:14px;">Подарков пока нет</div>
-            </div>
-
-            <div class="profile-edit-section" id="profile-edit-section">
-                <div class="profile-edit-card">
-                    <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 16px; text-align: center;">Редактировать профиль</h3>
-                    <div class="profile-field-label">ИМЯ</div>
-                    <input type="text" id="setting-name" class="search-bar" style="width: 100%;" placeholder="Введите имя">
-
-                    <div class="profile-field-label">ФАМИЛИЯ (НЕОБЯЗАТЕЛЬНО)</div>
-                    <input type="text" id="setting-lastname" class="search-bar" style="width: 100%;" placeholder="Введите фамилию">
-
-                    <div class="profile-field-label">О СЕБЕ (ОПИСАНИЕ ПРОФИЛЯ)</div>
-                    <input type="text" id="setting-bio" class="search-bar" style="width: 100%;" placeholder="Напишите пару слов о себе">
-
-                    <div class="profile-field-label">ВАШ УНИКАЛЬНЫЙ НИКНЕЙМ (@)</div>
-                    <input type="text" id="setting-username" class="search-bar" style="width: 100%;" placeholder="username">
-
-                    <div class="profile-field-label">МУЗЫКАЛЬНЫЙ СТАТУС</div>
-                    <input type="text" id="setting-music" class="search-bar" style="width: 100%;" placeholder="Что слушаете?">
-
-                    <button class="search-action-btn" style="width: 100%; margin-top: 20px; height: 48px; justify-content: center;" onclick="saveProfileSettings()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right: 6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Сохранить изменения
+                <div class="profile-action-buttons">
+                    <button class="profile-action-btn" onclick="document.getElementById('profile-avatar-upload').click()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <span>Выбрать фото</span>
                     </button>
-                    <button class="menu-btn" style="width: 100%; margin-top: 8px; background: transparent;" onclick="toggleProfileEdit()">Отмена</button>
+                    <button class="profile-action-btn" onclick="openEditProfileModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <span>Изменить</span>
+                    </button>
+                    <button class="profile-action-btn" onclick="switchTab(2)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        <span>Настройки</span>
+                    </button>
                 </div>
+
+                <div class="profile-username-row" id="profile-username-row" onclick="copyMyUsername()">
+                    <span id="profile-display-username">@username</span>
+                </div>
+
+                <div class="profile-bio-text" id="profile-display-bio"></div>
             </div>
 
             <input type="file" id="profile-avatar-upload" style="display: none;" accept="image/*" onchange="processAndSetCrop(this.files[0], 'profile-avatar')">
         </div>
-        </div>
+
+
 
     </div>
 
@@ -5956,7 +5770,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             const lastname = document.getElementById('setting-lastname').value.trim();
             const bio = document.getElementById('setting-bio').value.trim();
             const uname = document.getElementById('setting-username').value.trim().toLowerCase().replace('@','');
-            const music = document.getElementById('setting-music').value.trim();
 
             if (!name || !uname) {
                 alert("Заполните обязательные поля!"); return;
@@ -5974,46 +5787,89 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
 
             await window.fb.set(usernameRef, myUid);
-            const myKey = getMyProfileKey();
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/profile`), {
                 name: name,
                 lastname: lastname,
                 bio: bio,
                 avatar: tempProfileAvatarBase64,
-                username: uname,
-                musicStatus: music ? aesEncrypt(music, myKey) : ""
+                username: uname
             });
 
             myNameCombined = name + (lastname ? " " + lastname : "");
             myProfileAvatarFetched = tempProfileAvatarBase64;
             delete profileCache[myUid];
 
+            const avEl = document.getElementById('my-profile-avatar');
+            if (myProfileAvatarFetched) {
+                avEl.style.backgroundImage = `url(${myProfileAvatarFetched})`;
+                avEl.innerText = "";
+            } else {
+                avEl.style.backgroundImage = "none";
+                avEl.innerText = (name || "?")[0].toUpperCase();
+            }
+            document.getElementById('profile-display-name').innerText = myNameCombined || "Пользователь";
+            document.getElementById('profile-display-username').innerText = "@" + uname;
+            document.getElementById('profile-display-bio').innerText = bio || "";
+
             const bottomIcon = document.getElementById('bottom-profile-icon-container');
             if (myProfileAvatarFetched) {
-                bottomIcon.innerHTML = `<div class="chat-avatar" style="width:24px; height:24px; background-image:url(${myProfileAvatarFetched})"></div>`;
-            }
-            document.getElementById('my-profile-display-name').innerText = name || ")";
-            document.getElementById('my-profile-username-display').innerText = uname ? "@" + uname : "@username";
-            if (music) document.getElementById('profile-music-text').innerText = music;
-            const avLarge = document.getElementById('my-profile-avatar');
-            const avImg = document.getElementById('my-profile-avatar-img');
-            const avLetter = document.getElementById('my-profile-avatar-letter');
-            if (tempProfileAvatarBase64) {
-                avLarge.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
-                avImg.src = tempProfileAvatarBase64;
-                avImg.style.display = 'block';
-                avLetter.style.display = 'none';
+                bottomIcon.innerHTML = `<div class="chat-avatar" style="width:24px; height:24px; background-image:url(${myProfileAvatarFetched}); background-size:cover; border-radius:50%;"></div>`;
             } else {
-                avLarge.style.backgroundImage = 'none';
-                avImg.style.display = 'none';
-                avLetter.style.display = 'flex';
-                avLetter.innerText = name ? name[0].toUpperCase() : "?";
+                bottomIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
             }
-            toggleProfileEdit();
+
+            closeModal('edit-profile-modal');
             alert("Профиль обновлен!");
         }
+        async function loadProfileSettings() {
+            const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
+            const myKey = getMyProfileKey();
+            if (snap.exists()) {
+                const prof = snap.val();
+                const decName = legacyOrPlain(prof.name, myKey) || "";
+                const decLast = legacyOrPlain(prof.lastname, myKey) || "";
+                document.getElementById('setting-name').value = decName;
+                document.getElementById('setting-lastname').value = decLast;
+                document.getElementById('setting-bio').value = legacyOrPlain(prof.bio, myKey) || "";
+                document.getElementById('setting-username').value = prof.username || "";
+                tempProfileAvatarBase64 = legacyOrPlain(prof.avatar, myKey) || "";
+                myProfileAvatarFetched = tempProfileAvatarBase64;
 
-async function deleteAccountPermanently() {
+                const fullName = decName + (decLast ? " " + decLast : "");
+                document.getElementById('profile-display-name').innerText = fullName || "Пользователь";
+                document.getElementById('profile-display-username').innerText = "@" + (prof.username || "");
+                document.getElementById('profile-display-bio').innerText = legacyOrPlain(prof.bio, myKey) || "";
+
+                const avEl = document.getElementById('my-profile-avatar');
+                if (tempProfileAvatarBase64) {
+                    avEl.style.backgroundImage = `url(${tempProfileAvatarBase64})`;
+                    avEl.innerText = "";
+                } else {
+                    avEl.style.backgroundImage = "none";
+                    avEl.innerText = (decName || "?")[0].toUpperCase();
+                }
+            }
+        }
+
+        function openEditProfileModal() {
+            loadProfileSettings();
+            openModal('edit-profile-modal');
+        }
+
+        function viewMyAvatarFull() {
+            if (!myProfileAvatarFetched) return;
+            viewMediaFull(myProfileAvatarFetched, false, 'my-avatar');
+        }
+
+        function copyMyUsername() {
+            const u = document.getElementById('profile-display-username').innerText;
+            if (!u || u === "@") return;
+            navigator.clipboard.writeText(u).then(() => {
+                meowVibrate(8);
+                window.meowShowToast("Никнейм скопирован");
+            }).catch(() => {});
+        }
+        async function deleteAccountPermanently() {
             if (confirm("Вы уверены? Данные будут стерты навсегда!")) {
                 const pSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
                 if (pSnap.exists() && pSnap.val().username) {
@@ -9531,65 +9387,27 @@ async function deleteAccountPermanently() {
             }
         });
         /* Мяу, всё готово! Мессенджер работает стабильно, чисто, быстро и полностью безопасно. Приятного использования! */
-    
-        function openAvatarLightbox() {
-            const img = document.getElementById('my-profile-avatar-img');
-            const lbImg = document.getElementById('avatar-lightbox-img');
-            if (img && img.src && img.style.display !== 'none') {
-                lbImg.src = img.src;
-                document.getElementById('avatar-lightbox').classList.add('active');
-            }
-        }
-        function closeAvatarLightbox() {
-            document.getElementById('avatar-lightbox').classList.remove('active');
-        }
-        function switchProfileTab(el, tab) {
-            document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.profile-tab-content').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('profile-tab-' + tab).classList.add('active');
-        }
-        function toggleProfileEdit() {
-            const section = document.getElementById('profile-edit-section');
-            const isActive = section.classList.contains('active');
-            if (isActive) {
-                section.classList.remove('active');
-            } else {
-                section.classList.add('active');
-                setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-            }
-        }
-        function editMusicStatus() {
-            toggleProfileEdit();
-            setTimeout(() => document.getElementById('setting-music').focus(), 300);
-        }
-        function addProfilePost() {
-            alert('Загрузка публикаций скоро будет доступна! 🎉');
-        }
-        async function loadProfilePosts() {
-            const grid = document.getElementById('profile-posts-grid');
-            if (!grid) return;
-            grid.innerHTML = '<div class="profile-post-item profile-post-add" onclick="addProfilePost()">+</div>';
-            try {
-                const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/posts`));
-                if (snap.exists()) {
-                    const posts = Object.entries(snap.val()).sort((a,b) => (b[1].time||0) - (a[1].time||0));
-                    posts.forEach(([pid, post]) => {
-                        const item = document.createElement('div');
-                        item.className = 'profile-post-item';
-                        if (post.image) item.style.backgroundImage = `url(${post.image})`;
-                        else item.innerText = '📷';
-                        item.onclick = () => { if(post.image) viewMediaFull(post.image, false, pid); };
-                        grid.appendChild(item);
-                    });
-                }
-            } catch(e) {}
-        }
-
     </script>
-    <div id="avatar-lightbox" onclick="closeAvatarLightbox()">
-        <button id="avatar-lightbox-close" onclick="event.stopPropagation(); closeAvatarLightbox()">✕</button>
-        <img id="avatar-lightbox-img" src="" alt="Аватар">
+    <div class="modal-overlay" id="edit-profile-modal">
+        <div class="modal-card">
+            <h3 style="margin-bottom: 16px; text-align: center;">Изменить профиль</h3>
+            <div class="profile-form">
+                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ИМЯ</label>
+                <input type="text" id="setting-name" class="search-bar" placeholder="Введите имя">
+
+                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">ФАМИЛИЯ</label>
+                <input type="text" id="setting-lastname" class="search-bar" placeholder="Введите фамилию">
+
+                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">О СЕБЕ</label>
+                <input type="text" id="setting-bio" class="search-bar" placeholder="Напишите пару слов о себе">
+
+                <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">НИКНЕЙМ (@)</label>
+                <input type="text" id="setting-username" class="search-bar" placeholder="username">
+
+                <button class="search-action-btn" style="width: 100%; margin-top: 10px; height: 48px; justify-content: center;" onclick="saveProfileSettings()">Сохранить</button>
+                <button class="menu-btn" style="background: transparent; margin-top: 8px;" onclick="closeModal('edit-profile-modal')">Отмена</button>
+            </div>
+        </div>
     </div>
 
 </body>
