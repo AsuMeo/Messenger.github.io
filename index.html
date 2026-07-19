@@ -2339,7 +2339,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
     </div>
 
     <div class="modal-overlay" id="peer-profile-modal">
-        <div class="modal-card" style="text-align: center; padding: 0; overflow: hidden; border-radius: 20px;">
+        <div class="modal-card" style="text-align: center; padding: 0; overflow: hidden; border-radius: 20px; max-height: 85vh; display: flex; flex-direction: column;">
             <div style="background: #0A0A0C; padding: 32px 24px 20px;">
                 <div style="position: relative; display: inline-block; margin-bottom: 16px;">
                     <div class="chat-avatar" id="peer-profile-av" style="width: 110px; height: 110px; font-size: 42px; margin: 0 auto; background-color: var(--accent); box-shadow: 0 4px 20px rgba(0,0,0,0.4); border: 3px solid rgba(255,255,255,0.08); border-radius: 50%;">?</div>
@@ -2372,7 +2372,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 </div>
             </div>
 
-            <div style="background: #161618; padding: 16px 24px 20px;">
+            <div style="background: #161618; padding: 16px 24px 20px; overflow-y: auto; flex: 1;">
                 <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 14px;">
                     <button class="menu-btn" id="peer-add-contact-modal-btn" style="display: none; flex: 1; background: var(--secure); font-weight: 700; margin-bottom: 0;" onclick="quickAddActivePeerToContacts(); closeModal('peer-profile-modal');">Добавить в контакты</button>
                     <button class="menu-btn" id="peer-remove-contact-modal-btn" style="display: none; flex: 1; background: var(--error); font-weight: 700; margin-bottom: 0;" onclick="deleteContactFromProfile()">Удалить из контактов</button>
