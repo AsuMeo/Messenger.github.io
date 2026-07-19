@@ -3184,8 +3184,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         }
 
         async function verifySignature(peerId, ver, payloadJson, sigB64) {
-            if (!sigB64) return true;
-            if (!ver || ver === "legacy") return true;
+            if (!sigB64 || !ver) return false;
             const pubJwk = await getPeerSignKey(peerId, ver);
             if (!pubJwk) return false;
             try {
@@ -5817,19 +5816,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     if (o && (o.text || o.fileData || o.isVoice || o.videoNote || o.sticker || o.animatedSticker || o.isDocument || o.contactShare || o.callLog)) {
                         // Verify ECDSA signature if present
                         if (sig && peerId !== myUid) {
-                            let peerVer = null;
-                            if (usedKv) {
-                                const idx = usedKv.indexOf('_');
-                                if (idx >= 0) {
-                                    const p1 = usedKv.slice(0, idx), p2 = usedKv.slice(idx + 1);
-                                    if (myKeyStore.pairs[p1]) peerVer = p2;
-                                    else if (myKeyStore.pairs[p2]) peerVer = p1;
-                                    else peerVer = p1;
-                                } else {
-                                    peerVer = usedKv;
-                                }
-                            }
-                            const ver = peerVer || (usedKv ? usedKv.split('_')[1] || usedKv.split('_')[0] : null);
+                            const ver = usedKv ? usedKv.split('_')[1] || usedKv.split('_')[0] : null;
                             const valid = await verifySignature(peerId, ver, plain, sig);
                             if (!valid) {
                                 console.warn("Signature verification failed for message from", peerId);
@@ -5878,7 +5865,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             let displayedText = "Сообщение";
             let thumbHtml = "";
 
-            const obj = await decryptMessageCached(msgId, encryptedText, kv, peerId);
+            const obj = await decryptMessageCached(msgId, encryptedText, kv, peerId, null, senderId);
             if (obj) {
                 displayedText = obj.text || "";
                 if (obj.poll) {
@@ -7360,7 +7347,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     for (const [mid, m] of entries) {
                         if (results.length >= 20) break;
                         if (myBlockedUsers[m.sender]) continue;
-                        const obj = await decryptMessageCached(job.roomId + '_' + mid, m.text || "", m.kv, job.peerId);
+                        const obj = await decryptMessageCached(job.roomId + '_' + mid, m.text || "", m.kv, job.peerId, m.sig, m.sender);
                         if (obj && obj.text && obj.text.toLowerCase().includes(q)) {
                             results.push({ peerId: job.peerId, roomId: job.roomId, mid, time: m.time, text: obj.text, selfSaved: job.selfSaved });
                         }
