@@ -1752,32 +1752,29 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         .folder-swipe-hint.right { right: 8px; }
 
         /* ===== text quote selection ===== */
-        .quote-selection-popup {
-            position: fixed;
-            background: var(--bg-bar);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 6px 12px;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            z-index: 200;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-            animation: modalPopIn 0.15s ease;
+
+        .msg-text blockquote {
+            margin: 4px 0 6px 0;
+            padding: 6px 10px 6px 12px;
+            border-left: 3px solid var(--accent);
+            background: rgba(31, 128, 224, 0.08);
+            border-radius: 0 10px 10px 0;
+            color: rgba(255, 255, 255, 0.9);
+            font-style: italic;
+            position: relative;
         }
-        .quote-selection-popup.show { display: flex; }
-        .quote-selection-popup button {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 8px;
-            white-space: nowrap;
+        .msg-text blockquote::after {
+            content: "\201D";
+            position: absolute;
+            top: 2px;
+            right: 8px;
+            font-size: 20px;
+            color: var(--accent);
+            opacity: 0.5;
+            line-height: 1;
+            font-family: Georgia, serif;
         }
-        .quote-selection-popup button:hover { background: rgba(255,255,255,0.08); }
+        .msg-text blockquote p { margin: 0; }
     </style>
 </head>
 <body>
@@ -1809,6 +1806,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             <button class="header-btn" title="Избранное" onclick="openCloudChat()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
             </button>
+            
             <button class="header-btn" title="Выйти" onclick="logoutAction()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
@@ -4354,7 +4352,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             updateCallButtonsVisibility();
             evaluateActiveChatProtection();
             enforceChatAutoDelete();
-            initTextQuoteSelection();
+            
             clearManualUnreadFlag(peerId);
         }
 
@@ -5851,52 +5849,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         }
 
         // ===== TEXT QUOTE SELECTION (like Telegram) =====
-        let quotePopup = null;
-        let quoteSelectionRange = null;
-        function initTextQuoteSelection() {
-            const feed = document.getElementById('chat-feed');
-            if (!feed || feed.dataset.quoteBound === '1') return;
-            feed.dataset.quoteBound = '1';
-            if (!quotePopup) {
-                quotePopup = document.createElement('div');
-                quotePopup.className = 'quote-selection-popup';
-                quotePopup.innerHTML = '<button onclick="quoteSelectedText()">💬 Цитировать</button>';
-                document.body.appendChild(quotePopup);
-            }
-            feed.addEventListener('mouseup', handleTextSelection);
-            feed.addEventListener('touchend', handleTextSelection, { passive: true });
-            feed.addEventListener('scroll', hideQuotePopup, { passive: true });
-            document.addEventListener('selectionchange', () => {
-                const sel = window.getSelection();
-                if (!sel || sel.isCollapsed) hideQuotePopup();
-            });
-        }
-        function handleTextSelection(e) {
-            const sel = window.getSelection();
-            if (!sel || sel.isCollapsed || sel.toString().trim().length === 0) { hideQuotePopup(); return; }
-            const range = sel.getRangeAt(0);
-            const container = range.commonAncestorContainer;
-            let msgEl = container.nodeType === 3 ? container.parentElement : container;
-            while (msgEl && !msgEl.classList.contains('msg-text')) msgEl = msgEl.parentElement;
-            if (!msgEl) { hideQuotePopup(); return; }
-            const msgContainer = msgEl.closest('.msg-container');
-            if (!msgContainer) { hideQuotePopup(); return; }
-            quoteSelectionRange = { text: sel.toString().trim(), msgId: msgContainer.id?.replace('msg-', '') };
-            if (!quoteSelectionRange.msgId) { hideQuotePopup(); return; }
-            const rect = range.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) { hideQuotePopup(); return; }
-            const popupW = quotePopup.offsetWidth || 140;
-            const popupH = quotePopup.offsetHeight || 36;
-            let left = rect.left + rect.width / 2 - popupW / 2;
-            let top = rect.top - popupH - 8;
-            if (left < 8) left = 8;
-            if (left + popupW > window.innerWidth - 8) left = window.innerWidth - popupW - 8;
-            if (top < 8) top = rect.bottom + 8;
-            quotePopup.style.left = left + 'px';
-            quotePopup.style.top = top + 'px';
-            quotePopup.classList.add('show');
-        }
-        function hideQuotePopup() { if (quotePopup) quotePopup.classList.remove('show'); quoteSelectionRange = null; }
+
+        
         function quoteSelectedText() {
             if (!quoteSelectionRange || !quoteSelectionRange.msgId) return;
             const msg = activeChatMessagesData[quoteSelectionRange.msgId];
@@ -6166,6 +6120,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         // ======== ФОРМАТИРОВАНИЕ ТЕКСТА (**жирный**, *курсив*, `код`, ||спойлер||, ссылки) ========
         function formatMessageText(raw) {
             let t = escapeHTML(raw);
+            t = t.replace(/&([^&\n]+)&/g, '<blockquote>$1</blockquote>');
             t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>');
             t = t.replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>');
             t = t.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<i>$2</i>');
@@ -9198,7 +9153,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 initComposer();
                 initStickers();
                 initFolderSwipe();
-                initTextQuoteSelection();
+                
                 initCallSystem();
                 initV3GlobalGuards();
                 sweepExpiredAccounts();
