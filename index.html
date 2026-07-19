@@ -1753,7 +1753,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
         /* ===== text quote selection ===== */
         .quote-selection-popup {
-            position: absolute;
+            position: fixed;
             background: var(--bg-bar);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 12px;
@@ -1808,9 +1808,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         <div class="header-buttons">
             <button class="header-btn" title="Избранное" onclick="openCloudChat()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
-            </button>
-            <button class="header-btn" title="Полноэкранный режим" onclick="toggleFullscreen()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
             </button>
             <button class="header-btn" title="Выйти" onclick="logoutAction()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -5858,15 +5855,17 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         let quoteSelectionRange = null;
         function initTextQuoteSelection() {
             const feed = document.getElementById('chat-feed');
-            if (!feed) return;
+            if (!feed || feed.dataset.quoteBound === '1') return;
+            feed.dataset.quoteBound = '1';
             if (!quotePopup) {
                 quotePopup = document.createElement('div');
                 quotePopup.className = 'quote-selection-popup';
-                quotePopup.innerHTML = '<button onclick="quoteSelectedText()">💬 Цитировать</button><button onclick="copySelectedText()">📋 Копировать</button>';
+                quotePopup.innerHTML = '<button onclick="quoteSelectedText()">💬 Цитировать</button>';
                 document.body.appendChild(quotePopup);
             }
             feed.addEventListener('mouseup', handleTextSelection);
             feed.addEventListener('touchend', handleTextSelection, { passive: true });
+            feed.addEventListener('scroll', hideQuotePopup, { passive: true });
             document.addEventListener('selectionchange', () => {
                 const sel = window.getSelection();
                 if (!sel || sel.isCollapsed) hideQuotePopup();
@@ -5880,11 +5879,21 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             let msgEl = container.nodeType === 3 ? container.parentElement : container;
             while (msgEl && !msgEl.classList.contains('msg-text')) msgEl = msgEl.parentElement;
             if (!msgEl) { hideQuotePopup(); return; }
-            quoteSelectionRange = { text: sel.toString().trim(), msgId: msgEl.closest('.msg-container')?.id?.replace('msg-', '') };
+            const msgContainer = msgEl.closest('.msg-container');
+            if (!msgContainer) { hideQuotePopup(); return; }
+            quoteSelectionRange = { text: sel.toString().trim(), msgId: msgContainer.id?.replace('msg-', '') };
             if (!quoteSelectionRange.msgId) { hideQuotePopup(); return; }
             const rect = range.getBoundingClientRect();
-            quotePopup.style.left = Math.max(8, Math.min(window.innerWidth - quotePopup.offsetWidth - 8, rect.left + rect.width / 2 - quotePopup.offsetWidth / 2)) + 'px';
-            quotePopup.style.top = (rect.top - quotePopup.offsetHeight - 10) + 'px';
+            if (rect.width === 0 || rect.height === 0) { hideQuotePopup(); return; }
+            const popupW = quotePopup.offsetWidth || 140;
+            const popupH = quotePopup.offsetHeight || 36;
+            let left = rect.left + rect.width / 2 - popupW / 2;
+            let top = rect.top - popupH - 8;
+            if (left < 8) left = 8;
+            if (left + popupW > window.innerWidth - 8) left = window.innerWidth - popupW - 8;
+            if (top < 8) top = rect.bottom + 8;
+            quotePopup.style.left = left + 'px';
+            quotePopup.style.top = top + 'px';
             quotePopup.classList.add('show');
         }
         function hideQuotePopup() { if (quotePopup) quotePopup.classList.remove('show'); quoteSelectionRange = null; }
