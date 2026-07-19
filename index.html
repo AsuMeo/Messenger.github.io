@@ -3033,42 +3033,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         }
 
-function hexToUint8Array(hex) {
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-        bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
-    }
-    return bytes;
-}
-function arrayBufferToHex(buffer) {
-    const bytes = new Uint8Array(buffer);
-    return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
-}
-async function aesGcmEncrypt(plaintext, keyHex) {
-    const keyBytes = hexToUint8Array(keyHex);
-    const key = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["encrypt"]);
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(plaintext));
-    const combined = new Uint8Array(iv.length + ciphertext.byteLength);
-    combined.set(iv, 0);
-    combined.set(new Uint8Array(ciphertext), iv.length);
-    return arrayBufferToHex(combined);
-}
-async function aesGcmDecrypt(cipherHex, keyHex) {
-    try {
-        const combined = hexToUint8Array(cipherHex);
-        const iv = combined.slice(0, 12);
-        const ciphertext = combined.slice(12);
-        const keyBytes = hexToUint8Array(keyHex);
-        const key = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
-        const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
-        return new TextDecoder().decode(decrypted);
-    } catch (e) {
-        return "";
-    }
-}
-
-
         function getMyProfileKey() {
             let key = localStorage.getItem(`meow_prof_key_${myUid}`);
             if (!key) {
@@ -5366,7 +5330,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
                 if (sendSilentNext) messagePayload.silent = true;
                 const payloadJson = JSON.stringify(messagePayload);
                 const sig = await signPayload(payloadJson);
-                const finalString = "[MEOW]" + await aesGcmEncrypt(payloadJson, activeRoomSharedKey);
+                const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
                 const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
                 const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
                 if (sig) dbPacket.sig = sig;
@@ -5382,7 +5346,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
                 const payload = { text: txt };
                 const payloadJson = JSON.stringify(payload);
                 const sig = await signPayload(payloadJson);
-                const finalString = "[MEOW]" + await aesGcmEncrypt(payloadJson, activeRoomSharedKey);
+                const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
                 const editId = editTargetMessageId;
                 cancelReply(); input.value = ""; input.style.height = "auto"; updateComposerButton();
                 clearActiveDraft();
@@ -5405,7 +5369,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
 
             const payloadJson = JSON.stringify(messagePayload);
             const sig = await signPayload(payloadJson);
-            const finalString = "[MEOW]" + await aesGcmEncrypt(payloadJson, activeRoomSharedKey);
+            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
             const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
             if (sig) dbPacket.sig = sig;
@@ -5456,7 +5420,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
             if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
             const payloadJson = JSON.stringify(payload);
             const sig = await signPayload(payloadJson);
-            const finalString = "[MEOW]" + await aesGcmEncrypt(payloadJson, activeRoomSharedKey);
+            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
             if (sig) dbPacket.sig = sig;
             const nowTime = Date.now();
@@ -5532,7 +5496,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
                 if (obj.dice) payload.dice = obj.dice;
                 const payloadJson = JSON.stringify(payload);
                 const sig = await signPayload(payloadJson);
-                const finalString = "[MEOW]" + await aesGcmEncrypt(payloadJson, targetSharedKey);
+                const finalString = "[MEOW]" + aesEncrypt(payloadJson, targetSharedKey);
                 const dbPacket = { sender: myUid, text: finalString, time: ts++, read: false, kv: kv };
                 if (sig) dbPacket.sig = sig;
                 await window.fb.push(window.fb.ref(window.fb.db, `messages/${rId}/list`), dbPacket);
@@ -5845,7 +5809,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
             }
             for (const key of tryKeys) {
                 if (!key) continue;
-                const plain = await aesGcmDecrypt(cipher, key) || aesDecrypt(cipher, key);
+                const plain = aesDecrypt(cipher, key);
                 if (!plain) continue;
                 try {
                     const o = JSON.parse(plain);
@@ -7036,7 +7000,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
             const messagePayload = { text: txt };
             if (DICE_EMOJIS.includes(txt)) messagePayload.dice = { emoji: txt, value: 1 + Math.floor(Math.random() * 6) };
             if (replyTargetMessageId) messagePayload.replyTo = { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText };
-            const finalString = "[MEOW]" + await aesGcmEncrypt(JSON.stringify(messagePayload), activeRoomSharedKey);
+            const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(messagePayload), activeRoomSharedKey);
             const packet = { sender: myUid, text: finalString, sendAt: sendAt, kv: activeRoomKv, createdAt: Date.now() };
             if (isBurnModeActive) packet.burnAfter = burnDelayMs;
             await window.fb.push(window.fb.ref(window.fb.db, `scheduled/${currentRoomId}`), packet);
@@ -7191,7 +7155,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
             if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
             const payloadJson = JSON.stringify(payload);
             const sig = await signPayload(payloadJson);
-            const finalString = "[MEOW]" + await aesGcmEncrypt(payloadJson, activeRoomSharedKey);
+            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
             if (sig) dbPacket.sig = sig;
             const nowTime = Date.now();
@@ -7243,7 +7207,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
                     if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
                     const payloadJson = JSON.stringify(payload);
                     const sig = await signPayload(payloadJson);
-                    const finalString = "[MEOW]" + await aesGcmEncrypt(payloadJson, activeRoomSharedKey);
+                    const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
                     const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
                     if (sig) dbPacket.sig = sig;
                     const nowTime = Date.now();
@@ -7756,7 +7720,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
             return out;
         }
 
-        async function onVoiceRecorderStopped() {
+        function onVoiceRecorderStopped() {
             clearInterval(waveSampleInt); waveSampleInt = null;
             if (recStream) { recStream.getTracks().forEach(t => t.stop()); recStream = null; }
             const cancelled = voiceCancelSlide;
@@ -7772,7 +7736,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
             const audioBlob = new Blob(chunks, { type: mime });
             const wave = downsampleWave(waveSamples, 48);
             fileToBase64(audioBlob).then(base64 => {
-                await sendEncryptedPayload({ isVoice: true, fileData: base64, fileType: mime, wave: wave, duration: duration });
+                sendEncryptedPayload({ isVoice: true, fileData: base64, fileType: mime, wave: wave, duration: duration });
             });
             audioChunks = [];
         }
@@ -7924,7 +7888,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
             meowVibrate(14);
         }
 
-        async function onVideoNoteStopped() {
+        function onVideoNoteStopped() {
             clearInterval(vnTimerInt);
             clearTimeout(vnMaxTimeout);
             cancelAnimationFrame(vnDrawRAF);
@@ -7940,7 +7904,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
             const blob = new Blob(chunks, { type: mime });
             fileToBase64(blob).then(base64 => {
                 if (base64.length > 7500000) { alert("Видеосообщение получилось слишком большим. Попробуйте короче."); return; }
-                await sendEncryptedPayload({ videoNote: true, fileData: base64, fileType: mime, duration: duration });
+                sendEncryptedPayload({ videoNote: true, fileData: base64, fileType: mime, duration: duration });
             });
             vnChunks = [];
         }
@@ -7987,9 +7951,9 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
         // ============================================================
         // ======== v3: ОБЩАЯ ОТПРАВКА (общий помощник)
         // ============================================================
-        async function sendEncryptedPayload(payload, silent) {
+        function sendEncryptedPayload(payload, silent) {
             if (!activeRoomSharedKey) { alert("Ключ шифрования недоступен."); return false; }
-            const finalString = "[MEOW]" + await aesGcmEncrypt(JSON.stringify(payload), activeRoomSharedKey);
+            const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(payload), activeRoomSharedKey);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
             if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
             if (silent) dbPacket.silent = true;
@@ -8398,8 +8362,8 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
                     await window.fb.remove(window.fb.ref(window.fb.db, `incomingCalls/${myUid}`));
                 } catch (e) {}
             }
-            if (wasAnswered) await writeCallLogMessage('ended', dur);
-            else if (wasOutgoing) await writeCallLogMessage('missed', 0);
+            if (wasAnswered) writeCallLogMessage('ended', dur);
+            else if (wasOutgoing) writeCallLogMessage('missed', 0);
             endCallCleanup();
         }
 
@@ -8408,14 +8372,14 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
             else endCall();
         }
 
-        async function onCallEndedByPeer(state) {
+        function onCallEndedByPeer(state) {
             stopRingtone();
             if (state === 'declined' && callState === 'outgoing') {
-                await writeCallLogMessage('missed', 0);
+                writeCallLogMessage('missed', 0);
                 alert("Звонок отклонён");
             } else if (callState === 'outgoing' && !callAnswered) {
                 // собеседник завершил/пропустил
-                await writeCallLogMessage('missed', 0);
+                writeCallLogMessage('missed', 0);
             }
             endCallCleanup();
         }
@@ -8447,13 +8411,13 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
             }
         }
 
-        async function writeCallLogMessage(status, dur) {
+        function writeCallLogMessage(status, dur) {
             if (!activeRoomSharedKey || currentRoomId !== callRoomId || !callPeerId) return;
             const payload = {
                 text: status === 'missed' ? "📞 Пропущенный звонок" : "📞 Звонок",
                 callLog: { kind: callKind, status: status, duration: dur }
             };
-            const finalString = "[MEOW]" + await aesGcmEncrypt(JSON.stringify(payload), activeRoomSharedKey);
+            const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(payload), activeRoomSharedKey);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
             const nowTime = Date.now();
             window.fb.push(window.fb.ref(window.fb.db, `messages/${callRoomId}/list`), dbPacket);
@@ -8733,17 +8697,17 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
             });
         }
 
-        async function sendStickerRef(source, key) {
+        function sendStickerRef(source, key) {
             if (!activeRoomSharedKey) { alert("Откройте чат для отправки стикера."); return; }
             let ok = false;
             if (source === 'default') {
-                ok = await sendEncryptedPayload({ sticker: true, fileData: defaultPackStickers[key], fileType: 'image/png' });
+                ok = sendEncryptedPayload({ sticker: true, fileData: defaultPackStickers[key], fileType: 'image/png' });
             } else if (source === 'mine' && myStickers[key]) {
                 const s = myStickers[key];
                 const data = aesDecrypt(s.data, getMyProfileKey());
                 if (!data || data === "[Ошибка дешифрования]") return;
-                if (s.type === 'tgs') ok = await sendEncryptedPayload({ animatedSticker: true, lottieData: data });
-                else ok = await sendEncryptedPayload({ sticker: true, fileData: data, fileType: 'image/webp' });
+                if (s.type === 'tgs') ok = sendEncryptedPayload({ animatedSticker: true, lottieData: data });
+                else ok = sendEncryptedPayload({ sticker: true, fileData: data, fileType: 'image/webp' });
             }
             if (ok) {
                 pushRecentSticker({ source: source, key: key });
@@ -9311,7 +9275,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
             if (!activeRoomSharedKey) { alert("Откройте чат для отправки файла."); return; }
             if (file.size > 8 * 1024 * 1024) { alert("Файл больше 8 МБ!"); return; }
             const base64 = await fileToBase64(file);
-            await sendEncryptedPayload({
+            sendEncryptedPayload({
                 text: "📎 " + file.name, isDocument: true, fileData: base64,
                 fileType: file.type || "application/octet-stream",
                 fileName: file.name, fileSize: file.size
@@ -9379,7 +9343,7 @@ async function aesGcmDecrypt(cipherHex, keyHex) {
                 const s = await window.fb.get(window.fb.ref(window.fb.db, `users/${pid}/profile/username`));
                 if (s.exists()) username = s.val();
             } catch (e) {}
-            await sendEncryptedPayload({ text: "👤 " + name, contactShare: { uid: pid, name: name, username: username } });
+            sendEncryptedPayload({ text: "👤 " + name, contactShare: { uid: pid, name: name, username: username } });
         }
 
         function buildContactCardHtml(cs) {
