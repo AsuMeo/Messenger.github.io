@@ -3,6 +3,12 @@ const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-192-maskable.png',
+  './icon-512-maskable.png',
+  './favicon-32x32.png',
+  './apple-touch-icon.png',
   './screenshot-narrow.png',
   './screenshot-wide.png',
   'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js',
@@ -12,6 +18,50 @@ const STATIC_ASSETS = [
   'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js',
   'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js'
 ];
+
+// Firebase Cloud Messaging V1 (Web Push)
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDQMqwnJp34H6I7ragLr14LQ4YszpDFYbg",
+  authDomain: "meowmessenger.firebaseapp.com",
+  databaseURL: "https://meowmessenger-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "meowmessenger",
+  storageBucket: "meowmessenger.firebasestorage.app",
+  messagingSenderId: "906512822162",
+  appId: "1:906512822162:web:a868af851cec5a3381db4b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  const notificationTitle = payload.notification?.title || 'VK Meow';
+  const notificationOptions = {
+    body: payload.notification?.body || 'Новое сообщение',
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    tag: payload.data?.roomId || 'meow-msg',
+    data: payload.data || {},
+    requireInteraction: true
+  };
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      if (clientList.length > 0) {
+        clientList[0].focus();
+        clientList[0].postMessage({ type: 'NOTIFICATION_CLICK', data: event.notification.data });
+      } else {
+        clients.openWindow('./');
+      }
+    })
+  );
+});
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -41,6 +91,7 @@ self.addEventListener('fetch', e => {
         const text = formData.get('text') || '';
         const link = formData.get('url') || '';
 
+        // Convert files to simple objects for postMessage
         const fileInfos = [];
         for (const file of mediaFiles) {
           if (file && file.size) {
@@ -54,12 +105,14 @@ self.addEventListener('fetch', e => {
           }
         }
 
+        // Store temporarily and notify all clients
         const payload = { type: 'SHARED_FILES', title, text, url: link, files: fileInfos };
         const clientsList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
         for (const client of clientsList) {
           client.postMessage(payload);
         }
 
+        // Redirect to app so user sees the shared content
         const cache = await caches.open(CACHE_NAME);
         const cached = await cache.match('./index.html');
         if (cached) return cached;
@@ -108,38 +161,3 @@ async function notifyClientsToSend() {
     client.postMessage({ type: 'SEND_QUEUED_MESSAGES' });
   }
 }
-
-// Local notification handler from main thread
-self.addEventListener('message', e => {
-  if (e.data && e.data.type === 'SHOW_NOTIFICATION') {
-    self.registration.showNotification(e.data.title, {
-      body: e.data.body,
-      icon: e.data.icon || './icon-192.png',
-      badge: e.data.badge || './icon-192.png',
-      tag: e.data.tag || 'meow_msg',
-      requireInteraction: false,
-      renotify: true,
-      data: e.data.data || {}
-    });
-  }
-});
-
-self.addEventListener('notificationclick', e => {
-  e.notification.close();
-  const data = e.notification.data || {};
-  const targetUrl = data.url || './';
-  e.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
-      for (const client of clientList) {
-        if (client.url.includes('index.html') || client.url.endsWith('/')) {
-          client.focus();
-          client.postMessage({ type: 'OPEN_CHAT', peerId: data.peerId, roomId: data.roomId });
-          return;
-        }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
-      }
-    })
-  );
-});
