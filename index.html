@@ -4924,8 +4924,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     feed.appendChild(container);
                 } else {
                     container = document.createElement('div');
-                    const isMediaOrVoice = messageObject.fileData || messageObject.isVoice || messageObject.videoNote || messageObject.sticker || messageObject.animatedSticker;
-                    container.className = `msg-container ${m.sender === myUid ? 'out' : 'in'} ${isMediaOrVoice ? 'has-media-container' : 'is-text-container'}`;
+                    const hasMedia = messageObject.fileData || messageObject.isVoice || messageObject.videoNote || messageObject.sticker || messageObject.animatedSticker || (messageObject.album && messageObject.album.length);
+                    container.className = `msg-container ${m.sender === myUid ? 'out' : 'in'} ${hasMedia ? 'has-media-container' : 'is-text-container'}`;
                     container.id = `msg-${msgId}`;
                     container.setAttribute('data-time', m.time);
                     if (!isFirstRender && !prevMsgIdsSnapshot.has(msgId)) {
@@ -5055,6 +5055,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                             bubbleHtml += `<div class="msg-media" onclick="event.stopPropagation(); viewMediaFull('${escapeHTML(blobUrl)}', true, '${escapeHTML(msgId)}')"><video src="${escapeHTML(blobUrl)}" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
                         } else {
                             bubbleHtml += `<div class="msg-media" onclick="event.stopPropagation(); viewMediaFull('${escapeHTML(blobUrl)}', false, '${escapeHTML(msgId)}')"><img src="${escapeHTML(blobUrl)}"></div>`;
+                        }
+                        if (messageObject.text && messageObject.text !== "[Медиа]") {
+                            bubbleHtml += `<div class="msg-text">${formatMessageText(messageObject.text)}</div>`;
                         }
                     }
 
@@ -5477,7 +5480,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             await transmitDirectMedia([{ base64: await fileToBase64(file), type: file.type }]);
         }
 
-        async function transmitDirectMedia(items) {
+        async function transmitDirectMedia(items, caption) {
             if (!items || !items.length || !activeRoomSharedKey) return;
             const clipBtn = document.getElementById('clip-btn');
             const originalClipHtml = clipBtn.innerHTML;
@@ -5487,7 +5490,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             try {
                 if (items.length === 1) {
                     const it = items[0];
-                    const payload = { text: "[Медиа]", fileData: it.base64, fileType: it.type };
+                    const payload = { text: caption || "[Медиа]", fileData: it.base64, fileType: it.type };
                     if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
                     const payloadJson = JSON.stringify(payload);
                     const sig = await signPayload(payloadJson);
@@ -5499,9 +5502,10 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
                     await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
                     if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
+                    if (caption) { document.getElementById('message-input').value = ""; document.getElementById('message-input').style.height = "auto"; updateComposerButton(); clearActiveDraft(); }
                 } else {
                     const album = items.map(it => ({ data: it.base64, type: it.type }));
-                    const payload = { text: "[Альбом]", album: album };
+                    const payload = { text: "", album: album };
                     if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
                     const payloadJson = JSON.stringify(payload);
                     const sig = await signPayload(payloadJson);
@@ -5513,6 +5517,18 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
                     await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
                     if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
+                    if (caption) {
+                        const textPayload = { text: caption };
+                        if (isBurnModeActive) textPayload.burnTime = Date.now() + burnDelayMs;
+                        const textPayloadJson = JSON.stringify(textPayload);
+                        const textSig = await signPayload(textPayloadJson);
+                        const textFinal = "[MEOW]" + aesEncrypt(textPayloadJson, activeRoomSharedKey);
+                        const textDbPacket = { sender: myUid, text: textFinal, time: Date.now() + 1, read: false, kv: activeRoomKv };
+                        if (textSig) textDbPacket.sig = textSig;
+                        if (isBurnModeActive) textDbPacket.burnTime = Date.now() + burnDelayMs;
+                        await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), textDbPacket);
+                        document.getElementById('message-input').value = ""; document.getElementById('message-input').style.height = "auto"; updateComposerButton(); clearActiveDraft();
+                    }
                 }
                 clipBtn.innerHTML = originalClipHtml;
             } catch (e) {
@@ -9389,7 +9405,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     items.push({ base64: b64, type: f.type });
                 }
             }
-            if (items.length) await transmitDirectMedia(items);
+            const caption = document.getElementById('message-input').value.trim();
+            if (items.length) await transmitDirectMedia(items, caption);
         }
 
         async function handleDocumentSelected(file) {
