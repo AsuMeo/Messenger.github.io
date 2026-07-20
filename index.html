@@ -5049,6 +5049,36 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     meowVibrate(18);
                 }
                 if (!wasNearBottom) newBelowCount += newIncomingCount;
+                // Android notification bridge
+                try {
+                    if (typeof AndroidBridge !== 'undefined' && AndroidBridge.showMessageNotification && currentPeer && currentPeer !== myUid) {
+                        const lastEntry = Object.entries(messages).filter(([id]) => !localDeleted[id]).pop();
+                        if (lastEntry) {
+                            const [lastId, lastM] = lastEntry;
+                            if (lastM.sender !== myUid) {
+                                getCachedProfile(lastM.sender, (p) => {
+                                    const peerName = (p.name || 'Сообщение') + (p.lastname ? ' ' + p.lastname : '');
+                                    const avatarB64 = p.avatar || '';
+                                    let msgPreview = '';
+                                    decryptMessageCached(lastId, lastM.text || '', lastM.kv, currentPeer, lastM.sig, lastM.sender).then(obj => {
+                                        if (obj) {
+                                            if (obj.isVoice) msgPreview = '🎤 Голосовое';
+                                            else if (obj.videoNote) msgPreview = '📹 Видеосообщение';
+                                            else if (obj.sticker || obj.animatedSticker) msgPreview = 'Стикер';
+                                            else if (obj.fileData) msgPreview = obj.text && obj.text !== '[Медиа]' ? obj.text : 'Фото/видео';
+                                            else if (obj.poll) msgPreview = '📊 Опрос';
+                                            else if (obj.location) msgPreview = '📍 Геопозиция';
+                                            else msgPreview = obj.text || 'Сообщение';
+                                        } else {
+                                            msgPreview = 'Новое сообщение';
+                                        }
+                                        AndroidBridge.showMessageNotification(currentPeer, peerName, msgPreview, lastM.time, avatarB64);
+                                    });
+                                });
+                            }
+                        }
+                    }
+                } catch (e) {}
             }
             prevMsgIdsSnapshot = msgIdsNow;
             if (selectModeActive) updateSelectionUI();
@@ -9782,6 +9812,41 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         window.openEditProfileModal = openEditProfileModal;
         window.viewMyAvatarFull = viewMyAvatarFull;
         window.copyMyUsername = copyMyUsername;
+
+window.openChatWindow = openChatWindow;
+
+window.sendReplyFromNotification = function(peerId, text) {
+    if (!myUid || !window.fb || !window.fb.db) return;
+    const rId = [myUid, peerId].sort().join("_");
+    (async () => {
+        if (!activeRoomSharedKey || currentPeer !== peerId) {
+            const info = await getPeerCurrentKeyInfo(peerId, true);
+            if (info.pub) {
+                activeRoomKv = myKeyStore.current + "_" + (info.ver || 'legacy');
+                activeRoomSharedKey = await getSharedKeyForKv(peerId, activeRoomKv);
+            }
+        }
+        if (!activeRoomSharedKey) return;
+        const payload = { text: text };
+        const payloadJson = JSON.stringify(payload);
+        const sig = await signPayload(payloadJson);
+        const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
+        const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
+        if (sig) dbPacket.sig = sig;
+        await window.fb.push(window.fb.ref(window.fb.db, "messages/" + rId + "/list"), dbPacket);
+        await window.fb.update(window.fb.ref(window.fb.db, "users/" + myUid + "/chats/" + peerId), { roomId: rId, lastTime: Date.now() });
+        await window.fb.update(window.fb.ref(window.fb.db, "users/" + peerId + "/chats/" + myUid), { roomId: rId, lastTime: Date.now() });
+        switchTab(0);
+        openChatWindow(peerId, rId);
+    })();
+};
+
+window.openChatFromNotification = function(peerId) {
+    if (!myUid || !window.fb || !window.fb.db) return;
+    const rId = [myUid, peerId].sort().join("_");
+    switchTab(0);
+    openChatWindow(peerId, rId);
+};
 </script>
     <div class="modal-overlay" id="edit-profile-modal">
         <div class="modal-card">
