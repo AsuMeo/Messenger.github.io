@@ -1,6 +1,16 @@
-const CACHE_NAME = 'meow-v1';
+const CACHE_NAME = 'meow-v2';
 const STATIC_ASSETS = [
+  './',
   './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-192-maskable.png',
+  './icon-512-maskable.png',
+  './favicon-32x32.png',
+  './apple-touch-icon.png',
+  './screenshot-narrow.png',
+  './screenshot-wide.png',
   'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/lottie.js/5.12.2/lottie.min.js',
@@ -23,10 +33,59 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
+// Share Target: intercept POST and redirect to index.html with shared data
 self.addEventListener('fetch', e => {
+  const url = new URL(e.request.url);
+
+  // Handle Web Share Target POST
+  if (e.request.method === 'POST' && url.pathname.endsWith('index.html')) {
+    e.respondWith(
+      (async () => {
+        const formData = await e.request.formData();
+        const mediaFiles = formData.getAll('media');
+        const title = formData.get('title') || '';
+        const text = formData.get('text') || '';
+        const link = formData.get('url') || '';
+
+        // Convert files to simple objects for postMessage
+        const fileInfos = [];
+        for (const file of mediaFiles) {
+          if (file && file.size) {
+            const arr = await file.arrayBuffer();
+            fileInfos.push({
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              data: Array.from(new Uint8Array(arr))
+            });
+          }
+        }
+
+        // Store temporarily and notify all clients
+        const payload = { type: 'SHARED_FILES', title, text, url: link, files: fileInfos };
+        const clientsList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        for (const client of clientsList) {
+          client.postMessage(payload);
+        }
+
+        // Redirect to app so user sees the shared content
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match('./index.html');
+        if (cached) return cached;
+        return fetch('./index.html');
+      })()
+    );
+    return;
+  }
+
+  // Normal GET handling
   if (e.request.method !== 'GET') return;
-  const url = e.request.url;
-  const isStatic = STATIC_ASSETS.some(u => url.includes(u.replace('./',''))) || url.endsWith('.html') || url.endsWith('.js') || url.endsWith('.css');
+
+  const isStatic = STATIC_ASSETS.some(u => {
+    const clean = u.replace('./', '');
+    return url.href.includes(clean) || url.pathname.endsWith(clean);
+  }) || url.pathname.endsWith('.html') || url.pathname.endsWith('.js') || url.pathname.endsWith('.css') || url.pathname.endsWith('.json') || url.pathname.endsWith('.png');
+
   if (isStatic) {
     e.respondWith(
       caches.match(e.request).then(cached => {
@@ -41,7 +100,7 @@ self.addEventListener('fetch', e => {
     );
   } else {
     e.respondWith(
-      fetch(e.request).catch(() => caches.match(e.request))
+      fetch(e.request).catch(() => caches.match('./index.html'))
     );
   }
 });
