@@ -1685,7 +1685,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         .msg-album {
             display: grid;
             gap: 2px;
-            border-radius: 14px;
+            border-radius: 12px;
             overflow: hidden;
             max-width: 280px;
         }
@@ -1693,15 +1693,19 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         .msg-album.count-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
         .msg-album.count-3 .album-item:first-child { grid-row: span 2; }
         .msg-album.count-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
-        .msg-album.count-5, .msg-album.count-6 { grid-template-columns: 1fr 1fr 1fr; }
-        .msg-album.count-7, .msg-album.count-8, .msg-album.count-9 { grid-template-columns: 1fr 1fr 1fr; }
+        .msg-album.count-5 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .msg-album.count-5 .album-item:first-child { grid-column: span 2; }
+        .msg-album.count-6 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .msg-album.count-7 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+        .msg-album.count-7 .album-item:first-child { grid-column: span 2; grid-row: span 2; }
+        .msg-album.count-8 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+        .msg-album.count-8 .album-item:first-child { grid-column: span 2; grid-row: span 2; }
+        .msg-album.count-9 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
         .album-item {
             position: relative;
-            aspect-ratio: 1;
             overflow: hidden;
             cursor: pointer;
             background: #111;
-            min-height: 90px;
         }
         .album-item img, .album-item video {
             width: 100%;
@@ -1712,12 +1716,12 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         .album-item .album-more-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0,0,0,0.55);
+            background: rgba(0,0,0,0.45);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            font-weight: 800;
+            font-size: 18px;
+            font-weight: 700;
             color: white;
         }
 
@@ -5030,7 +5034,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     } else if (messageObject.album && messageObject.album.length) {
                         const count = messageObject.album.length;
                         const maxShow = Math.min(count, 9);
-                        let albumHtml = `<div class="msg-album count-${Math.min(count, 9)}" onclick="event.stopPropagation(); viewAlbumFull('${escapeHTML(msgId)}')">`;
+                        let albumHtml = `<div class="msg-album count-${Math.min(count, 9)}">`;
                         for (let idx = 0; idx < maxShow; idx++) {
                             const item = messageObject.album[idx];
                             const itemUrl = getCachedObjectUrl(msgId + '_a' + idx, item.data);
@@ -5041,7 +5045,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                             if (idx === maxShow - 1 && count > maxShow) {
                                 inner += `<div class="album-more-overlay">+${count - maxShow}</div>`;
                             }
-                            albumHtml += `<div class="album-item">${inner}</div>`;
+                            albumHtml += `<div class="album-item" onclick="event.stopPropagation(); viewAlbumFull('${escapeHTML(msgId)}', ${idx})">${inner}</div>`;
                         }
                         albumHtml += `</div>`;
                         bubbleHtml += albumHtml;
@@ -5407,6 +5411,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
                 const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
                 if (sig) dbPacket.sig = sig;
+                if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
                 await window.meowSaveToOutbox({ roomId: currentRoomId, peerId: currentPeer, dbPacket, replyTo: replyTargetMessageId ? { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText } : null, burnMode: isBurnModeActive, burnDelay: burnDelayMs, createdAt: Date.now() });
                 cancelReply(); stopTypingImmediately(); input.value = ""; input.style.height = "auto"; updateComposerButton(); clearActiveDraft(); window.meowRequestSync();
                 window.meowShowToast("Сообщение сохранено. Отправится при появлении интернета.");
@@ -5446,6 +5451,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
             if (sig) dbPacket.sig = sig;
+            if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
 
             // Оптимистичная отправка: не ждём ответа сервера, UI обновится мгновенно через realtime-слушатель
             cancelReply();
@@ -5488,6 +5494,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
                     const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
                     if (sig) dbPacket.sig = sig;
+                    if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
                     const nowTime = Date.now();
                     await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
                     await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
@@ -5501,6 +5508,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
                     const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
                     if (sig) dbPacket.sig = sig;
+                    if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
                     const nowTime = Date.now();
                     await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
                     await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
@@ -5987,10 +5995,10 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     const videoCnt = obj.album.filter(a => a.type && a.type.startsWith('video/')).length;
                     const photoCnt = cnt - videoCnt;
                     let label = "";
-                    if (videoCnt && photoCnt) label = `🎬 ${videoCnt} видео, 📷 ${photoCnt} фото`;
-                    else if (videoCnt) label = `🎬 ${cnt} видео`;
-                    else label = `📷 ${cnt} фото`;
-                    displayedText = "Альбом: " + label;
+                    if (videoCnt && photoCnt) label = `🎬 ${videoCnt} 📷 ${photoCnt}`;
+                    else if (videoCnt) label = `🎬 ${cnt}`;
+                    else label = `📷 ${cnt}`;
+                    displayedText = label;
                     const t = await buildLastMsgThumb(msgId, obj.album[0].data);
                     if (t) thumbHtml = `<span class="dlg-media-thumb" style="background-image:url(${t})"></span>`;
                 } else if (obj.fileData) {
