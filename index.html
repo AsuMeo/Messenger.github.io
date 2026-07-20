@@ -42,7 +42,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, get, update, remove, onDisconnect, query, orderByKey, startAt, endAt } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyDQMqwnJp34H6I7ragLr14LQ4YszpDFYbg",
@@ -57,7 +56,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const auth = getAuth(app);
-        const messaging = getMessaging(app);
 
         window.fb = { db, auth, ref, set, push, onValue, get, update, remove, onDisconnect, query, orderByKey, startAt, endAt, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut };
     </script>
@@ -1682,6 +1680,46 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         .msg-sticker img { width: 100%; height: 100%; }
         @keyframes stickerPop { 0% { transform: scale(0.25) rotate(-8deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
         .msg-sticker.anim-sticker { animation: stickerPop 0.28s cubic-bezier(0.34, 1.5, 0.64, 1); }
+
+        /* ===== Медиа-альбомы ===== */
+        .msg-album {
+            display: grid;
+            gap: 2px;
+            border-radius: 14px;
+            overflow: hidden;
+            max-width: 280px;
+        }
+        .msg-album.count-2 { grid-template-columns: 1fr 1fr; }
+        .msg-album.count-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .msg-album.count-3 .album-item:first-child { grid-row: span 2; }
+        .msg-album.count-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .msg-album.count-5, .msg-album.count-6 { grid-template-columns: 1fr 1fr 1fr; }
+        .msg-album.count-7, .msg-album.count-8, .msg-album.count-9 { grid-template-columns: 1fr 1fr 1fr; }
+        .album-item {
+            position: relative;
+            aspect-ratio: 1;
+            overflow: hidden;
+            cursor: pointer;
+            background: #111;
+            min-height: 90px;
+        }
+        .album-item img, .album-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .album-item .album-more-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+        }
 
         /* звонки */
         #call-overlay { position: fixed; inset: 0; background: #0B0B0D; z-index: 4000; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 70px 24px 46px; }
@@ -4989,6 +5027,24 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                         bubbleHtml += buildContactCardHtml(messageObject.contactShare);
                     } else if (messageObject.callLog) {
                         bubbleHtml += buildCallLogHtml(messageObject.callLog);
+                    } else if (messageObject.album && messageObject.album.length) {
+                        const count = messageObject.album.length;
+                        const maxShow = Math.min(count, 9);
+                        let albumHtml = `<div class="msg-album count-${Math.min(count, 9)}" onclick="event.stopPropagation(); viewAlbumFull('${escapeHTML(msgId)}')">`;
+                        for (let idx = 0; idx < maxShow; idx++) {
+                            const item = messageObject.album[idx];
+                            const itemUrl = getCachedObjectUrl(msgId + '_a' + idx, item.data);
+                            const isVideo = item.type && item.type.startsWith('video/');
+                            let inner = isVideo 
+                                ? `<video src="${escapeHTML(itemUrl)}" muted playsinline></video>`
+                                : `<img src="${escapeHTML(itemUrl)}">`;
+                            if (idx === maxShow - 1 && count > maxShow) {
+                                inner += `<div class="album-more-overlay">+${count - maxShow}</div>`;
+                            }
+                            albumHtml += `<div class="album-item">${inner}</div>`;
+                        }
+                        albumHtml += `</div>`;
+                        bubbleHtml += albumHtml;
                     } else if (messageObject.fileData) {
                         const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
                         if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
@@ -5412,38 +5468,49 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
         async function compressAndSendMedia(file) {
             if (!file || !activeRoomSharedKey) return;
+            await transmitDirectMedia([{ base64: await fileToBase64(file), type: file.type }]);
+        }
+
+        async function transmitDirectMedia(items) {
+            if (!items || !items.length || !activeRoomSharedKey) return;
             const clipBtn = document.getElementById('clip-btn');
             const originalClipHtml = clipBtn.innerHTML;
             const loadingSvg = `<svg viewBox="0 0 50 50" width="18" height="18" style="animation:rotate 1s linear infinite; stroke:white;"><circle cx="25" cy="25" r="20" fill="none" stroke-width="5" stroke-linecap="round"></circle></svg>`;
-
             clipBtn.innerHTML = loadingSvg;
+
             try {
-                if (file.type.startsWith('image/')) {
-                    const finalBase64 = await processImageHD(file, 1600);
-                    await transmitDirectMedia(finalBase64, file.type);
-                } else if (file.type.startsWith('video/')) {
-                    if (file.size > 8 * 1024 * 1024) { alert("Видео больше 8 МБ!"); return; }
-                    const base64 = await fileToBase64(file);
-                    await transmitDirectMedia(base64, file.type);
+                if (items.length === 1) {
+                    const it = items[0];
+                    const payload = { text: "[Медиа]", fileData: it.base64, fileType: it.type };
+                    if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
+                    const payloadJson = JSON.stringify(payload);
+                    const sig = await signPayload(payloadJson);
+                    const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
+                    const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
+                    if (sig) dbPacket.sig = sig;
+                    const nowTime = Date.now();
+                    await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+                    await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
+                    if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
+                } else {
+                    const album = items.map(it => ({ data: it.base64, type: it.type }));
+                    const payload = { text: "[Альбом]", album: album };
+                    if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
+                    const payloadJson = JSON.stringify(payload);
+                    const sig = await signPayload(payloadJson);
+                    const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
+                    const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
+                    if (sig) dbPacket.sig = sig;
+                    const nowTime = Date.now();
+                    await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+                    await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
+                    if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
                 }
                 clipBtn.innerHTML = originalClipHtml;
             } catch (e) {
-                alert("Ошибка медиа"); clipBtn.innerHTML = originalClipHtml;
+                alert("Ошибка медиа");
+                clipBtn.innerHTML = originalClipHtml;
             }
-        }
-
-        async function transmitDirectMedia(base64Data, contentType) {
-            const payload = { text: "[Медиа]", fileData: base64Data, fileType: contentType };
-            if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
-            const payloadJson = JSON.stringify(payload);
-            const sig = await signPayload(payloadJson);
-            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
-            const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
-            if (sig) dbPacket.sig = sig;
-            const nowTime = Date.now();
-            await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
-            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
-            if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
         }
 
         function toggleBurnMode() {
@@ -5915,6 +5982,17 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     displayedText = "👤 Контакт: " + (obj.contactShare.name || "");
                 } else if (obj.callLog) {
                     displayedText = obj.callLog.kind === 'video' ? "📹 Видеозвонок" : "📞 Звонок";
+                } else if (obj.album && obj.album.length) {
+                    const cnt = obj.album.length;
+                    const videoCnt = obj.album.filter(a => a.type && a.type.startsWith('video/')).length;
+                    const photoCnt = cnt - videoCnt;
+                    let label = "";
+                    if (videoCnt && photoCnt) label = `🎬 ${videoCnt} видео, 📷 ${photoCnt} фото`;
+                    else if (videoCnt) label = `🎬 ${cnt} видео`;
+                    else label = `📷 ${cnt} фото`;
+                    displayedText = "Альбом: " + label;
+                    const t = await buildLastMsgThumb(msgId, obj.album[0].data);
+                    if (t) thumbHtml = `<span class="dlg-media-thumb" style="background-image:url(${t})"></span>`;
                 } else if (obj.fileData) {
                     if (obj.fileType && obj.fileType.startsWith('video/')) {
                         displayedText = "🎬 Видео";
@@ -9292,11 +9370,18 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         // ============================================================
         async function handleMediaFilesSelected(files) {
             if (!files || !files.length) return;
+            const items = [];
             for (const f of Array.from(files).slice(0, 10)) {
-                if (f.type.startsWith('image/') || f.type.startsWith('video/')) {
-                    await compressAndSendMedia(f);
+                if (f.type.startsWith('image/')) {
+                    const b64 = await processImageHD(f, 1600);
+                    items.push({ base64: b64, type: f.type });
+                } else if (f.type.startsWith('video/')) {
+                    if (f.size > 8 * 1024 * 1024) { alert("Видео " + f.name + " больше 8 МБ — пропущено"); continue; }
+                    const b64 = await fileToBase64(f);
+                    items.push({ base64: b64, type: f.type });
                 }
             }
+            if (items.length) await transmitDirectMedia(items);
         }
 
         async function handleDocumentSelected(file) {
@@ -9393,6 +9478,20 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         // ============================================================
         // ======== v3: ГАЛЕРЕЯ МЕДИА (листание, зум, скачивание)
         // ============================================================
+        function viewAlbumFull(msgId) {
+            const msg = activeChatMessagesData[msgId];
+            if (!msg) return;
+            const c = msgDecryptCache[msgId];
+            if (!c || !c.obj || !c.obj.album) return;
+            galleryItems = c.obj.album.map((it, idx) => ({
+                url: getCachedObjectUrl(msgId + '_a' + idx, it.data),
+                isVideo: it.type && it.type.startsWith('video/'),
+                msgId: msgId + '_a' + idx
+            }));
+            galleryIndex = 0;
+            openGalleryAt(0);
+        }
+
         function viewMediaFull(url, isVideo, msgId) {
             galleryItems = [];
             const feed = document.getElementById('chat-feed');
@@ -9714,26 +9813,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             if (user) {
                 myUid = user.uid; myEmail = user.email;
-
-                // FCM V1 Push Notifications
-                try {
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                        const vapidKey = 'BEMPtal9_Erx15mqC3JUDmk8_nTyR-7QFPhtx_IxYV1P3cdbF4X_gdsnVx-L-Xp8tiK69mDHo8OhoCTsutHACtY';
-                        const fcmToken = await window.fb.getToken(window.fb.messaging, { vapidKey });
-                        if (fcmToken) {
-                            await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/fcmToken`), fcmToken);
-                        }
-                    }
-                } catch (e) { console.log('FCM token err', e); }
-
-                // Foreground message handler
-                window.fb.onMessage(window.fb.messaging, (payload) => {
-                    console.log('Foreground message:', payload);
-                    if (payload.notification) {
-                        window.meowShowToast(`🔔 ${payload.notification.title}: ${payload.notification.body}`);
-                    }
-                });
                 document.getElementById('login-screen').style.display = "none";
                 
                 await initE2EE();
