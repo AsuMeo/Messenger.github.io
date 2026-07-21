@@ -1685,7 +1685,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         .msg-album {
             display: grid;
             gap: 2px;
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
             max-width: 280px;
         }
@@ -1693,19 +1693,15 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         .msg-album.count-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
         .msg-album.count-3 .album-item:first-child { grid-row: span 2; }
         .msg-album.count-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
-        .msg-album.count-5 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
-        .msg-album.count-5 .album-item:first-child { grid-column: span 2; }
-        .msg-album.count-6 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
-        .msg-album.count-7 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
-        .msg-album.count-7 .album-item:first-child { grid-column: span 2; grid-row: span 2; }
-        .msg-album.count-8 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
-        .msg-album.count-8 .album-item:first-child { grid-column: span 2; grid-row: span 2; }
-        .msg-album.count-9 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+        .msg-album.count-5, .msg-album.count-6 { grid-template-columns: 1fr 1fr 1fr; }
+        .msg-album.count-7, .msg-album.count-8, .msg-album.count-9 { grid-template-columns: 1fr 1fr 1fr; }
         .album-item {
             position: relative;
+            aspect-ratio: 1;
             overflow: hidden;
             cursor: pointer;
             background: #111;
+            min-height: 90px;
         }
         .album-item img, .album-item video {
             width: 100%;
@@ -1716,12 +1712,12 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         .album-item .album-more-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0,0,0,0.45);
+            background: rgba(0,0,0,0.55);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 22px;
+            font-weight: 800;
             color: white;
         }
 
@@ -4924,8 +4920,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     feed.appendChild(container);
                 } else {
                     container = document.createElement('div');
-                    const hasMedia = messageObject.fileData || messageObject.isVoice || messageObject.videoNote || messageObject.sticker || messageObject.animatedSticker || (messageObject.album && messageObject.album.length);
-                    container.className = `msg-container ${m.sender === myUid ? 'out' : 'in'} ${hasMedia ? 'has-media-container' : 'is-text-container'}`;
+                    const isMediaOrVoice = messageObject.fileData || messageObject.isVoice || messageObject.videoNote || messageObject.sticker || messageObject.animatedSticker;
+                    container.className = `msg-container ${m.sender === myUid ? 'out' : 'in'} ${isMediaOrVoice ? 'has-media-container' : 'is-text-container'}`;
                     container.id = `msg-${msgId}`;
                     container.setAttribute('data-time', m.time);
                     if (!isFirstRender && !prevMsgIdsSnapshot.has(msgId)) {
@@ -5034,7 +5030,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     } else if (messageObject.album && messageObject.album.length) {
                         const count = messageObject.album.length;
                         const maxShow = Math.min(count, 9);
-                        let albumHtml = `<div class="msg-album count-${Math.min(count, 9)}">`;
+                        let albumHtml = `<div class="msg-album count-${Math.min(count, 9)}" onclick="event.stopPropagation(); viewAlbumFull('${escapeHTML(msgId)}')">`;
                         for (let idx = 0; idx < maxShow; idx++) {
                             const item = messageObject.album[idx];
                             const itemUrl = getCachedObjectUrl(msgId + '_a' + idx, item.data);
@@ -5045,7 +5041,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                             if (idx === maxShow - 1 && count > maxShow) {
                                 inner += `<div class="album-more-overlay">+${count - maxShow}</div>`;
                             }
-                            albumHtml += `<div class="album-item" onclick="event.stopPropagation(); viewAlbumFull('${escapeHTML(msgId)}', ${idx})">${inner}</div>`;
+                            albumHtml += `<div class="album-item">${inner}</div>`;
                         }
                         albumHtml += `</div>`;
                         bubbleHtml += albumHtml;
@@ -5055,9 +5051,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                             bubbleHtml += `<div class="msg-media" onclick="event.stopPropagation(); viewMediaFull('${escapeHTML(blobUrl)}', true, '${escapeHTML(msgId)}')"><video src="${escapeHTML(blobUrl)}" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
                         } else {
                             bubbleHtml += `<div class="msg-media" onclick="event.stopPropagation(); viewMediaFull('${escapeHTML(blobUrl)}', false, '${escapeHTML(msgId)}')"><img src="${escapeHTML(blobUrl)}"></div>`;
-                        }
-                        if (messageObject.text && messageObject.text !== "[Медиа]") {
-                            bubbleHtml += `<div class="msg-text">${formatMessageText(messageObject.text)}</div>`;
                         }
                     }
 
@@ -5414,7 +5407,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
                 const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
                 if (sig) dbPacket.sig = sig;
-                if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
                 await window.meowSaveToOutbox({ roomId: currentRoomId, peerId: currentPeer, dbPacket, replyTo: replyTargetMessageId ? { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText } : null, burnMode: isBurnModeActive, burnDelay: burnDelayMs, createdAt: Date.now() });
                 cancelReply(); stopTypingImmediately(); input.value = ""; input.style.height = "auto"; updateComposerButton(); clearActiveDraft(); window.meowRequestSync();
                 window.meowShowToast("Сообщение сохранено. Отправится при появлении интернета.");
@@ -5454,7 +5446,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
             if (sig) dbPacket.sig = sig;
-            if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
 
             // Оптимистичная отправка: не ждём ответа сервера, UI обновится мгновенно через realtime-слушатель
             cancelReply();
@@ -5480,7 +5471,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             await transmitDirectMedia([{ base64: await fileToBase64(file), type: file.type }]);
         }
 
-        async function transmitDirectMedia(items, caption) {
+        async function transmitDirectMedia(items) {
             if (!items || !items.length || !activeRoomSharedKey) return;
             const clipBtn = document.getElementById('clip-btn');
             const originalClipHtml = clipBtn.innerHTML;
@@ -5490,45 +5481,30 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             try {
                 if (items.length === 1) {
                     const it = items[0];
-                    const payload = { text: caption || "[Медиа]", fileData: it.base64, fileType: it.type };
+                    const payload = { text: "[Медиа]", fileData: it.base64, fileType: it.type };
                     if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
                     const payloadJson = JSON.stringify(payload);
                     const sig = await signPayload(payloadJson);
                     const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
                     const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
                     if (sig) dbPacket.sig = sig;
-                    if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
                     const nowTime = Date.now();
                     await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
                     await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
                     if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
-                    if (caption) { document.getElementById('message-input').value = ""; document.getElementById('message-input').style.height = "auto"; updateComposerButton(); clearActiveDraft(); }
                 } else {
                     const album = items.map(it => ({ data: it.base64, type: it.type }));
-                    const payload = { text: "", album: album };
+                    const payload = { text: "[Альбом]", album: album };
                     if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
                     const payloadJson = JSON.stringify(payload);
                     const sig = await signPayload(payloadJson);
                     const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
                     const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
                     if (sig) dbPacket.sig = sig;
-                    if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
                     const nowTime = Date.now();
                     await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
                     await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
                     if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
-                    if (caption) {
-                        const textPayload = { text: caption };
-                        if (isBurnModeActive) textPayload.burnTime = Date.now() + burnDelayMs;
-                        const textPayloadJson = JSON.stringify(textPayload);
-                        const textSig = await signPayload(textPayloadJson);
-                        const textFinal = "[MEOW]" + aesEncrypt(textPayloadJson, activeRoomSharedKey);
-                        const textDbPacket = { sender: myUid, text: textFinal, time: Date.now() + 1, read: false, kv: activeRoomKv };
-                        if (textSig) textDbPacket.sig = textSig;
-                        if (isBurnModeActive) textDbPacket.burnTime = Date.now() + burnDelayMs;
-                        await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), textDbPacket);
-                        document.getElementById('message-input').value = ""; document.getElementById('message-input').style.height = "auto"; updateComposerButton(); clearActiveDraft();
-                    }
                 }
                 clipBtn.innerHTML = originalClipHtml;
             } catch (e) {
@@ -6011,10 +5987,10 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     const videoCnt = obj.album.filter(a => a.type && a.type.startsWith('video/')).length;
                     const photoCnt = cnt - videoCnt;
                     let label = "";
-                    if (videoCnt && photoCnt) label = `🎬 ${videoCnt} 📷 ${photoCnt}`;
-                    else if (videoCnt) label = `🎬 ${cnt}`;
-                    else label = `📷 ${cnt}`;
-                    displayedText = label;
+                    if (videoCnt && photoCnt) label = `🎬 ${videoCnt} видео, 📷 ${photoCnt} фото`;
+                    else if (videoCnt) label = `🎬 ${cnt} видео`;
+                    else label = `📷 ${cnt} фото`;
+                    displayedText = "Альбом: " + label;
                     const t = await buildLastMsgThumb(msgId, obj.album[0].data);
                     if (t) thumbHtml = `<span class="dlg-media-thumb" style="background-image:url(${t})"></span>`;
                 } else if (obj.fileData) {
@@ -9405,8 +9381,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     items.push({ base64: b64, type: f.type });
                 }
             }
-            const caption = document.getElementById('message-input').value.trim();
-            if (items.length) await transmitDirectMedia(items, caption);
+            if (items.length) await transmitDirectMedia(items);
         }
 
         async function handleDocumentSelected(file) {
