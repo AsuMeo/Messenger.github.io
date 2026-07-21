@@ -1979,6 +1979,66 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             pointer-events: none;
         }
 
+
+        /* ===== Media Preview Bar ===== */
+        .media-preview-bar {
+            display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+            background: var(--bg-bar); border-top: 1px solid #161618;
+            z-index: 10; max-height: 90px;
+        }
+        .media-preview-scroll { display: flex; gap: 8px; overflow-x: auto; flex: 1; padding: 2px 0; }
+        .media-preview-scroll::-webkit-scrollbar { display: none; }
+        .media-preview-item {
+            position: relative; width: 64px; height: 64px; border-radius: 10px;
+            overflow: hidden; flex-shrink: 0; background: #1C1C1E;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .media-preview-item img, .media-preview-item video { width: 100%; height: 100%; object-fit: cover; }
+        .media-preview-remove {
+            position: absolute; top: 2px; right: 2px; width: 20px; height: 20px;
+            border-radius: 50%; background: rgba(0,0,0,0.65); border: none; color: white;
+            font-size: 12px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; line-height: 1;
+        }
+        .media-preview-remove:active { background: var(--error); }
+        .media-preview-count {
+            position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.65);
+            color: white; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 8px;
+        }
+
+        /* ===== Improved Album Grid ===== */
+        .msg-album { display: grid; gap: 2px; border-radius: 14px; overflow: hidden; max-width: 280px; background: transparent; }
+        .msg-album.count-1 { grid-template-columns: 1fr; }
+        .msg-album.count-1 .album-item { aspect-ratio: auto; max-height: 320px; }
+        .msg-album.count-2 { grid-template-columns: 1fr 1fr; }
+        .msg-album.count-2 .album-item { aspect-ratio: 3/4; }
+        .msg-album.count-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .msg-album.count-3 .album-item:first-child { grid-row: span 2; aspect-ratio: auto; }
+        .msg-album.count-3 .album-item:not(:first-child) { aspect-ratio: 1; }
+        .msg-album.count-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .msg-album.count-4 .album-item { aspect-ratio: 1; }
+        .msg-album.count-5 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .msg-album.count-5 .album-item:first-child { grid-column: span 2; aspect-ratio: auto; }
+        .msg-album.count-5 .album-item { aspect-ratio: 1; }
+        .msg-album.count-6 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .msg-album.count-6 .album-item { aspect-ratio: 1; }
+        .msg-album.count-7 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+        .msg-album.count-7 .album-item:first-child { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; }
+        .msg-album.count-7 .album-item { aspect-ratio: 1; }
+        .msg-album.count-8 { grid-template-columns: 1fr 1fr 3fr; grid-template-rows: 1fr 1fr 1fr; }
+        .msg-album.count-8 .album-item:first-child { grid-row: span 2; aspect-ratio: auto; }
+        .msg-album.count-8 .album-item { aspect-ratio: 1; }
+        .msg-album.count-9 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+        .msg-album.count-9 .album-item { aspect-ratio: 1; }
+        .album-item { position: relative; overflow: hidden; cursor: pointer; background: #111; min-height: 80px; }
+        .album-item img, .album-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .album-item .album-more-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.55);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: 800; color: white;
+        }
+        .msg-album + .msg-text { margin-top: 6px; padding: 0 4px; }
+
 </style>
 </head>
 <body>
@@ -2343,6 +2403,12 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         <div class="reply-bar-active" id="reply-preview-container">
             <div class="reply-quote-preview" style="margin: 0; flex: 1;">
                 <div class="reply-quote-sender" id="reply-preview-sender">Имя</div>
+        <div class="media-preview-bar" id="media-preview-bar" style="display: none;">
+            <div class="media-preview-scroll" id="media-preview-scroll"></div>
+            <button class="header-btn" style="color: var(--error); flex-shrink: 0;" onclick="clearPendingMedia()" title="Отменить">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
                 <div class="reply-quote-text" id="reply-preview-text">Сообщение</div>
             </div>
             <button class="header-btn" style="margin-left: 8px;" onclick="cancelReply()">
@@ -2978,6 +3044,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         let meowAudioCtx = null;
         let suppressNextSendClick = false;
         let sendSilentNext = false;
+        let pendingMediaItems = [];
 
         // ======== v3 состояние ========
         let composerMode = 'mic';           // 'send' | 'mic' | 'cam'
@@ -5405,6 +5472,21 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
         async function handleSendClick() {
             if (suppressNextSendClick) { suppressNextSendClick = false; return; }
+            // Send pending media album with caption
+            if (pendingMediaItems.length) {
+                if (!activeRoomSharedKey) { alert("Ключ шифрования недоступен."); return; }
+                const caption = input.value.trim();
+                await transmitDirectMedia(pendingMediaItems, caption);
+                pendingMediaItems = [];
+                renderMediaPreview();
+                input.value = ''; input.style.height = 'auto'; updateComposerButton();
+                clearActiveDraft(); cancelReply(); stopTypingImmediately();
+                playSendSound(); meowVibrate(10);
+                const sb = document.getElementById('send-btn');
+                if (sb) { sb.classList.remove('send-anim'); void sb.offsetWidth; sb.classList.add('send-anim'); }
+                return;
+            }
+
             const input = document.getElementById('message-input');
             const txt = input.value.trim();
             if (!txt) { sendSilentNext = false; return; }
@@ -9397,18 +9479,42 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         // ============================================================
         async function handleMediaFilesSelected(files) {
             if (!files || !files.length) return;
-            const items = [];
             for (const f of Array.from(files).slice(0, 10)) {
                 if (f.type.startsWith('image/')) {
                     const b64 = await processImageHD(f, 1600);
-                    items.push({ base64: b64, type: f.type });
+                    pendingMediaItems.push({ base64: b64, type: f.type, name: f.name });
                 } else if (f.type.startsWith('video/')) {
                     if (f.size > 8 * 1024 * 1024) { alert("Видео " + f.name + " больше 8 МБ — пропущено"); continue; }
                     const b64 = await fileToBase64(f);
-                    items.push({ base64: b64, type: f.type });
+                    pendingMediaItems.push({ base64: b64, type: f.type, name: f.name });
                 }
             }
-            if (items.length) { const caption = document.getElementById('message-input').value.trim(); document.getElementById('message-input').value = ''; autoGrowInput(); updateComposerButton(); clearActiveDraft(); await transmitDirectMedia(items, caption); }
+            renderMediaPreview();
+            document.getElementById('message-input').focus();
+        }
+
+        function renderMediaPreview() {
+            const bar = document.getElementById('media-preview-bar');
+            const scroll = document.getElementById('media-preview-scroll');
+            if (!pendingMediaItems.length) { bar.style.display = 'none'; scroll.innerHTML = ''; return; }
+            bar.style.display = 'flex';
+            scroll.innerHTML = pendingMediaItems.map((item, idx) => {
+                const isVideo = item.type.startsWith('video/');
+                const thumb = isVideo ? `<video src="${item.base64}" muted></video>` : `<img src="${item.base64}">`;
+                const countBadge = idx === 9 && pendingMediaItems.length > 10 ? `<div class="media-preview-count">+${pendingMediaItems.length - 10}</div>` : '';
+                return `<div class="media-preview-item">${thumb}${countBadge}<button class="media-preview-remove" onclick="removePendingMediaItem(${idx})">✕</button></div>`;
+            }).slice(0, 10).join('');
+            updateComposerButton();
+        }
+
+        function removePendingMediaItem(idx) {
+            pendingMediaItems.splice(idx, 1);
+            renderMediaPreview();
+        }
+
+        function clearPendingMedia() {
+            pendingMediaItems = [];
+            renderMediaPreview();
         }
 
         async function handleDocumentSelected(file) {
