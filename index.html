@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" text-security="dismissed">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>VK Meow Messenger Pro</title>
+    <title>Messenger</title>
     
     <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -5055,6 +5055,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                         }
                         albumHtml += `</div>`;
                         bubbleHtml += albumHtml;
+                    if (messageObject.caption) {
+                        bubbleHtml += `<div class="msg-text" data-fmt-src="${escapeHTML(messageObject.caption)}">${formatMessageText(messageObject.caption)}</div>`;
+                    }
                     } else if (messageObject.fileData) {
                         const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
                         if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
@@ -5490,7 +5493,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             await transmitDirectMedia([{ base64: await fileToBase64(file), type: file.type }]);
         }
 
-        async function transmitDirectMedia(items) {
+        async function transmitDirectMedia(items, caption) {
             if (!items || !items.length || !activeRoomSharedKey) return;
             const clipBtn = document.getElementById('clip-btn');
             const originalClipHtml = clipBtn.innerHTML;
@@ -5514,7 +5517,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
                 } else {
                     const album = items.map(it => ({ data: it.base64, type: it.type }));
-                    const payload = { text: "[Альбом]", album: album };
+                    const payload = { text: "[Альбом]", album: album, caption: caption || "" };
                     if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
                     const payloadJson = JSON.stringify(payload);
                     const sig = await signPayload(payloadJson);
@@ -6012,7 +6015,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     if (videoCnt && photoCnt) label = `🎬 ${videoCnt} видео, 📷 ${photoCnt} фото`;
                     else if (videoCnt) label = `🎬 ${cnt} видео`;
                     else label = `📷 ${cnt} фото`;
-                    displayedText = "Альбом: " + label;
+                    displayedText = obj.caption || ("Альбом: " + label);
                     const t = await buildLastMsgThumb(msgId, obj.album[0].data);
                     if (t) thumbHtml = `<span class="dlg-media-thumb" style="background-image:url(${t})"></span>`;
                 } else if (obj.fileData) {
@@ -9405,7 +9408,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     items.push({ base64: b64, type: f.type });
                 }
             }
-            if (items.length) await transmitDirectMedia(items);
+            if (items.length) { const caption = document.getElementById('message-input').value.trim(); document.getElementById('message-input').value = ''; autoGrowInput(); updateComposerButton(); clearActiveDraft(); await transmitDirectMedia(items, caption); }
         }
 
         async function handleDocumentSelected(file) {
