@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" text-security="dismissed">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Messenger</title>
+    <title>VK Meow Messenger Pro</title>
     
     <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -5055,9 +5055,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                         }
                         albumHtml += `</div>`;
                         bubbleHtml += albumHtml;
-                    if (messageObject.caption) {
-                        bubbleHtml += `<div class="msg-text" data-fmt-src="${escapeHTML(messageObject.caption)}">${formatMessageText(messageObject.caption)}</div>`;
-                    }
+                        if (messageObject.caption) {
+                            bubbleHtml += `<div class="msg-text" data-fmt-src="${escapeHTML(messageObject.caption)}">${formatMessageText(messageObject.caption)}</div>`;
+                        }
                     } else if (messageObject.fileData) {
                         const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
                         if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
