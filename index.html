@@ -963,6 +963,17 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
         @keyframes pulse-burn {
             from { box-shadow: 0 0 4px rgba(255, 149, 0, 0.3); }
+
+        @keyframes burn-out {
+            0% { opacity: 1; transform: scale(1); filter: brightness(1); }
+            30% { opacity: 0.7; transform: scale(1.02); filter: brightness(1.3) sepia(0.4) hue-rotate(-20deg); }
+            60% { opacity: 0.3; transform: scale(0.95); filter: brightness(2) sepia(0.8) hue-rotate(-40deg); }
+            100% { opacity: 0; transform: scale(0.6); filter: brightness(3) sepia(1) hue-rotate(-60deg); }
+        }
+        .msg-container.burning-out {
+            animation: burn-out 0.8s ease-in forwards;
+            pointer-events: none;
+        }
             to { box-shadow: 0 0 10px rgba(255, 149, 0, 0.6); }
         }
 
@@ -2355,7 +2366,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
         <div class="chat-input-bar" id="chat-normal-input-bar">
             <div id="composer-normal" style="display: flex; align-items: center; gap: 8px; width: 100%;">
-                <input type="file" id="media-upload" style="display: none;" accept="image/*,video/*" multiple onchange="handleMediaFilesSelected(this.files); this.value='';">
+                <input type="file" id="media-upload" style="display: none;" accept="image/*,video/*" multiple onchange="attachMediaToComposer(this.files); this.value='';">
                 <input type="file" id="doc-upload" style="display: none;" onchange="handleDocumentSelected(this.files[0]); this.value='';">
                 <input type="file" id="sticker-upload" style="display: none;" accept=".tgs,.webp,.png,.jpg,.jpeg" onchange="handleStickerFileChosen(this.files[0]); this.value='';">
                 <input type="file" id="sticker-editor-upload" style="display: none;" accept="image/*" onchange="openStickerEditorWithFile(this.files[0]); this.value='';">
@@ -3025,6 +3036,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         let stickerEditImg = null;
         let stickerEditScale = 1, stickerEditX = 0, stickerEditY = 0;
         let stickerThreshold = 0;
+        let pendingMediaAttachments = []; // прикреплённые фото/видео к composer
         let stickerDragState = null;
         // защита и приватность
         let activeChatProtection = false;
@@ -4782,7 +4794,12 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             clearManualUnreadFlag(peerId);
         }
 
+        let renderChatRAF = false;
         async function renderActiveChatMessages() {
+            if (renderChatRAF) return;
+            renderChatRAF = true;
+            await new Promise(r => requestAnimationFrame(r));
+            renderChatRAF = false;
             const feed = document.getElementById('chat-feed');
             if (!currentRoomId || !feed) return;
             const messages = activeChatMessagesData;
@@ -5212,8 +5229,16 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 const roomId = badge.getAttribute('data-roomid');
                 const diff = Math.max(0, Math.round((targetTime - Date.now()) / 1000));
                 if (diff <= 0) {
-                    badge.querySelector('span').innerText = "Сгорает...";
-                    window.fb.remove(window.fb.ref(window.fb.db, `messages/${roomId}/list/${msgId}`));
+                    badge.querySelector('span').innerText = 'Сгорает...';
+                    const msgContainer = document.getElementById('msg-' + msgId);
+                    if (msgContainer && !msgContainer.classList.contains('burning-out')) {
+                        msgContainer.classList.add('burning-out');
+                        setTimeout(() => {
+                            window.fb.remove(window.fb.ref(window.fb.db, `messages/${roomId}/list/${msgId}`));
+                        }, 850);
+                    } else {
+                        window.fb.remove(window.fb.ref(window.fb.db, `messages/${roomId}/list/${msgId}`));
+                    }
                 } else {
                     badge.querySelector('span').innerText = `${diff}с`;
                 }
@@ -5387,15 +5412,16 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             if (suppressNextSendClick) { suppressNextSendClick = false; return; }
             const input = document.getElementById('message-input');
             const txt = input.value.trim();
-            if (!txt) { sendSilentNext = false; return; }
+            const hasMedia = pendingMediaAttachments.length > 0;
+            if (!txt && !hasMedia) { sendSilentNext = false; return; }
             if (!activeRoomSharedKey) {
                 sendSilentNext = false;
-                alert("Ключ шифрования недоступен. Нажмите на зелёный замок сверху и обновите ключи.");
+                alert('Ключ шифрования недоступен. Нажмите на зелёный замок сверху и обновите ключи.');
                 return;
             }
 
-            // Offline queue
             if (!navigator.onLine) {
+                if (hasMedia) { alert('Медиа не поддерживается в офлайн-режиме. Дождитесь подключения.'); return; }
                 const messagePayload = { text: txt };
                 if (DICE_EMOJIS.includes(txt)) messagePayload.dice = { emoji: txt, value: 1 + Math.floor(Math.random() * 6) };
                 if (replyTargetMessageId) messagePayload.replyTo = { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText };
@@ -5403,13 +5429,13 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 if (sendSilentNext) messagePayload.silent = true;
                 const payloadJson = JSON.stringify(messagePayload);
                 const sig = await signPayload(payloadJson);
-                const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
+                const finalString = '[MEOW]' + aesEncrypt(payloadJson, activeRoomSharedKey);
                 const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
                 const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
                 if (sig) dbPacket.sig = sig;
                 await window.meowSaveToOutbox({ roomId: currentRoomId, peerId: currentPeer, dbPacket, replyTo: replyTargetMessageId ? { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText } : null, burnMode: isBurnModeActive, burnDelay: burnDelayMs, createdAt: Date.now() });
-                cancelReply(); stopTypingImmediately(); input.value = ""; input.style.height = "auto"; updateComposerButton(); clearActiveDraft(); window.meowRequestSync();
-                window.meowShowToast("Сообщение сохранено. Отправится при появлении интернета.");
+                cancelReply(); stopTypingImmediately(); input.value = ''; input.style.height = 'auto'; updateComposerButton(); clearActiveDraft(); window.meowRequestSync();
+                window.meowShowToast('Сообщение сохранено. Отправится при появлении интернета.');
                 return;
             }
 
@@ -5419,13 +5445,54 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 const payload = { text: txt };
                 const payloadJson = JSON.stringify(payload);
                 const sig = await signPayload(payloadJson);
-                const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
+                const finalString = '[MEOW]' + aesEncrypt(payloadJson, activeRoomSharedKey);
                 const editId = editTargetMessageId;
-                cancelReply(); input.value = ""; input.style.height = "auto"; updateComposerButton();
+                cancelReply(); input.value = ''; input.style.height = 'auto'; updateComposerButton();
                 clearActiveDraft();
                 const upd = { text: finalString, edited: true };
                 if (sig) upd.sig = sig;
                 window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${editId}`), upd);
+                input.focus();
+                return;
+            }
+
+            if (hasMedia) {
+                const nowTime = Date.now();
+                if (pendingMediaAttachments.length === 1) {
+                    const item = pendingMediaAttachments[0];
+                    const payload = { text: txt || '[Медиа]', fileData: item.base64, fileType: item.type };
+                    if (replyTargetMessageId) payload.replyTo = { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText };
+                    if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
+                    if (sendSilentNext) payload.silent = true;
+                    const payloadJson = JSON.stringify(payload);
+                    const sig = await signPayload(payloadJson);
+                    const finalString = '[MEOW]' + aesEncrypt(payloadJson, activeRoomSharedKey);
+                    const dbPacket = { sender: myUid, text: finalString, time: nowTime, read: false, kv: activeRoomKv };
+                    if (sig) dbPacket.sig = sig;
+                    window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+                } else {
+                    const album = pendingMediaAttachments.map(it => ({ data: it.base64, type: it.type }));
+                    const payload = { text: txt || '[Альбом]', album: album };
+                    if (replyTargetMessageId) payload.replyTo = { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText };
+                    if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
+                    if (sendSilentNext) payload.silent = true;
+                    const payloadJson = JSON.stringify(payload);
+                    const sig = await signPayload(payloadJson);
+                    const finalString = '[MEOW]' + aesEncrypt(payloadJson, activeRoomSharedKey);
+                    const dbPacket = { sender: myUid, text: finalString, time: nowTime, read: false, kv: activeRoomKv };
+                    if (sig) dbPacket.sig = sig;
+                    window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+                }
+                cancelReply(); stopTypingImmediately();
+                input.value = ''; input.style.height = 'auto'; updateComposerButton();
+                clearActiveDraft(); clearMediaAttachments();
+                playSendSound(); meowVibrate(10);
+                const sb = document.getElementById('send-btn');
+                if (sb) { sb.classList.remove('send-anim'); void sb.offsetWidth; sb.classList.add('send-anim'); }
+                window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
+                if (currentPeer !== myUid) {
+                    window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
+                }
                 input.focus();
                 return;
             }
@@ -5442,15 +5509,14 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
             const payloadJson = JSON.stringify(messagePayload);
             const sig = await signPayload(payloadJson);
-            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
+            const finalString = '[MEOW]' + aesEncrypt(payloadJson, activeRoomSharedKey);
             const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
             if (sig) dbPacket.sig = sig;
 
-            // Оптимистичная отправка: не ждём ответа сервера, UI обновится мгновенно через realtime-слушатель
             cancelReply();
             stopTypingImmediately();
-            input.value = ""; input.style.height = "auto"; updateComposerButton();
+            input.value = ''; input.style.height = 'auto'; updateComposerButton();
             clearActiveDraft();
             playSendSound();
             meowVibrate(10);
@@ -5983,6 +6049,16 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 } else if (obj.callLog) {
                     displayedText = obj.callLog.kind === 'video' ? "📹 Видеозвонок" : "📞 Звонок";
                 } else if (obj.album && obj.album.length) {
+                    const cnt = obj.album.length;
+                    const videoCnt = obj.album.filter(a => a.type && a.type.startsWith('video/')).length;
+                    const photoCnt = cnt - videoCnt;
+                    let label = '';
+                    if (videoCnt && photoCnt) label = `${videoCnt}🎬 ${photoCnt}📷`;
+                    else if (videoCnt) label = `${cnt}🎬`;
+                    else label = `${cnt}📷`;
+                    displayedText = label;
+                    const t = await buildLastMsgThumb(msgId, obj.album[0].data);
+                    if (t) thumbHtml = `<span class="dlg-media-thumb" style="background-image:url(${t})"></span>`;
                     const cnt = obj.album.length;
                     const videoCnt = obj.album.filter(a => a.type && a.type.startsWith('video/')).length;
                     const photoCnt = cnt - videoCnt;
@@ -7638,7 +7714,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             if (!btn) return;
             const input = document.getElementById('message-input');
             const hasText = input && input.value.trim().length > 0;
-            const newMode = hasText ? 'send' : (recMode === 'video' ? 'cam' : 'mic');
+            const hasMedia = pendingMediaAttachments.length > 0;
+            const newMode = (hasText || hasMedia) ? 'send' : (recMode === 'video' ? 'cam' : 'mic');
             if (newMode === composerMode && btn.dataset.rendered === newMode) return;
             composerMode = newMode;
             btn.dataset.rendered = newMode;
@@ -7647,15 +7724,15 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             void btn.offsetWidth;
             btn.classList.add('icon-swap');
             if (newMode === 'send') {
-                btn.title = "Отправить (удерживайте — отложенная отправка)";
+                btn.title = 'Отправить (удерживайте — отложенная отправка)';
                 wrap.innerHTML = SEND_SVG;
             } else if (newMode === 'cam') {
                 btn.classList.add('cam-mode');
-                btn.title = "Видеосообщение: удерживайте для записи, нажмите — переключить на микрофон";
+                btn.title = 'Видеосообщение: удерживайте для записи, нажмите — переключить на микрофон';
                 wrap.innerHTML = CAM_SVG;
             } else {
                 btn.classList.add('mic-mode');
-                btn.title = "Голосовое: удерживайте ~1 сек для записи, нажмите — переключить на камеру";
+                btn.title = 'Голосовое: удерживайте ~1 сек для записи, нажмите — переключить на камеру';
                 wrap.innerHTML = MIC_SVG;
             }
         }
@@ -9368,20 +9445,65 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         // ============================================================
         // ======== v3: ФАЙЛЫ-ДОКУМЕНТЫ
         // ============================================================
-        async function handleMediaFilesSelected(files) {
+        async function attachMediaToComposer(files) {
             if (!files || !files.length) return;
-            const items = [];
             for (const f of Array.from(files).slice(0, 10)) {
                 if (f.type.startsWith('image/')) {
                     const b64 = await processImageHD(f, 1600);
-                    items.push({ base64: b64, type: f.type });
+                    pendingMediaAttachments.push({ base64: b64, type: f.type, name: f.name });
                 } else if (f.type.startsWith('video/')) {
-                    if (f.size > 8 * 1024 * 1024) { alert("Видео " + f.name + " больше 8 МБ — пропущено"); continue; }
+                    if (f.size > 8 * 1024 * 1024) { alert('Видео ' + f.name + ' больше 8 МБ — пропущено'); continue; }
                     const b64 = await fileToBase64(f);
-                    items.push({ base64: b64, type: f.type });
+                    pendingMediaAttachments.push({ base64: b64, type: f.type, name: f.name });
                 }
             }
-            if (items.length) await transmitDirectMedia(items);
+            renderMediaAttachmentsPreview();
+            updateComposerButton();
+        }
+
+        function renderMediaAttachmentsPreview() {
+            let bar = document.getElementById('media-attachments-bar');
+            if (!bar) {
+                bar = document.createElement('div');
+                bar.id = 'media-attachments-bar';
+                bar.style.cssText = 'display:none; gap:8px; padding:8px 16px; overflow-x:auto; background:var(--bg-bar); border-top:1px solid #161618; z-index:10;';
+                const inputBar = document.getElementById('chat-normal-input-bar');
+                if (inputBar) inputBar.insertBefore(bar, inputBar.firstChild);
+            }
+            bar.innerHTML = '';
+            pendingMediaAttachments.forEach((item, idx) => {
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'position:relative; width:64px; height:64px; border-radius:10px; overflow:hidden; flex-shrink:0; background:#111; border:1px solid rgba(255,255,255,0.08);';
+                if (item.type.startsWith('video/')) {
+                    const vid = document.createElement('video');
+                    vid.src = item.base64;
+                    vid.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+                    vid.muted = true; vid.playsInline = true;
+                    wrap.appendChild(vid);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = item.base64;
+                    img.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+                    wrap.appendChild(img);
+                }
+                const del = document.createElement('button');
+                del.innerText = '✕';
+                del.style.cssText = 'position:absolute; top:2px; right:2px; width:20px; height:20px; border-radius:50%; background:rgba(0,0,0,0.7); color:white; border:none; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;';
+                del.onclick = () => { pendingMediaAttachments.splice(idx, 1); renderMediaAttachmentsPreview(); updateComposerButton(); };
+                wrap.appendChild(del);
+                bar.appendChild(wrap);
+            });
+            bar.style.display = pendingMediaAttachments.length ? 'flex' : 'none';
+        }
+
+        function clearMediaAttachments() {
+            pendingMediaAttachments = [];
+            const bar = document.getElementById('media-attachments-bar');
+            if (bar) bar.style.display = 'none';
+        }
+
+        async function handleMediaFilesSelected(files) {
+            await attachMediaToComposer(files);
         }
 
         async function handleDocumentSelected(file) {
