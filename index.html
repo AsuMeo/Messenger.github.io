@@ -5,16 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>VK Meow Messenger Pro</title>
     
-    <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <meta name="apple-mobile-web-app-title" content="VK Meow">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="application-name" content="VK Meow Messenger Pro">
-    <meta name="msapplication-TileColor" content="#000000">
-    <meta name="msapplication-TileImage" content="icon-192.png">
-    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: light)">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlZLIE1lb3cgTWVzc2VuZ2VyIiwKICAic2hvcnRfbmFtZSI6ICJWSyBNZW93IiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwMDAwMDAiLAogICJ0aGVtZV9jb2xvciI6ICIxRjgwE0EiCi99">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -1681,46 +1672,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         @keyframes stickerPop { 0% { transform: scale(0.25) rotate(-8deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
         .msg-sticker.anim-sticker { animation: stickerPop 0.28s cubic-bezier(0.34, 1.5, 0.64, 1); }
 
-        /* ===== Медиа-альбомы ===== */
-        .msg-album {
-            display: grid;
-            gap: 2px;
-            border-radius: 14px;
-            overflow: hidden;
-            max-width: 280px;
-        }
-        .msg-album.count-2 { grid-template-columns: 1fr 1fr; }
-        .msg-album.count-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
-        .msg-album.count-3 .album-item:first-child { grid-row: span 2; }
-        .msg-album.count-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
-        .msg-album.count-5, .msg-album.count-6 { grid-template-columns: 1fr 1fr 1fr; }
-        .msg-album.count-7, .msg-album.count-8, .msg-album.count-9 { grid-template-columns: 1fr 1fr 1fr; }
-        .album-item {
-            position: relative;
-            aspect-ratio: 1;
-            overflow: hidden;
-            cursor: pointer;
-            background: #111;
-            min-height: 90px;
-        }
-        .album-item img, .album-item video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .album-item .album-more-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.55);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            font-weight: 800;
-            color: white;
-        }
-
         /* звонки */
         #call-overlay { position: fixed; inset: 0; background: #0B0B0D; z-index: 4000; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 70px 24px 46px; }
         #call-overlay.active { display: flex; animation: modalPopIn 0.2s ease; }
@@ -1942,23 +1893,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         .profile-username-row:active {
             background: rgba(255,255,255,0.08);
         }
-        .peer-profile-username-row {
-            margin-top: 16px;
-            background: rgba(255,255,255,0.04);
-            border-radius: 12px;
-            padding: 10px 18px;
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-white);
-            cursor: pointer;
-            transition: background 0.15s;
-            border: 1px solid rgba(255,255,255,0.05);
-            min-width: 200px;
-            text-align: center;
-        }
-        .peer-profile-username-row:active {
-            background: rgba(255,255,255,0.08);
-        }
         .profile-bio-text {
             margin-top: 10px;
             font-size: 13px;
@@ -1969,75 +1903,28 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             padding: 0 8px;
         }
 
-        @keyframes burnFadeOut {
-            0% { opacity: 1; transform: scale(1); filter: blur(0); }
-            30% { opacity: 0.8; transform: scale(1.02); filter: blur(1px); }
-            100% { opacity: 0; transform: scale(0.85); filter: blur(4px); }
-        }
-        .msg-burning-out {
-            animation: burnFadeOut 0.6s ease forwards;
-            pointer-events: none;
-        }
+        /* ===== Медиа-коллаж (как в Telegram) ===== */
+        .collage-preview-grid { display: grid; gap: 4px; border-radius: 14px; overflow: hidden; }
+        .collage-preview-grid.count-1 { grid-template-columns: 1fr; }
+        .collage-preview-grid.count-2 { grid-template-columns: 1fr 1fr; }
+        .collage-preview-grid.count-3 { grid-template-columns: 1fr 1fr; }
+        .collage-preview-grid.count-3 .collage-item:first-child { grid-column: span 2; }
+        .collage-preview-grid.count-4 { grid-template-columns: 1fr 1fr; }
+        .collage-item { position: relative; aspect-ratio: 1; background: #111; overflow: hidden; }
+        .collage-item img, .collage-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .collage-item .collage-remove-btn { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; font-size: 14px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; }
+        .collage-caption-input { width: 100%; height: 44px; border-radius: 12px; background: #1C1C1E; border: 1px solid #2C2C2E; color: white; padding: 0 14px; font-size: 15px; outline: none; margin-top: 10px; }
+        .collage-preview-wrap { max-height: 320px; overflow-y: auto; padding-right: 4px; }
+        .msg-collage-grid { display: grid; gap: 3px; border-radius: 14px; overflow: hidden; width: 100%; max-width: 280px; }
+        .msg-collage-grid.count-1 { grid-template-columns: 1fr; }
+        .msg-collage-grid.count-2 { grid-template-columns: 1fr 1fr; }
+        .msg-collage-grid.count-3 { grid-template-columns: 1fr 1fr; }
+        .msg-collage-grid.count-3 .collage-msg-item:first-child { grid-column: span 2; }
+        .msg-collage-grid.count-4 { grid-template-columns: 1fr 1fr; }
+        .collage-msg-item { position: relative; aspect-ratio: 1; background: #111; overflow: hidden; cursor: pointer; }
+        .collage-msg-item img, .collage-msg-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .collage-msg-item .collage-count-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: white; }
 
-
-        /* ===== Media Preview Bar ===== */
-        .media-preview-bar {
-            display: flex; align-items: center; gap: 8px; padding: 8px 12px;
-            background: var(--bg-bar); border-top: 1px solid #161618;
-            z-index: 10; max-height: 90px;
-        }
-        .media-preview-scroll { display: flex; gap: 8px; overflow-x: auto; flex: 1; padding: 2px 0; }
-        .media-preview-scroll::-webkit-scrollbar { display: none; }
-        .media-preview-item {
-            position: relative; width: 64px; height: 64px; border-radius: 10px;
-            overflow: hidden; flex-shrink: 0; background: #1C1C1E;
-            border: 1px solid rgba(255,255,255,0.06);
-        }
-        .media-preview-item img, .media-preview-item video { width: 100%; height: 100%; object-fit: cover; }
-        .media-preview-remove {
-            position: absolute; top: 2px; right: 2px; width: 20px; height: 20px;
-            border-radius: 50%; background: rgba(0,0,0,0.65); border: none; color: white;
-            font-size: 12px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; line-height: 1;
-        }
-        .media-preview-remove:active { background: var(--error); }
-        .media-preview-count {
-            position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.65);
-            color: white; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 8px;
-        }
-
-        /* ===== Improved Album Grid ===== */
-        .msg-album { display: grid; gap: 2px; border-radius: 14px; overflow: hidden; max-width: 280px; background: transparent; }
-        .msg-album.count-1 { grid-template-columns: 1fr; }
-        .msg-album.count-1 .album-item { aspect-ratio: auto; max-height: 320px; }
-        .msg-album.count-2 { grid-template-columns: 1fr 1fr; }
-        .msg-album.count-2 .album-item { aspect-ratio: 3/4; }
-        .msg-album.count-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
-        .msg-album.count-3 .album-item:first-child { grid-row: span 2; aspect-ratio: auto; }
-        .msg-album.count-3 .album-item:not(:first-child) { aspect-ratio: 1; }
-        .msg-album.count-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
-        .msg-album.count-4 .album-item { aspect-ratio: 1; }
-        .msg-album.count-5 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
-        .msg-album.count-5 .album-item:first-child { grid-column: span 2; aspect-ratio: auto; }
-        .msg-album.count-5 .album-item { aspect-ratio: 1; }
-        .msg-album.count-6 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
-        .msg-album.count-6 .album-item { aspect-ratio: 1; }
-        .msg-album.count-7 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
-        .msg-album.count-7 .album-item:first-child { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; }
-        .msg-album.count-7 .album-item { aspect-ratio: 1; }
-        .msg-album.count-8 { grid-template-columns: 1fr 1fr 3fr; grid-template-rows: 1fr 1fr 1fr; }
-        .msg-album.count-8 .album-item:first-child { grid-row: span 2; aspect-ratio: auto; }
-        .msg-album.count-8 .album-item { aspect-ratio: 1; }
-        .msg-album.count-9 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
-        .msg-album.count-9 .album-item { aspect-ratio: 1; }
-        .album-item { position: relative; overflow: hidden; cursor: pointer; background: #111; min-height: 80px; }
-        .album-item img, .album-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .album-item .album-more-overlay {
-            position: absolute; inset: 0; background: rgba(0,0,0,0.55);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px; font-weight: 800; color: white;
-        }
-        .msg-album + .msg-text { margin-top: 6px; padding: 0 4px; }
 
 </style>
 </head>
@@ -2215,11 +2102,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     <span class="modern-checkbox-label">Полупрозрачность меню диалогов</span>
                     <input type="checkbox" id="semi-transparent-dialogs" class="modern-checkbox" onchange="toggleSemiTransparentDialogs(this.checked)">
                 </label>
-
-                <h3 style="font-size: 18px; font-weight: 800; margin: 24px 0 4px 0;">Установка приложения</h3>
-                <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 10px;">Установите VK Meow как полноценное приложение на свой телефон или компьютер.</p>
-                <button class="menu-btn" id="pwa-install-btn" style="background: var(--accent); font-weight: 700; margin-bottom: 8px;" onclick="triggerPWAInstall()">📲 Установить VK Meow</button>
-                <button class="menu-btn" style="background: rgba(255,255,255,0.06); margin-bottom: 8px;" onclick="window.open('https://www.pwabuilder.com/','_blank')">🔧 Собрать APK через PWABuilder</button>
 
                 <h3 style="font-size: 18px; font-weight: 800; margin: 24px 0 4px 0; color: var(--error);">Опасная зона</h3>
                 <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Полное удаление ваших следов из мессенджера</p>
@@ -2409,12 +2291,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </div>
-        <div class="media-preview-bar" id="media-preview-bar" style="display: none;">
-            <div class="media-preview-scroll" id="media-preview-scroll"></div>
-            <button class="header-btn" style="color: var(--error); flex-shrink: 0;" onclick="clearPendingMedia()" title="Отменить">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-        </div>
+
         <div class="emoji-panel" id="emoji-panel">
             <div class="emoji-panel-scroll" id="emoji-panel-scroll"></div>
             <div class="emoji-panel-scroll" id="sticker-panel-scroll" style="display: none;"></div>
@@ -2468,70 +2345,47 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
     </div>
 
     <div class="modal-overlay" id="peer-profile-modal">
-        <div class="modal-card" style="text-align: center; padding: 0; overflow: hidden; border-radius: 20px; max-height: 90vh; overflow-y: auto;">
-            <div style="background: #0A0A0C; padding: 32px 24px 20px;">
-                <div style="position: relative; display: inline-block; margin-bottom: 16px;">
-                    <div class="chat-avatar" id="peer-profile-av" style="width: 110px; height: 110px; font-size: 42px; margin: 0 auto; background-color: var(--accent); box-shadow: 0 4px 20px rgba(0,0,0,0.4); border: 3px solid rgba(255,255,255,0.08); border-radius: 50%;">?</div>
-                    <div id="peer-profile-status-dot" style="position: absolute; bottom: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; background: var(--offline-dot); border: 3px solid #0A0A0C; display: none;"></div>
-                </div>
-                <h3 id="peer-profile-name" style="font-size: 22px; font-weight: 800; margin-bottom: 3px; letter-spacing: -0.3px; color: var(--text-white);">Имя</h3>
-                <div id="peer-profile-online-status" style="font-size: 13px; color: var(--text-muted); margin-bottom: 6px; min-height: 20px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--offline-dot); display: inline-block;"></span>
-                    <span>офлайн</span>
-                </div>
-                <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 20px; padding: 0 8px;">Описание отсутствует</p>
+        <div class="modal-card" style="text-align: center; padding: 28px 24px;">
+            <div style="position: relative; display: inline-block; margin-bottom: 16px;">
+                <div class="chat-avatar" id="peer-profile-av" style="width: 110px; height: 110px; font-size: 42px; margin: 0 auto; background-color: var(--accent); box-shadow: 0 4px 20px rgba(0,0,0,0.4); border: 3px solid rgba(255,255,255,0.08);">?</div>
+                <div id="peer-profile-status-dot" style="position: absolute; bottom: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; background: var(--offline-dot); border: 3px solid #161618; display: none;"></div>
+            </div>
+            <h3 id="peer-profile-name" style="font-size: 22px; font-weight: 800; margin-bottom: 3px; letter-spacing: -0.3px;">Имя</h3>
+            <p id="peer-profile-username" style="color: var(--accent); font-weight: 700; font-size: 14px; margin-bottom: 6px;">@username</p>
+            <div id="peer-profile-online-status" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px; min-height: 18px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--offline-dot); display: inline-block;"></span>
+                <span>офлайн</span>
+            </div>
+            <p id="peer-profile-bio" style="color: var(--text-muted); font-size: 14px; line-height: 1.5; margin-bottom: 20px; padding: 0 8px;">Описание отсутствует</p>
 
-                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap;">
-                    <button class="profile-action-btn" id="peer-profile-chat-btn" onclick="closeModal('peer-profile-modal');">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                        <span>Чат</span>
-                    </button>
-                    <button class="profile-action-btn" id="peer-profile-mute-btn" onclick="toggleMuteActivePeer();">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.89 17.89 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                        <span id="peer-profile-mute-label">Звук</span>
-                    </button>
-                    <button class="profile-action-btn" id="peer-profile-call-btn" onclick="startCallFromProfile();">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <span>Звонок</span>
-                    </button>
-                    <button class="profile-action-btn" id="peer-profile-video-btn" onclick="startVideoCallFromProfile();">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-                        <span>Видео</span>
-                    </button>
-                </div>
-
-                <div class="peer-profile-username-row" id="peer-profile-username-row" onclick="copyPeerUsername()">
-                    <span id="peer-profile-username">@username</span>
-                </div>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 16px;">
+                <button class="menu-btn" id="peer-add-contact-modal-btn" style="display: none; flex: 1; background: var(--secure); font-weight: 700; margin-bottom: 0;" onclick="quickAddActivePeerToContacts(); closeModal('peer-profile-modal');">Добавить в контакты</button>
+                <button class="menu-btn" id="peer-remove-contact-modal-btn" style="display: none; flex: 1; background: var(--error); font-weight: 700; margin-bottom: 0;" onclick="deleteContactFromProfile()">Удалить из контактов</button>
             </div>
 
-            <div style="background: #161618; padding: 16px 24px 20px;">
-                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 14px;">
-                    <button class="menu-btn" id="peer-add-contact-modal-btn" style="display: none; flex: 1; background: var(--secure); font-weight: 700; margin-bottom: 0;" onclick="quickAddActivePeerToContacts(); closeModal('peer-profile-modal');">Добавить в контакты</button>
-                    <button class="menu-btn" id="peer-remove-contact-modal-btn" style="display: none; flex: 1; background: var(--error); font-weight: 700; margin-bottom: 0;" onclick="deleteContactFromProfile()">Удалить из контактов</button>
-                </div>
-
-                <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; border: 1px solid rgba(255,255,255,0.05);">
-                    <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; text-align: left;">🔐 Безопасность</div>
-                    <button class="menu-btn" style="background: rgba(0,199,129,0.12); color: var(--secure); border: 1px dashed rgba(0,199,129,0.35); margin-bottom: 8px; font-weight: 700;" onclick="showE2EEVerification(); closeModal('peer-profile-modal');">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right:6px; vertical-align:middle;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        Верификация ключа E2EE
-                    </button>
-                    <button class="menu-btn" style="background: rgba(31,128,224,0.12); color: var(--accent); border: 1px dashed rgba(31,128,224,0.35); margin-bottom: 0; font-weight: 700;" onclick="forceKeyExchange(); closeModal('peer-profile-modal');">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right:6px; vertical-align:middle;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                        🔄 Принудительный обмен ключами
-                    </button>
-                </div>
-
-                <input type="file" id="personal-wallpaper-upload" style="display: none;" accept="image/*" onchange="processAndSetCrop(this.files[0], 'personal-wallpaper')">
-                <button class="menu-btn" style="background: rgba(255,255,255,0.06); margin-bottom: 8px;" id="set-personal-wallpaper-btn" onclick="document.getElementById('personal-wallpaper-upload').click()">🖼 Свой фон для этого чата</button>
-                <button class="menu-btn danger" style="display: none; margin-bottom: 8px;" id="reset-personal-wallpaper-btn" onclick="resetWallpaper(false)">Сбросить фон чата</button>
-
-                <button class="menu-btn" id="peer-block-btn" style="display: none; margin-bottom: 8px; background: rgba(255,255,255,0.06);" onclick="toggleBlockActivePeer()">Заблокировать пользователя</button>
-
-                <button class="menu-btn" style="background: transparent; color: var(--text-muted);" onclick="closeModal('peer-profile-modal')">Закрыть</button>
+            <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; text-align: left;">🔐 Безопасность</div>
+                <button class="menu-btn" style="background: rgba(0,199,129,0.12); color: var(--secure); border: 1px dashed rgba(0,199,129,0.35); margin-bottom: 8px; font-weight: 700;" onclick="showE2EEVerification(); closeModal('peer-profile-modal');">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right:6px; vertical-align:middle;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Верификация ключа E2EE
+                </button>
+                <button class="menu-btn" style="background: rgba(31,128,224,0.12); color: var(--accent); border: 1px dashed rgba(31,128,224,0.35); margin-bottom: 0; font-weight: 700;" onclick="forceKeyExchange(); closeModal('peer-profile-modal');">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right:6px; vertical-align:middle;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    🔄 Принудительный обмен ключами
+                </button>
             </div>
+
+            <input type="file" id="personal-wallpaper-upload" style="display: none;" accept="image/*" onchange="processAndSetCrop(this.files[0], 'personal-wallpaper')">
+            <button class="menu-btn" style="background: rgba(255,255,255,0.06); margin-bottom: 8px;" id="set-personal-wallpaper-btn" onclick="document.getElementById('personal-wallpaper-upload').click()">🖼 Свой фон для этого чата</button>
+            <button class="menu-btn danger" style="display: none; margin-bottom: 8px;" id="reset-personal-wallpaper-btn" onclick="resetWallpaper(false)">Сбросить фон чата</button>
+
+            <button class="menu-btn" id="peer-block-btn" style="display: none; margin-bottom: 8px; background: rgba(255,255,255,0.06);" onclick="toggleBlockActivePeer()">Заблокировать пользователя</button>
+
+            <button class="menu-btn" style="background: transparent; color: var(--text-muted);" onclick="closeModal('peer-profile-modal')">Закрыть</button>
         </div>
+    </div>
+    </div>
+
     </div>
 
     <div class="modal-overlay" id="create-folder-modal">
@@ -3034,6 +2888,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         let myBlockedUsers = {};
         let profileViewPeerId = null;
         let forwardQueue = [];
+        let mediaCollageQueue = [];
         let bulkDeleteIds = null;
         let newBelowCount = 0;
         let scheduledDispatcherStarted = false;
@@ -3043,7 +2898,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         let meowAudioCtx = null;
         let suppressNextSendClick = false;
         let sendSilentNext = false;
-        let pendingMediaItems = [];
 
         // ======== v3 состояние ========
         let composerMode = 'mic';           // 'send' | 'mic' | 'cam'
@@ -3141,56 +2995,29 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             const key = CryptoJS.enc.Hex.parse(keyHex);
             const iv = CryptoJS.lib.WordArray.random(16);
             const encrypted = CryptoJS.AES.encrypt(text, key, { iv: iv });
-            const hmac = CryptoJS.HmacSHA256(iv.toString() + encrypted.toString(), key);
-            return iv.toString() + encrypted.toString() + hmac.toString();
+            return iv.toString() + encrypted.toString();
         }
 
-        function aesDecrypt(cipherWithIvHmac, keyHex) {
+        function aesDecrypt(cipherWithIv, keyHex) {
             try {
-                if (!cipherWithIvHmac || !keyHex || cipherWithIvHmac.length < 64) return "";
+                if (!cipherWithIv || !keyHex) return "";
                 const key = CryptoJS.enc.Hex.parse(keyHex);
-                const iv = CryptoJS.enc.Hex.parse(cipherWithIvHmac.slice(0, 32));
-                const cipher = cipherWithIvHmac.slice(32, -64);
-                const hmacReceived = cipherWithIvHmac.slice(-64);
-                if (cipher.length < 1) return "";
-                const hmacComputed = CryptoJS.HmacSHA256(iv.toString() + cipher, key).toString();
-                if (hmacReceived !== hmacComputed) return "";
+                const iv = CryptoJS.enc.Hex.parse(cipherWithIv.slice(0, 32));
+                const cipher = cipherWithIv.slice(32);
                 const decrypted = CryptoJS.AES.decrypt(cipher, key, { iv: iv });
-                const result = decrypted.toString(CryptoJS.enc.Utf8);
-                return result || "";
+                return decrypted.toString(CryptoJS.enc.Utf8);
             } catch (e) {
-                return "";
+                return "[Ошибка дешифрования]";
             }
         }
 
         function getMyProfileKey() {
             let key = localStorage.getItem(`meow_prof_key_${myUid}`);
             if (!key) {
-                const entropy = CryptoJS.lib.WordArray.random(32).toString() + Date.now().toString() + (navigator.userAgent || '');
-                key = CryptoJS.SHA256(entropy).toString();
+                key = CryptoJS.lib.WordArray.random(32).toString();
                 localStorage.setItem(`meow_prof_key_${myUid}`, key);
             }
             return key;
-        }
-
-        // ======== KEYSTORE ENCRYPTION HELPERS ========
-        function getKeystoreKey() {
-            let k = localStorage.getItem(`meow_ks_key_${myUid}`);
-            if (!k) {
-                k = CryptoJS.lib.WordArray.random(32).toString();
-                localStorage.setItem(`meow_ks_key_${myUid}`, k);
-            }
-            return k;
-        }
-
-        function encryptKeyStore() {
-            if (!myKeyStore) return;
-            const key = CryptoJS.enc.Hex.parse(getKeystoreKey());
-            const plain = JSON.stringify(myKeyStore);
-            const iv = CryptoJS.lib.WordArray.random(16);
-            const encrypted = CryptoJS.AES.encrypt(plain, key, { iv: iv });
-            const hmac = CryptoJS.HmacSHA256(iv.toString() + encrypted.toString(), key);
-            localStorage.setItem(`meow_keystore_${myUid}`, iv.toString() + encrypted.toString() + hmac.toString());
         }
 
         // ======== НОВАЯ СИСТЕМА КЛЮЧЕЙ E2EE v2 (версии + история ключей) ========
@@ -3220,23 +3047,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         async function loadMyKeyStore() {
             const raw = localStorage.getItem(`meow_keystore_${myUid}`);
             if (raw) {
-                if (raw.startsWith('{')) {
-                    // Legacy plaintext keystore — migrate to encrypted
-                    try { myKeyStore = JSON.parse(raw); } catch (e) { myKeyStore = null; }
-                } else {
-                    // Encrypted keystore
-                    try {
-                        const key = CryptoJS.enc.Hex.parse(getKeystoreKey());
-                        const iv = CryptoJS.enc.Hex.parse(raw.slice(0, 32));
-                        const cipher = raw.slice(32, -64);
-                        const hmacReceived = raw.slice(-64);
-                        if (cipher.length < 1) throw new Error('bad cipher');
-                        const hmacComputed = CryptoJS.HmacSHA256(iv.toString() + cipher, key).toString();
-                        if (hmacReceived !== hmacComputed) throw new Error('HMAC mismatch');
-                        const decrypted = CryptoJS.AES.decrypt(cipher, key, { iv: iv });
-                        myKeyStore = JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
-                    } catch (e) { myKeyStore = null; }
-                }
+                try { myKeyStore = JSON.parse(raw); } catch (e) { myKeyStore = null; }
             }
             if (!myKeyStore || !myKeyStore.pairs) {
                 myKeyStore = { current: null, pairs: {} };
@@ -3257,123 +3068,24 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             );
             const priv = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
             const pub = await window.crypto.subtle.exportKey("jwk", keyPair.publicKey);
-            // Generate ECDSA signing keypair for message authentication
-            const signPair = await window.crypto.subtle.generateKey(
-                { name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]
-            );
-            const signPriv = await window.crypto.subtle.exportKey("jwk", signPair.privateKey);
-            const signPub = await window.crypto.subtle.exportKey("jwk", signPair.publicKey);
             const ver = "v" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
-            myKeyStore.pairs[ver] = { priv, pub, signPriv, signPub };
+            myKeyStore.pairs[ver] = { priv, pub };
             myKeyStore.current = ver;
         }
 
         async function saveMyKeyStoreAndPublish() {
-            encryptKeyStore();
+            localStorage.setItem(`meow_keystore_${myUid}`, JSON.stringify(myKeyStore));
             const cur = myKeyStore.current;
             const pubJwk = myKeyStore.pairs[cur].pub;
-            const signPub = myKeyStore.pairs[cur].signPub;
             const upd = {};
             upd[`users/${myUid}/profile/publicKey`] = JSON.stringify(pubJwk);
             upd[`users/${myUid}/profile/keyVersion`] = cur;
             upd[`users/${myUid}/profile/publicKeys/${cur}`] = JSON.stringify(pubJwk);
-            if (signPub) upd[`users/${myUid}/profile/signPub/${cur}`] = JSON.stringify(signPub);
             await window.fb.update(window.fb.ref(window.fb.db), upd);
-        }
-
-        // ======== ECDSA SIGNING / VERIFICATION ========
-        async function signPayload(payloadJson) {
-            const cur = myKeyStore.current;
-            if (!cur || !myKeyStore.pairs[cur] || !myKeyStore.pairs[cur].signPriv) return null;
-            try {
-                const privKey = await window.crypto.subtle.importKey(
-                    "jwk", myKeyStore.pairs[cur].signPriv,
-                    { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]
-                );
-                const sig = await window.crypto.subtle.sign(
-                    { name: "ECDSA", hash: "SHA-256" }, privKey,
-                    new TextEncoder().encode(payloadJson)
-                );
-                return btoa(String.fromCharCode(...new Uint8Array(sig)));
-            } catch (e) { return null; }
-        }
-
-        async function getPeerSignKey(peerId, ver) {
-            if (!ver || ver === "legacy") return null;
-            const cacheKey = peerId + "_sign_" + ver;
-            if (peerKeyInfoCache[cacheKey]) return peerKeyInfoCache[cacheKey];
-            try {
-                const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/profile/signPub/${ver}`));
-                if (snap.exists()) {
-                    const pub = JSON.parse(snap.val());
-                    peerKeyInfoCache[cacheKey] = pub;
-                    return pub;
-                }
-            } catch (e) {}
-            return null;
-        }
-
-        async function verifySignature(peerId, ver, payloadJson, sigB64) {
-            if (!sigB64) return true;
-            if (!ver || ver === "legacy") return true;
-            const pubJwk = await getPeerSignKey(peerId, ver);
-            if (!pubJwk) return true;
-            try {
-                const pubKey = await window.crypto.subtle.importKey(
-                    "jwk", pubJwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]
-                );
-                const sigBuf = Uint8Array.from(atob(sigB64), c => c.charCodeAt(0));
-                return await window.crypto.subtle.verify(
-                    { name: "ECDSA", hash: "SHA-256" }, pubKey,
-                    sigBuf, new TextEncoder().encode(payloadJson)
-                );
-            } catch (e) { return true; }
-        }
-
-        // ======== TOFU / FINGERPRINT ========
-        function getTofuKey(peerId) { return `meow_tofu_${myUid}_${peerId}`; }
-
-        async function tofuCheckAndSave(peerId, pubJwk) {
-            const key = getTofuKey(peerId);
-            const fp = CryptoJS.SHA256(JSON.stringify(pubJwk)).toString().slice(0, 32);
-            const saved = localStorage.getItem(key);
-            if (!saved) {
-                localStorage.setItem(key, fp);
-                return { ok: true, changed: false, first: true };
-            }
-            if (saved !== fp) {
-                return { ok: false, changed: true, first: false, saved: saved, current: fp };
-            }
-            return { ok: true, changed: false, first: false };
-        }
-
-        async function tofuVerifyPeer(peerId) {
-            const info = await getPeerCurrentKeyInfo(peerId, true);
-            if (!info.pub) return { ok: true };
-            return await tofuCheckAndSave(peerId, info.pub);
-        }
-
-        // ======== FORWARD SECRECY ========
-        async function cleanupOldKeys() {
-            if (!myKeyStore || !myKeyStore.pairs) return;
-            const now = Date.now();
-            const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
-            let changed = false;
-            for (const ver of Object.keys(myKeyStore.pairs)) {
-                if (ver === myKeyStore.current) continue;
-                if (ver === "legacy") continue;
-                const ts = parseInt(ver.slice(1), 36);
-                if (!isNaN(ts) && (now - ts) > maxAge) {
-                    delete myKeyStore.pairs[ver];
-                    changed = true;
-                }
-            }
-            if (changed) encryptKeyStore();
         }
 
         async function initE2EE() {
             await loadMyKeyStore();
-            await cleanupOldKeys();
             if (!myKeyStore.current || !myKeyStore.pairs[myKeyStore.current]) {
                 await generateAndAddKeypair();
             }
@@ -3417,15 +3129,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 const sharedBits = await window.crypto.subtle.deriveBits(
                     { name: "ECDH", public: peerPubKeyObj }, myPrivKeyObj, 256
                 );
-                // HKDF-SHA256 instead of raw ECDH output
-                const ikm = new Uint8Array(sharedBits);
-                const salt = new Uint8Array(0);
-                const info = new TextEncoder().encode("MeowMessageKey/v1");
-                const baseKey = await window.crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
-                const derivedBits = await window.crypto.subtle.deriveBits(
-                    { name: "HKDF", hash: "SHA-256", salt: salt, info: info }, baseKey, 256
-                );
-                const buffer = new Uint8Array(derivedBits);
+                const buffer = new Uint8Array(sharedBits);
                 return Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join('');
             } catch (e) {
                 return null;
@@ -4625,14 +4329,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             addBtn.style.display = "none";
             removeBtn.style.display = "none";
             if (statusDot) statusDot.style.display = 'none';
-            (async () => {
-                try {
-                    const mSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`));
-                    const muted = mSnap.exists() && mSnap.val().muted;
-                    const muteLabel = document.getElementById('peer-profile-mute-label');
-                    if (muteLabel) muteLabel.innerText = muted ? "Вкл. звук" : "Звук";
-                } catch(e) {}
-            })();
 
             getCachedProfile(currentPeer, (cached) => {
                 const fullName = (cached.name || "Без имени") + (cached.lastname ? " " + cached.lastname : "");
@@ -4716,32 +4412,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         }
 
-
-        async function autoRotateKeysIfNeeded(peerId) {
-            if (!myKeyStore || !myKeyStore.current) return false;
-            const cur = myKeyStore.current;
-            if (cur === "legacy") return false;
-            const ts = parseInt(cur.slice(1), 36);
-            if (isNaN(ts)) return false;
-            const age = Date.now() - ts;
-            const rotateInterval = 7 * 24 * 60 * 60 * 1000; // 7 days
-            if (age < rotateInterval) return false;
-            await generateAndAddKeypair();
-            await saveMyKeyStoreAndPublish();
-            if (peerId && peerId !== myUid) {
-                const info = await getPeerCurrentKeyInfo(peerId, true);
-                if (info.pub) {
-                    activeRoomKv = `${myKeyStore.current}_${info.ver || 'legacy'}`;
-                    activeRoomSharedKey = await getSharedKeyForKv(peerId, activeRoomKv);
-                }
-            } else if (peerId === myUid) {
-                activeRoomKv = `self_${myKeyStore.current}`;
-                activeRoomSharedKey = getSelfChatKey(myKeyStore.current);
-            }
-            derivedKeysCache = {};
-            return true;
-        }
-
         async function openChatWindow(peerId, roomId) {
             if (unsubChatMessages) unsubChatMessages();
             if (unsubHeaderPresence) unsubHeaderPresence();
@@ -4777,18 +4447,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     activeRoomSharedKey = null;
                 }
             }
-            // Forward Secrecy: auto-rotate keys if older than 7 days
-            await autoRotateKeysIfNeeded(peerId);
             loadActiveChatWallpaper();
-
-            // TOFU verification on chat open
-            if (!isCloud) {
-                tofuVerifyPeer(peerId).then(tofuResult => {
-                    if (!tofuResult.ok && tofuResult.changed) {
-                        console.warn("[TOFU] Peer key changed for", peerId, "— possible MITM!");
-                    }
-                });
-            }
 
             const badgeContainer = document.getElementById(`badge-container-${peerId}`);
             if (badgeContainer) badgeContainer.innerHTML = "";
@@ -4920,7 +4579,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 }
 
                 let raw = m.text || "";
-                const messageObject = await decryptMessageCached(msgId, raw, m.kv, currentPeer, m.sig, m.sender);
+                const messageObject = await decryptMessageCached(msgId, raw, m.kv, currentPeer);
 
                 if (m.sender !== myUid && m.read !== true) {
                     window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${msgId}`), { read: true });
@@ -5103,27 +4762,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                         bubbleHtml += buildContactCardHtml(messageObject.contactShare);
                     } else if (messageObject.callLog) {
                         bubbleHtml += buildCallLogHtml(messageObject.callLog);
-                    } else if (messageObject.album && messageObject.album.length) {
-                        const count = messageObject.album.length;
-                        const maxShow = Math.min(count, 9);
-                        let albumHtml = `<div class="msg-album count-${Math.min(count, 9)}" onclick="event.stopPropagation(); viewAlbumFull('${escapeHTML(msgId)}')">`;
-                        for (let idx = 0; idx < maxShow; idx++) {
-                            const item = messageObject.album[idx];
-                            const itemUrl = getCachedObjectUrl(msgId + '_a' + idx, item.data);
-                            const isVideo = item.type && item.type.startsWith('video/');
-                            let inner = isVideo 
-                                ? `<video src="${escapeHTML(itemUrl)}" muted playsinline></video>`
-                                : `<img src="${escapeHTML(itemUrl)}">`;
-                            if (idx === maxShow - 1 && count > maxShow) {
-                                inner += `<div class="album-more-overlay">+${count - maxShow}</div>`;
-                            }
-                            albumHtml += `<div class="album-item">${inner}</div>`;
-                        }
-                        albumHtml += `</div>`;
-                        bubbleHtml += albumHtml;
-                        if (messageObject.caption) {
-                            bubbleHtml += `<div class="msg-text" data-fmt-src="${escapeHTML(messageObject.caption)}">${formatMessageText(messageObject.caption)}</div>`;
-                        }
+                    } else if (messageObject.mediaCollage) {
+                        const colHtml = buildCollageGridHtml(msgId, messageObject.mediaCollage, messageObject.text);
+                        bubbleHtml += colHtml;
                     } else if (messageObject.fileData) {
                         const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
                         if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
@@ -5292,19 +4933,12 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 const diff = Math.max(0, Math.round((targetTime - Date.now()) / 1000));
                 if (diff <= 0) {
                     badge.querySelector('span').innerText = "Сгорает...";
-                    const container = document.getElementById('msg-' + msgId);
-                    if (container && !container.classList.contains('msg-burning-out')) {
-                        container.classList.add('msg-burning-out');
-                        setTimeout(() => {
-                            window.fb.remove(window.fb.ref(window.fb.db, `messages/${roomId}/list/${msgId}`));
-                        }, 600);
-                    }
+                    window.fb.remove(window.fb.ref(window.fb.db, `messages/${roomId}/list/${msgId}`));
                 } else {
                     badge.querySelector('span').innerText = `${diff}с`;
                 }
             });
         }, 1000);
-
 
         function scrollToMessage(msgId) {
             const el = document.getElementById(`msg-${msgId}`);
@@ -5471,22 +5105,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
         async function handleSendClick() {
             if (suppressNextSendClick) { suppressNextSendClick = false; return; }
-            // Send pending media album with caption
-            if (pendingMediaItems.length) {
-                if (!activeRoomSharedKey) { alert("Ключ шифрования недоступен."); return; }
-                const caption = input.value.trim();
-                await transmitDirectMedia(pendingMediaItems, caption);
-                pendingMediaItems = [];
-                renderMediaPreview();
-                input.value = ''; input.style.height = 'auto'; updateComposerButton();
-                clearActiveDraft(); cancelReply(); stopTypingImmediately();
-                playSendSound(); meowVibrate(10);
-                const sb = document.getElementById('send-btn');
-                if (sb) { sb.classList.remove('send-anim'); void sb.offsetWidth; sb.classList.add('send-anim'); }
-                return;
-            }
-
             const input = document.getElementById('message-input');
+            if (mediaCollageQueue.length > 0) { sendMediaCollage(); return; }
+
             const txt = input.value.trim();
             if (!txt) { sendSilentNext = false; return; }
             if (!activeRoomSharedKey) {
@@ -5500,15 +5121,11 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 const messagePayload = { text: txt };
                 if (DICE_EMOJIS.includes(txt)) messagePayload.dice = { emoji: txt, value: 1 + Math.floor(Math.random() * 6) };
                 if (replyTargetMessageId) messagePayload.replyTo = { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText };
-                if (isBurnModeActive) messagePayload.burnTime = Date.now() + burnDelayMs;
-                if (sendSilentNext) messagePayload.silent = true;
-                const payloadJson = JSON.stringify(messagePayload);
-                const sig = await signPayload(payloadJson);
-                const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
+                const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(messagePayload), activeRoomSharedKey);
                 const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
                 const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
                 if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
-                if (sig) dbPacket.sig = sig;
+                if (sendSilentNext) { dbPacket.silent = true; sendSilentNext = false; }
                 await window.meowSaveToOutbox({ roomId: currentRoomId, peerId: currentPeer, dbPacket, replyTo: replyTargetMessageId ? { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText } : null, burnMode: isBurnModeActive, burnDelay: burnDelayMs, createdAt: Date.now() });
                 cancelReply(); stopTypingImmediately(); input.value = ""; input.style.height = "auto"; updateComposerButton(); clearActiveDraft(); window.meowRequestSync();
                 window.meowShowToast("Сообщение сохранено. Отправится при появлении интернета.");
@@ -5518,16 +5135,13 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             ensureMeowAudioCtx();
 
             if (editTargetMessageId) {
-                const payload = { text: txt };
-                const payloadJson = JSON.stringify(payload);
-                const sig = await signPayload(payloadJson);
-                const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
+                const finalString = "[MEOW]" + aesEncrypt(JSON.stringify({ text: txt }), activeRoomSharedKey);
                 const editId = editTargetMessageId;
                 cancelReply(); input.value = ""; input.style.height = "auto"; updateComposerButton();
                 clearActiveDraft();
-                const upd = { text: finalString, edited: true };
-                if (sig) upd.sig = sig;
-                window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${editId}`), upd);
+                window.fb.update(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list/${editId}`), {
+                    text: finalString, edited: true
+                });
                 input.focus();
                 return;
             }
@@ -5539,16 +5153,12 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             if (replyTargetMessageId) {
                 messagePayload.replyTo = { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText };
             }
-            if (isBurnModeActive) messagePayload.burnTime = Date.now() + burnDelayMs;
-            if (sendSilentNext) messagePayload.silent = true;
 
-            const payloadJson = JSON.stringify(messagePayload);
-            const sig = await signPayload(payloadJson);
-            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
+            const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(messagePayload), activeRoomSharedKey);
             const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
             if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
-            if (sig) dbPacket.sig = sig;
+            if (sendSilentNext) { dbPacket.silent = true; sendSilentNext = false; }
 
             // Оптимистичная отправка: не ждём ответа сервера, UI обновится мгновенно через realtime-слушатель
             cancelReply();
@@ -5569,53 +5179,118 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         }
 
 
-        async function compressAndSendMedia(file) {
-            if (!file || !activeRoomSharedKey) return;
-            await transmitDirectMedia([{ base64: await fileToBase64(file), type: file.type }]);
+        function openMediaCollageModal() {
+            renderCollagePreview();
+            document.getElementById('collage-caption-input').value = '';
+            openModal('media-collage-modal');
         }
 
-        async function transmitDirectMedia(items, caption) {
-            if (!items || !items.length || !activeRoomSharedKey) return;
+        function renderCollagePreview() {
+            const wrap = document.getElementById('collage-preview-wrap');
+            if (!mediaCollageQueue.length) { wrap.innerHTML = ''; return; }
+            let html = '<div class="collage-preview-grid count-' + mediaCollageQueue.length + '">';
+            mediaCollageQueue.forEach((item, idx) => {
+                html += '<div class="collage-item">';
+                if (item.type === 'video') {
+                    html += '<video src="' + escapeHTML(item.data) + '" muted playsinline></video>';
+                } else {
+                    html += '<img src="' + escapeHTML(item.data) + '">';
+                }
+                html += '<button class="collage-remove-btn" onclick="removeCollageItem(' + idx + ')">✕</button></div>';
+            });
+            html += '</div>';
+            wrap.innerHTML = html;
+        }
+
+        function removeCollageItem(idx) {
+            mediaCollageQueue.splice(idx, 1);
+            if (!mediaCollageQueue.length) { closeModal('media-collage-modal'); return; }
+            renderCollagePreview();
+        }
+
+        async function sendMediaCollage() {
+            if (!mediaCollageQueue.length || !activeRoomSharedKey) return;
+            const caption = document.getElementById('collage-caption-input').value.trim();
+            const payload = { text: caption || '[Медиа]', mediaCollage: mediaCollageQueue };
+            if (replyTargetMessageId) payload.replyTo = { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText };
+            const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(payload), activeRoomSharedKey);
+            const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
+            if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
+            if (sendSilentNext) { dbPacket.silent = true; sendSilentNext = false; }
+            const nowTime = Date.now();
+            await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
+            if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
+            cancelReply(); stopTypingImmediately(); clearActiveDraft();
+            playSendSound(); meowVibrate(10);
+            mediaCollageQueue = [];
+            closeModal('media-collage-modal');
+        }
+
+        function buildCollageGridHtml(msgId, items, caption) {
+            const count = Math.min(items.length, 4);
+            let html = '<div class="msg-collage-grid count-' + count + '" onclick="event.stopPropagation(); openCollageGallery('' + escapeHTML(msgId) + '')">';
+            items.slice(0, 4).forEach((item, idx) => {
+                html += '<div class="collage-msg-item">';
+                if (item.type === 'video') {
+                    html += '<video src="' + escapeHTML(getCachedObjectUrl(msgId + '_c' + idx, item.data)) + '" muted playsinline></video>';
+                } else {
+                    html += '<img src="' + escapeHTML(getCachedObjectUrl(msgId + '_c' + idx, item.data)) + '">';
+                }
+                if (idx === 3 && items.length > 4) {
+                    html += '<div class="collage-count-overlay">+' + (items.length - 4) + '</div>';
+                }
+                html += '</div>';
+            });
+            html += '</div>';
+            if (caption && caption !== '[Медиа]') {
+                html += '<div class="msg-text" style="padding: 6px 10px 2px 10px;">' + formatMessageText(caption) + '</div>';
+            }
+            return html;
+        }
+
+        function openCollageGallery(msgId) {
+            const m = activeChatMessagesData[msgId];
+            if (!m) return;
+            decryptMessageCached(msgId, m.text || "", m.kv, currentPeer).then(obj => {
+                if (!obj || !obj.mediaCollage) return;
+                galleryItems = obj.mediaCollage.map(it => ({ url: getCachedObjectUrl(msgId + '_' + it.data.slice(-20), it.data), isVideo: it.type === 'video' }));
+                galleryIndex = 0;
+                viewMediaFull(galleryItems[0].url, galleryItems[0].isVideo, 0);
+            });
+        }
+
+
+        async function compressAndSendMedia(file) {
+            if (!file || !activeRoomSharedKey) return;
             const clipBtn = document.getElementById('clip-btn');
             const originalClipHtml = clipBtn.innerHTML;
             const loadingSvg = `<svg viewBox="0 0 50 50" width="18" height="18" style="animation:rotate 1s linear infinite; stroke:white;"><circle cx="25" cy="25" r="20" fill="none" stroke-width="5" stroke-linecap="round"></circle></svg>`;
-            clipBtn.innerHTML = loadingSvg;
 
+            clipBtn.innerHTML = loadingSvg;
             try {
-                if (items.length === 1) {
-                    const it = items[0];
-                    const payload = { text: "[Медиа]", fileData: it.base64, fileType: it.type };
-                    if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
-                    const payloadJson = JSON.stringify(payload);
-                    const sig = await signPayload(payloadJson);
-                    const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
-                    const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
-                    if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
-                    if (sig) dbPacket.sig = sig;
-                    const nowTime = Date.now();
-                    await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
-                    await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
-                    if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
-                } else {
-                    const album = items.map(it => ({ data: it.base64, type: it.type }));
-                    const payload = { text: "[Альбом]", album: album, caption: caption || "" };
-                    if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
-                    const payloadJson = JSON.stringify(payload);
-                    const sig = await signPayload(payloadJson);
-                    const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
-                    const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
-                    if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
-                    if (sig) dbPacket.sig = sig;
-                    const nowTime = Date.now();
-                    await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
-                    await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
-                    if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
+                if (file.type.startsWith('image/')) {
+                    const finalBase64 = await processImageHD(file, 1600);
+                    await transmitDirectMedia(finalBase64, file.type);
+                } else if (file.type.startsWith('video/')) {
+                    if (file.size > 8 * 1024 * 1024) { alert("Видео больше 8 МБ!"); return; }
+                    const base64 = await fileToBase64(file);
+                    await transmitDirectMedia(base64, file.type);
                 }
                 clipBtn.innerHTML = originalClipHtml;
             } catch (e) {
-                alert("Ошибка медиа");
-                clipBtn.innerHTML = originalClipHtml;
+                alert("Ошибка медиа"); clipBtn.innerHTML = originalClipHtml;
             }
+        }
+
+        async function transmitDirectMedia(base64Data, contentType) {
+            const finalString = "[MEOW]" + aesEncrypt(JSON.stringify({ text: "[Медиа]", fileData: base64Data, fileType: contentType }), activeRoomSharedKey);
+            const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
+            if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
+            const nowTime = Date.now();
+            await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
+            if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
         }
 
         function toggleBurnMode() {
@@ -5683,12 +5358,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 if (obj.poll) payload.poll = obj.poll;
                 if (obj.location) payload.location = obj.location;
                 if (obj.dice) payload.dice = obj.dice;
-                const payloadJson = JSON.stringify(payload);
-                const sig = await signPayload(payloadJson);
-                const finalString = "[MEOW]" + aesEncrypt(payloadJson, targetSharedKey);
+                const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(payload), targetSharedKey);
                 const dbPacket = { sender: myUid, text: finalString, time: ts++, read: false, kv: kv };
-                if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
-                if (sig) dbPacket.sig = sig;
                 await window.fb.push(window.fb.ref(window.fb.db, `messages/${rId}/list`), dbPacket);
             }
             const nowTime = Date.now();
@@ -5969,11 +5640,10 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         };
 
-        async function decryptMessageObject(peerId, rawText, kv, sig, senderId) {
+        async function decryptMessageObject(peerId, rawText, kv) {
             if (!rawText || !rawText.startsWith("[MEOW]")) return null;
             const cipher = rawText.substring(6);
             const tryKeys = [];
-            let usedKv = kv;
             if (peerId === myUid) {
                 if (kv && kv.startsWith("self_")) {
                     const k = getSelfChatKey(kv.slice(5));
@@ -5992,51 +5662,27 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 if (k2) tryKeys.push(k2);
                 const info = await getPeerCurrentKeyInfo(peerId);
                 if (info.pub) {
-                    usedKv = kv || `${myKeyStore.current}_${info.ver || 'legacy'}`;
-                    const k3 = await getSharedKeyForKv(peerId, usedKv);
+                    const k3 = await getSharedKeyForKv(peerId, `${myKeyStore.current}_${info.ver || 'legacy'}`);
                     if (k3) tryKeys.push(k3);
                 }
             }
             for (const key of tryKeys) {
                 if (!key) continue;
                 const plain = aesDecrypt(cipher, key);
-                if (!plain) continue;
+                if (!plain || plain === "[Ошибка дешифрования]") continue;
                 try {
                     const o = JSON.parse(plain);
-                    if (o && (o.text || o.fileData || o.isVoice || o.videoNote || o.sticker || o.animatedSticker || o.isDocument || o.contactShare || o.callLog)) {
-                        // Verify ECDSA signature only for incoming messages (not our own)
-                        if (sig && senderId && senderId !== myUid) {
-                            let peerVer = null;
-                            if (usedKv) {
-                                const idx = usedKv.indexOf('_');
-                                if (idx >= 0) {
-                                    const p1 = usedKv.slice(0, idx), p2 = usedKv.slice(idx + 1);
-                                    if (myKeyStore.pairs[p1]) peerVer = p2;
-                                    else if (myKeyStore.pairs[p2]) peerVer = p1;
-                                    else peerVer = p1;
-                                } else {
-                                    peerVer = usedKv;
-                                }
-                            }
-                            const ver = peerVer || (usedKv ? usedKv.split('_')[1] || usedKv.split('_')[0] : null);
-                            const valid = await verifySignature(senderId, ver, plain, sig);
-                            if (!valid) {
-                                console.warn("Signature verification failed for message from", senderId);
-                                return null; // Reject tampered message
-                            }
-                        }
-                        return o;
-                    }
+                    if (o && (o.text || o.fileData || o.isVoice || o.videoNote || o.sticker || o.animatedSticker || o.isDocument || o.contactShare || o.callLog)) return o;
                 } catch (e) {}
             }
             return null;
         }
 
-        async function decryptMessageCached(msgId, rawText, kv, peerId, sig) {
+        async function decryptMessageCached(msgId, rawText, kv, peerId) {
             const c = msgDecryptCache[msgId];
-            if (c && c.src === rawText && c.sig === sig) return c.obj;
-            const obj = await decryptMessageObject(peerId, rawText, kv, sig);
-            msgDecryptCache[msgId] = { src: rawText, sig: sig, obj: obj };
+            if (c && c.src === rawText) return c.obj;
+            const obj = await decryptMessageObject(peerId, rawText, kv);
+            msgDecryptCache[msgId] = { src: rawText, obj: obj };
             return obj;
         }
 
@@ -6067,7 +5713,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             let displayedText = "Сообщение";
             let thumbHtml = "";
 
-            const obj = await decryptMessageCached(msgId, encryptedText, kv, peerId, null, senderId);
+            const obj = await decryptMessageCached(msgId, encryptedText, kv, peerId);
             if (obj) {
                 displayedText = obj.text || "";
                 if (obj.poll) {
@@ -6088,17 +5734,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     displayedText = "👤 Контакт: " + (obj.contactShare.name || "");
                 } else if (obj.callLog) {
                     displayedText = obj.callLog.kind === 'video' ? "📹 Видеозвонок" : "📞 Звонок";
-                } else if (obj.album && obj.album.length) {
-                    const cnt = obj.album.length;
-                    const videoCnt = obj.album.filter(a => a.type && a.type.startsWith('video/')).length;
-                    const photoCnt = cnt - videoCnt;
-                    let label = "";
-                    if (videoCnt && photoCnt) label = `🎬 ${videoCnt} видео, 📷 ${photoCnt} фото`;
-                    else if (videoCnt) label = `🎬 ${cnt} видео`;
-                    else label = `📷 ${cnt} фото`;
-                    displayedText = obj.caption || ("Альбом: " + label);
-                    const t = await buildLastMsgThumb(msgId, obj.album[0].data);
-                    if (t) thumbHtml = `<span class="dlg-media-thumb" style="background-image:url(${t})"></span>`;
                 } else if (obj.fileData) {
                     if (obj.fileType && obj.fileType.startsWith('video/')) {
                         displayedText = "🎬 Видео";
@@ -6345,46 +5980,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 window.meowShowToast("Никнейм скопирован");
             }).catch(() => {});
         }
-        
-        async function copyPeerUsername() {
-            const u = document.getElementById('peer-profile-username').innerText;
-            if (!u || u === "@") return;
-            navigator.clipboard.writeText(u).then(() => {
-                meowVibrate(8);
-                window.meowShowToast("Никнейм скопирован");
-            }).catch(() => {});
-        }
-
-        async function toggleMuteActivePeer() {
-            if (!profileViewPeerId && !currentPeer) return;
-            const pid = profileViewPeerId || currentPeer;
-            if (!pid) return;
-            const refPath = `users/${myUid}/chats/${pid}`;
-            const metaSnap = await window.fb.get(window.fb.ref(window.fb.db, refPath));
-            const meta = metaSnap.exists() ? metaSnap.val() : {};
-            const newMuted = !meta.muted;
-            await window.fb.update(window.fb.ref(window.fb.db, refPath), { roomId: meta.roomId || [myUid, pid].sort().join("_"), lastTime: meta.lastTime || Date.now(), muted: newMuted });
-            if (currentPeer === pid) activeChatIsMuted = newMuted;
-            const muteLabel = document.getElementById('peer-profile-mute-label');
-            if (muteLabel) muteLabel.innerText = newMuted ? "Вкл. звук" : "Звук";
-            meowVibrate(8);
-            window.meowShowToast(newMuted ? "🔕 Уведомления отключены" : "🔔 Уведомления включены");
-            loadDialogs();
-        }
-
-        function startCallFromProfile() {
-            const pid = profileViewPeerId || currentPeer;
-            if (!pid || pid === myUid) { alert("Нельзя позвонить себе!"); return; }
-            closeModal('peer-profile-modal');
-            startCall('audio', pid);
-        }
-        function startVideoCallFromProfile() {
-            const pid = profileViewPeerId || currentPeer;
-            if (!pid || pid === myUid) { alert("Нельзя позвонить себе!"); return; }
-            closeModal('peer-profile-modal');
-            startCall('video', pid);
-        }
-
         async function startMyProfileRealtime() {
             if (!myUid) return;
             window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/profile`), (snap) => {
@@ -7074,7 +6669,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             for (const id of ids) {
                 const m = activeChatMessagesData[id];
                 if (!m) continue;
-                const obj = await decryptMessageCached(id, m.text || "", m.kv, currentPeer, m.sig, m.sender);
+                const obj = await decryptMessageCached(id, m.text || "", m.kv, currentPeer);
                 if (obj) forwardQueue.push(obj);
             }
             if (!forwardQueue.length) return;
@@ -7090,7 +6685,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             for (const id of ids) {
                 const m = activeChatMessagesData[id];
                 if (!m) continue;
-                const obj = await decryptMessageCached(id, m.text || "", m.kv, currentPeer, m.sig, m.sender);
+                const obj = await decryptMessageCached(id, m.text || "", m.kv, currentPeer);
                 if (obj) {
                     if (obj.isVoice) parts.push("[Голосовое сообщение]");
                     else if (obj.poll) parts.push(`[Опрос] ${obj.poll.q}`);
@@ -7143,7 +6738,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
             let out = `Экспорт переписки: ${peerName}\nДата экспорта: ${new Date().toLocaleString('ru-RU')}\n${"=".repeat(42)}\n\n`;
             for (const [id, m] of entries) {
-                const obj = await decryptMessageCached(id, m.text || "", m.kv, currentPeer, m.sig, m.sender);
+                const obj = await decryptMessageCached(id, m.text || "", m.kv, currentPeer);
                 const who = m.sender === myUid ? "Вы" : peerName;
                 const t = new Date(m.time).toLocaleString('ru-RU');
                 let body = "";
@@ -7365,13 +6960,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             if (opts.length < 2) { alert("Нужно минимум 2 варианта ответа!"); return; }
             if (!activeRoomSharedKey) { alert("Ключ шифрования недоступен."); return; }
             const payload = { text: `📊 Опрос: ${q}`, poll: { q, opts } };
-            if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
-            const payloadJson = JSON.stringify(payload);
-            const sig = await signPayload(payloadJson);
-            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
+            const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(payload), activeRoomSharedKey);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
             if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
-            if (sig) dbPacket.sig = sig;
             const nowTime = Date.now();
             closeModal('poll-create-modal');
             playSendSound();
@@ -7418,13 +7009,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     const lat = Math.round(pos.coords.latitude * 1000000) / 1000000;
                     const lon = Math.round(pos.coords.longitude * 1000000) / 1000000;
                     const payload = { text: "📍 Геопозиция", location: { lat, lon } };
-                    if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
-                    const payloadJson = JSON.stringify(payload);
-                    const sig = await signPayload(payloadJson);
-                    const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
+                    const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(payload), activeRoomSharedKey);
                     const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
                     if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
-                    if (sig) dbPacket.sig = sig;
                     const nowTime = Date.now();
                     playSendSound();
                     meowVibrate(10);
@@ -7562,7 +7149,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     for (const [mid, m] of entries) {
                         if (results.length >= 20) break;
                         if (myBlockedUsers[m.sender]) continue;
-                        const obj = await decryptMessageCached(job.roomId + '_' + mid, m.text || "", m.kv, job.peerId, m.sig, m.sender);
+                        const obj = await decryptMessageCached(job.roomId + '_' + mid, m.text || "", m.kv, job.peerId);
                         if (obj && obj.text && obj.text.toLowerCase().includes(q)) {
                             results.push({ peerId: job.peerId, roomId: job.roomId, mid, time: m.time, text: obj.text, selfSaved: job.selfSaved });
                         }
@@ -7611,7 +7198,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 .filter(([id, m]) => m.sender === myUid && !activeChatLocalDeleted[id]);
             if (!entries.length) return;
             const [lastId, lastM] = entries[entries.length - 1];
-            decryptMessageCached(lastId, lastM.text || "", lastM.kv, currentPeer, lastM.sig, lastM.sender).then(obj => {
+            decryptMessageCached(lastId, lastM.text || "", lastM.kv, currentPeer).then(obj => {
                 if (obj && obj.text && !obj.isVoice && !obj.fileData && !obj.poll && !obj.location && !obj.dice) {
                     activeMenuMsgId = lastId;
                     activeMenuMsgObj = { ...obj, sender: myUid };
@@ -8398,9 +7985,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             };
         }
 
-        async function startCall(kind, targetPeerId) {
-            const peerId = targetPeerId || currentPeer;
-            if (!peerId || peerId === myUid) return;
+        async function startCall(kind) {
+            if (!currentPeer || currentPeer === myUid) return;
             if (callState) { alert("Звонок уже активен"); return; }
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 alert("Ваш браузер не поддерживает звонки"); return;
@@ -8427,7 +8013,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 }
             } catch (e) {}
 
-            callKind = kind; callPeerId = peerId; callRoomId = roomId;
+            callKind = kind; callPeerId = currentPeer; callRoomId = roomId;
             callState = 'outgoing'; callAnswered = false;
             showCallOverlay('outgoing');
             playRingtoneOutgoing();
@@ -9478,43 +9064,25 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         // ============================================================
         async function handleMediaFilesSelected(files) {
             if (!files || !files.length) return;
-            for (const f of Array.from(files).slice(0, 10)) {
-                if (f.type.startsWith('image/')) {
-                    const b64 = await processImageHD(f, 1600);
-                    pendingMediaItems.push({ base64: b64, type: f.type, name: f.name });
-                } else if (f.type.startsWith('video/')) {
-                    if (f.size > 8 * 1024 * 1024) { alert("Видео " + f.name + " больше 8 МБ — пропущено"); continue; }
-                    const b64 = await fileToBase64(f);
-                    pendingMediaItems.push({ base64: b64, type: f.type, name: f.name });
+            mediaCollageQueue = [];
+            for (const file of Array.from(files)) {
+                if (file.type.startsWith('image/')) {
+                    const base64 = await processImageHD(file, 1600);
+                    mediaCollageQueue.push({ type: 'image', data: base64, name: file.name });
+                } else if (file.type.startsWith('video/')) {
+                    if (file.size > 8 * 1024 * 1024) { alert("Видео " + file.name + " больше 8 МБ — пропущено"); continue; }
+                    const base64 = await fileToBase64(file);
+                    mediaCollageQueue.push({ type: 'video', data: base64, name: file.name });
                 }
             }
-            renderMediaPreview();
-            document.getElementById('message-input').focus();
+            if (mediaCollageQueue.length === 1) {
+                await compressAndSendMedia(files[0]);
+                mediaCollageQueue = [];
+            } else if (mediaCollageQueue.length > 1) {
+                openMediaCollageModal();
+            }
         }
 
-        function renderMediaPreview() {
-            const bar = document.getElementById('media-preview-bar');
-            const scroll = document.getElementById('media-preview-scroll');
-            if (!pendingMediaItems.length) { bar.style.display = 'none'; scroll.innerHTML = ''; return; }
-            bar.style.display = 'flex';
-            scroll.innerHTML = pendingMediaItems.map((item, idx) => {
-                const isVideo = item.type.startsWith('video/');
-                const thumb = isVideo ? `<video src="${item.base64}" muted></video>` : `<img src="${item.base64}">`;
-                const countBadge = idx === 9 && pendingMediaItems.length > 10 ? `<div class="media-preview-count">+${pendingMediaItems.length - 10}</div>` : '';
-                return `<div class="media-preview-item">${thumb}${countBadge}<button class="media-preview-remove" onclick="removePendingMediaItem(${idx})">✕</button></div>`;
-            }).slice(0, 10).join('');
-            updateComposerButton();
-        }
-
-        function removePendingMediaItem(idx) {
-            pendingMediaItems.splice(idx, 1);
-            renderMediaPreview();
-        }
-
-        function clearPendingMedia() {
-            pendingMediaItems = [];
-            renderMediaPreview();
-        }
 
         async function handleDocumentSelected(file) {
             if (!file) return;
@@ -9610,20 +9178,6 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         // ============================================================
         // ======== v3: ГАЛЕРЕЯ МЕДИА (листание, зум, скачивание)
         // ============================================================
-        function viewAlbumFull(msgId) {
-            const msg = activeChatMessagesData[msgId];
-            if (!msg) return;
-            const c = msgDecryptCache[msgId];
-            if (!c || !c.obj || !c.obj.album) return;
-            galleryItems = c.obj.album.map((it, idx) => ({
-                url: getCachedObjectUrl(msgId + '_a' + idx, it.data),
-                isVideo: it.type && it.type.startsWith('video/'),
-                msgId: msgId + '_a' + idx
-            }));
-            galleryIndex = 0;
-            openGalleryAt(0);
-        }
-
         function viewMediaFull(url, isVideo, msgId) {
             galleryItems = [];
             const feed = document.getElementById('chat-feed');
@@ -10052,32 +9606,18 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         </div>
     </div>
 
-<script>
-/* ===== PWA INSTALL & SHORTCUTS ===== */
-let meowDeferredPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); meowDeferredPrompt = e; console.log('[PWA] Install prompt ready'); });
-window.addEventListener('appinstalled', () => { meowDeferredPrompt = null; console.log('[PWA] Installed'); });
-function triggerPWAInstall() {
-    if (!meowDeferredPrompt) {
-        if (navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) { alert('Уже установлено!'); return; }
-        alert('Чтобы установить: Android Chrome → ⋮ → "Установить приложение". iOS Safari → Поделиться → "На экран Домой".'); return;
-    }
-    meowDeferredPrompt.prompt();
-    meowDeferredPrompt.userChoice.then((c) => { meowDeferredPrompt = null; });
-}
-if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) document.body.classList.add('pwa-standalone');
-(function handleDeepLinks() {
-    const p = new URLSearchParams(window.location.search);
-    if (p.get('action') === 'cloud') setTimeout(() => { if (typeof openCloudChat === 'function') openCloudChat(); }, 800);
-    else if (p.get('tab') === 'contacts') setTimeout(() => { if (typeof switchTab === 'function') switchTab(1); }, 400);
-    else if (p.get('tab') === 'settings') setTimeout(() => { if (typeof switchTab === 'function') switchTab(2); }, 400);
-    else if (p.get('tab') === 'profile') setTimeout(() => { if (typeof switchTab === 'function') switchTab(3); }, 400);
-})();
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('message', (e) => {
-        if (e.data && e.data.type === 'SHARED_FILES' && typeof handleMediaFilesSelected === 'function') handleMediaFilesSelected(e.data.files);
-    });
-}
-</script>
+    <div class="modal-overlay" id="media-collage-modal">
+        <div class="modal-card" style="max-width: 360px;">
+            <h3 style="margin-bottom: 12px; text-align: center;">📎 Медиа-коллаж</h3>
+            <div class="collage-preview-wrap" id="collage-preview-wrap"></div>
+            <input type="text" id="collage-caption-input" class="collage-caption-input" placeholder="Добавьте подпись...">
+            <div style="display: flex; gap: 8px; margin-top: 12px;">
+                <button class="menu-btn" style="flex: 1; margin-bottom: 0; background: transparent;" onclick="closeModal('media-collage-modal'); mediaCollageQueue = [];">Отмена</button>
+                <button class="menu-btn" style="flex: 1; margin-bottom: 0; background: var(--accent);" onclick="sendMediaCollage()">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+
 </body>
 </html>
