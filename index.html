@@ -1903,6 +1903,29 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             padding: 0 8px;
         }
 
+        /* ===== Медиа-коллаж (как в Telegram) ===== */
+        .collage-preview-grid { display: grid; gap: 4px; border-radius: 14px; overflow: hidden; }
+        .collage-preview-grid.count-1 { grid-template-columns: 1fr; }
+        .collage-preview-grid.count-2 { grid-template-columns: 1fr 1fr; }
+        .collage-preview-grid.count-3 { grid-template-columns: 1fr 1fr; }
+        .collage-preview-grid.count-3 .collage-item:first-child { grid-column: span 2; }
+        .collage-preview-grid.count-4 { grid-template-columns: 1fr 1fr; }
+        .collage-item { position: relative; aspect-ratio: 1; background: #111; overflow: hidden; }
+        .collage-item img, .collage-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .collage-item .collage-remove-btn { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; font-size: 14px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; }
+        .collage-caption-input { width: 100%; height: 44px; border-radius: 12px; background: #1C1C1E; border: 1px solid #2C2C2E; color: white; padding: 0 14px; font-size: 15px; outline: none; margin-top: 10px; }
+        .collage-preview-wrap { max-height: 320px; overflow-y: auto; padding-right: 4px; }
+        .msg-collage-grid { display: grid; gap: 3px; border-radius: 14px; overflow: hidden; width: 100%; max-width: 280px; }
+        .msg-collage-grid.count-1 { grid-template-columns: 1fr; }
+        .msg-collage-grid.count-2 { grid-template-columns: 1fr 1fr; }
+        .msg-collage-grid.count-3 { grid-template-columns: 1fr 1fr; }
+        .msg-collage-grid.count-3 .collage-msg-item:first-child { grid-column: span 2; }
+        .msg-collage-grid.count-4 { grid-template-columns: 1fr 1fr; }
+        .collage-msg-item { position: relative; aspect-ratio: 1; background: #111; overflow: hidden; cursor: pointer; }
+        .collage-msg-item img, .collage-msg-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .collage-msg-item .collage-count-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: white; }
+
+
 </style>
 </head>
 <body>
@@ -2865,6 +2888,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         let myBlockedUsers = {};
         let profileViewPeerId = null;
         let forwardQueue = [];
+        let mediaCollageQueue = [];
         let bulkDeleteIds = null;
         let newBelowCount = 0;
         let scheduledDispatcherStarted = false;
@@ -4738,6 +4762,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                         bubbleHtml += buildContactCardHtml(messageObject.contactShare);
                     } else if (messageObject.callLog) {
                         bubbleHtml += buildCallLogHtml(messageObject.callLog);
+                    } else if (messageObject.mediaCollage) {
+                        const colHtml = buildCollageGridHtml(msgId, messageObject.mediaCollage, messageObject.text);
+                        bubbleHtml += colHtml;
                     } else if (messageObject.fileData) {
                         const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
                         if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
@@ -5079,6 +5106,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         async function handleSendClick() {
             if (suppressNextSendClick) { suppressNextSendClick = false; return; }
             const input = document.getElementById('message-input');
+            if (mediaCollageQueue.length > 0) { sendMediaCollage(); return; }
+
             const txt = input.value.trim();
             if (!txt) { sendSilentNext = false; return; }
             if (!activeRoomSharedKey) {
@@ -5150,25 +5179,190 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         }
 
 
-        async function compressAndSendMedia(file) {
-            if (!file || !activeRoomSharedKey) return;
-            const clipBtn = document.getElementById('clip-btn');
-            const originalClipHtml = clipBtn.innerHTML;
-            const loadingSvg = `<svg viewBox="0 0 50 50" width="18" height="18" style="animation:rotate 1s linear infinite; stroke:white;"><circle cx="25" cy="25" r="20" fill="none" stroke-width="5" stroke-linecap="round"></circle></svg>`;
+        function openMediaCollageModal() {
+            renderCollagePreview();
+            document.getElementById('collage-caption-input').value = '';
+            openModal('media-collage-modal');
+        }
 
-            clipBtn.innerHTML = loadingSvg;
-            try {
-                if (file.type.startsWith('image/')) {
-                    const finalBase64 = await processImageHD(file, 1600);
-                    await transmitDirectMedia(finalBase64, file.type);
-                } else if (file.type.startsWith('video/')) {
-                    if (file.size > 8 * 1024 * 1024) { alert("Видео больше 8 МБ!"); return; }
-                    const base64 = await fileToBase64(file);
-                    await transmitDirectMedia(base64, file.type);
+        function renderCollagePreview() {
+            const wrap = document.getElementById('collage-preview-wrap');
+            if (!mediaCollageQueue.length) { wrap.innerHTML = ''; return; }
+            let html = '<div class="collage-preview-grid count-' + mediaCollageQueue.length + '">';
+            mediaCollageQueue.forEach((item, idx) => {
+                html += '<div class="collage-item">';
+                if (item.type === 'video') {
+                    html += '<video src="' + escapeHTML(item.data) + '" muted playsinline></video>';
+                } else {
+                    html += '<img src="' + escapeHTML(item.data) + '">';
                 }
-                clipBtn.innerHTML = originalClipHtml;
+                html += '<button class="collage-remove-btn" onclick="removeCollageItem(' + idx + ')">✕</button></div>';
+            });
+            html += '</div>';
+            wrap.innerHTML = html;
+        }
+
+        function removeCollageItem(idx) {
+            mediaCollageQueue.splice(idx, 1);
+            if (!mediaCollageQueue.length) { closeModal('media-collage-modal'); return; }
+            renderCollagePreview();
+        }
+
+        async function sendMediaCollage() {
+            if (!mediaCollageQueue.length) return;
+            if (!activeRoomSharedKey) {
+                alert("Ключ шифрования недоступен. Нажмите на зелёный замок сверху и обновите ключи.");
+                return;
+            }
+            const btn = document.querySelector('#media-collage-modal .menu-btn[onclick*="sendMediaCollage"]');
+            const originalText = btn ? btn.innerText : 'Отправить';
+            if (btn) { btn.disabled = true; btn.innerText = 'Отправка...'; btn.style.opacity = '0.7'; }
+            try {
+                const caption = document.getElementById('collage-caption-input').value.trim();
+                const payload = { text: caption || '[Медиа]', mediaCollage: mediaCollageQueue };
+                if (replyTargetMessageId) payload.replyTo = { msgId: replyTargetMessageId, senderName: replyTargetSenderName, text: replyTargetText };
+                const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(payload), activeRoomSharedKey);
+                const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
+                if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
+                if (sendSilentNext) { dbPacket.silent = true; sendSilentNext = false; }
+                const nowTime = Date.now();
+                await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+                await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
+                if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
+                cancelReply(); stopTypingImmediately(); clearActiveDraft();
+                playSendSound(); meowVibrate(10);
+                mediaCollageQueue = [];
+                closeModal('media-collage-modal');
+            } catch (err) {
+                console.error('sendMediaCollage error:', err);
+                alert('Ошибка отправки: ' + (err.message || err));
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerText = originalText; btn.style.opacity = '1'; }
+            }
+        }
+
+
+        function buildCollageGridHtml(msgId, items, caption) {
+            const count = Math.min(items.length, 4);
+            let html = '<div class="msg-collage-grid count-' + count + '" onclick="event.stopPropagation(); openCollageGallery('' + escapeHTML(msgId) + '')">';
+            items.slice(0, 4).forEach((item, idx) => {
+                html += '<div class="collage-msg-item">';
+                if (item.type === 'video') {
+                    html += '<video src="' + escapeHTML(getCachedObjectUrl(msgId + '_c' + idx, item.data)) + '" muted playsinline></video>';
+                } else {
+                    html += '<img src="' + escapeHTML(getCachedObjectUrl(msgId + '_c' + idx, item.data)) + '">';
+                }
+                if (idx === 3 && items.length > 4) {
+                    html += '<div class="collage-count-overlay">+' + (items.length - 4) + '</div>';
+                }
+                html += '</div>';
+            });
+            html += '</div>';
+            if (caption && caption !== '[Медиа]') {
+                html += '<div class="msg-text" style="padding: 6px 10px 2px 10px;">' + formatMessageText(caption) + '</div>';
+            }
+            return html;
+        }
+
+        function openCollageGallery(msgId) {
+            const m = activeChatMessagesData[msgId];
+            if (!m) return;
+            decryptMessageCached(msgId, m.text || "", m.kv, currentPeer).then(obj => {
+                if (!obj || !obj.mediaCollage) return;
+                galleryItems = obj.mediaCollage.map(it => ({ url: getCachedObjectUrl(msgId + '_' + it.data.slice(-20), it.data), isVideo: it.type === 'video' }));
+                galleryIndex = 0;
+                viewMediaFull(galleryItems[0].url, galleryItems[0].isVideo, 0);
+            });
+        }
+
+
+        async function compressAndSendMedia(file) {
+            if (!file || !activeRoomSharedKey) {
+                alert("Ключ шифрования недоступен. Нажмите на зелёный замок сверху и обновите ключи.");
+                return;
+            }
+
+            // Показываем индикатор загрузки
+            const progressOverlay = document.createElement('div');
+            progressOverlay.id = 'media-send-progress';
+            progressOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
+            progressOverlay.innerHTML = `
+                <div style="width:220px;height:220px;border-radius:20px;background:#161618;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;border:1px solid rgba(255,255,255,0.08);">
+                    <div id="send-progress-icon" style="font-size:48px;">📤</div>
+                    <div id="send-progress-text" style="font-size:15px;font-weight:700;color:white;">Подготовка...</div>
+                    <div style="width:160px;height:6px;background:#2C2C2E;border-radius:3px;overflow:hidden;">
+                        <div id="send-progress-bar" style="width:0%;height:100%;background:var(--accent);border-radius:3px;transition:width 0.2s;"></div>
+                    </div>
+                    <div id="send-progress-sub" style="font-size:12px;color:var(--text-muted);text-align:center;padding:0 16px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+                </div>
+            `;
+            document.body.appendChild(progressOverlay);
+
+            const updateProgress = (pct, text, sub) => {
+                const bar = document.getElementById('send-progress-bar');
+                const txt = document.getElementById('send-progress-text');
+                const s = document.getElementById('send-progress-sub');
+                if (bar) bar.style.width = pct + '%';
+                if (txt && text) txt.innerText = text;
+                if (s && sub) s.innerText = sub;
+            };
+
+            try {
+                updateProgress(10, 'Сжатие...', file.name);
+                let finalBase64;
+                if (file.type.startsWith('image/')) {
+                    finalBase64 = await processImageHD(file, 1600);
+                } else if (file.type.startsWith('video/')) {
+                    if (file.size > 8 * 1024 * 1024) {
+                        const ov = document.getElementById('media-send-progress');
+                        if (ov) ov.remove();
+                        alert("Видео больше 8 МБ!");
+                        return;
+                    }
+                    finalBase64 = await fileToBase64(file);
+                } else {
+                    const ov = document.getElementById('media-send-progress');
+                    if (ov) ov.remove();
+                    alert("Неподдерживаемый тип файла.");
+                    return;
+                }
+
+                updateProgress(50, 'Шифрование...', file.name);
+
+                const payload = { text: "[Медиа]", fileData: finalBase64, fileType: file.type };
+                if (isBurnModeActive) payload.burnAfter = burnDelayMs;
+                const finalString = "[MEOW]" + aesEncrypt(JSON.stringify(payload), activeRoomSharedKey);
+
+                updateProgress(70, 'Отправка...', file.name);
+
+                const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
+                if (isBurnModeActive) dbPacket.burnTime = Date.now() + burnDelayMs;
+                if (sendSilentNext) { dbPacket.silent = true; sendSilentNext = false; }
+
+                const nowTime = Date.now();
+                await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+                await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
+                if (currentPeer !== myUid) {
+                    await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
+                }
+
+                updateProgress(100, 'Отправлено!', '');
+                playSendSound();
+                meowVibrate(10);
+
+                setTimeout(() => {
+                    const ov = document.getElementById('media-send-progress');
+                    if (ov) ov.remove();
+                }, 500);
+
             } catch (e) {
-                alert("Ошибка медиа"); clipBtn.innerHTML = originalClipHtml;
+                console.error('compressAndSendMedia error:', e);
+                updateProgress(0, 'Ошибка!', '');
+                setTimeout(() => {
+                    const ov = document.getElementById('media-send-progress');
+                    if (ov) ov.remove();
+                }, 800);
+                alert("Ошибка отправки: " + (e.message || e));
             }
         }
 
@@ -5738,23 +5932,44 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         async function authAction() {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value.trim();
+            const btn = document.querySelector('#login-screen .search-action-btn');
             const errorDiv = document.getElementById('auth-error');
-            errorDiv.style.display = "none";
 
             if (!email || !password) {
                 errorDiv.innerText = "Заполните все поля!"; errorDiv.style.display = "block"; return;
             }
 
+            // Показываем индикатор загрузки
+            const originalText = btn ? btn.innerText : 'Войти / Создать аккаунт';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<svg viewBox="0 0 50 50" width="18" height="18" style="animation:rotate 1s linear infinite; stroke:white; margin-right:8px;"><circle cx="25" cy="25" r="20" fill="none" stroke-width="5" stroke-linecap="round"></circle></svg>Вход...`;
+                btn.style.opacity = "0.8";
+            }
+            errorDiv.style.display = "none";
+
             try {
                 await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
+                // Успешный вход — кнопка сбросится в onAuthStateChanged
             } catch (err) {
-                if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential" || err.code === "auth/invalid-email") {
+                if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential" || err.code === "auth/invalid-email" || err.code === "auth/wrong-password") {
                     try {
+                        if (btn) btn.innerHTML = `<svg viewBox="0 0 50 50" width="18" height="18" style="animation:rotate 1s linear infinite; stroke:white; margin-right:8px;"><circle cx="25" cy="25" r="20" fill="none" stroke-width="5" stroke-linecap="round"></circle></svg>Создание аккаунта...`;
                         await window.fb.createUserWithEmailAndPassword(window.fb.auth, email, password);
                     } catch (regErr) {
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerText = originalText;
+                            btn.style.opacity = "1";
+                        }
                         errorDiv.innerText = regErr.message; errorDiv.style.display = "block";
                     }
                 } else {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = originalText;
+                        btn.style.opacity = "1";
+                    }
                     errorDiv.innerText = err.message; errorDiv.style.display = "block";
                 }
             }
@@ -8953,12 +9168,72 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         // ============================================================
         async function handleMediaFilesSelected(files) {
             if (!files || !files.length) return;
-            for (const f of Array.from(files).slice(0, 10)) {
-                if (f.type.startsWith('image/') || f.type.startsWith('video/')) {
-                    await compressAndSendMedia(f);
+            mediaCollageQueue = [];
+            const total = files.length;
+
+            // Показываем индикатор прогресса
+            const progressOverlay = document.createElement('div');
+            progressOverlay.id = 'media-upload-progress';
+            progressOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
+            progressOverlay.innerHTML = `
+                <div style="width:200px;height:200px;border-radius:20px;background:#161618;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;border:1px solid rgba(255,255,255,0.08);">
+                    <div id="upload-progress-icon" style="font-size:48px;">📎</div>
+                    <div id="upload-progress-text" style="font-size:15px;font-weight:700;color:white;">Обработка...</div>
+                    <div style="width:160px;height:6px;background:#2C2C2E;border-radius:3px;overflow:hidden;">
+                        <div id="upload-progress-bar" style="width:0%;height:100%;background:var(--accent);border-radius:3px;transition:width 0.2s;"></div>
+                    </div>
+                    <div id="upload-progress-sub" style="font-size:12px;color:var(--text-muted);">0 / ${total}</div>
+                </div>
+            `;
+            document.body.appendChild(progressOverlay);
+
+            const updateProgress = (pct, text, sub) => {
+                const bar = document.getElementById('upload-progress-bar');
+                const txt = document.getElementById('upload-progress-text');
+                const s = document.getElementById('upload-progress-sub');
+                if (bar) bar.style.width = pct + '%';
+                if (txt && text) txt.innerText = text;
+                if (s && sub) s.innerText = sub;
+            };
+
+            for (let idx = 0; idx < total; idx++) {
+                const file = files[idx];
+                updateProgress(Math.round((idx / total) * 100), 'Обработка...', (idx + 1) + ' / ' + total + ' — ' + file.name);
+                try {
+                    if (file.type.startsWith('image/')) {
+                        const base64 = await processImageHD(file, 1600);
+                        mediaCollageQueue.push({ type: 'image', data: base64, name: file.name });
+                    } else if (file.type.startsWith('video/')) {
+                        if (file.size > 8 * 1024 * 1024) {
+                            updateProgress(Math.round(((idx + 1) / total) * 100), 'Пропущено (большой файл)', (idx + 1) + ' / ' + total);
+                            continue;
+                        }
+                        const base64 = await fileToBase64(file);
+                        mediaCollageQueue.push({ type: 'video', data: base64, name: file.name });
+                    }
+                } catch (e) {
+                    console.error('Media processing error:', e);
                 }
             }
+
+            updateProgress(100, 'Готово!', '');
+
+            setTimeout(() => {
+                const ov = document.getElementById('media-upload-progress');
+                if (ov) ov.remove();
+
+                if (mediaCollageQueue.length === 1) {
+                    compressAndSendMedia(files[0]);
+                    mediaCollageQueue = [];
+                } else if (mediaCollageQueue.length > 1) {
+                    openMediaCollageModal();
+                } else {
+                    alert("Не удалось обработать выбранные файлы.");
+                }
+            }, 400);
         }
+
+
 
         async function handleDocumentSelected(file) {
             if (!file) return;
@@ -9375,11 +9650,37 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             if (user) {
                 myUid = user.uid; myEmail = user.email;
-                document.getElementById('login-screen').style.display = "none";
-                
+
+                // Показываем индикатор входа в сессию
+                const loginScreen = document.getElementById('login-screen');
+                const loginCard = loginScreen.querySelector('.login-card');
+                const originalCardHtml = loginCard.innerHTML;
+                loginCard.innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:18px;padding:20px 0;">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="60" height="60" style="color: var(--accent);">
+                            <path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3.5 3 3.5s3-1.5 3-3.5c0-1.66-1.34-3-3-3zm-4.5-3c-.83 0-1.5.67-1.5 1.5s.5 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.5 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5zm-11-4C5.17 7 4.5 7.67 4.5 8.5S5 10.5 6 10.5s1.5-1 1.5-2-.67-1.5-1.5-1.5zm13 0c-.83 0-1.5.67-1.5 1.5s.5 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5z"/>
+                        </svg>
+                        <div style="font-size:20px;font-weight:800;">VK Meow</div>
+                        <div style="width:180px;height:6px;background:#2C2C2E;border-radius:3px;overflow:hidden;">
+                            <div id="session-progress-bar" style="width:0%;height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s;"></div>
+                        </div>
+                        <div id="session-progress-text" style="font-size:13px;color:var(--text-muted);">Вход в сессию...</div>
+                    </div>
+                `;
+
+                const updateSessionProgress = (pct, text) => {
+                    const bar = document.getElementById('session-progress-bar');
+                    const txt = document.getElementById('session-progress-text');
+                    if (bar) bar.style.width = pct + '%';
+                    if (txt && text) txt.innerText = text;
+                };
+
+                updateSessionProgress(10, 'Инициализация E2EE...');
                 await initE2EE();
+
+                updateSessionProgress(25, 'Загрузка профиля...');
                 startMyProfileRealtime();
-                
+
                 window.fb.onValue(window.fb.ref(window.fb.db, `users/${myUid}/contacts`), (snap) => {
                     myContacts = snap.val() || {};
                     renderContactsList();
@@ -9396,20 +9697,26 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     setTimeout(processDueScheduledMessages, 4000);
                 }
 
+                updateSessionProgress(40, 'Загрузка настроек...');
                 await loadMyPrivacySettings();
                 await loadAllPersonalWallpapers();
+
+                updateSessionProgress(55, 'Загрузка папок...');
                 await loadFolders();
+
+                updateSessionProgress(70, 'Подключение...');
                 await touchMyLastActive();
                 initComposer();
                 initStickers();
                 initFolderSwipe();
-                
+
                 initCallSystem();
                 initV3GlobalGuards();
                 sweepExpiredAccounts();
                 checkPinLockOnStart();
                 applyMsgFontSize();
-                
+
+                updateSessionProgress(85, 'Загрузка профиля...');
                 const profileSnap = await window.fb.get(window.fb.ref(window.fb.db, `users/${myUid}/profile`));
                 if (profileSnap.exists()) {
                     const prof = profileSnap.val();
@@ -9418,7 +9725,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     const last = legacyOrPlain(prof.lastname, myKey) || "";
                     myNameCombined = name + (last ? " " + last : "");
                     myProfileAvatarFetched = legacyOrPlain(prof.avatar, myKey) || "";
-                    
+
                     const bottomIcon = document.getElementById('bottom-profile-icon-container');
                     if (myProfileAvatarFetched) {
                         bottomIcon.innerHTML = `<div class="chat-avatar" style="width:24px; height:24px; background-image:url(${myProfileAvatarFetched})"></div>`;
@@ -9427,12 +9734,13 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     switchTab(3); 
                 }
 
+                updateSessionProgress(95, 'Подключение к сети...');
                 const connectedRef = window.fb.ref(window.fb.db, ".info/connected");
                 window.fb.onValue(connectedRef, (snap) => {
                     if (snap.val() === true) {
                         const onlineRef = window.fb.ref(window.fb.db, `users/${myUid}/presence`);
                         const disconnectRef = window.fb.onDisconnect(onlineRef);
-                        
+
                         disconnectRef.set({ status: "offline", lastSeen: Date.now() });
 
                         if (!document.hidden) {
@@ -9442,6 +9750,18 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                         }
                     }
                 });
+
+                updateSessionProgress(100, 'Готово!');
+
+                // Скрываем экран логина с анимацией
+                setTimeout(() => {
+                    loginScreen.style.display = "none";
+                    // Восстанавливаем карточку для следующего раза
+                    loginCard.innerHTML = originalCardHtml;
+                    // Сбрасываем кнопку
+                    const btn = loginCard.querySelector('.search-action-btn');
+                    if (btn) { btn.disabled = false; btn.style.opacity = "1"; }
+                }, 400);
 
                 loadDialogs();
             } else {
@@ -9481,6 +9801,19 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             </div>
         </div>
     </div>
+
+    <div class="modal-overlay" id="media-collage-modal">
+        <div class="modal-card" style="max-width: 360px;">
+            <h3 style="margin-bottom: 12px; text-align: center;">📎 Медиа-коллаж</h3>
+            <div class="collage-preview-wrap" id="collage-preview-wrap"></div>
+            <input type="text" id="collage-caption-input" class="collage-caption-input" placeholder="Добавьте подпись...">
+            <div style="display: flex; gap: 8px; margin-top: 12px;">
+                <button class="menu-btn" style="flex: 1; margin-bottom: 0; background: transparent;" onclick="closeModal('media-collage-modal'); mediaCollageQueue = [];">Отмена</button>
+                <button class="menu-btn" style="flex: 1; margin-bottom: 0; background: var(--accent);" onclick="sendMediaCollage()">Отправить</button>
+            </div>
+        </div>
+    </div>
+
 
 </body>
 </html>
