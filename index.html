@@ -1741,7 +1741,43 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
         .forwarded-label { font-size: 11px; color: rgba(255,255,255,0.55); font-style: italic; margin: 2px 10px 0 10px; }
 
-        /* ===== folder swipe animations ===== */
+                /* ===== Media Composer & Album ===== */
+        .media-composer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 3600; display: none; flex-direction: column; }
+        .media-composer-overlay.active { display: flex; animation: modalPopIn 0.18s ease; }
+        .media-composer-preview { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; overflow: hidden; position: relative; }
+        .media-composer-preview img, .media-composer-preview video { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; }
+        .media-composer-thumbs { display: flex; gap: 8px; padding: 10px 16px; overflow-x: auto; flex-shrink: 0; }
+        .media-composer-thumb { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; opacity: 0.6; transition: all 0.15s; }
+        .media-composer-thumb.active { border-color: var(--accent); opacity: 1; }
+        .media-composer-thumb:hover { opacity: 1; }
+        .media-composer-bar { padding: 10px 16px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #161618; background: var(--bg-bar); flex-shrink: 0; }
+        .media-composer-bar input { flex: 1; height: 44px; border-radius: 22px; background: #1C1C1E; border: none; outline: none; color: white; padding: 0 18px; font-size: 15px; }
+        .media-composer-bar button { background: var(--accent); color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .media-composer-bar button:active { transform: scale(0.9); }
+        .media-composer-close { position: absolute; top: 12px; left: 12px; width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; backdrop-filter: blur(4px); }
+        .media-composer-remove { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; background: rgba(255,59,48,0.85); border: none; color: white; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
+        .msg-album { display: grid; gap: 3px; border-radius: 14px; overflow: hidden; cursor: pointer; }
+        .msg-album.count-1 { grid-template-columns: 1fr; }
+        .msg-album.count-2 { grid-template-columns: 1fr 1fr; }
+        .msg-album.count-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .msg-album.count-3 .album-item:first-child { grid-row: span 2; }
+        .msg-album.count-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .msg-album.count-5 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .msg-album.count-5 .album-item:first-child { grid-row: span 2; grid-column: span 2; }
+        .msg-album.count-6 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .msg-album.count-7 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+        .msg-album.count-7 .album-item:first-child { grid-row: span 2; grid-column: span 2; }
+        .msg-album.count-8 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+        .msg-album.count-8 .album-item:first-child { grid-row: span 2; grid-column: span 2; }
+        .msg-album.count-9 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+        .msg-album.count-10 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr 1fr; }
+        .msg-album.count-10 .album-item:first-child { grid-row: span 2; grid-column: span 2; }
+        .album-item { position: relative; overflow: hidden; min-height: 90px; }
+        .album-item img, .album-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .album-item .album-video-badge { position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px; }
+        .album-more-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; font-weight: 800; }
+
+/* ===== folder swipe animations ===== */
         .folder-swiper { position: relative; overflow: hidden; }
         .folder-swiper-track { display: flex; transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94); will-change: transform; }
         .folder-swiper-track.dragging { transition: none; }
@@ -4973,6 +5009,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                         bubbleHtml += buildContactCardHtml(messageObject.contactShare);
                     } else if (messageObject.callLog) {
                         bubbleHtml += buildCallLogHtml(messageObject.callLog);
+                    } else if (messageObject.album && messageObject.album.length) {
+                        bubbleHtml += buildAlbumHtml(msgId, messageObject.album);
                     } else if (messageObject.fileData) {
                         const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
                         if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
@@ -5394,30 +5432,24 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         }
 
 
-        async function compressAndSendMedia(file) {
-            if (!file || !activeRoomSharedKey) return;
-            const clipBtn = document.getElementById('clip-btn');
-            const originalClipHtml = clipBtn.innerHTML;
-            const loadingSvg = `<svg viewBox="0 0 50 50" width="18" height="18" style="animation:rotate 1s linear infinite; stroke:white;"><circle cx="25" cy="25" r="20" fill="none" stroke-width="5" stroke-linecap="round"></circle></svg>`;
+        
 
-            clipBtn.innerHTML = loadingSvg;
-            try {
-                if (file.type.startsWith('image/')) {
-                    const finalBase64 = await processImageHD(file, 1600);
-                    await transmitDirectMedia(finalBase64, file.type);
-                } else if (file.type.startsWith('video/')) {
-                    if (file.size > 8 * 1024 * 1024) { alert("Видео больше 8 МБ!"); return; }
-                    const base64 = await fileToBase64(file);
-                    await transmitDirectMedia(base64, file.type);
-                }
-                clipBtn.innerHTML = originalClipHtml;
-            } catch (e) {
-                alert("Ошибка медиа"); clipBtn.innerHTML = originalClipHtml;
-            }
+        async function transmitDirectMedia(base64Data, contentType, captionText) {
+            const payload = { text: captionText || "[Медиа]", fileData: base64Data, fileType: contentType };
+            if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
+            const payloadJson = JSON.stringify(payload);
+            const sig = await signPayload(payloadJson);
+            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
+            const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
+            if (sig) dbPacket.sig = sig;
+            const nowTime = Date.now();
+            await window.fb.push(window.fb.ref(window.fb.db, `messages/${currentRoomId}/list`), dbPacket);
+            await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
+            if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
         }
 
-        async function transmitDirectMedia(base64Data, contentType) {
-            const payload = { text: "[Медиа]", fileData: base64Data, fileType: contentType };
+        async function transmitAlbumMedia(items, captionText) {
+            const payload = { text: captionText || "[Альбом]", album: items };
             if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
             const payloadJson = JSON.stringify(payload);
             const sig = await signPayload(payloadJson);
@@ -5899,6 +5931,9 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     displayedText = "👤 Контакт: " + (obj.contactShare.name || "");
                 } else if (obj.callLog) {
                     displayedText = obj.callLog.kind === 'video' ? "📹 Видеозвонок" : "📞 Звонок";
+                } else if (obj.album) {
+                    const types = obj.album.map(a => a.type === 'video' ? '🎬' : '📷');
+                    displayedText = types.join(' ') + ` (${obj.album.length})`;
                 } else if (obj.fileData) {
                     if (obj.fileType && obj.fileType.startsWith('video/')) {
                         displayedText = "🎬 Видео";
@@ -7418,6 +7453,179 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             });
         }
 
+        // ======== MEDIA COMPOSER (Telegram-style) ========
+        let composerMediaItems = [];
+        let composerActiveIdx = 0;
+
+        function openMediaComposer(files) {
+            if (!files || !files.length || !activeRoomSharedKey) return;
+            composerMediaItems = [];
+            composerActiveIdx = 0;
+            const overlay = document.getElementById('media-composer-overlay');
+            const preview = document.getElementById('media-composer-preview');
+            const thumbs = document.getElementById('media-composer-thumbs');
+            const caption = document.getElementById('media-composer-caption');
+            preview.innerHTML = '<div style="color:var(--text-muted)">Обработка...</div>';
+            thumbs.innerHTML = '';
+            caption.value = '';
+            overlay.classList.add('active');
+
+            Promise.all(files.map((f, i) => processMediaFile(f, i))).then(results => {
+                composerMediaItems = results.filter(r => r);
+                if (!composerMediaItems.length) { closeMediaComposer(); return; }
+                renderComposerPreview();
+                renderComposerThumbs();
+            });
+        }
+
+        async function processMediaFile(file, idx) {
+            try {
+                if (file.type.startsWith('image/')) {
+                    const base64 = await processImageHD(file, 1600);
+                    return { type: 'image', data: base64, fileType: file.type, name: file.name };
+                } else if (file.type.startsWith('video/')) {
+                    if (file.size > 8 * 1024 * 1024) { alert(`Видео "${file.name}" больше 8 МБ — пропущено`); return null; }
+                    const base64 = await fileToBase64(file);
+                    return { type: 'video', data: base64, fileType: file.type, name: file.name };
+                }
+            } catch (e) { return null; }
+            return null;
+        }
+
+        function renderComposerPreview() {
+            const preview = document.getElementById('media-composer-preview');
+            const item = composerMediaItems[composerActiveIdx];
+            if (!item) return;
+            let html = '';
+            if (item.type === 'image') {
+                html = `<img src="${escapeHTML(item.data)}" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:12px;">`;
+            } else {
+                html = `<video src="${escapeHTML(item.data)}" controls style="max-width:100%;max-height:100%;border-radius:12px;"></video>`;
+            }
+            html += `<button class="media-composer-remove" onclick="event.stopPropagation(); removeComposerItem(${composerActiveIdx})">×</button>`;
+            preview.innerHTML = html;
+        }
+
+        function renderComposerThumbs() {
+            const thumbs = document.getElementById('media-composer-thumbs');
+            thumbs.innerHTML = composerMediaItems.map((item, i) => {
+                const isActive = i === composerActiveIdx;
+                const src = item.type === 'image' ? item.data : item.data;
+                return `<img class="media-composer-thumb ${isActive ? 'active' : ''}" src="${escapeHTML(src)}" onclick="composerActiveIdx=${i};renderComposerPreview();renderComposerThumbs();">`;
+            }).join('');
+        }
+
+        function removeComposerItem(idx) {
+            composerMediaItems.splice(idx, 1);
+            if (!composerMediaItems.length) { closeMediaComposer(); return; }
+            if (composerActiveIdx >= composerMediaItems.length) composerActiveIdx = composerMediaItems.length - 1;
+            renderComposerPreview();
+            renderComposerThumbs();
+        }
+
+        function closeMediaComposer() {
+            document.getElementById('media-composer-overlay').classList.remove('active');
+            composerMediaItems = [];
+            composerActiveIdx = 0;
+        }
+
+        async function sendComposerMedia() {
+            if (!composerMediaItems.length || !activeRoomSharedKey) return;
+            const caption = document.getElementById('media-composer-caption').value.trim();
+            closeMediaComposer();
+            playSendSound();
+            meowVibrate(10);
+
+            if (composerMediaItems.length === 1) {
+                const item = composerMediaItems[0];
+                await transmitDirectMedia(item.data, item.fileType, caption || undefined);
+            } else {
+                const albumItems = composerMediaItems.map(item => ({
+                    data: item.data,
+                    fileType: item.fileType,
+                    type: item.type
+                }));
+                await transmitAlbumMedia(albumItems, caption || undefined);
+            }
+        }
+
+        function buildAlbumHtml(msgId, album) {
+            const count = Math.min(album.length, 10);
+            const visible = album.slice(0, 10);
+            let html = `<div class="msg-album count-${count}" onclick="event.stopPropagation(); openAlbumViewer('${escapeHTML(msgId)}')">`;
+            visible.forEach((item, i) => {
+                const blobUrl = getCachedObjectUrl(msgId + '_a' + i, item.data);
+                html += `<div class="album-item">`;
+                if (item.fileType && item.fileType.startsWith('video/')) {
+                    html += `<video src="${escapeHTML(blobUrl)}" muted playsinline></video><span class="album-video-badge">▶</span>`;
+                } else {
+                    html += `<img src="${escapeHTML(blobUrl)}">`;
+                }
+                if (i === 9 && album.length > 10) {
+                    html += `<div class="album-more-overlay">+${album.length - 10}</div>`;
+                }
+                html += `</div>`;
+            });
+            html += `</div>`;
+            return html;
+        }
+
+        function openAlbumViewer(msgId) {
+            const m = activeChatMessagesData[msgId];
+            if (!m) return;
+            const obj = msgDecryptCache[msgId];
+            if (!obj || !obj.album) return;
+            galleryItems = obj.album.map((item, i) => ({
+                url: getCachedObjectUrl(msgId + '_a' + i, item.data),
+                isVideo: item.fileType && item.fileType.startsWith('video/')
+            }));
+            galleryIndex = 0;
+            openGalleryAt(0);
+        }
+
+        // Composer event listeners
+        document.getElementById('media-composer-close').onclick = closeMediaComposer;
+        document.getElementById('media-composer-send').onclick = sendComposerMedia;
+        document.getElementById('media-composer-caption').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendComposerMedia(); }
+        });
+
+        // ======== ОБНОВЛЁННЫЙ MEDIA VIEWER ДЛЯ ГАЛЕРЕИ ========
+        function openGalleryAt(idx) {
+            galleryIndex = idx;
+            const item = galleryItems[idx];
+            if (!item) return;
+            const contentDiv = document.getElementById('media-viewer-content');
+            contentDiv.innerHTML = '';
+            if (item.isVideo) {
+                contentDiv.innerHTML = `<video src="${escapeHTML(item.url)}" controls autoplay style="max-width:100%;max-height:100%;"></video>`;
+            } else {
+                contentDiv.innerHTML = `<img src="${escapeHTML(item.url)}" style="max-width:100%;max-height:100%;display:block;">`;
+            }
+            document.getElementById('media-viewer-counter').style.display = galleryItems.length > 1 ? 'block' : 'none';
+            document.getElementById('media-viewer-counter').innerText = `${idx + 1} / ${galleryItems.length}`;
+            document.getElementById('media-viewer-prev').style.display = idx > 0 ? 'flex' : 'none';
+            document.getElementById('media-viewer-next').style.display = idx < galleryItems.length - 1 ? 'flex' : 'none';
+            document.getElementById('media-viewer-download').style.display = 'flex';
+            openModal('media-viewer-modal');
+        }
+
+        function galleryNav(dir) {
+            const next = galleryIndex + dir;
+            if (next >= 0 && next < galleryItems.length) openGalleryAt(next);
+        }
+
+        function downloadGalleryItem() {
+            const item = galleryItems[galleryIndex];
+            if (!item) return;
+            const a = document.createElement('a');
+            a.href = item.url;
+            a.download = 'meow_media_' + Date.now();
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
         // ======== ИНИЦИАЛИЗАЦИЯ НОВЫХ ФИЧ ========
         (function initMeowPlusFeatures() {
             const feedEl = document.getElementById('chat-feed');
@@ -7498,7 +7706,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 const f = e.clipboardData.files[0];
                 if (f && (f.type.startsWith('image/') || f.type.startsWith('video/'))) {
                     e.preventDefault();
-                    compressAndSendMedia(f);
+                    /* removed */
                 }
             });
 
@@ -7523,7 +7731,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                     dropHint.classList.remove('visible');
                     const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
                     if (f && (f.type.startsWith('image/') || f.type.startsWith('video/'))) {
-                        compressAndSendMedia(f);
+                        /* removed */
                     }
                 });
             }
@@ -9276,11 +9484,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         // ============================================================
         async function handleMediaFilesSelected(files) {
             if (!files || !files.length) return;
-            for (const f of Array.from(files).slice(0, 10)) {
-                if (f.type.startsWith('image/') || f.type.startsWith('video/')) {
-                    await compressAndSendMedia(f);
-                }
-            }
+            openMediaComposer(Array.from(files).slice(0, 10));
         }
 
         async function handleDocumentSelected(file) {
@@ -9558,7 +9762,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         window.scrollToMessage = scrollToMessage;
         window.viewMediaFull = viewMediaFull;
         window.processAndSetCrop = processAndSetCrop;
-        window.compressAndSendMedia = compressAndSendMedia;
+        /* removed */
         window.triggerTypingStatus = triggerTypingStatus;
         window.startContactChat = startContactChat;
         window.switchFolder = switchFolder;
@@ -9597,6 +9801,13 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
         window.updateComposerButton = updateComposerButton;
         window.handleMediaFilesSelected = handleMediaFilesSelected;
         window.handleDocumentSelected = handleDocumentSelected;
+        window.openMediaComposer = openMediaComposer;
+        window.closeMediaComposer = closeMediaComposer;
+        window.sendComposerMedia = sendComposerMedia;
+        window.removeComposerItem = removeComposerItem;
+        window.openAlbumViewer = openAlbumViewer;
+        window.galleryNav = galleryNav;
+        window.downloadGalleryItem = downloadGalleryItem;
         window.handleStickerFileChosen = handleStickerFileChosen;
         window.openStickerEditorWithFile = openStickerEditorWithFile;
         window.saveStickerFromEditor = saveStickerFromEditor;
@@ -9803,6 +10014,19 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
                 <button class="menu-btn" style="background: transparent; margin-top: 8px;" onclick="closeModal('edit-profile-modal')">Отмена</button>
             </div>
         </div>
+    </div>
+
+    <!-- ===== Media Composer ===== -->
+    <div class="media-composer-overlay" id="media-composer-overlay">
+        <div class="media-composer-preview" id="media-composer-preview"></div>
+        <div class="media-composer-thumbs" id="media-composer-thumbs"></div>
+        <div class="media-composer-bar">
+            <input type="text" id="media-composer-caption" placeholder="Добавить подпись...">
+            <button id="media-composer-send" title="Отправить">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+        </div>
+        <button class="media-composer-close" id="media-composer-close" title="Отмена">✕</button>
     </div>
 
 </body>
