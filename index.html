@@ -50,52 +50,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
 
         window.fb = { db, auth, ref, set, push, onValue, get, update, remove, onDisconnect, query, orderByKey, startAt, endAt, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut };
     </script>
-    <script>
-        // Глобальные auth-функции (вне module для надёжности)
-        function meowLog(msg) {
-            const el = document.getElementById('auth-error');
-            if (el) { el.style.display = 'block'; el.innerText = msg; }
-            console.log('[MEOW]', msg);
-        }
 
-        async function authAction() {
-            meowLog('🚀 Нажата кнопка входа...');
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value.trim();
-
-            if (!email || !password) {
-                meowLog('❌ Заполните email и пароль'); return;
-            }
-
-            meowLog('🔍 Проверка Firebase...');
-            if (!window.fb || !window.fb.auth) {
-                meowLog('❌ Firebase не загружен. Проверьте интернет.'); return;
-            }
-
-            meowLog('🔐 Попытка входа...');
-            try {
-                await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
-                meowLog('✅ Вход выполнен!');
-            } catch (err) {
-                meowLog('⚠️ Ошибка входа: ' + err.code + ' — ' + err.message);
-                if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential" || err.code === "auth/invalid-email") {
-                    meowLog('🆕 Создаём новый аккаунт...');
-                    try {
-                        await window.fb.createUserWithEmailAndPassword(window.fb.auth, email, password);
-                        meowLog('✅ Аккаунт создан и выполнен вход!');
-                    } catch (regErr) {
-                        meowLog('❌ Ошибка регистрации: ' + regErr.message);
-                    }
-                }
-            }
-        }
-
-        function logoutAction() {
-            if (confirm("Выйти из аккаунта?")) {
-                if (window.fb && window.fb.auth) window.fb.signOut(window.fb.auth);
-            }
-        }
-    </script>
     <style>
         :root {
             --bg-dark: #000000;
@@ -1965,6 +1920,153 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             padding: 0 8px;
         }
 
+        /* ===== Медиа-коллаж превью (как в Telegram) ===== */
+        .media-preview-bar {
+            display: none;
+            padding: 8px 12px;
+            background: var(--bg-bar);
+            border-top: 1px solid #161618;
+            gap: 8px;
+            overflow-x: auto;
+            z-index: 10;
+            align-items: flex-end;
+        }
+        .media-preview-bar.active {
+            display: flex;
+        }
+        .media-preview-item {
+            position: relative;
+            flex-shrink: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .media-preview-item img, .media-preview-item video {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            display: block;
+        }
+        .media-preview-remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .media-preview-count {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 6px;
+        }
+        .media-preview-caption {
+            flex: 1;
+            min-width: 120px;
+        }
+        .media-preview-caption input {
+            width: 100%;
+            height: 36px;
+            background: #2C2C2E;
+            border: none;
+            border-radius: 18px;
+            color: white;
+            padding: 0 14px;
+            font-size: 14px;
+            outline: none;
+        }
+        .media-preview-send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .media-preview-send-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* ===== Коллаж сообщений в чате (как в Telegram) ===== */
+        .msg-media-collage {
+            display: grid;
+            gap: 2px;
+            border-radius: 14px;
+            overflow: hidden;
+            margin: 4px 8px 0 8px;
+        }
+        .msg-media-collage.count-2 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 160px;
+        }
+        .msg-media-collage.count-3 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 100px 100px;
+        }
+        .msg-media-collage.count-3 .collage-item:first-child {
+            grid-row: span 2;
+        }
+        .msg-media-collage.count-4 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 100px 100px;
+        }
+        .msg-media-collage.count-5 {
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 90px 90px;
+        }
+        .msg-media-collage.count-5 .collage-item:first-child {
+            grid-column: span 2;
+        }
+        .msg-media-collage.count-5 .collage-item:nth-child(4) {
+            grid-column: span 2;
+        }
+        .msg-media-collage.count-6plus {
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: repeat(auto-fill, 85px);
+        }
+        .collage-item {
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            background: #111;
+        }
+        .collage-item img, .collage-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .collage-more-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+            font-weight: 800;
+        }
 </style>
 </head>
 <body>
@@ -1986,7 +2088,8 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             <input type="password" id="login-password" class="search-bar" style="margin-bottom: 20px; width:100%;" placeholder="Пароль">
             
             <button class="search-action-btn" onclick="authAction()" style="width: 100%; justify-content: center; height: 48px;">Войти / Создать аккаунт</button>
-            <div id="auth-error" style="color: var(--error); margin-top: 15px; font-size: 13px; display: none;"></div>
+            <div id="auth-log" style="color: var(--accent); margin-top: 10px; font-size: 13px; font-weight: 600; display: none; text-align: center; min-height: 20px;"></div>
+            <div id="auth-error" style="color: var(--error); margin-top: 8px; font-size: 13px; display: none;"></div>
         </div>
     </div>
 
@@ -2328,6 +2431,19 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             </div>
             <button class="header-btn" style="margin-left: 8px;" onclick="cancelReply()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <div class="media-preview-bar" id="media-preview-bar">
+            <div id="media-preview-items" style="display: flex; gap: 8px; flex-shrink: 0;"></div>
+            <div class="media-preview-caption">
+                <input type="text" id="media-caption-input" placeholder="Подпись...">
+            </div>
+            <button class="media-preview-send-btn" onclick="sendMediaWithCaption()" title="Отправить">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+            <button class="header-btn" style="color: var(--error); width: 36px; height: 36px; flex-shrink: 0;" onclick="cancelMediaPreview()" title="Отменить">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </div>
 
@@ -3078,404 +3194,7 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='SEND_
             }
         }
 
-        // ======== DOUBLE RATCHET ALGORITHM (Signal Protocol) ========
-// KDF using HKDF-SHA256 via Web Crypto API
-async function drKdfRk(rkHex, dhOutHex) {
-    const rkBuf = hexToBuf(rkHex);
-    const dhBuf = hexToBuf(dhOutHex);
-    const baseKey = await crypto.subtle.importKey("raw", rkBuf, "HKDF", false, ["deriveBits"]);
-    const info = new TextEncoder().encode("MeowDoubleRatchet/v1/root");
-    const salt = new Uint8Array(0);
-    const derived = await crypto.subtle.deriveBits(
-        { name: "HKDF", hash: "SHA-256", salt: salt, info: info },
-        baseKey, 512
-    );
-    const buf = new Uint8Array(derived);
-    return {
-        rootKey: bufToHex(buf.slice(0, 32)),
-        chainKey: bufToHex(buf.slice(32, 64))
-    };
-}
-
-async function drKdfCk(ckHex) {
-    const ckBuf = hexToBuf(ckHex);
-    const baseKey = await crypto.subtle.importKey("raw", ckBuf, "HKDF", false, ["deriveBits"]);
-    const info = new TextEncoder().encode("MeowDoubleRatchet/v1/chain");
-    const salt = new Uint8Array(0);
-    const derived = await crypto.subtle.deriveBits(
-        { name: "HKDF", hash: "SHA-256", salt: salt, info: info },
-        baseKey, 512
-    );
-    const buf = new Uint8Array(derived);
-    return {
-        chainKey: bufToHex(buf.slice(0, 32)),
-        messageKey: bufToHex(buf.slice(32, 64))
-    };
-}
-
-function hexToBuf(hex) {
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-        bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
-    }
-    return bytes;
-}
-
-function bufToHex(buf) {
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function bufToB64(buf) {
-    const bytes = new Uint8Array(buf);
-    let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary);
-}
-
-function b64ToBuf(b64) {
-    const binary = atob(b64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes;
-}
-
-async function drEncrypt(mkHex, plaintext, associatedData) {
-    const mkBuf = hexToBuf(mkHex);
-    const keyData = await crypto.subtle.importKey("raw", mkBuf, "HKDF", false, ["deriveBits"]);
-    const derived = await crypto.subtle.deriveBits(
-        { name: "HKDF", hash: "SHA-256", salt: new Uint8Array(0), info: new TextEncoder().encode("MeowDR/enc") },
-        keyData, 384
-    );
-    const dbuf = new Uint8Array(derived);
-    const encKey = dbuf.slice(0, 32);
-    const iv = dbuf.slice(32, 48);
-    const aeadKey = await crypto.subtle.importKey("raw", encKey, { name: "AES-GCM" }, false, ["encrypt"]);
-    const ptBytes = new TextEncoder().encode(plaintext);
-    const adBytes = typeof associatedData === 'string' ? new TextEncoder().encode(associatedData) : associatedData;
-    const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv, additionalData: adBytes }, aeadKey, ptBytes);
-    return bufToB64(iv) + ":" + bufToB64(ct);
-}
-
-async function drDecrypt(mkHex, ciphertext, associatedData) {
-    try {
-        const mkBuf = hexToBuf(mkHex);
-        const keyData = await crypto.subtle.importKey("raw", mkBuf, "HKDF", false, ["deriveBits"]);
-        const derived = await crypto.subtle.deriveBits(
-            { name: "HKDF", hash: "SHA-256", salt: new Uint8Array(0), info: new TextEncoder().encode("MeowDR/enc") },
-            keyData, 384
-        );
-        const dbuf = new Uint8Array(derived);
-        const encKey = dbuf.slice(0, 32);
-        const parts = ciphertext.split(':');
-        const iv = b64ToBuf(parts[0]);
-        const ct = b64ToBuf(parts[1]);
-        const aeadKey = await crypto.subtle.importKey("raw", encKey, { name: "AES-GCM" }, false, ["decrypt"]);
-        const adBytes = typeof associatedData === 'string' ? new TextEncoder().encode(associatedData) : associatedData;
-        const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv, additionalData: adBytes }, aeadKey, ct);
-        return new TextDecoder().decode(pt);
-    } catch (e) {
-        return null;
-    }
-}
-
-async function drGenerateDh() {
-    const pair = await crypto.subtle.generateKey(
-        { name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]
-    );
-    const priv = await crypto.subtle.exportKey("jwk", pair.privateKey);
-    const pub = await crypto.subtle.exportKey("jwk", pair.publicKey);
-    return { priv, pub };
-}
-
-async function drDh(dhPair, dhPub) {
-    const privKey = await crypto.subtle.importKey("jwk", dhPair.priv, { name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]);
-    const pubKey = await crypto.subtle.importKey("jwk", dhPub, { name: "ECDH", namedCurve: "P-256" }, true, []);
-    const bits = await crypto.subtle.deriveBits({ name: "ECDH", public: pubKey }, privKey, 256);
-    return bufToHex(new Uint8Array(bits));
-}
-
-// Ratchet state persistence
-function getRatchetStateKey(peerId) { return `meow_dr_state_${myUid}_${peerId}`; }
-
-function loadRatchetState(peerId) {
-    try {
-        const raw = localStorage.getItem(getRatchetStateKey(peerId));
-        if (raw) return JSON.parse(raw);
-    } catch (e) {}
-    return null;
-}
-
-function saveRatchetState(peerId, state) {
-    localStorage.setItem(getRatchetStateKey(peerId), JSON.stringify(state));
-}
-
-async function initRatchetAlice(peerId, skHex, bobDhPub) {
-    const dhs = await drGenerateDh();
-    const dhOut = await drDh(dhs, bobDhPub);
-    const { rootKey, chainKey } = await drKdfRk(skHex, dhOut);
-    const state = {
-        DHs: dhs,
-        DHr: bobDhPub,
-        RK: rootKey,
-        CKs: chainKey,
-        CKr: null,
-        Ns: 0,
-        Nr: 0,
-        PN: 0,
-        MKSKIPPED: {},
-        initialized: true,
-        isAlice: true
-    };
-    saveRatchetState(peerId, state);
-    return state;
-}
-
-async function initRatchetBob(peerId, skHex, bobDhPair) {
-    const state = {
-        DHs: bobDhPair,
-        DHr: null,
-        RK: skHex,
-        CKs: null,
-        CKr: null,
-        Ns: 0,
-        Nr: 0,
-        PN: 0,
-        MKSKIPPED: {},
-        initialized: true,
-        isAlice: false
-    };
-    saveRatchetState(peerId, state);
-    return state;
-}
-
-async function ratchetEncrypt(peerId, plaintext) {
-    let state = loadRatchetState(peerId);
-
-    // Initialize as Alice if no state (we are initiating the conversation)
-    if (!state || !state.initialized) {
-        let skHex = activeRoomSharedKey;
-        if (!skHex) {
-            const info = await getPeerCurrentKeyInfo(peerId, true);
-            if (info.pub) {
-                const kv = `${myKeyStore.current}_${info.ver || 'legacy'}`;
-                skHex = await getSharedKeyForKv(peerId, kv);
-            }
-        }
-        if (!skHex) return null;
-
-        // Try to get peer's ratchet pub
-        try {
-            const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/ratchetPub`));
-            if (snap.exists()) {
-                const peerPub = JSON.parse(snap.val());
-                state = await initRatchetAlice(peerId, skHex, peerPub);
-            } else {
-                // Peer hasn't published yet - fallback to AES
-                return null;
-            }
-        } catch (e) {
-            return null;
-        }
-    }
-
-    if (!state || !state.CKs) return null;
-
-    const { chainKey: newCKs, messageKey: mk } = await drKdfCk(state.CKs);
-    state.CKs = newCKs;
-    const Ns = state.Ns;
-    state.Ns += 1;
-
-    const header = {
-        dh: state.DHs.pub,
-        pn: state.PN,
-        n: Ns
-    };
-    const headerJson = JSON.stringify(header);
-
-    const ad = JSON.stringify({ peerId: peerId, sender: myUid });
-    const ciphertext = await drEncrypt(mk, plaintext, ad + headerJson);
-
-    saveRatchetState(peerId, state);
-
-    return {
-        header: header,
-        ciphertext: ciphertext,
-        ad: ad
-    };
-}
-
-async function ratchetDecrypt(peerId, header, ciphertext, ad) {
-    let state = loadRatchetState(peerId);
-
-    // Initialize from header if no state exists (first message from Alice)
-    if (!state || !state.initialized) {
-        state = await initRatchetFromHeader(peerId, header);
-        if (!state) return null;
-    }
-
-    const headerJson = JSON.stringify(header);
-    const adBytes = ad + headerJson;
-
-    const skipKey = `${JSON.stringify(header.dh)}_${header.n}`;
-    if (state.MKSKIPPED[skipKey]) {
-        const mk = state.MKSKIPPED[skipKey];
-        delete state.MKSKIPPED[skipKey];
-        saveRatchetState(peerId, state);
-        return await drDecrypt(mk, ciphertext, adBytes);
-    }
-
-    const dhChanged = !state.DHr || JSON.stringify(state.DHr) !== JSON.stringify(header.dh);
-
-    if (dhChanged) {
-        if (state.CKr && state.Nr < header.pn) {
-            while (state.Nr < header.pn) {
-                const { chainKey: newCKr, messageKey: mkSkip } = await drKdfCk(state.CKr);
-                state.CKr = newCKr;
-                state.MKSKIPPED[`${JSON.stringify(state.DHr)}_${state.Nr}`] = mkSkip;
-                state.Nr += 1;
-            }
-        }
-
-        state.PN = state.Ns;
-        state.Ns = 0;
-        state.Nr = 0;
-        state.DHr = header.dh;
-
-        const dhOut1 = await drDh(state.DHs, state.DHr);
-        const { rootKey: rk1, chainKey: ckr1 } = await drKdfRk(state.RK, dhOut1);
-        state.RK = rk1;
-        state.CKr = ckr1;
-
-        state.DHs = await drGenerateDh();
-        const dhOut2 = await drDh(state.DHs, state.DHr);
-        const { rootKey: rk2, chainKey: cks2 } = await drKdfRk(state.RK, dhOut2);
-        state.RK = rk2;
-        state.CKs = cks2;
-    }
-
-    if (state.CKr && state.Nr < header.n) {
-        while (state.Nr < header.n) {
-            const { chainKey: newCKr, messageKey: mkSkip } = await drKdfCk(state.CKr);
-            state.CKr = newCKr;
-            state.MKSKIPPED[`${JSON.stringify(state.DHr)}_${state.Nr}`] = mkSkip;
-            state.Nr += 1;
-        }
-    }
-
-    const { chainKey: newCKr, messageKey: mk } = await drKdfCk(state.CKr);
-    state.CKr = newCKr;
-    state.Nr += 1;
-
-    saveRatchetState(peerId, state);
-
-    return await drDecrypt(mk, ciphertext, adBytes);
-}
-
-async function initDoubleRatchetForPeer(peerId, forceAlice = false) {
-    if (peerId === myUid) return;
-
-    const existingState = loadRatchetState(peerId);
-    if (existingState && existingState.initialized) return existingState;
-
-    let skHex = null;
-    if (activeRoomSharedKey) {
-        skHex = activeRoomSharedKey;
-    } else {
-        const info = await getPeerCurrentKeyInfo(peerId, true);
-        if (info.pub) {
-            const kv = `${myKeyStore.current}_${info.ver || 'legacy'}`;
-            skHex = await getSharedKeyForKv(peerId, kv);
-        }
-    }
-
-    if (!skHex) return null;
-
-    try {
-        // Always publish our ratchet public key first
-        const myPair = await drGenerateDh();
-        await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/ratchetPub`), JSON.stringify(myPair.pub));
-
-        const snap = await window.fb.get(window.fb.ref(window.fb.db, `users/${peerId}/ratchetPub`));
-        if (snap.exists() && !forceAlice) {
-            // Peer has ratchet pub - we are Bob (responder)
-            const peerPub = JSON.parse(snap.val());
-            return await initRatchetBob(peerId, skHex, myPair);
-        } else {
-            // No peer ratchet pub yet - we are Alice (initiator), wait for peer
-            // Actually we should be Bob by default since we published our key
-            // But if forceAlice is true, we act as Alice using peer's key from somewhere
-            if (snap.exists() && forceAlice) {
-                const peerPub = JSON.parse(snap.val());
-                return await initRatchetAlice(peerId, skHex, peerPub);
-            }
-            return await initRatchetBob(peerId, skHex, myPair);
-        }
-    } catch (e) {
-        console.error("DR init error:", e);
-        return null;
-    }
-}
-
-// Initialize ratchet from received header (Bob receives first message from Alice)
-async function initRatchetFromHeader(peerId, header, skHex) {
-    if (!skHex) {
-        if (activeRoomSharedKey) skHex = activeRoomSharedKey;
-        else {
-            const info = await getPeerCurrentKeyInfo(peerId, true);
-            if (info.pub) {
-                const kv = `${myKeyStore.current}_${info.ver || 'legacy'}`;
-                skHex = await getSharedKeyForKv(peerId, kv);
-            }
-        }
-    }
-    if (!skHex) return null;
-
-    try {
-        const myPair = await drGenerateDh();
-        await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/ratchetPub`), JSON.stringify(myPair.pub));
-
-        const state = {
-            DHs: myPair,
-            DHr: header.dh,
-            RK: skHex,
-            CKs: null,
-            CKr: null,
-            Ns: 0,
-            Nr: 0,
-            PN: 0,
-            MKSKIPPED: {},
-            initialized: true,
-            isAlice: false
-        };
-
-        // First DH ratchet step with received header key
-        const dhOut = await drDh(myPair, header.dh);
-        const { rootKey, chainKey } = await drKdfRk(skHex, dhOut);
-        state.RK = rootKey;
-        state.CKr = chainKey;
-
-        saveRatchetState(peerId, state);
-        return state;
-    } catch (e) {
-        console.error("DR init from header error:", e);
-        return null;
-    }
-}
-
-async function publishRatchetPub() {
-    if (!myUid) return;
-    const state = loadRatchetState(myUid);
-    if (state && state.DHs) {
-        await window.fb.set(window.fb.ref(window.fb.db, `users/${myUid}/ratchetPub`), JSON.stringify(state.DHs.pub));
-    }
-}
-
-
-function getMyProfileKey() {
+        function getMyProfileKey() {
             let key = localStorage.getItem(`meow_prof_key_${myUid}`);
             if (!key) {
                 const entropy = CryptoJS.lib.WordArray.random(32).toString() + Date.now().toString() + (navigator.userAgent || '');
@@ -5091,10 +4810,6 @@ function getMyProfileKey() {
             }
             // Forward Secrecy: auto-rotate keys if older than 7 days
             await autoRotateKeysIfNeeded(peerId);
-            // Initialize Double Ratchet for this peer
-            if (peerId !== myUid) {
-                await initDoubleRatchetForPeer(peerId);
-            }
             loadActiveChatWallpaper();
 
             // TOFU verification on chat open
@@ -5419,6 +5134,23 @@ function getMyProfileKey() {
                         bubbleHtml += buildContactCardHtml(messageObject.contactShare);
                     } else if (messageObject.callLog) {
                         bubbleHtml += buildCallLogHtml(messageObject.callLog);
+                    } else if (messageObject.mediaCollage && messageObject.mediaCollage.length) {
+                        const items = messageObject.mediaCollage;
+                        const count = items.length;
+                        let cls = 'count-' + (count >= 6 ? '6plus' : count);
+                        let html = `<div class="msg-media-collage ${cls}">`;
+                        items.forEach((item, idx) => {
+                            const blobUrl = getCachedObjectUrl(msgId + '_c' + idx, item.data);
+                            const isVideo = item.type && item.type.startsWith('video/');
+                            const moreOverlay = (count > 6 && idx === 5) ? `<div class="collage-more-overlay">+${count - 6}</div>` : '';
+                            if (isVideo) {
+                                html += `<div class="collage-item" onclick="event.stopPropagation(); viewMediaFull('${escapeHTML(blobUrl)}', true, '${escapeHTML(msgId)}')"><video src="${escapeHTML(blobUrl)}" muted></video>${moreOverlay}</div>`;
+                            } else {
+                                html += `<div class="collage-item" onclick="event.stopPropagation(); viewMediaFull('${escapeHTML(blobUrl)}', false, '${escapeHTML(msgId)}')"><img src="${escapeHTML(blobUrl)}">${moreOverlay}</div>`;
+                            }
+                        });
+                        html += `</div>`;
+                        bubbleHtml += html;
                     } else if (messageObject.fileData) {
                         const blobUrl = getCachedObjectUrl(msgId, messageObject.fileData);
                         if (messageObject.fileType && messageObject.fileType.startsWith('video/')) {
@@ -5777,15 +5509,7 @@ function getMyProfileKey() {
                 if (sendSilentNext) messagePayload.silent = true;
                 const payloadJson = JSON.stringify(messagePayload);
                 const sig = await signPayload(payloadJson);
-
-                let finalString = null;
-                if (currentPeer && currentPeer !== myUid) {
-                    await initDoubleRatchetForPeer(currentPeer);
-                    const drResult = await ratchetEncrypt(currentPeer, payloadJson);
-                    if (drResult) finalString = "[DRAT]" + JSON.stringify(drResult);
-                }
-                if (!finalString) finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
-
+                const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
                 const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
                 const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
                 if (sig) dbPacket.sig = sig;
@@ -5801,15 +5525,7 @@ function getMyProfileKey() {
                 const payload = { text: txt };
                 const payloadJson = JSON.stringify(payload);
                 const sig = await signPayload(payloadJson);
-
-                let finalString = null;
-                if (currentPeer && currentPeer !== myUid) {
-                    await initDoubleRatchetForPeer(currentPeer);
-                    const drResult = await ratchetEncrypt(currentPeer, payloadJson);
-                    if (drResult) finalString = "[DRAT]" + JSON.stringify(drResult);
-                }
-                if (!finalString) finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
-
+                const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
                 const editId = editTargetMessageId;
                 cancelReply(); input.value = ""; input.style.height = "auto"; updateComposerButton();
                 clearActiveDraft();
@@ -5832,19 +5548,12 @@ function getMyProfileKey() {
 
             const payloadJson = JSON.stringify(messagePayload);
             const sig = await signPayload(payloadJson);
-
-            let finalString = null;
-            if (currentPeer && currentPeer !== myUid) {
-                await initDoubleRatchetForPeer(currentPeer);
-                const drResult = await ratchetEncrypt(currentPeer, payloadJson);
-                if (drResult) finalString = "[DRAT]" + JSON.stringify(drResult);
-            }
-            if (!finalString) finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
-
+            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
             const clientMsgId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv, clientMsgId };
             if (sig) dbPacket.sig = sig;
 
+            // Оптимистичная отправка: не ждём ответа сервера, UI обновится мгновенно через realtime-слушатель
             cancelReply();
             stopTypingImmediately();
             input.value = ""; input.style.height = "auto"; updateComposerButton();
@@ -5890,15 +5599,7 @@ function getMyProfileKey() {
             if (isBurnModeActive) payload.burnTime = Date.now() + burnDelayMs;
             const payloadJson = JSON.stringify(payload);
             const sig = await signPayload(payloadJson);
-
-            let finalString = null;
-            if (currentPeer && currentPeer !== myUid) {
-                await initDoubleRatchetForPeer(currentPeer);
-                const drResult = await ratchetEncrypt(currentPeer, payloadJson);
-                if (drResult) finalString = "[DRAT]" + JSON.stringify(drResult);
-            }
-            if (!finalString) finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
-
+            const finalString = "[MEOW]" + aesEncrypt(payloadJson, activeRoomSharedKey);
             const dbPacket = { sender: myUid, text: finalString, time: Date.now(), read: false, kv: activeRoomKv };
             if (sig) dbPacket.sig = sig;
             const nowTime = Date.now();
@@ -5906,18 +5607,6 @@ function getMyProfileKey() {
             await window.fb.update(window.fb.ref(window.fb.db, `users/${myUid}/chats/${currentPeer}`), { lastTime: nowTime });
             if (currentPeer !== myUid) await window.fb.update(window.fb.ref(window.fb.db, `users/${currentPeer}/chats/${myUid}`), { lastTime: nowTime });
         }
-        function handleMediaFilesSelected(files) {
-            if (!files || !files.length) return;
-            if (files.length === 1) {
-                compressAndSendMedia(files[0]);
-                return;
-            }
-            // Альбом: несколько фото с задержкой 300мс между отправками
-            for (let i = 0; i < files.length; i++) {
-                setTimeout(() => compressAndSendMedia(files[i]), i * 300);
-            }
-        }
-
 
         function toggleBurnMode() {
             if (suppressBurnClick) { suppressBurnClick = false; return; }
@@ -6270,34 +5959,7 @@ function getMyProfileKey() {
         };
 
         async function decryptMessageObject(peerId, rawText, kv, sig, senderId) {
-            if (!rawText) return null;
-
-            // Try Double Ratchet first
-            if (rawText.startsWith("[DRAT]")) {
-                try {
-                    const drPacket = JSON.parse(rawText.substring(6));
-                    if (drPacket.header && drPacket.ciphertext && drPacket.ad) {
-                        const decrypted = await ratchetDecrypt(peerId, drPacket.header, drPacket.ciphertext, drPacket.ad);
-                        if (decrypted) {
-                            const o = JSON.parse(decrypted);
-                            if (o && (o.text || o.fileData || o.isVoice || o.videoNote || o.sticker || o.animatedSticker || o.isDocument || o.contactShare || o.callLog)) {
-                                if (sig && senderId && senderId !== myUid) {
-                                    const valid = await verifySignature(senderId, null, decrypted, sig);
-                                    if (!valid) {
-                                        console.warn("Signature verification failed for DR message from", senderId);
-                                        return null;
-                                    }
-                                }
-                                return o;
-                            }
-                        }
-                    }
-                } catch (e) {}
-                return null;
-            }
-
-            // Fallback to legacy AES
-            if (!rawText.startsWith("[MEOW]")) return null;
+            if (!rawText || !rawText.startsWith("[MEOW]")) return null;
             const cipher = rawText.substring(6);
             const tryKeys = [];
             let usedKv = kv;
@@ -6331,6 +5993,7 @@ function getMyProfileKey() {
                 try {
                     const o = JSON.parse(plain);
                     if (o && (o.text || o.fileData || o.isVoice || o.videoNote || o.sticker || o.animatedSticker || o.isDocument || o.contactShare || o.callLog)) {
+                        // Verify ECDSA signature only for incoming messages (not our own)
                         if (sig && senderId && senderId !== myUid) {
                             let peerVer = null;
                             if (usedKv) {
@@ -6348,7 +6011,7 @@ function getMyProfileKey() {
                             const valid = await verifySignature(senderId, ver, plain, sig);
                             if (!valid) {
                                 console.warn("Signature verification failed for message from", senderId);
-                                return null;
+                                return null; // Reject tampered message
                             }
                         }
                         return o;
@@ -6526,10 +6189,50 @@ function getMyProfileKey() {
             document.getElementById(id).classList.remove('active');
         }
 
-        
-        // authAction moved to global scope
+        async function authAction() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const errorDiv = document.getElementById('auth-error');
+            const logDiv = document.getElementById('auth-log');
+            errorDiv.style.display = "none";
 
-        // logoutAction moved to global scope
+            if (!email || !password) {
+                errorDiv.innerText = "Заполните все поля!"; errorDiv.style.display = "block"; return;
+            }
+
+            if (logDiv) { logDiv.innerText = "⏳ Проверка аккаунта..."; logDiv.style.display = "block"; }
+
+            try {
+                if (logDiv) logDiv.innerText = "⏳ Вход в аккаунт...";
+                await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
+                if (logDiv) { logDiv.innerText = "✅ Успешный вход!"; logDiv.style.color = "var(--secure)"; }
+            } catch (err) {
+                if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential" || err.code === "auth/invalid-email") {
+                    if (logDiv) logDiv.innerText = "⏳ Аккаунт не найден, создаём новый...";
+                    try {
+                        await window.fb.createUserWithEmailAndPassword(window.fb.auth, email, password);
+                        if (logDiv) { logDiv.innerText = "✅ Аккаунт создан! Добро пожаловать!"; logDiv.style.color = "var(--secure)"; }
+                    } catch (regErr) {
+                        if (logDiv) { logDiv.innerText = "❌ Ошибка: " + regErr.message; logDiv.style.color = "var(--error)"; }
+                        errorDiv.innerText = regErr.message; errorDiv.style.display = "block";
+                    }
+                } else {
+                    if (logDiv) { logDiv.innerText = "❌ Ошибка: " + err.message; logDiv.style.color = "var(--error)"; }
+                    errorDiv.innerText = err.message; errorDiv.style.display = "block";
+                }
+            }
+        }
+        window.authAction = authAction;
+        window.authAction = authAction;
+
+        function logoutAction() {
+            if (confirm("Выйти из аккаунта?")) {
+                if (myUid) {
+                    goOffline();
+                }
+                window.fb.signOut(window.fb.auth);
+            }
+        }
 
         async function saveProfileSettings() {
             const name = document.getElementById('setting-name').value.trim();
@@ -9991,8 +9694,8 @@ function getMyProfileKey() {
             meowVibrate(6);
         }
 
-        // window.authAction moved to global scope
-        // window.logoutAction moved to global scope
+        window.authAction = authAction;
+        window.logoutAction = logoutAction;
         window.openCloudChat = openCloudChat;
         window.filterDialogsAndGlobalSearch = filterDialogsAndGlobalSearch;
         window.openModal = openModal;
