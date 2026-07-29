@@ -175,6 +175,41 @@
 
     <div class="toast-container" id="toastContainer"></div>
 <script>
+
+// ==================== CORS PROXY ====================
+// Telegram API blocks CORS in browsers. We use a proxy.
+const CORS_PROXY = "https://corsproxy.io/?";
+// Fallback proxies (tried in order if main fails)
+const FALLBACK_PROXIES = [
+    "https://api.allorigins.win/raw?url=",
+    "https://proxy.corsfix.com/?"
+];
+
+async function proxyFetch(url, options) {
+    // Try main proxy first
+    const proxies = [CORS_PROXY, ...FALLBACK_PROXIES];
+    let lastErr = null;
+    for (const proxy of proxies) {
+        try {
+            const proxyUrl = proxy + encodeURIComponent(url);
+            const res = await fetch(proxyUrl, options);
+            if (res.ok) return res;
+            // If proxy returns error but not network error, still return it
+            // (might be Telegram API error, not proxy error)
+            return res;
+        } catch(e) {
+            lastErr = e;
+            continue;
+        }
+    }
+    throw lastErr || new Error("All proxies failed");
+}
+
+// Helper for GET requests (no body)
+async function proxyGet(url) {
+    return proxyFetch(url, { method: "GET" });
+}
+
 // ==================== CONFIG ====================
 const LS_FILES = "tg_vault_v7";
 const LS_CFG = "tg_vault_cfg_v7";
@@ -288,7 +323,7 @@ async function resolveChatId() {
     }
     if (appConfig.botToken && (v.startsWith("@") || /^-?\d+$/.test(v))) {
         try {
-            const r = await fetch("https://api.telegram.org/bot" + appConfig.botToken + "/getChat?chat_id=" + encodeURIComponent(v));
+            const r = await proxyGet("https://api.telegram.org/bot" + appConfig.botToken + "/getChat?chat_id=" + encodeURIComponent(v));
             const d = await r.json();
             if (d.ok && d.result && d.result.id) { el.value = d.result.id; showToast("ID: " + d.result.id); return; }
         } catch(e) {}
@@ -372,7 +407,7 @@ async function uploadFile(fileBuf, fileName, cat, mime) {
     fd.append("chat_id", appConfig.chatId);
     fd.append("document", new Blob([enc]), "vault_" + Date.now() + ".bin");
     fd.append("caption", "#TG_VAULT");
-    const res = await fetch("https://api.telegram.org/bot" + appConfig.botToken + "/sendDocument", { method: "POST", body: fd });
+    const res = await proxyFetch("https://api.telegram.org/bot" + appConfig.botToken + "/sendDocument", { method: "POST", body: fd });
     const json = await res.json();
     setProgress(90);
     if (!json.ok) throw new Error(json.description || "Upload failed");
@@ -435,7 +470,7 @@ async function downloadAndDecrypt(fileItem) {
     // Step 1: getFile
     showToast("Getting file_path...");
     const gfUrl = "https://api.telegram.org/bot" + appConfig.botToken + "/getFile?file_id=" + encodeURIComponent(fileItem.fileId);
-    const gfRes = await fetch(gfUrl);
+    const gfRes = await proxyGet(gfUrl);
     const gfData = await gfRes.json();
     if (!gfData.ok) throw new Error("getFile: " + (gfData.description || "?"));
     if (!gfData.result || !gfData.result.file_path) throw new Error("getFile: no file_path");
@@ -444,7 +479,7 @@ async function downloadAndDecrypt(fileItem) {
     // Step 2: Download
     showToast("Downloading...");
     const dlUrl = "https://api.telegram.org/file/bot" + appConfig.botToken + "/" + filePath;
-    const dlRes = await fetch(dlUrl);
+    const dlRes = await proxyFetch(dlUrl);
     if (!dlRes.ok) throw new Error("Download HTTP " + dlRes.status);
     const encBuf = await dlRes.arrayBuffer();
 
@@ -551,7 +586,7 @@ async function syncToCloud() {
         fd.append("chat_id", appConfig.chatId);
         fd.append("document", new Blob([enc]), "index_" + Date.now() + ".bin");
         fd.append("caption", "#TG_VAULT_INDEX");
-        await fetch("https://api.telegram.org/bot" + appConfig.botToken + "/sendDocument", { method: "POST", body: fd });
+        await proxyFetch("https://api.telegram.org/bot" + appConfig.botToken + "/sendDocument", { method: "POST", body: fd });
     } catch(e) { console.error("syncToCloud", e); }
 }
 
@@ -560,7 +595,7 @@ async function syncFromCloud() {
     setProgress(30);
     showToast("Syncing...");
     try {
-        const res = await fetch("https://api.telegram.org/bot" + appConfig.botToken + "/getUpdates?allowed_updates=[\"message\",\"channel_post\"]&limit=100");
+        const res = await proxyGet("https://api.telegram.org/bot" + appConfig.botToken + "/getUpdates?allowed_updates=[\"message\",\"channel_post\"]&limit=100");
         const data = await res.json();
         setProgress(60);
         if (!data.ok) throw new Error(data.description || "API error");
@@ -570,10 +605,10 @@ async function syncFromCloud() {
             if (msg && msg.document && msg.caption && msg.caption.includes("#TG_VAULT_INDEX")) { idxMsg = msg; break; }
         }
         if (!idxMsg) { showToast("Index not found"); setProgress(0); return; }
-        const gf = await fetch("https://api.telegram.org/bot" + appConfig.botToken + "/getFile?file_id=" + idxMsg.document.file_id);
+        const gf = await proxyGet("https://api.telegram.org/bot" + appConfig.botToken + "/getFile?file_id=" + idxMsg.document.file_id);
         const gfData = await gf.json();
         if (!gfData.ok || !gfData.result || !gfData.result.file_path) throw new Error("getFile error");
-        const dl = await fetch("https://api.telegram.org/file/bot" + appConfig.botToken + "/" + gfData.result.file_path);
+        const dl = await proxyFetch("https://api.telegram.org/file/bot" + appConfig.botToken + "/" + gfData.result.file_path);
         const encBuf = await dl.arrayBuffer();
         setProgress(80);
         const dec = await decryptData(encBuf);
