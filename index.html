@@ -916,7 +916,7 @@
                 fd.append('document', new Blob([encrypted]), `vault_index_${Date.now()}.bin`);
                 fd.append('caption', `#TG_VAULT_INDEX`);
 
-                const res = await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/sendDocument`, { method: 'POST', body: fd });
+                const res = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/sendDocument`, { method: 'POST', body: fd });
                 const resJson = await res.json();
                 if (resJson.ok) {
                     showToast('Индекс синхронизирован с облаком');
@@ -939,7 +939,7 @@
             document.getElementById('progressContainer').style.width = '40%';
 
             try {
-                const res = await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/getUpdates?allowed_updates=["message","channel_post"]&limit=100`);
+                const res = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/getUpdates?allowed_updates=["message","channel_post"]&limit=100`);
                 const data = await res.json();
 
                 if (data.ok) {
@@ -953,11 +953,11 @@
                     }
 
                     if (indexMsg) {
-                        const fileRes = await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/getFile?file_id=${indexMsg.document.file_id}`);
+                        const fileRes = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/getFile?file_id=${indexMsg.document.file_id}`);
                         const fileData = await fileRes.json();
                         if (!fileData.ok) throw new Error("Не удалось получить файл индекса");
                         
-                        const blobRes = await fetchWithRetry(`https://api.telegram.org/file/bot${appConfig.botToken}/${fileData.result.file_path}`);
+                        const blobRes = await fetch(`https://api.telegram.org/file/bot${appConfig.botToken}/${fileData.result.file_path}`);
                         const arrayBuf = await blobRes.arrayBuffer();
 
                         let decrypted;
@@ -1022,7 +1022,7 @@
             formData.append('document', blob, `vault_block_${Date.now()}.bin`);
             formData.append('caption', `#TG_VAULT_E2EE`);
 
-            const res = await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/sendDocument`, {
+            const res = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/sendDocument`, {
                 method: 'POST',
                 body: formData
             });
@@ -1052,30 +1052,48 @@
         async function fetchAndDecryptFile(fileItem) {
             if (!fileItem || !fileItem.fileId) throw new Error("Некорректный элемент файла");
             if (!appConfig.botToken) throw new Error("Bot Token не настроен");
-            
+
             if (decryptedBlobCache[fileItem.fileId]) {
                 return decryptedBlobCache[fileItem.fileId];
             }
 
-            const resFile = await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/getFile?file_id=${fileItem.fileId}`);
-            const dataFile = await resFile.json();
-            if (!dataFile.ok) throw new Error("Файл не найден в Telegram: " + (dataFile.description || ""));
+            // Шаг 1: Получаем file_path через getFile
+            let filePath;
+            try {
+                const resFile = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/getFile?file_id=${fileItem.fileId}`);
+                const dataFile = await resFile.json();
+                if (!dataFile.ok) throw new Error("getFile: " + (dataFile.description || "Unknown error"));
+                if (!dataFile.result || !dataFile.result.file_path) throw new Error("getFile: file_path отсутствует");
+                filePath = dataFile.result.file_path;
+            } catch (e) {
+                throw new Error("Ошибка получения file_path: " + e.message);
+            }
 
-            const resBlob = await fetchWithRetry(`https://api.telegram.org/file/bot${appConfig.botToken}/${dataFile.result.file_path}`);
-            const encryptedArrayBuffer = await resBlob.arrayBuffer();
+            // Шаг 2: Скачиваем зашифрованный файл
+            let encryptedArrayBuffer;
+            try {
+                const resBlob = await fetch(`https://api.telegram.org/file/bot${appConfig.botToken}/${filePath}`);
+                if (!resBlob.ok) throw new Error("HTTP " + resBlob.status + " при скачивании файла");
+                encryptedArrayBuffer = await resBlob.arrayBuffer();
+            } catch (e) {
+                throw new Error("Ошибка скачивания файла: " + e.message);
+            }
 
+            // Шаг 3: Дешифруем
             let decrypted;
             try {
                 decrypted = await decryptPayload(encryptedArrayBuffer);
             } catch (decErr) {
-                throw new Error("Ошибка дешифрования файла: " + decErr.message);
+                throw new Error("Ошибка дешифрования: " + decErr.message);
             }
-            
+
+            // Шаг 4: Создаем Blob и URL
             const blob = new Blob([decrypted.fileBuffer], { type: decrypted.metadata.type || 'application/octet-stream' });
             const objectUrl = URL.createObjectURL(blob);
 
             const cacheObj = { metadata: decrypted.metadata, blob: blob, objectUrl: objectUrl };
 
+            // Управление кэшем
             const keys = Object.keys(decryptedBlobCache);
             if (keys.length >= MAX_CACHE_SIZE) {
                 const oldestKey = keys[0];
@@ -1090,41 +1108,67 @@
         async function downloadFileById(id) {
             const item = fileIndex.find(f => f && f.id === id);
             if (!item) {
-                showToast('Файл не найден в индексе');
+                showToast("Файл не найден");
                 return;
             }
 
             try {
-                showToast("Дешифрование...");
+                showToast("Скачивание и дешифрование...");
                 const res = await fetchAndDecryptFile(item);
+
+                const fileName = (res.metadata && res.metadata.name) ? res.metadata.name : 'downloaded_file';
+
+                // Для мобильных: используем navigator.share если доступен
+                if (navigator.share && res.blob) {
+                    try {
+                        const file = new File([res.blob], fileName, { type: res.blob.type });
+                        await navigator.share({ files: [file] });
+                        showToast("Файл отправлен!");
+                        return;
+                    } catch (shareErr) {
+                        // Fallback на обычное скачивание
+                    }
+                }
+
+                // Обычное скачивание через ссылку
                 const a = document.createElement('a');
                 a.href = res.objectUrl;
-                a.download = res.metadata.name;
+                a.download = fileName;
+                a.style.display = 'none';
+                document.body.appendChild(a);
                 a.click();
+                setTimeout(() => {
+                    if (a.parentNode) document.body.removeChild(a);
+                }, 100);
                 showToast("Файл скачан!");
             } catch(e) {
-                alert("Ошибка дешифрования: " + e.message);
+                alert("Ошибка: " + e.message);
             }
         }
 
         async function previewFileInModal(id) {
             const item = fileIndex.find(f => f && f.id === id);
             if (!item) {
-                showToast('Файл не найден в индексе');
+                showToast("Файл не найден в индексе");
                 return;
             }
 
             try {
-                showToast("Расшифровка...");
+                showToast("Скачивание из Telegram...");
                 const res = await fetchAndDecryptFile(item);
+
                 const stage = document.getElementById('viewerStage');
                 if (!stage) return;
                 stage.innerHTML = '';
 
                 const meta = res.metadata || {};
-                document.getElementById('viewerTitle').innerText = meta.name || 'Без названия';
-                document.getElementById('viewerMeta').innerText = `${formatBytes(meta.size || 0)} • ${meta.uploadDate || ''}`;
-                document.getElementById('viewerDownloadBtn').onclick = () => downloadFileById(id);
+                const viewerTitle = document.getElementById('viewerTitle');
+                const viewerMeta = document.getElementById('viewerMeta');
+                const viewerDownloadBtn = document.getElementById('viewerDownloadBtn');
+
+                if (viewerTitle) viewerTitle.innerText = meta.name || 'Без названия';
+                if (viewerMeta) viewerMeta.innerText = formatBytes(meta.size || 0) + ' • ' + (meta.uploadDate || '');
+                if (viewerDownloadBtn) viewerDownloadBtn.onclick = () => downloadFileById(id);
 
                 const cat = meta.category || 'doc';
                 const type = meta.type || '';
@@ -1133,42 +1177,66 @@
                     const img = document.createElement('img');
                     img.src = res.objectUrl;
                     img.style.maxWidth = '100%';
-                    img.style.maxHeight = '100%';
+                    img.style.maxHeight = '65vh';
+                    img.style.objectFit = 'contain';
+                    img.alt = meta.name || 'Image';
                     stage.appendChild(img);
                 } else if (cat === 'media' && type && type.startsWith('video/')) {
                     const video = document.createElement('video');
                     video.src = res.objectUrl;
                     video.controls = true;
-                    video.autoplay = true;
+                    video.autoplay = false;
                     video.style.maxWidth = '100%';
-                    video.style.maxHeight = '100%';
+                    video.style.maxHeight = '65vh';
+                    video.playsInline = true;
                     stage.appendChild(video);
                 } else if (cat === 'audio' || (type && type.startsWith('audio/'))) {
                     const audio = document.createElement('audio');
                     audio.src = res.objectUrl;
                     audio.controls = true;
-                    audio.autoplay = true;
+                    audio.style.width = '90%';
                     stage.appendChild(audio);
-                } else {
+                } else if (type && (type.startsWith('text/') || type === 'application/json' || type === 'application/javascript')) {
                     try {
                         const text = await res.blob.text();
                         const txtArea = document.createElement('textarea');
                         txtArea.readOnly = true;
                         txtArea.value = text;
+                        txtArea.style.width = '100%';
+                        txtArea.style.height = '250px';
+                        txtArea.style.background = '#000';
+                        txtArea.style.color = 'var(--accent-cyan)';
+                        txtArea.style.border = 'none';
+                        txtArea.style.padding = '12px';
+                        txtArea.style.fontFamily = 'monospace';
+                        txtArea.style.fontSize = '0.85rem';
+                        txtArea.style.outline = 'none';
                         stage.appendChild(txtArea);
                     } catch (txtErr) {
-                        const div = document.createElement('div');
-                        div.style.color = 'var(--text-sub)';
-                        div.style.padding = '20px';
-                        div.innerText = 'Невозможно отобразить содержимое этого файла в браузере. Используйте скачивание.';
-                        stage.appendChild(div);
+                        showBinaryFallback(stage, meta);
                     }
+                } else {
+                    showBinaryFallback(stage, meta);
                 }
 
                 openModal('modalViewer');
             } catch(e) {
-                alert('Ошибка просмотра: ' + e.message);
+                alert("Ошибка: " + e.message);
             }
+        }
+
+        function showBinaryFallback(stage, meta) {
+            const div = document.createElement('div');
+            div.style.color = 'var(--text-sub)';
+            div.style.padding = '40px 20px';
+            div.style.textAlign = 'center';
+            div.innerHTML = `
+                <div style="font-size: 3rem; margin-bottom: 16px;">&#128196;</div>
+                <div style="font-weight: 800; color: #fff; margin-bottom: 8px;">${meta.name || 'Файл'}</div>
+                <div style="font-size: 0.85rem; margin-bottom: 16px;">${formatBytes(meta.size || 0)} • ${meta.type || 'unknown'}</div>
+                <div style="font-size: 0.75rem;">Этот тип файла нельзя просмотреть в браузере.<br>Используйте кнопку Скачать.</div>
+            `;
+            stage.appendChild(div);
         }
 
         // --- NOTE CREATION ---
