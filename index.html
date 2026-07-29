@@ -3,1501 +3,673 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TG Vault Ultra - Fast E2EE Cloud Storage</title>
-    <!-- Lucide Icons CDN -->
+    <title>TG Vault Ultra - E2EE Cloud Storage</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root {
-            --bg-dark: #020205;
-            --bg-card: #080810;
-            --bg-panel: #10101a;
-            --bg-input: #161624;
-            --border: #222238;
-            --accent-cyan: #00f0ff;
-            --accent-purple: #a855f7;
-            --accent-pink: #ec4899;
-            --accent-green: #10b981;
-            --accent-gold: #f59e0b;
-            --accent-red: #ef4444;
-            --text-main: #ffffff;
-            --text-sub: #94a3b8;
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --radius-sm: 8px;
-            --safe-top: env(safe-area-inset-top, 0px);
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-            --safe-left: env(safe-area-inset-left, 0px);
-            --safe-right: env(safe-area-inset-right, 0px);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
-            touch-action: manipulation;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100dvh;
-            overflow: hidden;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-        }
-
-        /* Top Progress Indicator */
-        #progressContainer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 0%;
-            height: 3px;
-            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
-            transition: width 0.2s ease;
-            z-index: 9999;
-        }
-
-        .app-shell {
-            display: flex;
-            height: 100dvh;
-            width: 100vw;
-            overflow: hidden;
-            padding-top: var(--safe-top);
-            padding-bottom: var(--safe-bottom);
-            padding-left: var(--safe-left);
-            padding-right: var(--safe-right);
-            position: relative;
-        }
-
-        /* Sidebar Backdrop Overlay */
-        .sidebar-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(8px);
-            z-index: 80;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
-
-        /* Sidebar Drawer */
-        aside {
-            width: 270px;
-            background: var(--bg-card);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-            gap: 16px;
-            flex-shrink: 0;
-            z-index: 90;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @media (max-width: 768px) {
-            aside {
-                position: fixed;
-                inset: 0 auto 0 0;
-                transform: translateX(-100%);
-                box-shadow: 10px 0 30px rgba(0,0,0,0.8);
-            }
-            aside.open { transform: translateX(0); }
-        }
-
-        .brand-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .brand-logo-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .brand-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: var(--radius-md);
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #000;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
-        }
-
-        .brand-title { font-size: 1.05rem; font-weight: 800; color: #ffffff; }
-        .brand-subtitle { font-size: 0.62rem; color: var(--accent-green); font-weight: 700; letter-spacing: 0.5px; }
-
-        .close-sidebar-btn {
-            display: none;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            color: var(--text-sub);
-            width: 32px;
-            height: 32px;
-            border-radius: var(--radius-sm);
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        @media (max-width: 768px) { .close-sidebar-btn { display: flex; } }
-
-        .nav-group { display: flex; flex-direction: column; gap: 4px; }
-        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; padding-left: 8px; }
-
-        .nav-btn {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            border-radius: var(--radius-md);
-            color: var(--text-sub);
-            font-size: 0.82rem;
-            font-weight: 700;
-            background: transparent;
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-            width: 100%;
-        }
-        .nav-btn:hover { background: var(--bg-panel); color: #ffffff; }
-        .nav-btn.active { background: rgba(255, 255, 255, 0.08); color: #ffffff; border-color: rgba(255, 255, 255, 0.2); }
-        .nav-btn .badge { margin-left: auto; font-size: 0.7rem; background: var(--bg-input); padding: 2px 8px; border-radius: 10px; color: var(--text-sub); }
-
-        .storage-box {
-            margin-top: auto;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .storage-header { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 800; }
-        .progress-bar { height: 6px; background: var(--bg-input); border-radius: 3px; overflow: hidden; }
-        .progress-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple)); }
-
-        /* Main Viewport Workspace */
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background: var(--bg-dark);
-            position: relative;
-        }
-
-        header {
-            height: 58px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            gap: 12px;
-            background: rgba(8, 8, 16, 0.9);
-            backdrop-filter: blur(16px);
-            z-index: 40;
-            flex-shrink: 0;
-        }
-
-        .mobile-toggle-btn {
-            display: none;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            color: #fff;
-            padding: 8px;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        @media (max-width: 768px) { .mobile-toggle-btn { display: flex; } }
-
-        .search-container { flex: 1; max-width: 400px; position: relative; }
-        .search-container input {
-            width: 100%;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 9px 12px 9px 36px;
-            color: #fff;
-            font-size: 0.82rem;
-            outline: none;
-        }
-        .search-container input:focus { border-color: #ffffff; }
-        .search-container i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-sub); width: 16px; }
-
-        .header-btns { display: flex; gap: 8px; align-items: center; }
-
-        .btn {
-            padding: 8px 14px;
-            border-radius: var(--radius-md);
-            font-size: 0.78rem;
-            font-weight: 800;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .btn-glow { background: linear-gradient(135deg, #ffffff, var(--accent-cyan)); color: #000; box-shadow: 0 0 12px rgba(255, 255, 255, 0.3); }
-        .btn-glow:active { transform: scale(0.95); }
-        .btn-dark { background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main); }
-
-        .viewport-scroll {
-            flex: 1;
-            padding: 16px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .drop-zone {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            text-align: center;
-            background: rgba(16, 16, 26, 0.5);
-            transition: all 0.2s;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-        .drop-zone.dragover { border-color: var(--accent-cyan); background: rgba(0, 240, 255, 0.08); }
-        .drop-icon { width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); color: #ffffff; display: flex; align-items: center; justify-content: center; }
-
-        .section-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 800; color: var(--text-main); }
-
-        .folders-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
-        .folder-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 10px 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .folder-card:hover { border-color: #ffffff; transform: translateY(-2px); }
-        .folder-icon { color: var(--accent-gold); }
-
-        .files-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-        .file-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            position: relative;
-            transition: all 0.2s;
-        }
-        .file-card:hover { border-color: #ffffff; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
-
-        .file-top-row { display: flex; align-items: center; justify-content: space-between; }
-        .file-icon-badge { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--bg-panel); display: flex; align-items: center; justify-content: center; color: #ffffff; }
-        .file-actions { display: flex; gap: 4px; }
-        .icon-btn { width: 28px; height: 28px; border-radius: 6px; background: transparent; border: none; color: var(--text-sub); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-        .icon-btn:hover { background: var(--bg-panel); color: #fff; }
-        .icon-btn.danger:hover { color: var(--accent-red); }
-
-        .file-title { font-size: 0.82rem; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-        .file-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; color: var(--text-sub); }
-        .lock-badge { font-size: 0.62rem; color: var(--accent-green); background: rgba(16, 185, 129, 0.15); padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; font-weight: 700; }
-
-        /* Modals */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(12px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            padding: 16px;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            width: 100%;
-            max-width: 520px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            max-height: 90dvh;
-            overflow-y: auto;
-        }
-        .modal-title { font-size: 1.05rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
-
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-group label { font-size: 0.75rem; font-weight: 800; color: var(--text-sub); }
-        .form-control { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; color: #fff; font-size: 0.85rem; outline: none; }
-        .form-control:focus { border-color: #ffffff; }
-        .hint { font-size: 0.68rem; color: var(--text-sub); line-height: 1.4; }
-
-        /* Viewer */
-        .viewer-stage { width: 100%; max-height: 65vh; display: flex; align-items: center; justify-content: center; background: #000; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); }
-        .viewer-stage img, .viewer-stage video { max-width: 100%; max-height: 65vh; object-fit: contain; }
-        .viewer-stage audio { width: 90%; margin: 20px 0; }
-        .viewer-stage textarea { width: 100%; height: 250px; background: #000; color: var(--accent-cyan); border: none; padding: 12px; font-family: monospace; font-size: 0.85rem; outline: none; }
-
-        /* Toast Notifications */
-        .toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 300; pointer-events: none; }
-        .toast { background: var(--bg-panel); border: 1px solid #ffffff; color: #fff; padding: 10px 16px; border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 800; box-shadow: 0 4px 20px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 8px; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        :root { --bg-dark:#020205; --bg-card:#080810; --bg-panel:#10101a; --bg-input:#161624; --border:#222238; --accent-cyan:#00f0ff; --accent-purple:#a855f7; --accent-pink:#ec4899; --accent-green:#10b981; --accent-gold:#f59e0b; --accent-red:#ef4444; --text-main:#ffffff; --text-sub:#94a3b8; --radius-lg:16px; --radius-md:12px; --radius-sm:8px; --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px); }
+        * { box-sizing:border-box; margin:0; padding:0; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; touch-action:manipulation; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif; }
+        html,body { width:100%; height:100dvh; overflow:hidden; background:var(--bg-dark); color:var(--text-main); }
+        #progressContainer { position:fixed; top:0; left:0; width:0%; height:3px; background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple)); transition:width 0.2s ease; z-index:9999; }
+        .app-shell { display:flex; height:100dvh; width:100vw; overflow:hidden; padding-top:var(--safe-top); padding-bottom:var(--safe-bottom); position:relative; }
+        .sidebar-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); z-index:80; opacity:0; pointer-events:none; transition:opacity 0.3s ease; }
+        .sidebar-backdrop.active { opacity:1; pointer-events:auto; }
+        aside { width:270px; background:var(--bg-card); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:16px; gap:16px; flex-shrink:0; z-index:90; transition:transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+        @media(max-width:768px){ aside{position:fixed;inset:0 auto 0 0;transform:translateX(-100%);box-shadow:10px 0 30px rgba(0,0,0,0.8);} aside.open{transform:translateX(0);} }
+        .brand-box { display:flex; align-items:center; justify-content:space-between; }
+        .brand-logo-title { display:flex; align-items:center; gap:10px; }
+        .brand-icon { width:38px; height:38px; border-radius:var(--radius-md); background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple)); display:flex; align-items:center; justify-content:center; color:#000; box-shadow:0 0 15px rgba(0,240,255,0.4); }
+        .brand-title { font-size:1.05rem; font-weight:800; }
+        .brand-subtitle { font-size:0.62rem; color:var(--accent-green); font-weight:700; letter-spacing:0.5px; }
+        .close-sidebar-btn { display:none; background:var(--bg-panel); border:1px solid var(--border); color:var(--text-sub); width:32px; height:32px; border-radius:var(--radius-sm); align-items:center; justify-content:center; cursor:pointer; }
+        @media(max-width:768px){ .close-sidebar-btn{display:flex;} }
+        .nav-group { display:flex; flex-direction:column; gap:4px; }
+        .nav-label { font-size:0.65rem; font-weight:800; color:var(--text-sub); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px; padding-left:8px; }
+        .nav-btn { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--radius-md); color:var(--text-sub); font-size:0.82rem; font-weight:700; background:transparent; border:1px solid transparent; cursor:pointer; transition:all 0.2s; text-align:left; width:100%; }
+        .nav-btn:hover { background:var(--bg-panel); color:#fff; }
+        .nav-btn.active { background:rgba(255,255,255,0.08); color:#fff; border-color:rgba(255,255,255,0.2); }
+        .nav-btn .badge { margin-left:auto; font-size:0.7rem; background:var(--bg-input); padding:2px 8px; border-radius:10px; color:var(--text-sub); }
+        .storage-box { margin-top:auto; background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px; display:flex; flex-direction:column; gap:8px; }
+        .storage-header { display:flex; justify-content:space-between; font-size:0.75rem; font-weight:800; }
+        .progress-bar { height:6px; background:var(--bg-input); border-radius:3px; overflow:hidden; }
+        .progress-fill { height:100%; width:100%; background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple)); }
+        main { flex:1; display:flex; flex-direction:column; overflow:hidden; background:var(--bg-dark); position:relative; }
+        header { height:58px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 16px; gap:12px; background:rgba(8,8,16,0.9); backdrop-filter:blur(16px); z-index:40; flex-shrink:0; }
+        .mobile-toggle-btn { display:none; background:var(--bg-panel); border:1px solid var(--border); color:#fff; padding:8px; border-radius:var(--radius-md); cursor:pointer; flex-shrink:0; }
+        @media(max-width:768px){ .mobile-toggle-btn{display:flex;} }
+        .search-container { flex:1; max-width:400px; position:relative; }
+        .search-container input { width:100%; background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-md); padding:9px 12px 9px 36px; color:#fff; font-size:0.82rem; outline:none; }
+        .search-container input:focus { border-color:#fff; }
+        .search-container i { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-sub); width:16px; }
+        .header-btns { display:flex; gap:8px; align-items:center; }
+        .btn { padding:8px 14px; border-radius:var(--radius-md); font-size:0.78rem; font-weight:800; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.2s; white-space:nowrap; }
+        .btn-glow { background:linear-gradient(135deg,#fff,var(--accent-cyan)); color:#000; box-shadow:0 0 12px rgba(255,255,255,0.3); }
+        .btn-glow:active { transform:scale(0.95); }
+        .btn-dark { background:var(--bg-panel); border:1px solid var(--border); color:var(--text-main); }
+        .viewport-scroll { flex:1; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; }
+        .drop-zone { border:2px dashed var(--border); border-radius:var(--radius-lg); padding:20px; text-align:center; background:rgba(16,16,26,0.5); transition:all 0.2s; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; }
+        .drop-zone.dragover { border-color:var(--accent-cyan); background:rgba(0,240,255,0.08); }
+        .drop-icon { width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.1); color:#fff; display:flex; align-items:center; justify-content:center; }
+        .section-header { display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; font-weight:800; }
+        .folders-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
+        .folder-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:10px 12px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:all 0.2s; }
+        .folder-card:hover { border-color:#fff; transform:translateY(-2px); }
+        .folder-icon { color:var(--accent-gold); }
+        .files-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+        .file-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:12px; display:flex; flex-direction:column; gap:8px; position:relative; transition:all 0.2s; }
+        .file-card:hover { border-color:#fff; box-shadow:0 4px 20px rgba(0,0,0,0.6); }
+        .file-top-row { display:flex; align-items:center; justify-content:space-between; }
+        .file-icon-badge { width:32px; height:32px; border-radius:var(--radius-sm); background:var(--bg-panel); display:flex; align-items:center; justify-content:center; color:#fff; }
+        .file-actions { display:flex; gap:4px; }
+        .icon-btn { width:28px; height:28px; border-radius:6px; background:transparent; border:none; color:var(--text-sub); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+        .icon-btn:hover { background:var(--bg-panel); color:#fff; }
+        .icon-btn.danger:hover { color:var(--accent-red); }
+        .file-title { font-size:0.82rem; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+        .file-footer { display:flex; justify-content:space-between; align-items:center; font-size:0.68rem; color:var(--text-sub); }
+        .lock-badge { font-size:0.62rem; color:var(--accent-green); background:rgba(16,185,129,0.15); padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px; font-weight:700; }
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); display:none; align-items:center; justify-content:center; z-index:200; padding:16px; }
+        .modal-overlay.active { display:flex; }
+        .modal-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); width:100%; max-width:520px; padding:20px; display:flex; flex-direction:column; gap:14px; box-shadow:0 10px 40px rgba(0,0,0,0.8); max-height:90dvh; overflow-y:auto; }
+        .modal-title { font-size:1.05rem; font-weight:800; display:flex; justify-content:space-between; align-items:center; }
+        .form-group { display:flex; flex-direction:column; gap:6px; }
+        .form-group label { font-size:0.75rem; font-weight:800; color:var(--text-sub); }
+        .form-control { width:100%; background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-md); padding:10px 12px; color:#fff; font-size:0.85rem; outline:none; }
+        .form-control:focus { border-color:#fff; }
+        .hint { font-size:0.68rem; color:var(--text-sub); line-height:1.4; }
+        .viewer-stage { width:100%; max-height:65vh; display:flex; align-items:center; justify-content:center; background:#000; border-radius:var(--radius-md); overflow:hidden; border:1px solid var(--border); }
+        .viewer-stage img, .viewer-stage video { max-width:100%; max-height:65vh; object-fit:contain; }
+        .viewer-stage audio { width:90%; margin:20px 0; }
+        .viewer-stage textarea { width:100%; height:250px; background:#000; color:var(--accent-cyan); border:none; padding:12px; font-family:monospace; font-size:0.85rem; outline:none; }
+        .toast-container { position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:8px; z-index:300; pointer-events:none; }
+        .toast { background:var(--bg-panel); border:1px solid #fff; color:#fff; padding:10px 16px; border-radius:var(--radius-md); font-size:0.8rem; font-weight:800; box-shadow:0 4px 20px rgba(0,0,0,0.6); display:flex; align-items:center; gap:8px; animation:fadeIn 0.3s ease; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
     </style>
 </head>
 <body>
-
     <div id="progressContainer"></div>
-
     <div class="app-shell">
         <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
-
-        <!-- SIDEBAR DRAWER -->
         <aside id="sidebarDrawer">
             <div class="brand-box">
                 <div class="brand-logo-title">
                     <div class="brand-icon"><i data-lucide="shield-check"></i></div>
-                    <div>
-                        <div class="brand-title">TG Vault Cloud</div>
-                        <div class="brand-subtitle">Fast & Portable E2EE</div>
-                    </div>
+                    <div><div class="brand-title">TG Vault Cloud</div><div class="brand-subtitle">Fast & Portable E2EE</div></div>
                 </div>
                 <button class="close-sidebar-btn" onclick="closeSidebar()"><i data-lucide="x"></i></button>
             </div>
-
             <div class="nav-group">
-                <div class="nav-label">Хранилище</div>
-                <button class="nav-btn active" id="nav-all" onclick="filterCategory('all', event)">
-                    <i data-lucide="hard-drive"></i> Все Файлы
-                    <span class="badge" id="countAll">0</span>
-                </button>
-                <button class="nav-btn" id="nav-doc" onclick="filterCategory('doc', event)">
-                    <i data-lucide="file-text"></i> Документы
-                    <span class="badge" id="countDoc">0</span>
-                </button>
-                <button class="nav-btn" id="nav-media" onclick="filterCategory('media', event)">
-                    <i data-lucide="image"></i> Фото и Видео
-                    <span class="badge" id="countMedia">0</span>
-                </button>
-                <button class="nav-btn" id="nav-audio" onclick="filterCategory('audio', event)">
-                    <i data-lucide="music"></i> Аудио
-                    <span class="badge" id="countAudio">0</span>
-                </button>
-                <button class="nav-btn" id="nav-note" onclick="filterCategory('note', event)">
-                    <i data-lucide="notebook"></i> Заметки
-                    <span class="badge" id="countNote">0</span>
-                </button>
+                <div class="nav-label">Storage</div>
+                <button class="nav-btn active" id="nav-all" onclick="filterCategory('all',event)"><i data-lucide="hard-drive"></i> All Files <span class="badge" id="countAll">0</span></button>
+                <button class="nav-btn" id="nav-doc" onclick="filterCategory('doc',event)"><i data-lucide="file-text"></i> Documents <span class="badge" id="countDoc">0</span></button>
+                <button class="nav-btn" id="nav-media" onclick="filterCategory('media',event)"><i data-lucide="image"></i> Media <span class="badge" id="countMedia">0</span></button>
+                <button class="nav-btn" id="nav-audio" onclick="filterCategory('audio',event)"><i data-lucide="music"></i> Audio <span class="badge" id="countAudio">0</span></button>
+                <button class="nav-btn" id="nav-note" onclick="filterCategory('note',event)"><i data-lucide="notebook"></i> Notes <span class="badge" id="countNote">0</span></button>
             </div>
-
             <div class="nav-group">
-                <div class="nav-label">Синхронизация</div>
-                <button class="nav-btn" onclick="syncIndexFromCloud()">
-                    <i data-lucide="cloud-download"></i> Восстановить индекс
-                </button>
-                <button class="nav-btn" onclick="openModal('modalSettings')">
-                    <i data-lucide="settings"></i> Токен & Chat ID
-                </button>
+                <div class="nav-label">Sync</div>
+                <button class="nav-btn" onclick="syncFromCloud()"><i data-lucide="cloud-download"></i> Restore Index</button>
+                <button class="nav-btn" onclick="openModal('modalSettings')"><i data-lucide="settings"></i> Token & Chat ID</button>
             </div>
-
             <div class="storage-box">
-                <div class="storage-header">
-                    <span>Безлимитно TG</span>
-                    <span style="color:var(--accent-green);">Активно</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
-                </div>
-                <div style="font-size: 0.65rem; color: var(--text-sub);">Мгновенный локальный кэш + облачный бекап индекса</div>
+                <div class="storage-header"><span>Unlimited TG</span><span style="color:var(--accent-green)">Active</span></div>
+                <div class="progress-bar"><div class="progress-fill"></div></div>
+                <div style="font-size:0.65rem;color:var(--text-sub)">Local cache + cloud backup</div>
             </div>
         </aside>
-
-        <!-- MAIN VIEWPORT -->
         <main>
             <header>
-                <button class="mobile-toggle-btn" onclick="toggleSidebar()">
-                    <i data-lucide="menu"></i>
-                </button>
-
-                <div class="search-container">
-                    <i data-lucide="search"></i>
-                    <input type="text" id="searchInput" placeholder="Поиск зашифрованных файлов..." oninput="handleSearch(this.value)">
-                </div>
-
+                <button class="mobile-toggle-btn" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+                <div class="search-container"><i data-lucide="search"></i><input type="text" id="searchInput" placeholder="Search..." oninput="handleSearch(this.value)"></div>
                 <div class="header-btns">
-                    <button class="btn btn-dark" onclick="openModal('modalNote')">
-                        <i data-lucide="plus-circle"></i> Заметка
-                    </button>
-                    <button class="btn btn-glow" onclick="triggerFileUpload()">
-                        <i data-lucide="upload"></i> Загрузить
-                    </button>
-                    <input type="file" id="fileInput" multiple style="display: none;" onchange="handleFileSelect(event)">
+                    <button class="btn btn-dark" onclick="openModal('modalNote')"><i data-lucide="plus-circle"></i> Note</button>
+                    <button class="btn btn-glow" onclick="triggerFileUpload()"><i data-lucide="upload"></i> Upload</button>
+                    <input type="file" id="fileInput" multiple style="display:none" onchange="handleFileSelect(event)">
                 </div>
             </header>
-
             <div class="viewport-scroll">
                 <div class="drop-zone" id="dropZone" onclick="triggerFileUpload()">
                     <div class="drop-icon"><i data-lucide="cloud-upload"></i></div>
-                    <div>
-                        <div style="font-size:0.88rem; font-weight:800; color:#fff;">Перетащите файлы сюда или нажмите для загрузки</div>
-                        <div style="font-size:0.72rem; color:var(--text-sub); margin-top:2px;">Кэширование ключей (0ms lag) • Защита от F5 • Вычисление ID t.me/c/...</div>
-                    </div>
+                    <div><div style="font-size:0.88rem;font-weight:800;color:#fff">Drop files here or click to upload</div><div style="font-size:0.72rem;color:var(--text-sub);margin-top:2px">AES-256-GCM + HMAC-SHA256 - 600K PBKDF2</div></div>
                 </div>
-
-                <div class="section-header">
-                    <span>Категории Хранилища</span>
-                </div>
-
+                <div class="section-header"><span>Categories</span></div>
                 <div class="folders-row">
-                    <div class="folder-card" onclick="filterCategoryCard('doc')">
-                        <i data-lucide="folder" class="folder-icon"></i>
-                        <div style="overflow:hidden;">
-                            <div style="font-size:0.8rem; font-weight:800;">Документы</div>
-                            <div style="font-size:0.65rem; color:var(--text-sub);" id="subDoc">0 файлов</div>
-                        </div>
-                    </div>
-                    <div class="folder-card" onclick="filterCategoryCard('media')">
-                        <i data-lucide="folder" class="folder-icon" style="color:var(--accent-cyan);"></i>
-                        <div style="overflow:hidden;">
-                            <div style="font-size:0.8rem; font-weight:800;">Медиафайлы</div>
-                            <div style="font-size:0.65rem; color:var(--text-sub);" id="subMedia">0 файлов</div>
-                        </div>
-                    </div>
-                    <div class="folder-card" onclick="filterCategoryCard('audio')">
-                        <i data-lucide="folder" class="folder-icon" style="color:var(--accent-pink);"></i>
-                        <div style="overflow:hidden;">
-                            <div style="font-size:0.8rem; font-weight:800;">Аудио & Музыка</div>
-                            <div style="font-size:0.65rem; color:var(--text-sub);" id="subAudio">0 файлов</div>
-                        </div>
-                    </div>
-                    <div class="folder-card" onclick="filterCategoryCard('note')">
-                        <i data-lucide="folder" class="folder-icon" style="color:var(--accent-purple);"></i>
-                        <div style="overflow:hidden;">
-                            <div style="font-size:0.8rem; font-weight:800;">Заметки</div>
-                            <div style="font-size:0.65rem; color:var(--text-sub);" id="subNote">0 заметок</div>
-                        </div>
-                    </div>
+                    <div class="folder-card" onclick="filterCategoryCard('doc')"><i data-lucide="folder" class="folder-icon"></i><div style="overflow:hidden"><div style="font-size:0.8rem;font-weight:800">Documents</div><div style="font-size:0.65rem;color:var(--text-sub)" id="subDoc">0</div></div></div>
+                    <div class="folder-card" onclick="filterCategoryCard('media')"><i data-lucide="folder" class="folder-icon" style="color:var(--accent-cyan)"></i><div style="overflow:hidden"><div style="font-size:0.8rem;font-weight:800">Media</div><div style="font-size:0.65rem;color:var(--text-sub)" id="subMedia">0</div></div></div>
+                    <div class="folder-card" onclick="filterCategoryCard('audio')"><i data-lucide="folder" class="folder-icon" style="color:var(--accent-pink)"></i><div style="overflow:hidden"><div style="font-size:0.8rem;font-weight:800">Audio</div><div style="font-size:0.65rem;color:var(--text-sub)" id="subAudio">0</div></div></div>
+                    <div class="folder-card" onclick="filterCategoryCard('note')"><i data-lucide="folder" class="folder-icon" style="color:var(--accent-purple)"></i><div style="overflow:hidden"><div style="font-size:0.8rem;font-weight:800">Notes</div><div style="font-size:0.65rem;color:var(--text-sub)" id="subNote">0</div></div></div>
                 </div>
-
-                <div class="section-header">
-                    <span id="categoryTitle">Зашифрованные Файлы</span>
-                </div>
-
+                <div class="section-header"><span id="categoryTitle">Encrypted Files</span></div>
                 <div class="files-grid" id="filesGrid"></div>
             </div>
         </main>
     </div>
 
-    <!-- MODAL 1: SETTINGS / TELEGRAM BOT CONNECT -->
     <div class="modal-overlay" id="modalSettings">
         <div class="modal-card">
-            <div class="modal-title">
-                <span>Подключение Telegram & Пароль</span>
-                <button class="icon-btn" onclick="closeModal('modalSettings')"><i data-lucide="x"></i></button>
-            </div>
-
-            <div class="form-group">
-                <label>Telegram Bot Token:</label>
-                <input type="password" class="form-control" id="cfgToken" placeholder="1234567890:ABCdefGHIjklMNOpqrsTUVwxyZ">
-            </div>
-
-            <div class="form-group">
-                <label>Chat ID / Ссылка на Группу (t.me/c/3809402771/558):</label>
-                <div style="display:flex; gap:6px;">
-                    <input type="text" class="form-control" id="cfgChatId" placeholder="https://t.me/c/3809402771/558 или -1003809402771">
-                    <button class="btn btn-dark" style="white-space:nowrap;" onclick="resolveAndCalculateChatId()">
-                        <i data-lucide="wand-2"></i> Вычислить ID
-                    </button>
-                </div>
-                <div class="hint">Поддерживает ссылки t.me/c/... (автоматически добавляет префикс -100).</div>
-            </div>
-
-            <div class="form-group">
-                <label>Мастер-Пароль Шифрования (Мастер-Ключ):</label>
-                <input type="password" class="form-control" id="cfgMasterPassword" placeholder="Введите мастер-пароль">
-                <div class="hint">Пароль защищен 600,000 итерациями PBKDF2 + HKDF.</div>
-            </div>
-
-            <button class="btn btn-glow" style="justify-content:center; margin-top:6px;" onclick="saveSettings()">
-                <i data-lucide="check"></i> Подключить и Восстановить
-            </button>
+            <div class="modal-title"><span>Settings</span><button class="icon-btn" onclick="closeModal('modalSettings')"><i data-lucide="x"></i></button></div>
+            <div class="form-group"><label>Bot Token:</label><input type="password" class="form-control" id="cfgToken" placeholder="1234567890:ABC..."></div>
+            <div class="form-group"><label>Chat ID:</label><div style="display:flex;gap:6px"><input type="text" class="form-control" id="cfgChatId" placeholder="-100... or t.me/c/..."><button class="btn btn-dark" style="white-space:nowrap" onclick="resolveChatId()"><i data-lucide="wand-2"></i></button></div><div class="hint">t.me/c/12345 auto converts to -10012345</div></div>
+            <div class="form-group"><label>Master Password:</label><input type="password" class="form-control" id="cfgMasterPassword" placeholder="Password"></div>
+            <button class="btn btn-glow" style="justify-content:center;margin-top:6px" onclick="saveSettings()"><i data-lucide="check"></i> Connect</button>
         </div>
     </div>
 
-    <!-- MODAL 2: NEW NOTE -->
     <div class="modal-overlay" id="modalNote">
         <div class="modal-card">
-            <div class="modal-title">
-                <span>Создать Зашифрованную Заметку</span>
-                <button class="icon-btn" onclick="closeModal('modalNote')"><i data-lucide="x"></i></button>
-            </div>
-
-            <div class="form-group">
-                <label>Название заметки:</label>
-                <input type="text" class="form-control" id="noteTitle" placeholder="Секретные пароли или мысли...">
-            </div>
-
-            <div class="form-group">
-                <label>Текст заметки:</label>
-                <textarea class="form-control" id="noteBody" style="min-height:160px;" placeholder="Введите секретный текст..."></textarea>
-            </div>
-
-            <button class="btn btn-glow" style="justify-content:center;" onclick="saveEncryptedNote()">
-                <i data-lucide="lock"></i> Зашифровать и Сохранить в Облако
-            </button>
+            <div class="modal-title"><span>New Note</span><button class="icon-btn" onclick="closeModal('modalNote')"><i data-lucide="x"></i></button></div>
+            <div class="form-group"><label>Title:</label><input type="text" class="form-control" id="noteTitle" placeholder="..."></div>
+            <div class="form-group"><label>Text:</label><textarea class="form-control" id="noteBody" style="min-height:160px" placeholder="..."></textarea></div>
+            <button class="btn btn-glow" style="justify-content:center" onclick="saveNote()"><i data-lucide="lock"></i> Encrypt & Save</button>
         </div>
     </div>
 
-    <!-- MODAL 3: IN-BROWSER LIGHTBOX VIEWER -->
     <div class="modal-overlay" id="modalViewer">
-        <div class="modal-card" style="max-width: 640px;">
-            <div class="modal-title">
-                <span id="viewerTitle">Просмотр Файла</span>
-                <button class="icon-btn" onclick="closeModal('modalViewer')"><i data-lucide="x"></i></button>
-            </div>
-
+        <div class="modal-card" style="max-width:640px">
+            <div class="modal-title"><span id="viewerTitle">View</span><button class="icon-btn" onclick="closeModal('modalViewer')"><i data-lucide="x"></i></button></div>
             <div class="viewer-stage" id="viewerStage"></div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span id="viewerMeta" style="font-size:0.75rem; color:var(--text-sub);"></span>
-                <button class="btn btn-glow" id="viewerDownloadBtn">
-                    <i data-lucide="download"></i> Скачать Файл
-                </button>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <span id="viewerMeta" style="font-size:0.75rem;color:var(--text-sub)"></span>
+                <button class="btn btn-glow" id="viewerDownloadBtn"><i data-lucide="download"></i> Download</button>
             </div>
         </div>
     </div>
 
-    <!-- Toasts Container -->
     <div class="toast-container" id="toastContainer"></div>
+<script>
+// ==================== CONFIG ====================
+const LS_FILES = "tg_vault_v7";
+const LS_CFG = "tg_vault_cfg_v7";
+const SS_PASS = "tg_vault_pass_v7";
 
-    <script>
-        // --- STORAGE KEYS & CONSTANTS ---
-        const LOCAL_STORAGE_FILES = "TG_VAULT_FILES_INDEX_V5";
-        const LOCAL_STORAGE_CFG = "TG_VAULT_CFG_PUBLIC_V5";
-        const SESSION_STORAGE_PASS = "TG_VAULT_RAM_PASS_V5";
+let appConfig = { botToken: "", chatId: "" };
+let masterPass = "";
+let fileIndex = [];
+let currentFilter = "all";
+let decCache = {};
+const MAX_CACHE = 10;
+let keyCache = { pass: "", salt: "", keys: null };
 
-        let appConfig = { botToken: "", chatId: "" };
-        let sessionMasterPassword = "";
-        let fileIndex = []; // Main File Index Array
-        let currentFilter = 'all'; // Текущий фильтр категории
+// ==================== INIT ====================
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.lucide) lucide.createIcons();
+    loadConfig();
+    loadPass();
+    loadFiles();
+    initDragDrop();
+    if (!appConfig.botToken || !appConfig.chatId || !masterPass) openModal("modalSettings");
+});
 
-        // Cache for Decrypted Blobs in Browser Memory
-        let decryptedBlobCache = {};
-        const MAX_CACHE_SIZE = 15;
+// ==================== UI ====================
+function toggleSidebar() {
+    const d = document.getElementById("sidebarDrawer");
+    const b = document.getElementById("sidebarBackdrop");
+    if (d) d.classList.toggle("open");
+    if (b) b.classList.toggle("active");
+}
+function closeSidebar() {
+    const d = document.getElementById("sidebarDrawer");
+    const b = document.getElementById("sidebarBackdrop");
+    if (d) d.classList.remove("open");
+    if (b) b.classList.remove("active");
+}
+function openModal(id) { const el = document.getElementById(id); if (el) el.classList.add("active"); }
+function closeModal(id) { const el = document.getElementById(id); if (el) el.classList.remove("active"); }
+function showToast(msg) {
+    const c = document.getElementById("toastContainer");
+    if (!c) return;
+    if (c.children.length > 3) c.removeChild(c.firstChild);
+    const t = document.createElement("div");
+    t.className = "toast";
+    t.innerHTML = "<span>" + msg + "</span>";
+    c.appendChild(t);
+    setTimeout(() => { if (t.parentNode) t.remove(); }, 3000);
+}
+function setProgress(pct) {
+    const el = document.getElementById("progressContainer");
+    if (el) el.style.width = pct + "%";
+}
 
-        // Cache for PBKDF2 Derived Keys (Eliminates Browser Freeze)
-        let derivedKeysCache = { password: "", saltHex: "", keys: null };
+// ==================== STORAGE ====================
+function saveFiles() {
+    try { localStorage.setItem(LS_FILES, JSON.stringify(fileIndex)); } catch(e) { showToast("Save error"); }
+}
+function loadFiles() {
+    try {
+        const raw = localStorage.getItem(LS_FILES);
+        if (raw) { const p = JSON.parse(raw); if (Array.isArray(p)) fileIndex = p; }
+    } catch(e) { fileIndex = []; }
+    renderGrid();
+}
+function loadConfig() {
+    try {
+        const raw = localStorage.getItem(LS_CFG);
+        if (raw) { const p = JSON.parse(raw); appConfig = { botToken: p.botToken || "", chatId: p.chatId || "" }; }
+    } catch(e) { appConfig = { botToken: "", chatId: "" }; }
+    const t = document.getElementById("cfgToken");
+    const c = document.getElementById("cfgChatId");
+    if (t) t.value = appConfig.botToken;
+    if (c) c.value = appConfig.chatId;
+}
+function loadPass() {
+    const p = sessionStorage.getItem(SS_PASS);
+    if (p) { masterPass = p; const el = document.getElementById("cfgMasterPassword"); if (el) el.value = p; }
+}
 
-        // --- INIT APP ---
-        window.addEventListener('DOMContentLoaded', () => {
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-            loadConfig();
-            loadSessionPassword();
-            loadFileIndex();
-            initDragAndDrop();
+// ==================== SETTINGS ====================
+function saveSettings() {
+    const t = document.getElementById("cfgToken");
+    const c = document.getElementById("cfgChatId");
+    const p = document.getElementById("cfgMasterPassword");
+    if (!t || !c || !p) return;
+    const token = t.value.trim();
+    const chatId = c.value.trim();
+    const pass = p.value.trim();
+    if (!token || !chatId || !pass) { alert("Fill all fields!"); return; }
+    appConfig = { botToken: token, chatId: chatId };
+    masterPass = pass;
+    sessionStorage.setItem(SS_PASS, pass);
+    keyCache = { pass: "", salt: "", keys: null };
+    localStorage.setItem(LS_CFG, JSON.stringify(appConfig));
+    closeModal("modalSettings");
+    showToast("Connected!");
+    if (fileIndex.length === 0) syncFromCloud();
+    else syncToCloud();
+}
 
-            if (!appConfig.botToken || !appConfig.chatId || !sessionMasterPassword) {
-                openModal('modalSettings');
-            }
-        });
+async function resolveChatId() {
+    const el = document.getElementById("cfgChatId");
+    if (!el) return;
+    let v = el.value.trim();
+    if (!v) return;
+    const m = v.match(/t\.me\/c\/(\d+)/i);
+    if (m && m[1]) { el.value = "-100" + m[1]; showToast("OK: " + el.value); return; }
+    if (v.includes("t.me/")) {
+        const parts = v.split("t.me/");
+        if (parts[1]) { const sub = parts[1].split("/")[0]; if (sub && !sub.startsWith("c")) v = "@" + sub; }
+    }
+    if (appConfig.botToken && (v.startsWith("@") || /^-?\d+$/.test(v))) {
+        try {
+            const r = await fetch("https://api.telegram.org/bot" + appConfig.botToken + "/getChat?chat_id=" + encodeURIComponent(v));
+            const d = await r.json();
+            if (d.ok && d.result && d.result.id) { el.value = d.result.id; showToast("ID: " + d.result.id); return; }
+        } catch(e) {}
+    }
+    alert("Paste link like https://t.me/c/1234567890/1");
+}
 
-        // --- LOCAL STORAGE MANAGER (FIX 1 & 6) ---
-        function saveFileIndexLocally() {
+// ==================== CRYPTO ====================
+async function getKeys(password, salt) {
+    const saltHex = Array.from(new Uint8Array(salt)).map(b => b.toString(16).padStart(2, "0")).join("");
+    if (keyCache.keys && keyCache.pass === password && keyCache.salt === saltHex) return keyCache.keys;
+    const enc = new TextEncoder();
+    const km = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
+    const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: salt, iterations: 600000, hash: "SHA-256" }, km, 512);
+    const encKey = await crypto.subtle.importKey("raw", bits.slice(0, 32), "AES-GCM", false, ["encrypt", "decrypt"]);
+    const hmacKey = await crypto.subtle.importKey("raw", bits.slice(32, 64), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
+    const keys = { encKey, hmacKey };
+    keyCache = { pass: password, salt: saltHex, keys: keys };
+    return keys;
+}
+
+async function encryptData(metaObj, fileBuf) {
+    if (!masterPass) throw new Error("No password!");
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const keys = await getKeys(masterPass, salt);
+    const enc = new TextEncoder();
+    const metaBytes = enc.encode(JSON.stringify(metaObj));
+    const metaLen = new Uint32Array([metaBytes.byteLength]);
+    const fileBytes = new Uint8Array(fileBuf);
+    const plain = new Uint8Array(4 + metaBytes.byteLength + fileBytes.byteLength);
+    plain.set(new Uint8Array(metaLen.buffer), 0);
+    plain.set(metaBytes, 4);
+    plain.set(fileBytes, 4 + metaBytes.byteLength);
+    const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, keys.encKey, plain);
+    const magic = new Uint8Array([0x54, 0x47, 0x56, 0x01]);
+    const pkg = new Uint8Array(4 + 16 + 12 + cipher.byteLength);
+    pkg.set(magic, 0); pkg.set(salt, 4); pkg.set(iv, 20); pkg.set(new Uint8Array(cipher), 32);
+    const sig = await crypto.subtle.sign("HMAC", keys.hmacKey, pkg);
+    const final = new Uint8Array(pkg.byteLength + sig.byteLength);
+    final.set(pkg, 0); final.set(new Uint8Array(sig), pkg.byteLength);
+    return final.buffer;
+}
+
+async function decryptData(buf) {
+    if (!masterPass) throw new Error("No password!");
+    const data = new Uint8Array(buf);
+    if (data.byteLength < 64) throw new Error("File too small");
+    const pkg = data.slice(0, data.byteLength - 32);
+    const sig = data.slice(data.byteLength - 32);
+    const salt = pkg.slice(4, 20);
+    const keys = await getKeys(masterPass, salt);
+    const valid = await crypto.subtle.verify("HMAC", keys.hmacKey, sig, pkg);
+    if (!valid) throw new Error("Wrong password!");
+    if (pkg[0] !== 0x54 || pkg[1] !== 0x47 || pkg[2] !== 0x56 || pkg[3] !== 0x01) throw new Error("Bad format");
+    const iv = pkg.slice(20, 32);
+    const cipher = pkg.slice(32);
+    let plainBuf;
+    try { plainBuf = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, keys.encKey, cipher); }
+    catch(e) { throw new Error("AES error: " + e.message); }
+    const plain = new Uint8Array(plainBuf);
+    if (plain.byteLength < 4) throw new Error("Corrupted");
+    const metaLen = new Uint32Array(plain.buffer.slice(0, 4))[0];
+    if (metaLen > plain.byteLength - 4) throw new Error("Bad meta length");
+    const metaBytes = plain.slice(4, 4 + metaLen);
+    const fileBytes = plain.slice(4 + metaLen);
+    let meta;
+    try { meta = JSON.parse(new TextDecoder().decode(metaBytes)); }
+    catch(e) { throw new Error("Bad metadata"); }
+    return { metadata: meta, fileBuffer: fileBytes.buffer };
+}
+
+// ==================== UPLOAD ====================
+async function uploadFile(fileBuf, fileName, cat, mime) {
+    if (!appConfig.botToken || !appConfig.chatId || !masterPass) { openModal("modalSettings"); throw new Error("No settings"); }
+    setProgress(20);
+    const meta = { name: fileName, size: fileBuf.byteLength, type: mime || getMime(fileName), category: cat || getCat(fileName), date: new Date().toLocaleDateString("ru-RU") };
+    const enc = await encryptData(meta, fileBuf);
+    setProgress(60);
+    const fd = new FormData();
+    fd.append("chat_id", appConfig.chatId);
+    fd.append("document", new Blob([enc]), "vault_" + Date.now() + ".bin");
+    fd.append("caption", "#TG_VAULT");
+    const res = await fetch("https://api.telegram.org/bot" + appConfig.botToken + "/sendDocument", { method: "POST", body: fd });
+    const json = await res.json();
+    setProgress(90);
+    if (!json.ok) throw new Error(json.description || "Upload failed");
+    const doc = json.result.document;
+    if (!doc || !doc.file_id) throw new Error("No file_id");
+    fileIndex.unshift({ id: String(json.result.message_id), fileId: doc.file_id, decryptedMeta: meta });
+    saveFiles();
+    renderGrid();
+    await syncToCloud();
+    setProgress(100);
+    setTimeout(() => setProgress(0), 500);
+    showToast("Uploaded!");
+}
+
+function getCat(name) {
+    const ext = name.split(".").pop().toLowerCase();
+    if (["jpg","jpeg","png","gif","webp","bmp","svg","mp4","mkv","mov","webm","avi"].includes(ext)) return "media";
+    if (["mp3","wav","ogg","flac","m4a","aac"].includes(ext)) return "audio";
+    if (["txt","md","json","js","html","css","xml","csv"].includes(ext)) return "note";
+    return "doc";
+}
+function getMime(name) {
+    const ext = name.split(".").pop().toLowerCase();
+    const map = { png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", gif:"image/gif", webp:"image/webp", mp4:"video/mp4", webm:"video/webm", mov:"video/quicktime", avi:"video/x-msvideo", mkv:"video/x-matroska", mp3:"audio/mpeg", wav:"audio/wav", ogg:"audio/ogg", flac:"audio/flac", m4a:"audio/mp4", aac:"audio/aac", pdf:"application/pdf", txt:"text/plain", json:"application/json", html:"text/html", css:"text/css", js:"application/javascript", xml:"application/xml", csv:"text/csv" };
+    return map[ext] || "application/octet-stream";
+}
+
+function triggerFileUpload() { document.getElementById("fileInput").click(); }
+async function handleFileSelect(e) {
+    const files = e.target.files;
+    if (!files) return;
+    for (const f of files) {
+        try { await uploadFile(await f.arrayBuffer(), f.name, getCat(f.name), f.type); }
+        catch(err) { alert("Error " + f.name + ": " + err.message); }
+    }
+    e.target.value = "";
+}
+function initDragDrop() {
+    const z = document.getElementById("dropZone");
+    if (!z) return;
+    ["dragenter","dragover"].forEach(n => z.addEventListener(n, e => { e.preventDefault(); e.stopPropagation(); z.classList.add("dragover"); }));
+    ["dragleave","drop"].forEach(n => z.addEventListener(n, e => { e.preventDefault(); e.stopPropagation(); z.classList.remove("dragover"); }));
+    z.addEventListener("drop", async e => {
+        e.preventDefault(); e.stopPropagation();
+        const files = e.dataTransfer.files;
+        if (!files) return;
+        for (const f of files) {
+            try { await uploadFile(await f.arrayBuffer(), f.name, getCat(f.name), f.type); }
+            catch(err) { alert("Error: " + err.message); }
+        }
+    });
+}
+
+// ==================== DECRYPT (MAIN) ====================
+async function downloadAndDecrypt(fileItem) {
+    if (!fileItem || !fileItem.fileId) throw new Error("No fileId");
+    if (!appConfig.botToken) throw new Error("No token");
+    if (decCache[fileItem.fileId]) return decCache[fileItem.fileId];
+
+    // Step 1: getFile
+    showToast("Getting file_path...");
+    const gfUrl = "https://api.telegram.org/bot" + appConfig.botToken + "/getFile?file_id=" + encodeURIComponent(fileItem.fileId);
+    const gfRes = await fetch(gfUrl);
+    const gfData = await gfRes.json();
+    if (!gfData.ok) throw new Error("getFile: " + (gfData.description || "?"));
+    if (!gfData.result || !gfData.result.file_path) throw new Error("getFile: no file_path");
+    const filePath = gfData.result.file_path;
+
+    // Step 2: Download
+    showToast("Downloading...");
+    const dlUrl = "https://api.telegram.org/file/bot" + appConfig.botToken + "/" + filePath;
+    const dlRes = await fetch(dlUrl);
+    if (!dlRes.ok) throw new Error("Download HTTP " + dlRes.status);
+    const encBuf = await dlRes.arrayBuffer();
+
+    // Step 3: Decrypt
+    showToast("Decrypting...");
+    const decrypted = await decryptData(encBuf);
+
+    // Step 4: Blob
+    const blob = new Blob([decrypted.fileBuffer], { type: decrypted.metadata.type || "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const result = { metadata: decrypted.metadata, blob: blob, url: url };
+
+    // Cache
+    const keys = Object.keys(decCache);
+    if (keys.length >= MAX_CACHE) { URL.revokeObjectURL(decCache[keys[0]].url); delete decCache[keys[0]]; }
+    decCache[fileItem.fileId] = result;
+    return result;
+}
+
+// ==================== VIEW ====================
+async function previewFile(id) {
+    const item = fileIndex.find(f => f && f.id === id);
+    if (!item) { showToast("Not found"); return; }
+    try {
+        const res = await downloadAndDecrypt(item);
+        const stage = document.getElementById("viewerStage");
+        if (!stage) return;
+        stage.innerHTML = "";
+        const meta = res.metadata || {};
+        const vt = document.getElementById("viewerTitle");
+        const vm = document.getElementById("viewerMeta");
+        const vb = document.getElementById("viewerDownloadBtn");
+        if (vt) vt.innerText = meta.name || "File";
+        if (vm) vm.innerText = formatBytes(meta.size || 0) + " - " + (meta.date || "");
+        if (vb) vb.onclick = () => doDownload(id);
+
+        const cat = meta.category || "doc";
+        const type = meta.type || "";
+
+        if (cat === "media" && type.startsWith("image/")) {
+            const img = document.createElement("img");
+            img.src = res.url; img.style.maxWidth = "100%"; img.style.maxHeight = "65vh"; img.style.objectFit = "contain";
+            stage.appendChild(img);
+        } else if (cat === "media" && type.startsWith("video/")) {
+            const v = document.createElement("video");
+            v.src = res.url; v.controls = true; v.playsInline = true;
+            v.style.maxWidth = "100%"; v.style.maxHeight = "65vh";
+            stage.appendChild(v);
+        } else if (cat === "audio" || type.startsWith("audio/")) {
+            const a = document.createElement("audio");
+            a.src = res.url; a.controls = true; a.style.width = "90%";
+            stage.appendChild(a);
+        } else if (type.startsWith("text/") || type === "application/json" || type === "application/javascript") {
             try {
-                localStorage.setItem(LOCAL_STORAGE_FILES, JSON.stringify(fileIndex || []));
-            } catch(e) {
-                console.error('Local storage save error', e);
-                if (e.name === 'QuotaExceededError') {
-                    alert('Локальное хранилище переполнено! Удалите старые файлы.');
-                }
-            }
+                const text = await res.blob.text();
+                const ta = document.createElement("textarea");
+                ta.readOnly = true; ta.value = text;
+                ta.style.cssText = "width:100%;height:250px;background:#000;color:var(--accent-cyan);border:none;padding:12px;font-family:monospace;font-size:0.85rem;outline:none;";
+                stage.appendChild(ta);
+            } catch(e) { showFallback(stage, meta); }
+        } else {
+            showFallback(stage, meta);
         }
+        openModal("modalViewer");
+    } catch(e) {
+        alert("Error: " + e.message);
+    }
+}
 
-        function loadFileIndex() {
-            try {
-                const raw = localStorage.getItem(LOCAL_STORAGE_FILES);
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    if (Array.isArray(parsed)) {
-                        fileIndex = parsed;
-                        renderFilesGrid();
-                    } else {
-                        fileIndex = [];
-                        console.warn('Local storage index is not an array, resetting');
-                    }
-                } else {
-                    fileIndex = [];
-                }
-            } catch(e) {
-                console.error("Local storage load error", e);
-            }
+function showFallback(stage, meta) {
+    stage.innerHTML = "<div style=\"color:var(--text-sub);padding:40px 20px;text-align:center\"><div style=\"font-size:3rem;margin-bottom:16px\">&#128196;</div><div style=\"font-weight:800;color:#fff;margin-bottom:8px\">" + (meta.name || "File") + "</div><div style=\"font-size:0.85rem;margin-bottom:16px\">" + formatBytes(meta.size || 0) + " - " + (meta.type || "unknown") + "</div><div style=\"font-size:0.75rem\">Cannot preview in browser</div></div>";
+}
+
+// ==================== DOWNLOAD ====================
+async function doDownload(id) {
+    const item = fileIndex.find(f => f && f.id === id);
+    if (!item) { showToast("Not found"); return; }
+    try {
+        showToast("Decrypting...");
+        const res = await downloadAndDecrypt(item);
+        const name = (res.metadata && res.metadata.name) ? res.metadata.name : "file";
+        if (navigator.canShare && navigator.canShare({ files: [new File([res.blob], name, { type: res.blob.type })] })) {
+            try { await navigator.share({ files: [new File([res.blob], name, { type: res.blob.type })] }); showToast("Shared!"); return; }
+            catch(e) {}
         }
+        const a = document.createElement("a");
+        a.href = res.url; a.download = name; a.style.display = "none";
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { if (a.parentNode) document.body.removeChild(a); }, 200);
+        showToast("Downloaded!");
+    } catch(e) {
+        alert("Error: " + e.message);
+    }
+}
 
-        function loadSessionPassword() {
-            const pass = sessionStorage.getItem(SESSION_STORAGE_PASS);
-            if (pass) {
-                sessionMasterPassword = pass;
-                const passEl = document.getElementById('cfgMasterPassword');
-                if (passEl) passEl.value = pass;
-            }
+// ==================== SYNC ====================
+async function syncToCloud() {
+    if (!appConfig.botToken || !appConfig.chatId || !masterPass) return;
+    try {
+        const json = JSON.stringify(fileIndex);
+        const buf = new TextEncoder().encode(json).buffer;
+        const enc = await encryptData({ name: "_index.json", category: "index", size: buf.byteLength, type: "application/json", date: Date.now() }, buf);
+        const fd = new FormData();
+        fd.append("chat_id", appConfig.chatId);
+        fd.append("document", new Blob([enc]), "index_" + Date.now() + ".bin");
+        fd.append("caption", "#TG_VAULT_INDEX");
+        await fetch("https://api.telegram.org/bot" + appConfig.botToken + "/sendDocument", { method: "POST", body: fd });
+    } catch(e) { console.error("syncToCloud", e); }
+}
+
+async function syncFromCloud() {
+    if (!appConfig.botToken || !appConfig.chatId || !masterPass) { alert("Setup first!"); return; }
+    setProgress(30);
+    showToast("Syncing...");
+    try {
+        const res = await fetch("https://api.telegram.org/bot" + appConfig.botToken + "/getUpdates?allowed_updates=[\"message\",\"channel_post\"]&limit=100");
+        const data = await res.json();
+        setProgress(60);
+        if (!data.ok) throw new Error(data.description || "API error");
+        let idxMsg = null;
+        for (let i = data.result.length - 1; i >= 0; i--) {
+            const msg = data.result[i].message || data.result[i].channel_post;
+            if (msg && msg.document && msg.caption && msg.caption.includes("#TG_VAULT_INDEX")) { idxMsg = msg; break; }
         }
-
-        // --- SIDEBAR DRAWER CONTROLS ---
-        function toggleSidebar() {
-            const drawer = document.getElementById('sidebarDrawer');
-            const backdrop = document.getElementById('sidebarBackdrop');
-            if (drawer) drawer.classList.toggle('open');
-            if (backdrop) backdrop.classList.toggle('active');
-        }
-
-        function closeSidebar() {
-            const drawer = document.getElementById('sidebarDrawer');
-            const backdrop = document.getElementById('sidebarBackdrop');
-            if (drawer) drawer.classList.remove('open');
-            if (backdrop) backdrop.classList.remove('active');
-        }
-
-        // --- CONFIG & RESOLVER ---
-        function loadConfig() {
-            const raw = localStorage.getItem(LOCAL_STORAGE_CFG);
-            if (raw) {
-                try {
-                    const parsed = JSON.parse(raw);
-                    appConfig = { botToken: parsed.botToken || '', chatId: parsed.chatId || '' };
-                    const tokenEl = document.getElementById('cfgToken');
-                    const chatIdEl = document.getElementById('cfgChatId');
-                    if (tokenEl) tokenEl.value = appConfig.botToken;
-                    if (chatIdEl) chatIdEl.value = appConfig.chatId;
-                } catch(e) {
-                    console.error('Config load error', e);
-                    appConfig = { botToken: '', chatId: '' };
-                }
-            }
-        }
-
-        function saveSettings() {
-            const tokenEl = document.getElementById('cfgToken');
-            const chatIdEl = document.getElementById('cfgChatId');
-            const passEl = document.getElementById('cfgMasterPassword');
-            
-            if (!tokenEl || !chatIdEl || !passEl) return;
-            
-            const token = tokenEl.value.trim();
-            const chatId = chatIdEl.value.trim();
-            const pass = passEl.value.trim();
-
-            if (!token || !chatId || !pass) {
-                alert('Заполните Bot Token, Chat ID и Мастер-Пароль!');
-                return;
-            }
-
-            appConfig.botToken = token;
-            appConfig.chatId = chatId;
-            sessionMasterPassword = pass;
-            sessionStorage.setItem(SESSION_STORAGE_PASS, pass);
-            derivedKeysCache = { password: '', saltHex: '', keys: null };
-
-            localStorage.setItem(LOCAL_STORAGE_CFG, JSON.stringify(appConfig));
-            closeModal('modalSettings');
-            showToast('Подключено! Синхронизируем индекс...');
-            
-            if (fileIndex && fileIndex.length > 0) {
-                syncIndexToCloud();
-            } else {
-                syncIndexFromCloud();
-            }
-        }
-
-        async function resolveAndCalculateChatId() {
-            const chatIdEl = document.getElementById('cfgChatId');
-            if (!chatIdEl) return;
-            
-            let input = chatIdEl.value.trim();
-            if (!input) {
-                alert('Введите ссылку или ID!');
-                return;
-            }
-
-            const privateMatch = input.match(/t\.me\/c\/(\d+)/i);
-            if (privateMatch && privateMatch[1]) {
-                const calculatedId = `-100${privateMatch[1]}`;
-                chatIdEl.value = calculatedId;
-                showToast(`Chat ID вычислен: ${calculatedId}`);
-                return;
-            }
-
-            if (input.includes('t.me/')) {
-                const parts = input.split('t.me/');
-                if (parts.length > 1) {
-                    const sub = parts[1].split('/')[0];
-                    if (sub && !sub.startsWith('c')) input = '@' + sub;
-                }
-            }
-
-            if (appConfig.botToken && (input.startsWith('@') || input.startsWith('-100') || /^-?\d+$/.test(input))) {
-                try {
-                    const res = await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/getChat?chat_id=${encodeURIComponent(input)}`);
-                    const data = await res.json();
-                    if (data.ok && data.result && data.result.id) {
-                        chatIdEl.value = data.result.id;
-                        showToast(`ID получен: ${data.result.id}`);
-                        return;
-                    }
-                } catch(e) {
-                    console.error('getChat error:', e);
-                }
-            }
-
-            alert('Не удалось определить ID. Вставьте ссылку вида https://t.me/c/3809402771/558');
-        }
-
-        // --- FETCH WITH RETRY WRAPPER (FIX 8) ---
-        async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const res = await fetch(url, options);
-                    if (res.status === 429) { // Rate limit backoff
-                        await new Promise(r => setTimeout(r, backoff * (i + 1)));
-                        continue;
-                    }
-                    if (!res.ok && res.status >= 500) {
-                        await new Promise(r => setTimeout(r, backoff * (i + 1)));
-                        continue;
-                    }
-                    return res;
-                } catch (err) {
-                    if (i === retries - 1) throw err;
-                    await new Promise(r => setTimeout(r, backoff * (i + 1)));
-                }
-            }
-        }
-
-        // --- DERIVED KEYS CACHING (FIX 2) ---
-        async function getDerivedKeys(password, salt) {
-            const saltHex = Array.from(new Uint8Array(salt)).map(b => b.toString(16).padStart(2, '0')).join('');
-            if (derivedKeysCache && derivedKeysCache.keys && derivedKeysCache.password === password && derivedKeysCache.saltHex === saltHex) {
-                return derivedKeysCache.keys;
-            }
-
-            const enc = new TextEncoder();
-            const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
-            const derivedBits = await crypto.subtle.deriveBits(
-                { name: "PBKDF2", salt: salt, iterations: 600000, hash: "SHA-256" },
-                keyMaterial,
-                512
-            );
-
-            const encKey = await crypto.subtle.importKey("raw", derivedBits.slice(0, 32), "AES-GCM", false, ["encrypt", "decrypt"]);
-            const hmacKey = await crypto.subtle.importKey("raw", derivedBits.slice(32, 64), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
-
-            const keys = { encKey, hmacKey };
-            derivedKeysCache = { password, saltHex, keys };
-            return keys;
-        }
-
-        // --- ENCRYPTION & DECRYPTION ENGINE ---
-        async function encryptPayload(metadataObj, fileBuffer) {
-            if (!sessionMasterPassword) throw new Error("Мастер-пароль не введен!");
-            if (!fileBuffer || fileBuffer.byteLength === undefined) throw new Error("Некорректный файл для шифрования");
-
-            const salt = crypto.getRandomValues(new Uint8Array(16));
-            const iv = crypto.getRandomValues(new Uint8Array(12));
-            const keys = await getDerivedKeys(sessionMasterPassword, salt);
-
-            const enc = new TextEncoder();
-            const metaBytes = enc.encode(JSON.stringify(metadataObj || {}));
-            const metaLenHeader = new Uint32Array([metaBytes.byteLength]);
-            const fileBytes = new Uint8Array(fileBuffer);
-
-            const plaintext = new Uint8Array(4 + metaBytes.byteLength + fileBytes.byteLength);
-            plaintext.set(new Uint8Array(metaLenHeader.buffer), 0);
-            plaintext.set(metaBytes, 4);
-            plaintext.set(fileBytes, 4 + metaBytes.byteLength);
-
-            const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, keys.encKey, plaintext);
-
-            const magicHeader = new Uint8Array([0x54, 0x47, 0x56, 0x01]);
-            const packageData = new Uint8Array(magicHeader.byteLength + salt.byteLength + iv.byteLength + ciphertext.byteLength);
-            packageData.set(magicHeader, 0);
-            packageData.set(salt, 4);
-            packageData.set(iv, 20);
-            packageData.set(new Uint8Array(ciphertext), 32);
-
-            const signature = await crypto.subtle.sign("HMAC", keys.hmacKey, packageData);
-            const finalStream = new Uint8Array(packageData.byteLength + signature.byteLength);
-            finalStream.set(packageData, 0);
-            finalStream.set(new Uint8Array(signature), packageData.byteLength);
-
-            return finalStream.buffer;
-        }
-
-        async function decryptPayload(packageBuffer) {
-            if (!sessionMasterPassword) throw new Error("Мастер-пароль отсутствует!");
-
-            const stream = new Uint8Array(packageBuffer);
-            if (stream.byteLength < 64) throw new Error("Поврежденный или неверный контейнер");
-
-            const packageData = stream.slice(0, stream.byteLength - 32);
-            const signature = stream.slice(stream.byteLength - 32);
-            const salt = packageData.slice(4, 20);
-
-            const keys = await getDerivedKeys(sessionMasterPassword, salt);
-            const isValid = await crypto.subtle.verify("HMAC", keys.hmacKey, signature, packageData);
-            if (!isValid) throw new Error("Ошибка подписи! Неверный мастер-пароль.");
-
-            if (packageData[0] !== 0x54 || packageData[1] !== 0x47 || packageData[2] !== 0x56 || packageData[3] !== 0x01) {
-                throw new Error("Неверные магические байты");
-            }
-
-            const iv = packageData.slice(20, 32);
-            const ciphertext = packageData.slice(32);
-
-            let plaintextBuffer;
-            try {
-                plaintextBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, keys.encKey, ciphertext);
-            } catch (e) {
-                throw new Error("Ошибка AES-GCM дешифрования: " + e.message);
-            }
-            
-            const plaintext = new Uint8Array(plaintextBuffer);
-            if (plaintext.byteLength < 4) throw new Error("Дешифрованные данные слишком малы");
-
-            const metaLen = new Uint32Array(plaintext.buffer.slice(0, 4))[0];
-            if (metaLen > plaintext.byteLength - 4) throw new Error("Некорректная длина метаданных");
-            
-            const metaBytes = plaintext.slice(4, 4 + metaLen);
-            const fileBytes = plaintext.slice(4 + metaLen);
-
-            let metadataObj;
-            try {
-                metadataObj = JSON.parse(new TextDecoder().decode(metaBytes));
-            } catch (e) {
-                throw new Error("Ошибка парсинга метаданных: " + e.message);
-            }
-            
-            return { metadata: metadataObj, fileBuffer: fileBytes.buffer };
-        }
-
-        // --- PORTABLE CLOUD INDEX SYNC ENGINE (FIX 3, 4, 9, 10) ---
-        async function syncIndexToCloud() {
-            if (!appConfig.botToken || !appConfig.chatId || !sessionMasterPassword) return;
-            try {
-                const indexJson = JSON.stringify(fileIndex || []);
-                const buffer = new TextEncoder().encode(indexJson).buffer;
-                const encrypted = await encryptPayload({ name: "_vault_index.json", category: "index", size: buffer.byteLength, type: "application/json", date: Date.now() }, buffer);
-
-                const fd = new FormData();
-                fd.append('chat_id', appConfig.chatId);
-                fd.append('document', new Blob([encrypted]), `vault_index_${Date.now()}.bin`);
-                fd.append('caption', `#TG_VAULT_INDEX`);
-
-                const res = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/sendDocument`, { method: 'POST', body: fd });
-                const resJson = await res.json();
-                if (resJson.ok) {
-                    showToast('Индекс синхронизирован с облаком');
-                } else {
-                    console.error('Index sync error:', resJson.description);
-                }
-            } catch(e) {
-                console.error('Index sync error', e);
-                showToast('Ошибка синхронизации индекса');
-            }
-        }
-
-        async function syncIndexFromCloud() {
-            if (!appConfig.botToken || !appConfig.chatId || !sessionMasterPassword) {
-                alert("Сначала настройте токен, ID и мастер-пароль!");
-                return;
-            }
-
-            showToast("Синхронизация индекса из облака...");
-            document.getElementById('progressContainer').style.width = '40%';
-
-            try {
-                const res = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/getUpdates?allowed_updates=["message","channel_post"]&limit=100`);
-                const data = await res.json();
-
-                if (data.ok) {
-                    let indexMsg = null;
-                    for (let i = data.result.length - 1; i >= 0; i--) {
-                        const msg = data.result[i].message || data.result[i].channel_post;
-                        if (msg && msg.document && msg.caption && msg.caption.includes('#TG_VAULT_INDEX')) {
-                            indexMsg = msg;
-                            break;
-                        }
-                    }
-
-                    if (indexMsg) {
-                        const fileRes = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/getFile?file_id=${indexMsg.document.file_id}`);
-                        const fileData = await fileRes.json();
-                        if (!fileData.ok) throw new Error("Не удалось получить файл индекса");
-                        
-                        const blobRes = await fetch(`https://api.telegram.org/file/bot${appConfig.botToken}/${fileData.result.file_path}`);
-                        const arrayBuf = await blobRes.arrayBuffer();
-
-                        let decrypted;
-                        try {
-                            decrypted = await decryptPayload(arrayBuf);
-                        } catch (decErr) {
-                            throw new Error("Ошибка дешифрования индекса (неверный пароль?): " + decErr.message);
-                        }
-                        
-                        let loadedIndex;
-                        try {
-                            loadedIndex = JSON.parse(new TextDecoder().decode(decrypted.fileBuffer));
-                        } catch (parseErr) {
-                            throw new Error("Ошибка парсинга индекса: " + parseErr.message);
-                        }
-
-                        if (Array.isArray(loadedIndex)) {
-                            fileIndex = loadedIndex;
-                            saveFileIndexLocally();
-                            renderFilesGrid();
-                            showToast(`Индекс восстановлен! Файлов: ${fileIndex.length}`);
-                        } else {
-                            throw new Error("Индекс не является массивом");
-                        }
-                    } else {
-                        showToast("Облачный индекс не найден. Используется локальный индекс.");
-                    }
-                } else {
-                    throw new Error("Telegram API вернул ошибку: " + (data.description || "Unknown"));
-                }
-            } catch(e) {
-                alert("Ошибка восстановления индекса: " + e.message);
-            } finally {
-                document.getElementById('progressContainer').style.width = '100%';
-                setTimeout(() => document.getElementById('progressContainer').style.width = '0%', 400);
-            }
-        }
-
-        // --- UPLOAD FILE ---
-        async function uploadEncryptedFileToTelegram(fileBuffer, fileName, category, mimeType) {
-            if (!appConfig.botToken || !appConfig.chatId || !sessionMasterPassword) {
-                openModal('modalSettings');
-                throw new Error("Не настроены параметры!");
-            }
-
-            document.getElementById('progressContainer').style.width = '30%';
-
-            const metaObj = {
-                name: fileName,
-                size: fileBuffer.byteLength,
-                type: mimeType || getMimeType(fileName),
-                category: category || getFileTypeCategory(fileName),
-                uploadDate: new Date().toLocaleDateString('ru-RU')
-            };
-
-            const encryptedBuffer = await encryptPayload(metaObj, fileBuffer);
-            document.getElementById('progressContainer').style.width = '70%';
-
-            const blob = new Blob([encryptedBuffer], { type: 'application/octet-stream' });
-            const formData = new FormData();
-            formData.append('chat_id', appConfig.chatId);
-            formData.append('document', blob, `vault_block_${Date.now()}.bin`);
-            formData.append('caption', `#TG_VAULT_E2EE`);
-
-            const res = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/sendDocument`, {
-                method: 'POST',
-                body: formData
-            });
-
-            const resJson = await res.json();
-            if (!resJson.ok) throw new Error(resJson.description || "Ошибка отправки");
-
-            const doc = resJson.result.document;
-            if (!doc || !doc.file_id) throw new Error("Telegram не вернул file_id");
-            
-            fileIndex.unshift({
-                id: resJson.result.message_id.toString(),
-                fileId: doc.file_id,
-                decryptedMeta: metaObj
-            });
-
-            saveFileIndexLocally();
-            renderFilesGrid();
-            await syncIndexToCloud();
-
-            document.getElementById('progressContainer').style.width = '100%';
-            setTimeout(() => document.getElementById('progressContainer').style.width = '0%', 400);
-            showToast("Файл зашифрован и отправлен в облако!");
-        }
-
-        // --- FETCH & DECRYPT WITH CACHE ---
-        async function fetchAndDecryptFile(fileItem) {
-            if (!fileItem || !fileItem.fileId) throw new Error("Некорректный элемент файла");
-            if (!appConfig.botToken) throw new Error("Bot Token не настроен");
-
-            if (decryptedBlobCache[fileItem.fileId]) {
-                return decryptedBlobCache[fileItem.fileId];
-            }
-
-            // Шаг 1: Получаем file_path через getFile
-            let filePath;
-            try {
-                const resFile = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/getFile?file_id=${fileItem.fileId}`);
-                const dataFile = await resFile.json();
-                if (!dataFile.ok) throw new Error("getFile: " + (dataFile.description || "Unknown error"));
-                if (!dataFile.result || !dataFile.result.file_path) throw new Error("getFile: file_path отсутствует");
-                filePath = dataFile.result.file_path;
-            } catch (e) {
-                throw new Error("Ошибка получения file_path: " + e.message);
-            }
-
-            // Шаг 2: Скачиваем зашифрованный файл
-            let encryptedArrayBuffer;
-            try {
-                const resBlob = await fetch(`https://api.telegram.org/file/bot${appConfig.botToken}/${filePath}`);
-                if (!resBlob.ok) throw new Error("HTTP " + resBlob.status + " при скачивании файла");
-                encryptedArrayBuffer = await resBlob.arrayBuffer();
-            } catch (e) {
-                throw new Error("Ошибка скачивания файла: " + e.message);
-            }
-
-            // Шаг 3: Дешифруем
-            let decrypted;
-            try {
-                decrypted = await decryptPayload(encryptedArrayBuffer);
-            } catch (decErr) {
-                throw new Error("Ошибка дешифрования: " + decErr.message);
-            }
-
-            // Шаг 4: Создаем Blob и URL
-            const blob = new Blob([decrypted.fileBuffer], { type: decrypted.metadata.type || 'application/octet-stream' });
-            const objectUrl = URL.createObjectURL(blob);
-
-            const cacheObj = { metadata: decrypted.metadata, blob: blob, objectUrl: objectUrl };
-
-            // Управление кэшем
-            const keys = Object.keys(decryptedBlobCache);
-            if (keys.length >= MAX_CACHE_SIZE) {
-                const oldestKey = keys[0];
-                URL.revokeObjectURL(decryptedBlobCache[oldestKey].objectUrl);
-                delete decryptedBlobCache[oldestKey];
-            }
-
-            decryptedBlobCache[fileItem.fileId] = cacheObj;
-            return cacheObj;
-        }
-
-        async function downloadFileById(id) {
-            const item = fileIndex.find(f => f && f.id === id);
-            if (!item) {
-                showToast("Файл не найден");
-                return;
-            }
-
-            try {
-                showToast("Скачивание и дешифрование...");
-                const res = await fetchAndDecryptFile(item);
-
-                const fileName = (res.metadata && res.metadata.name) ? res.metadata.name : 'downloaded_file';
-
-                // Для мобильных: используем navigator.share если доступен
-                if (navigator.share && res.blob) {
-                    try {
-                        const file = new File([res.blob], fileName, { type: res.blob.type });
-                        await navigator.share({ files: [file] });
-                        showToast("Файл отправлен!");
-                        return;
-                    } catch (shareErr) {
-                        // Fallback на обычное скачивание
-                    }
-                }
-
-                // Обычное скачивание через ссылку
-                const a = document.createElement('a');
-                a.href = res.objectUrl;
-                a.download = fileName;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    if (a.parentNode) document.body.removeChild(a);
-                }, 100);
-                showToast("Файл скачан!");
-            } catch(e) {
-                alert("Ошибка: " + e.message);
-            }
-        }
-
-        async function previewFileInModal(id) {
-            const item = fileIndex.find(f => f && f.id === id);
-            if (!item) {
-                showToast("Файл не найден в индексе");
-                return;
-            }
-
-            try {
-                showToast("Скачивание из Telegram...");
-                const res = await fetchAndDecryptFile(item);
-
-                const stage = document.getElementById('viewerStage');
-                if (!stage) return;
-                stage.innerHTML = '';
-
-                const meta = res.metadata || {};
-                const viewerTitle = document.getElementById('viewerTitle');
-                const viewerMeta = document.getElementById('viewerMeta');
-                const viewerDownloadBtn = document.getElementById('viewerDownloadBtn');
-
-                if (viewerTitle) viewerTitle.innerText = meta.name || 'Без названия';
-                if (viewerMeta) viewerMeta.innerText = formatBytes(meta.size || 0) + ' • ' + (meta.uploadDate || '');
-                if (viewerDownloadBtn) viewerDownloadBtn.onclick = () => downloadFileById(id);
-
-                const cat = meta.category || 'doc';
-                const type = meta.type || '';
-
-                if (cat === 'media' && type && type.startsWith('image/')) {
-                    const img = document.createElement('img');
-                    img.src = res.objectUrl;
-                    img.style.maxWidth = '100%';
-                    img.style.maxHeight = '65vh';
-                    img.style.objectFit = 'contain';
-                    img.alt = meta.name || 'Image';
-                    stage.appendChild(img);
-                } else if (cat === 'media' && type && type.startsWith('video/')) {
-                    const video = document.createElement('video');
-                    video.src = res.objectUrl;
-                    video.controls = true;
-                    video.autoplay = false;
-                    video.style.maxWidth = '100%';
-                    video.style.maxHeight = '65vh';
-                    video.playsInline = true;
-                    stage.appendChild(video);
-                } else if (cat === 'audio' || (type && type.startsWith('audio/'))) {
-                    const audio = document.createElement('audio');
-                    audio.src = res.objectUrl;
-                    audio.controls = true;
-                    audio.style.width = '90%';
-                    stage.appendChild(audio);
-                } else if (type && (type.startsWith('text/') || type === 'application/json' || type === 'application/javascript')) {
-                    try {
-                        const text = await res.blob.text();
-                        const txtArea = document.createElement('textarea');
-                        txtArea.readOnly = true;
-                        txtArea.value = text;
-                        txtArea.style.width = '100%';
-                        txtArea.style.height = '250px';
-                        txtArea.style.background = '#000';
-                        txtArea.style.color = 'var(--accent-cyan)';
-                        txtArea.style.border = 'none';
-                        txtArea.style.padding = '12px';
-                        txtArea.style.fontFamily = 'monospace';
-                        txtArea.style.fontSize = '0.85rem';
-                        txtArea.style.outline = 'none';
-                        stage.appendChild(txtArea);
-                    } catch (txtErr) {
-                        showBinaryFallback(stage, meta);
-                    }
-                } else {
-                    showBinaryFallback(stage, meta);
-                }
-
-                openModal('modalViewer');
-            } catch(e) {
-                alert("Ошибка: " + e.message);
-            }
-        }
-
-        function showBinaryFallback(stage, meta) {
-            const div = document.createElement('div');
-            div.style.color = 'var(--text-sub)';
-            div.style.padding = '40px 20px';
-            div.style.textAlign = 'center';
-            div.innerHTML = `
-                <div style="font-size: 3rem; margin-bottom: 16px;">&#128196;</div>
-                <div style="font-weight: 800; color: #fff; margin-bottom: 8px;">${meta.name || 'Файл'}</div>
-                <div style="font-size: 0.85rem; margin-bottom: 16px;">${formatBytes(meta.size || 0)} • ${meta.type || 'unknown'}</div>
-                <div style="font-size: 0.75rem;">Этот тип файла нельзя просмотреть в браузере.<br>Используйте кнопку Скачать.</div>
-            `;
-            stage.appendChild(div);
-        }
-
-        // --- NOTE CREATION ---
-        async function saveEncryptedNote() {
-            const titleEl = document.getElementById('noteTitle');
-            const bodyEl = document.getElementById('noteBody');
-            if (!titleEl || !bodyEl) return;
-            
-            const title = titleEl.value.trim();
-            const body = bodyEl.value.trim();
-
-            if (!title || !body) {
-                alert('Введите название и текст!');
-                return;
-            }
-
-            try {
-                await uploadEncryptedFileToTelegram(new TextEncoder().encode(body).buffer, `${title}.txt`, 'note', 'text/plain');
-                closeModal('modalNote');
-                titleEl.value = '';
-                bodyEl.value = '';
-            } catch(e) {
-                alert('Ошибка: ' + e.message);
-            }
-        }
-
-        // --- DRAG AND DROP & FILE UPLOADERS ---
-        function triggerFileUpload() { document.getElementById('fileInput').click(); }
-
-        async function handleFileSelect(e) {
-            const files = e.target.files;
-            if (!files || files.length === 0) return;
-
-            for (const file of files) {
-                try {
-                    const buffer = await file.arrayBuffer();
-                    await uploadEncryptedFileToTelegram(buffer, file.name, getFileTypeCategory(file.name), file.type);
-                } catch(err) {
-                    alert(`Ошибка загрузки ${file.name}: ${err.message}`);
-                }
-            }
-            e.target.value = '';
-        }
-
-        function initDragAndDrop() {
-            const zone = document.getElementById('dropZone');
-            if (!zone) return;
-            ['dragenter', 'dragover'].forEach(n => zone.addEventListener(n, e => { e.preventDefault(); e.stopPropagation(); zone.classList.add('dragover'); }, false));
-            ['dragleave', 'drop'].forEach(n => zone.addEventListener(n, e => { e.preventDefault(); e.stopPropagation(); zone.classList.remove('dragover'); }, false));
-            zone.addEventListener('drop', async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const files = e.dataTransfer.files;
-                if (!files || files.length === 0) return;
-                for (const file of files) {
-                    try {
-                        const buffer = await file.arrayBuffer();
-                        await uploadEncryptedFileToTelegram(buffer, file.name, getFileTypeCategory(file.name), file.type);
-                    } catch(err) {
-                        alert(`Ошибка: ${err.message}`);
-                    }
-                }
-            });
-        }
-
-        function getFileTypeCategory(fileName) {
-            const ext = fileName.split('.').pop().toLowerCase();
-            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'ico', 'tiff', 'tif', 'mp4', 'mkv', 'mov', 'webm', 'avi', 'flv', 'wmv', 'm4v', '3gp'].includes(ext)) return 'media';
-            if (['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'wma', 'opus', 'aiff'].includes(ext)) return 'audio';
-            if (['txt', 'md', 'note', 'json', 'js', 'html', 'css', 'xml', 'csv', 'log', 'ini', 'yaml', 'yml'].includes(ext)) return 'note';
-            if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'rtf', 'epub'].includes(ext)) return 'doc';
-            if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'].includes(ext)) return 'doc';
-            return 'doc';
-        }
-
-        function getMimeType(fileName) {
-            const ext = fileName.split('.').pop().toLowerCase();
-            if (ext === 'png') return 'image/png';
-            if (['jpg', 'jpeg'].includes(ext)) return 'image/jpeg';
-            if (ext === 'gif') return 'image/gif';
-            if (ext === 'webp') return 'image/webp';
-            if (ext === 'svg') return 'image/svg+xml';
-            if (ext === 'bmp') return 'image/bmp';
-            if (ext === 'mp4') return 'video/mp4';
-            if (ext === 'webm') return 'video/webm';
-            if (ext === 'mov') return 'video/quicktime';
-            if (ext === 'avi') return 'video/x-msvideo';
-            if (ext === 'mkv') return 'video/x-matroska';
-            if (ext === 'mp3') return 'audio/mpeg';
-            if (ext === 'wav') return 'audio/wav';
-            if (ext === 'ogg') return 'audio/ogg';
-            if (ext === 'flac') return 'audio/flac';
-            if (ext === 'm4a') return 'audio/mp4';
-            if (ext === 'aac') return 'audio/aac';
-            if (ext === 'pdf') return 'application/pdf';
-            if (ext === 'txt' || ext === 'md') return 'text/plain';
-            if (ext === 'json') return 'application/json';
-            if (ext === 'html') return 'text/html';
-            if (ext === 'css') return 'text/css';
-            if (ext === 'js') return 'application/javascript';
-            if (ext === 'xml') return 'application/xml';
-            if (ext === 'csv') return 'text/csv';
-            if (ext === 'zip') return 'application/zip';
-            if (ext === 'rar') return 'application/x-rar-compressed';
-            if (ext === '7z') return 'application/x-7z-compressed';
-            if (ext === 'doc') return 'application/msword';
-            if (ext === 'docx') return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-            if (ext === 'xls') return 'application/vnd.ms-excel';
-            if (ext === 'xlsx') return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-            if (ext === 'ppt') return 'application/vnd.ms-powerpoint';
-            if (ext === 'pptx') return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
-            return 'application/octet-stream';
-        }
-
-        function getFileIcon(cat) {
-            if (cat === 'media') return 'image';
-            if (cat === 'audio') return 'music';
-            if (cat === 'note') return 'notebook';
-            if (cat === 'doc') return 'file-text';
-            return 'file';
-        }
-
-        // --- FILTER & UI RENDERING ---
-        function filterCategory(cat, eventObj) {
-            currentFilter = cat || 'all';
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            if (eventObj && eventObj.currentTarget) {
-                eventObj.currentTarget.classList.add('active');
-            } else {
-                const btn = document.getElementById(`nav-${cat}`);
-                if (btn) btn.classList.add('active');
-            }
-            closeSidebar();
-
-            const titles = { all: 'Все Зашифрованные Файлы', doc: 'Документы', media: 'Фото и Видео', audio: 'Аудиозаписи', note: 'Заметки' };
-            const titleEl = document.getElementById('categoryTitle');
-            if (titleEl) titleEl.innerText = titles[cat] || 'Файлы';
-            renderFilesGrid();
-        }
-
-        function filterCategoryCard(cat) { filterCategory(cat || 'all', null); }
-        function handleSearch(q) { renderFilesGrid((q || '').toLowerCase()); }
-
-        function renderFilesGrid(query = "") {
-            const grid = document.getElementById('filesGrid');
-            if (!grid) return;
-            grid.innerHTML = '';
-
-            let filtered = fileIndex || [];
-            if (currentFilter !== 'all') {
-                filtered = filtered.filter(f => f && f.decryptedMeta && f.decryptedMeta.category === currentFilter);
-            }
-            if (query) {
-                filtered = filtered.filter(f => f && f.decryptedMeta && f.decryptedMeta.name && f.decryptedMeta.name.toLowerCase().includes(query));
-            }
-
-            updateCounts();
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-sub);">
-                        <i data-lucide="shield-alert" style="width:40px; height:40px; margin-bottom:8px; color:var(--border);"></i>
-                        <div>Нет файлов в этой категории</div>
-                    </div>
-                `;
-                lucide.createIcons();
-                return;
-            }
-
-            filtered.forEach(item => {
-                if (!item || !item.id) return;
-                const meta = item.decryptedMeta || { name: "Зашифрованный файл", size: 0, category: "doc" };
-                const card = document.createElement('div');
-                card.className = 'file-card';
-
-                card.innerHTML = `
-                    <div class="file-top-row">
-                        <div class="file-icon-badge"><i data-lucide="${getFileIcon(meta.category)}"></i></div>
-                        <div class="file-actions">
-                            <button class="icon-btn" onclick="previewFileInModal('${item.id}')" title="Просмотреть"><i data-lucide="eye"></i></button>
-                            <button class="icon-btn" onclick="downloadFileById('${item.id}')" title="Скачать"><i data-lucide="download"></i></button>
-                            <button class="icon-btn danger" onclick="deleteFileById('${item.id}')" title="Удалить"><i data-lucide="trash-2"></i></button>
-                        </div>
-                    </div>
-                    <div class="file-title" title="${meta.name || 'Без названия'}" onclick="previewFileInModal('${item.id}')">${meta.name || 'Без названия'}</div>
-                    <div class="file-footer">
-                        <span>${formatBytes(meta.size || 0)}</span>
-                        <span class="lock-badge"><i data-lucide="lock" style="width:9px;"></i> AES-256</span>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-
-            lucide.createIcons();
-        }
-
-        function updateCounts() {
-            const counts = { all: (fileIndex || []).length, doc: 0, media: 0, audio: 0, note: 0 };
-            (fileIndex || []).forEach(f => {
-                if (!f || !f.decryptedMeta) return;
-                const cat = f.decryptedMeta.category || 'doc';
-                if (counts[cat] !== undefined) counts[cat]++;
-            });
-
-            document.getElementById('countAll').innerText = counts.all;
-            document.getElementById('countDoc').innerText = counts.doc;
-            document.getElementById('countMedia').innerText = counts.media;
-            document.getElementById('countAudio').innerText = counts.audio;
-            document.getElementById('countNote').innerText = counts.note;
-
-            document.getElementById('subDoc').innerText = `${counts.doc} файлов`;
-            document.getElementById('subMedia').innerText = `${counts.media} файлов`;
-            document.getElementById('subAudio').innerText = `${counts.audio} файлов`;
-            document.getElementById('subNote').innerText = `${counts.note} заметок`;
-        }
-
-        // FIX 4 & 9: Properly async and calls syncIndexToCloud()!
-        async function deleteFileById(id) {
-            if (confirm("Удалить файл из индекса?")) {
-                fileIndex = (fileIndex || []).filter(f => f && f.id !== id);
-                saveFileIndexLocally();
-                renderFilesGrid();
-                try {
-                    await syncIndexToCloud();
-                } catch (e) {
-                    console.error('Sync after delete error:', e);
-                }
-                showToast("Файл удален из индекса!");
-            }
-        }
-
-        // --- HELPERS ---
-        function openModal(id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.add('active');
-        }
-        function closeModal(id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove('active');
-        }
-
-        function formatBytes(bytes, decimals = 2) {
-            if (bytes === 0 || bytes === undefined || bytes === null) return '0 Bytes';
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-        }
-
-        function showToast(msg) {
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
-            if (container.children.length > 3) container.removeChild(container.firstChild);
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = `<i data-lucide="shield-check" style="width:16px;"></i> <span>${msg}</span>`;
-            container.appendChild(toast);
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 2800);
-        }
-    </script>
+        if (!idxMsg) { showToast("Index not found"); setProgress(0); return; }
+        const gf = await fetch("https://api.telegram.org/bot" + appConfig.botToken + "/getFile?file_id=" + idxMsg.document.file_id);
+        const gfData = await gf.json();
+        if (!gfData.ok || !gfData.result || !gfData.result.file_path) throw new Error("getFile error");
+        const dl = await fetch("https://api.telegram.org/file/bot" + appConfig.botToken + "/" + gfData.result.file_path);
+        const encBuf = await dl.arrayBuffer();
+        setProgress(80);
+        const dec = await decryptData(encBuf);
+        const loaded = JSON.parse(new TextDecoder().decode(dec.fileBuffer));
+        if (!Array.isArray(loaded)) throw new Error("Not array");
+        fileIndex = loaded;
+        saveFiles();
+        renderGrid();
+        setProgress(100);
+        setTimeout(() => setProgress(0), 400);
+        showToast("Index restored! Files: " + fileIndex.length);
+    } catch(e) {
+        setProgress(0);
+        alert("Sync error: " + e.message);
+    }
+}
+
+// ==================== NOTES ====================
+async function saveNote() {
+    const t = document.getElementById("noteTitle");
+    const b = document.getElementById("noteBody");
+    if (!t || !b) return;
+    const title = t.value.trim();
+    const body = b.value.trim();
+    if (!title || !body) { alert("Fill!"); return; }
+    try {
+        await uploadFile(new TextEncoder().encode(body).buffer, title + ".txt", "note", "text/plain");
+        closeModal("modalNote");
+        t.value = ""; b.value = "";
+    } catch(e) { alert("Error: " + e.message); }
+}
+
+// ==================== DELETE ====================
+async function deleteFile(id) {
+    if (!confirm("Delete?")) return;
+    fileIndex = (fileIndex || []).filter(f => f && f.id !== id);
+    saveFiles();
+    renderGrid();
+    try { await syncToCloud(); } catch(e) {}
+    showToast("Deleted!");
+}
+
+// ==================== RENDER ====================
+function renderGrid(query) {
+    const g = document.getElementById("filesGrid");
+    if (!g) return;
+    g.innerHTML = "";
+    let list = fileIndex || [];
+    if (currentFilter !== "all") list = list.filter(f => f && f.decryptedMeta && f.decryptedMeta.category === currentFilter);
+    if (query) list = list.filter(f => f && f.decryptedMeta && f.decryptedMeta.name && f.decryptedMeta.name.toLowerCase().includes(query.toLowerCase()));
+    updateCounts();
+    if (list.length === 0) {
+        g.innerHTML = "<div style=\"grid-column:1/-1;text-align:center;padding:40px;color:var(--text-sub)\"><div style=\"font-size:2rem;margin-bottom:8px\">&#128274;</div><div>No files</div></div>";
+        return;
+    }
+    list.forEach(item => {
+        if (!item || !item.id) return;
+        const meta = item.decryptedMeta || { name: "File", size: 0, category: "doc" };
+        const card = document.createElement("div");
+        card.className = "file-card";
+        const icon = meta.category === "media" ? "image" : meta.category === "audio" ? "music" : meta.category === "note" ? "notebook" : "file-text";
+        card.innerHTML = "<div class=\"file-top-row\"><div class=\"file-icon-badge\"><i data-lucide=\"" + icon + "\"></i></div><div class=\"file-actions\"><button class=\"icon-btn\" onclick=\"previewFile(&#39;" + item.id + "&#39;)\" title=\"View\"><i data-lucide=\"eye\"></i></button><button class=\"icon-btn\" onclick=\"doDownload(&#39;" + item.id + "&#39;)\" title=\"Download\"><i data-lucide=\"download\"></i></button><button class=\"icon-btn danger\" onclick=\"deleteFile(&#39;" + item.id + "&#39;)\" title=\"Delete\"><i data-lucide=\"trash-2\"></i></button></div></div><div class=\"file-title\" onclick=\"previewFile(&#39;" + item.id + "&#39;)\">" + (meta.name || "Untitled") + "</div><div class=\"file-footer\"><span>" + formatBytes(meta.size || 0) + "</span><span class=\"lock-badge\"><i data-lucide=\"lock\" style=\"width:9px\"></i> AES-256</span></div>";
+        g.appendChild(card);
+    });
+    if (window.lucide) lucide.createIcons();
+}
+
+function updateCounts() {
+    const c = { all: (fileIndex || []).length, doc: 0, media: 0, audio: 0, note: 0 };
+    (fileIndex || []).forEach(f => { if (!f || !f.decryptedMeta) return; const cat = f.decryptedMeta.category || "doc"; if (c[cat] !== undefined) c[cat]++; });
+    const ids = { countAll: "all", countDoc: "doc", countMedia: "media", countAudio: "audio", countNote: "note" };
+    for (const [elId, cat] of Object.entries(ids)) { const el = document.getElementById(elId); if (el) el.innerText = c[cat]; }
+    const subs = { subDoc: "doc", subMedia: "media", subAudio: "audio", subNote: "note" };
+    for (const [elId, cat] of Object.entries(subs)) { const el = document.getElementById(elId); if (el) el.innerText = c[cat] + (cat === "note" ? " notes" : " files"); }
+}
+
+function filterCategory(cat, ev) {
+    currentFilter = cat || "all";
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    if (ev && ev.currentTarget) ev.currentTarget.classList.add("active");
+    else { const btn = document.getElementById("nav-" + cat); if (btn) btn.classList.add("active"); }
+    closeSidebar();
+    const titles = { all: "All Files", doc: "Documents", media: "Media", audio: "Audio", note: "Notes" };
+    const el = document.getElementById("categoryTitle");
+    if (el) el.innerText = titles[cat] || "Files";
+    renderGrid();
+}
+function filterCategoryCard(cat) { filterCategory(cat, null); }
+function handleSearch(q) { renderGrid(q || ""); }
+
+function formatBytes(b) {
+    if (!b || b === 0) return "0 B";
+    const k = 1024, sizes = ["B","KB","MB","GB","TB"];
+    const i = Math.floor(Math.log(b) / Math.log(k));
+    return parseFloat((b / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+}
+</script>
 </body>
 </html>
