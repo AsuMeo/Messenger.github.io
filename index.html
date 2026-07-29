@@ -604,6 +604,7 @@
         let appConfig = { botToken: "", chatId: "" };
         let sessionMasterPassword = "";
         let fileIndex = []; // Main File Index Array
+        let currentFilter = 'all'; // Текущий фильтр категории
 
         // Cache for Decrypted Blobs in Browser Memory
         let decryptedBlobCache = {};
@@ -614,10 +615,10 @@
 
         // --- INIT APP ---
         window.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
             loadConfig();
             loadSessionPassword();
-            loadFileIndex(); // FIX 1 & 6: Immediate instant local render!
+            loadFileIndex();
             initDragAndDrop();
 
             if (!appConfig.botToken || !appConfig.chatId || !sessionMasterPassword) {
@@ -628,9 +629,12 @@
         // --- LOCAL STORAGE MANAGER (FIX 1 & 6) ---
         function saveFileIndexLocally() {
             try {
-                localStorage.setItem(LOCAL_STORAGE_FILES, JSON.stringify(fileIndex));
+                localStorage.setItem(LOCAL_STORAGE_FILES, JSON.stringify(fileIndex || []));
             } catch(e) {
-                console.error("Local storage save error", e);
+                console.error('Local storage save error', e);
+                if (e.name === 'QuotaExceededError') {
+                    alert('Локальное хранилище переполнено! Удалите старые файлы.');
+                }
             }
         }
 
@@ -638,8 +642,16 @@
             try {
                 const raw = localStorage.getItem(LOCAL_STORAGE_FILES);
                 if (raw) {
-                    fileIndex = JSON.parse(raw);
-                    renderFilesGrid();
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        fileIndex = parsed;
+                        renderFilesGrid();
+                    } else {
+                        fileIndex = [];
+                        console.warn('Local storage index is not an array, resetting');
+                    }
+                } else {
+                    fileIndex = [];
                 }
             } catch(e) {
                 console.error("Local storage load error", e);
@@ -650,21 +662,24 @@
             const pass = sessionStorage.getItem(SESSION_STORAGE_PASS);
             if (pass) {
                 sessionMasterPassword = pass;
-                if (document.getElementById('cfgMasterPassword')) {
-                    document.getElementById('cfgMasterPassword').value = pass;
-                }
+                const passEl = document.getElementById('cfgMasterPassword');
+                if (passEl) passEl.value = pass;
             }
         }
 
         // --- SIDEBAR DRAWER CONTROLS ---
         function toggleSidebar() {
-            document.getElementById('sidebarDrawer').classList.toggle('open');
-            document.getElementById('sidebarBackdrop').classList.toggle('active');
+            const drawer = document.getElementById('sidebarDrawer');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (drawer) drawer.classList.toggle('open');
+            if (backdrop) backdrop.classList.toggle('active');
         }
 
         function closeSidebar() {
-            document.getElementById('sidebarDrawer').classList.remove('open');
-            document.getElementById('sidebarBackdrop').classList.remove('active');
+            const drawer = document.getElementById('sidebarDrawer');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (drawer) drawer.classList.remove('open');
+            if (backdrop) backdrop.classList.remove('active');
         }
 
         // --- CONFIG & RESOLVER ---
@@ -672,34 +687,46 @@
             const raw = localStorage.getItem(LOCAL_STORAGE_CFG);
             if (raw) {
                 try {
-                    appConfig = JSON.parse(raw);
-                    document.getElementById('cfgToken').value = appConfig.botToken || "";
-                    document.getElementById('cfgChatId').value = appConfig.chatId || "";
-                } catch(e) {}
+                    const parsed = JSON.parse(raw);
+                    appConfig = { botToken: parsed.botToken || '', chatId: parsed.chatId || '' };
+                    const tokenEl = document.getElementById('cfgToken');
+                    const chatIdEl = document.getElementById('cfgChatId');
+                    if (tokenEl) tokenEl.value = appConfig.botToken;
+                    if (chatIdEl) chatIdEl.value = appConfig.chatId;
+                } catch(e) {
+                    console.error('Config load error', e);
+                    appConfig = { botToken: '', chatId: '' };
+                }
             }
         }
 
         function saveSettings() {
-            const token = document.getElementById('cfgToken').value.trim();
-            const chatId = document.getElementById('cfgChatId').value.trim();
-            const pass = document.getElementById('cfgMasterPassword').value.trim();
+            const tokenEl = document.getElementById('cfgToken');
+            const chatIdEl = document.getElementById('cfgChatId');
+            const passEl = document.getElementById('cfgMasterPassword');
+            
+            if (!tokenEl || !chatIdEl || !passEl) return;
+            
+            const token = tokenEl.value.trim();
+            const chatId = chatIdEl.value.trim();
+            const pass = passEl.value.trim();
 
             if (!token || !chatId || !pass) {
-                alert("Заполните Bot Token, Chat ID и Мастер-Пароль!");
+                alert('Заполните Bot Token, Chat ID и Мастер-Пароль!');
                 return;
             }
 
             appConfig.botToken = token;
             appConfig.chatId = chatId;
             sessionMasterPassword = pass;
-            sessionStorage.setItem(SESSION_STORAGE_PASS, pass); // Survives F5 reload in tab!
+            sessionStorage.setItem(SESSION_STORAGE_PASS, pass);
+            derivedKeysCache = { password: '', saltHex: '', keys: null };
 
             localStorage.setItem(LOCAL_STORAGE_CFG, JSON.stringify(appConfig));
             closeModal('modalSettings');
-            showToast("Подключено! Синхронизируем индекс...");
+            showToast('Подключено! Синхронизируем индекс...');
             
-            // If local index exists, sync to cloud, otherwise restore from cloud
-            if (fileIndex.length > 0) {
+            if (fileIndex && fileIndex.length > 0) {
                 syncIndexToCloud();
             } else {
                 syncIndexFromCloud();
@@ -707,39 +734,46 @@
         }
 
         async function resolveAndCalculateChatId() {
-            let input = document.getElementById('cfgChatId').value.trim();
+            const chatIdEl = document.getElementById('cfgChatId');
+            if (!chatIdEl) return;
+            
+            let input = chatIdEl.value.trim();
             if (!input) {
-                alert("Введите ссылку или ID!");
+                alert('Введите ссылку или ID!');
                 return;
             }
 
             const privateMatch = input.match(/t\.me\/c\/(\d+)/i);
             if (privateMatch && privateMatch[1]) {
                 const calculatedId = `-100${privateMatch[1]}`;
-                document.getElementById('cfgChatId').value = calculatedId;
+                chatIdEl.value = calculatedId;
                 showToast(`Chat ID вычислен: ${calculatedId}`);
                 return;
             }
 
             if (input.includes('t.me/')) {
                 const parts = input.split('t.me/');
-                const sub = parts[1].split('/')[0];
-                if (sub && !sub.startsWith('c')) input = '@' + sub;
+                if (parts.length > 1) {
+                    const sub = parts[1].split('/')[0];
+                    if (sub && !sub.startsWith('c')) input = '@' + sub;
+                }
             }
 
-            if (appConfig.botToken && (input.startsWith('@') || input.startsWith('-100'))) {
+            if (appConfig.botToken && (input.startsWith('@') || input.startsWith('-100') || /^-?\d+$/.test(input))) {
                 try {
                     const res = await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/getChat?chat_id=${encodeURIComponent(input)}`);
                     const data = await res.json();
-                    if (data.ok && data.result.id) {
-                        document.getElementById('cfgChatId').value = data.result.id;
+                    if (data.ok && data.result && data.result.id) {
+                        chatIdEl.value = data.result.id;
                         showToast(`ID получен: ${data.result.id}`);
                         return;
                     }
-                } catch(e) {}
+                } catch(e) {
+                    console.error('getChat error:', e);
+                }
             }
 
-            alert("Не удалось определить ID. Вставьте ссылку вида https://t.me/c/3809402771/558");
+            alert('Не удалось определить ID. Вставьте ссылку вида https://t.me/c/3809402771/558');
         }
 
         // --- FETCH WITH RETRY WRAPPER (FIX 8) ---
@@ -766,7 +800,7 @@
         // --- DERIVED KEYS CACHING (FIX 2) ---
         async function getDerivedKeys(password, salt) {
             const saltHex = Array.from(new Uint8Array(salt)).map(b => b.toString(16).padStart(2, '0')).join('');
-            if (derivedKeysCache.keys && derivedKeysCache.password === password && derivedKeysCache.saltHex === saltHex) {
+            if (derivedKeysCache && derivedKeysCache.keys && derivedKeysCache.password === password && derivedKeysCache.saltHex === saltHex) {
                 return derivedKeysCache.keys;
             }
 
@@ -789,13 +823,14 @@
         // --- ENCRYPTION & DECRYPTION ENGINE ---
         async function encryptPayload(metadataObj, fileBuffer) {
             if (!sessionMasterPassword) throw new Error("Мастер-пароль не введен!");
+            if (!fileBuffer || fileBuffer.byteLength === undefined) throw new Error("Некорректный файл для шифрования");
 
             const salt = crypto.getRandomValues(new Uint8Array(16));
             const iv = crypto.getRandomValues(new Uint8Array(12));
             const keys = await getDerivedKeys(sessionMasterPassword, salt);
 
             const enc = new TextEncoder();
-            const metaBytes = enc.encode(JSON.stringify(metadataObj));
+            const metaBytes = enc.encode(JSON.stringify(metadataObj || {}));
             const metaLenHeader = new Uint32Array([metaBytes.byteLength]);
             const fileBytes = new Uint8Array(fileBuffer);
 
@@ -806,7 +841,7 @@
 
             const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, keys.encKey, plaintext);
 
-            const magicHeader = new Uint8Array([0x54, 0x47, 0x56, 0x01]); // Magic "TGV\x01"
+            const magicHeader = new Uint8Array([0x54, 0x47, 0x56, 0x01]);
             const packageData = new Uint8Array(magicHeader.byteLength + salt.byteLength + iv.byteLength + ciphertext.byteLength);
             packageData.set(magicHeader, 0);
             packageData.set(salt, 4);
@@ -842,14 +877,29 @@
             const iv = packageData.slice(20, 32);
             const ciphertext = packageData.slice(32);
 
-            const plaintextBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, keys.encKey, ciphertext);
+            let plaintextBuffer;
+            try {
+                plaintextBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, keys.encKey, ciphertext);
+            } catch (e) {
+                throw new Error("Ошибка AES-GCM дешифрования: " + e.message);
+            }
+            
             const plaintext = new Uint8Array(plaintextBuffer);
+            if (plaintext.byteLength < 4) throw new Error("Дешифрованные данные слишком малы");
 
             const metaLen = new Uint32Array(plaintext.buffer.slice(0, 4))[0];
+            if (metaLen > plaintext.byteLength - 4) throw new Error("Некорректная длина метаданных");
+            
             const metaBytes = plaintext.slice(4, 4 + metaLen);
             const fileBytes = plaintext.slice(4 + metaLen);
 
-            const metadataObj = JSON.parse(new TextDecoder().decode(metaBytes));
+            let metadataObj;
+            try {
+                metadataObj = JSON.parse(new TextDecoder().decode(metaBytes));
+            } catch (e) {
+                throw new Error("Ошибка парсинга метаданных: " + e.message);
+            }
+            
             return { metadata: metadataObj, fileBuffer: fileBytes.buffer };
         }
 
@@ -857,7 +907,7 @@
         async function syncIndexToCloud() {
             if (!appConfig.botToken || !appConfig.chatId || !sessionMasterPassword) return;
             try {
-                const indexJson = JSON.stringify(fileIndex);
+                const indexJson = JSON.stringify(fileIndex || []);
                 const buffer = new TextEncoder().encode(indexJson).buffer;
                 const encrypted = await encryptPayload({ name: "_vault_index.json", category: "index", size: buffer.byteLength, type: "application/json", date: Date.now() }, buffer);
 
@@ -866,9 +916,16 @@
                 fd.append('document', new Blob([encrypted]), `vault_index_${Date.now()}.bin`);
                 fd.append('caption', `#TG_VAULT_INDEX`);
 
-                await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/sendDocument`, { method: 'POST', body: fd });
+                const res = await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/sendDocument`, { method: 'POST', body: fd });
+                const resJson = await res.json();
+                if (resJson.ok) {
+                    showToast('Индекс синхронизирован с облаком');
+                } else {
+                    console.error('Index sync error:', resJson.description);
+                }
             } catch(e) {
-                console.error("Index sync error", e);
+                console.error('Index sync error', e);
+                showToast('Ошибка синхронизации индекса');
             }
         }
 
@@ -882,13 +939,11 @@
             document.getElementById('progressContainer').style.width = '40%';
 
             try {
-                // FIX 5: Get updates cleanly
-                const res = await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/getUpdates?allowed_updates=["message","channel_post"]`);
+                const res = await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/getUpdates?allowed_updates=["message","channel_post"]&limit=100`);
                 const data = await res.json();
 
                 if (data.ok) {
                     let indexMsg = null;
-                    // FIX 10: Find ONLY the latest index message! Do NOT decrypt media files!
                     for (let i = data.result.length - 1; i >= 0; i--) {
                         const msg = data.result[i].message || data.result[i].channel_post;
                         if (msg && msg.document && msg.caption && msg.caption.includes('#TG_VAULT_INDEX')) {
@@ -900,21 +955,38 @@
                     if (indexMsg) {
                         const fileRes = await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/getFile?file_id=${indexMsg.document.file_id}`);
                         const fileData = await fileRes.json();
+                        if (!fileData.ok) throw new Error("Не удалось получить файл индекса");
+                        
                         const blobRes = await fetchWithRetry(`https://api.telegram.org/file/bot${appConfig.botToken}/${fileData.result.file_path}`);
                         const arrayBuf = await blobRes.arrayBuffer();
 
-                        const decrypted = await decryptPayload(arrayBuf);
-                        const loadedIndex = JSON.parse(new TextDecoder().decode(decrypted.fileBuffer));
+                        let decrypted;
+                        try {
+                            decrypted = await decryptPayload(arrayBuf);
+                        } catch (decErr) {
+                            throw new Error("Ошибка дешифрования индекса (неверный пароль?): " + decErr.message);
+                        }
+                        
+                        let loadedIndex;
+                        try {
+                            loadedIndex = JSON.parse(new TextDecoder().decode(decrypted.fileBuffer));
+                        } catch (parseErr) {
+                            throw new Error("Ошибка парсинга индекса: " + parseErr.message);
+                        }
 
                         if (Array.isArray(loadedIndex)) {
                             fileIndex = loadedIndex;
-                            saveFileIndexLocally(); // FIX 1: Save locally!
+                            saveFileIndexLocally();
                             renderFilesGrid();
-                            showToast(`Индекс успешно восстановлен! Файлов: ${fileIndex.length}`);
+                            showToast(`Индекс восстановлен! Файлов: ${fileIndex.length}`);
+                        } else {
+                            throw new Error("Индекс не является массивом");
                         }
                     } else {
                         showToast("Облачный индекс не найден. Используется локальный индекс.");
                     }
+                } else {
+                    throw new Error("Telegram API вернул ошибку: " + (data.description || "Unknown"));
                 }
             } catch(e) {
                 alert("Ошибка восстановления индекса: " + e.message);
@@ -937,7 +1009,7 @@
                 name: fileName,
                 size: fileBuffer.byteLength,
                 type: mimeType || getMimeType(fileName),
-                category: category,
+                category: category || getFileTypeCategory(fileName),
                 uploadDate: new Date().toLocaleDateString('ru-RU')
             };
 
@@ -959,15 +1031,17 @@
             if (!resJson.ok) throw new Error(resJson.description || "Ошибка отправки");
 
             const doc = resJson.result.document;
+            if (!doc || !doc.file_id) throw new Error("Telegram не вернул file_id");
+            
             fileIndex.unshift({
                 id: resJson.result.message_id.toString(),
                 fileId: doc.file_id,
                 decryptedMeta: metaObj
             });
 
-            saveFileIndexLocally(); // FIX 1: Instant save
+            saveFileIndexLocally();
             renderFilesGrid();
-            await syncIndexToCloud(); // Backup index to cloud
+            await syncIndexToCloud();
 
             document.getElementById('progressContainer').style.width = '100%';
             setTimeout(() => document.getElementById('progressContainer').style.width = '0%', 400);
@@ -976,24 +1050,32 @@
 
         // --- FETCH & DECRYPT WITH CACHE ---
         async function fetchAndDecryptFile(fileItem) {
+            if (!fileItem || !fileItem.fileId) throw new Error("Некорректный элемент файла");
+            if (!appConfig.botToken) throw new Error("Bot Token не настроен");
+            
             if (decryptedBlobCache[fileItem.fileId]) {
                 return decryptedBlobCache[fileItem.fileId];
             }
 
             const resFile = await fetchWithRetry(`https://api.telegram.org/bot${appConfig.botToken}/getFile?file_id=${fileItem.fileId}`);
             const dataFile = await resFile.json();
-            if (!dataFile.ok) throw new Error("Файл не найден в Telegram");
+            if (!dataFile.ok) throw new Error("Файл не найден в Telegram: " + (dataFile.description || ""));
 
             const resBlob = await fetchWithRetry(`https://api.telegram.org/file/bot${appConfig.botToken}/${dataFile.result.file_path}`);
             const encryptedArrayBuffer = await resBlob.arrayBuffer();
 
-            const decrypted = await decryptPayload(encryptedArrayBuffer);
-            const blob = new Blob([decrypted.fileBuffer], { type: decrypted.metadata.type });
+            let decrypted;
+            try {
+                decrypted = await decryptPayload(encryptedArrayBuffer);
+            } catch (decErr) {
+                throw new Error("Ошибка дешифрования файла: " + decErr.message);
+            }
+            
+            const blob = new Blob([decrypted.fileBuffer], { type: decrypted.metadata.type || 'application/octet-stream' });
             const objectUrl = URL.createObjectURL(blob);
 
             const cacheObj = { metadata: decrypted.metadata, blob: blob, objectUrl: objectUrl };
 
-            // Manage cache size and prevent memory leaks
             const keys = Object.keys(decryptedBlobCache);
             if (keys.length >= MAX_CACHE_SIZE) {
                 const oldestKey = keys[0];
@@ -1006,8 +1088,11 @@
         }
 
         async function downloadFileById(id) {
-            const item = fileIndex.find(f => f.id === id);
-            if (!item) return;
+            const item = fileIndex.find(f => f && f.id === id);
+            if (!item) {
+                showToast('Файл не найден в индексе');
+                return;
+            }
 
             try {
                 showToast("Дешифрование...");
@@ -1023,69 +1108,90 @@
         }
 
         async function previewFileInModal(id) {
-            const item = fileIndex.find(f => f.id === id);
-            if (!item) return;
+            const item = fileIndex.find(f => f && f.id === id);
+            if (!item) {
+                showToast('Файл не найден в индексе');
+                return;
+            }
 
             try {
                 showToast("Расшифровка...");
                 const res = await fetchAndDecryptFile(item);
                 const stage = document.getElementById('viewerStage');
+                if (!stage) return;
                 stage.innerHTML = '';
 
-                document.getElementById('viewerTitle').innerText = res.metadata.name;
-                document.getElementById('viewerMeta').innerText = `${formatBytes(res.metadata.size)} • ${res.metadata.uploadDate}`;
+                const meta = res.metadata || {};
+                document.getElementById('viewerTitle').innerText = meta.name || 'Без названия';
+                document.getElementById('viewerMeta').innerText = `${formatBytes(meta.size || 0)} • ${meta.uploadDate || ''}`;
                 document.getElementById('viewerDownloadBtn').onclick = () => downloadFileById(id);
 
-                const cat = res.metadata.category;
-                const type = res.metadata.type;
+                const cat = meta.category || 'doc';
+                const type = meta.type || '';
 
-                if (cat === 'media' && type.startsWith('image/')) {
+                if (cat === 'media' && type && type.startsWith('image/')) {
                     const img = document.createElement('img');
                     img.src = res.objectUrl;
+                    img.style.maxWidth = '100%';
+                    img.style.maxHeight = '100%';
                     stage.appendChild(img);
-                } else if (cat === 'media' && type.startsWith('video/')) {
+                } else if (cat === 'media' && type && type.startsWith('video/')) {
                     const video = document.createElement('video');
                     video.src = res.objectUrl;
                     video.controls = true;
                     video.autoplay = true;
+                    video.style.maxWidth = '100%';
+                    video.style.maxHeight = '100%';
                     stage.appendChild(video);
-                } else if (cat === 'audio' || type.startsWith('audio/')) {
+                } else if (cat === 'audio' || (type && type.startsWith('audio/'))) {
                     const audio = document.createElement('audio');
                     audio.src = res.objectUrl;
                     audio.controls = true;
                     audio.autoplay = true;
                     stage.appendChild(audio);
                 } else {
-                    const text = await res.blob.text();
-                    const txtArea = document.createElement('textarea');
-                    txtArea.readOnly = true;
-                    txtArea.value = text;
-                    stage.appendChild(txtArea);
+                    try {
+                        const text = await res.blob.text();
+                        const txtArea = document.createElement('textarea');
+                        txtArea.readOnly = true;
+                        txtArea.value = text;
+                        stage.appendChild(txtArea);
+                    } catch (txtErr) {
+                        const div = document.createElement('div');
+                        div.style.color = 'var(--text-sub)';
+                        div.style.padding = '20px';
+                        div.innerText = 'Невозможно отобразить содержимое этого файла в браузере. Используйте скачивание.';
+                        stage.appendChild(div);
+                    }
                 }
 
                 openModal('modalViewer');
             } catch(e) {
-                alert("Ошибка: " + e.message);
+                alert('Ошибка просмотра: ' + e.message);
             }
         }
 
         // --- NOTE CREATION ---
         async function saveEncryptedNote() {
-            const title = document.getElementById('noteTitle').value.trim();
-            const body = document.getElementById('noteBody').value.trim();
+            const titleEl = document.getElementById('noteTitle');
+            const bodyEl = document.getElementById('noteBody');
+            if (!titleEl || !bodyEl) return;
+            
+            const title = titleEl.value.trim();
+            const body = bodyEl.value.trim();
 
             if (!title || !body) {
-                alert("Введите название и текст!");
+                alert('Введите название и текст!');
                 return;
             }
 
             try {
                 await uploadEncryptedFileToTelegram(new TextEncoder().encode(body).buffer, `${title}.txt`, 'note', 'text/plain');
                 closeModal('modalNote');
-                document.getElementById('noteTitle').value = "";
-                document.getElementById('noteBody').value = "";
+                titleEl.value = '';
+                bodyEl.value = '';
             } catch(e) {
-                alert("Ошибка: " + e.message);
+                alert('Ошибка: ' + e.message);
             }
         }
 
@@ -1097,25 +1203,29 @@
             if (!files || files.length === 0) return;
 
             for (const file of files) {
-                const buffer = await file.arrayBuffer();
                 try {
+                    const buffer = await file.arrayBuffer();
                     await uploadEncryptedFileToTelegram(buffer, file.name, getFileTypeCategory(file.name), file.type);
                 } catch(err) {
                     alert(`Ошибка загрузки ${file.name}: ${err.message}`);
                 }
             }
+            e.target.value = '';
         }
 
         function initDragAndDrop() {
             const zone = document.getElementById('dropZone');
-            ['dragenter', 'dragover'].forEach(n => zone.addEventListener(n, e => { e.preventDefault(); zone.classList.add('dragover'); }, false));
-            ['dragleave', 'drop'].forEach(n => zone.addEventListener(n, e => { e.preventDefault(); zone.classList.remove('dragover'); }, false));
+            if (!zone) return;
+            ['dragenter', 'dragover'].forEach(n => zone.addEventListener(n, e => { e.preventDefault(); e.stopPropagation(); zone.classList.add('dragover'); }, false));
+            ['dragleave', 'drop'].forEach(n => zone.addEventListener(n, e => { e.preventDefault(); e.stopPropagation(); zone.classList.remove('dragover'); }, false));
             zone.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 const files = e.dataTransfer.files;
                 if (!files || files.length === 0) return;
                 for (const file of files) {
-                    const buffer = await file.arrayBuffer();
                     try {
+                        const buffer = await file.arrayBuffer();
                         await uploadEncryptedFileToTelegram(buffer, file.name, getFileTypeCategory(file.name), file.type);
                     } catch(err) {
                         alert(`Ошибка: ${err.message}`);
@@ -1126,9 +1236,11 @@
 
         function getFileTypeCategory(fileName) {
             const ext = fileName.split('.').pop().toLowerCase();
-            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mkv', 'mov', 'webm'].includes(ext)) return 'media';
-            if (['mp3', 'wav', 'ogg', 'flac', 'm4a'].includes(ext)) return 'audio';
-            if (['txt', 'md', 'note', 'json', 'js', 'html', 'css'].includes(ext)) return 'note';
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'ico', 'tiff', 'tif', 'mp4', 'mkv', 'mov', 'webm', 'avi', 'flv', 'wmv', 'm4v', '3gp'].includes(ext)) return 'media';
+            if (['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'wma', 'opus', 'aiff'].includes(ext)) return 'audio';
+            if (['txt', 'md', 'note', 'json', 'js', 'html', 'css', 'xml', 'csv', 'log', 'ini', 'yaml', 'yml'].includes(ext)) return 'note';
+            if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'rtf', 'epub'].includes(ext)) return 'doc';
+            if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'].includes(ext)) return 'doc';
             return 'doc';
         }
 
@@ -1136,8 +1248,38 @@
             const ext = fileName.split('.').pop().toLowerCase();
             if (ext === 'png') return 'image/png';
             if (['jpg', 'jpeg'].includes(ext)) return 'image/jpeg';
+            if (ext === 'gif') return 'image/gif';
+            if (ext === 'webp') return 'image/webp';
+            if (ext === 'svg') return 'image/svg+xml';
+            if (ext === 'bmp') return 'image/bmp';
             if (ext === 'mp4') return 'video/mp4';
+            if (ext === 'webm') return 'video/webm';
+            if (ext === 'mov') return 'video/quicktime';
+            if (ext === 'avi') return 'video/x-msvideo';
+            if (ext === 'mkv') return 'video/x-matroska';
             if (ext === 'mp3') return 'audio/mpeg';
+            if (ext === 'wav') return 'audio/wav';
+            if (ext === 'ogg') return 'audio/ogg';
+            if (ext === 'flac') return 'audio/flac';
+            if (ext === 'm4a') return 'audio/mp4';
+            if (ext === 'aac') return 'audio/aac';
+            if (ext === 'pdf') return 'application/pdf';
+            if (ext === 'txt' || ext === 'md') return 'text/plain';
+            if (ext === 'json') return 'application/json';
+            if (ext === 'html') return 'text/html';
+            if (ext === 'css') return 'text/css';
+            if (ext === 'js') return 'application/javascript';
+            if (ext === 'xml') return 'application/xml';
+            if (ext === 'csv') return 'text/csv';
+            if (ext === 'zip') return 'application/zip';
+            if (ext === 'rar') return 'application/x-rar-compressed';
+            if (ext === '7z') return 'application/x-7z-compressed';
+            if (ext === 'doc') return 'application/msword';
+            if (ext === 'docx') return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            if (ext === 'xls') return 'application/vnd.ms-excel';
+            if (ext === 'xlsx') return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            if (ext === 'ppt') return 'application/vnd.ms-powerpoint';
+            if (ext === 'pptx') return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
             return 'application/octet-stream';
         }
 
@@ -1145,12 +1287,13 @@
             if (cat === 'media') return 'image';
             if (cat === 'audio') return 'music';
             if (cat === 'note') return 'notebook';
-            return 'file-text';
+            if (cat === 'doc') return 'file-text';
+            return 'file';
         }
 
         // --- FILTER & UI RENDERING ---
         function filterCategory(cat, eventObj) {
-            currentFilter = cat;
+            currentFilter = cat || 'all';
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             if (eventObj && eventObj.currentTarget) {
                 eventObj.currentTarget.classList.add('active');
@@ -1161,23 +1304,25 @@
             closeSidebar();
 
             const titles = { all: 'Все Зашифрованные Файлы', doc: 'Документы', media: 'Фото и Видео', audio: 'Аудиозаписи', note: 'Заметки' };
-            document.getElementById('categoryTitle').innerText = titles[cat] || 'Файлы';
+            const titleEl = document.getElementById('categoryTitle');
+            if (titleEl) titleEl.innerText = titles[cat] || 'Файлы';
             renderFilesGrid();
         }
 
-        function filterCategoryCard(cat) { filterCategory(cat, null); }
-        function handleSearch(q) { renderFilesGrid(q.toLowerCase()); }
+        function filterCategoryCard(cat) { filterCategory(cat || 'all', null); }
+        function handleSearch(q) { renderFilesGrid((q || '').toLowerCase()); }
 
         function renderFilesGrid(query = "") {
             const grid = document.getElementById('filesGrid');
+            if (!grid) return;
             grid.innerHTML = '';
 
-            let filtered = fileIndex;
+            let filtered = fileIndex || [];
             if (currentFilter !== 'all') {
-                filtered = filtered.filter(f => f.decryptedMeta?.category === currentFilter);
+                filtered = filtered.filter(f => f && f.decryptedMeta && f.decryptedMeta.category === currentFilter);
             }
             if (query) {
-                filtered = filtered.filter(f => f.decryptedMeta?.name?.toLowerCase().includes(query));
+                filtered = filtered.filter(f => f && f.decryptedMeta && f.decryptedMeta.name && f.decryptedMeta.name.toLowerCase().includes(query));
             }
 
             updateCounts();
@@ -1194,6 +1339,7 @@
             }
 
             filtered.forEach(item => {
+                if (!item || !item.id) return;
                 const meta = item.decryptedMeta || { name: "Зашифрованный файл", size: 0, category: "doc" };
                 const card = document.createElement('div');
                 card.className = 'file-card';
@@ -1207,9 +1353,9 @@
                             <button class="icon-btn danger" onclick="deleteFileById('${item.id}')" title="Удалить"><i data-lucide="trash-2"></i></button>
                         </div>
                     </div>
-                    <div class="file-title" title="${meta.name}" onclick="previewFileInModal('${item.id}')">${meta.name}</div>
+                    <div class="file-title" title="${meta.name || 'Без названия'}" onclick="previewFileInModal('${item.id}')">${meta.name || 'Без названия'}</div>
                     <div class="file-footer">
-                        <span>${formatBytes(meta.size)}</span>
+                        <span>${formatBytes(meta.size || 0)}</span>
                         <span class="lock-badge"><i data-lucide="lock" style="width:9px;"></i> AES-256</span>
                     </div>
                 `;
@@ -1220,9 +1366,10 @@
         }
 
         function updateCounts() {
-            const counts = { all: fileIndex.length, doc: 0, media: 0, audio: 0, note: 0 };
-            fileIndex.forEach(f => {
-                const cat = f.decryptedMeta?.category || 'doc';
+            const counts = { all: (fileIndex || []).length, doc: 0, media: 0, audio: 0, note: 0 };
+            (fileIndex || []).forEach(f => {
+                if (!f || !f.decryptedMeta) return;
+                const cat = f.decryptedMeta.category || 'doc';
                 if (counts[cat] !== undefined) counts[cat]++;
             });
 
@@ -1241,20 +1388,30 @@
         // FIX 4 & 9: Properly async and calls syncIndexToCloud()!
         async function deleteFileById(id) {
             if (confirm("Удалить файл из индекса?")) {
-                fileIndex = fileIndex.filter(f => f.id !== id);
-                saveFileIndexLocally(); // Instant local save
+                fileIndex = (fileIndex || []).filter(f => f && f.id !== id);
+                saveFileIndexLocally();
                 renderFilesGrid();
-                await syncIndexToCloud(); // Upload updated index to cloud
+                try {
+                    await syncIndexToCloud();
+                } catch (e) {
+                    console.error('Sync after delete error:', e);
+                }
                 showToast("Файл удален из индекса!");
             }
         }
 
         // --- HELPERS ---
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function openModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active');
+        }
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('active');
+        }
 
         function formatBytes(bytes, decimals = 2) {
-            if (bytes === 0) return '0 Bytes';
+            if (bytes === 0 || bytes === undefined || bytes === null) return '0 Bytes';
             const k = 1024;
             const dm = decimals < 0 ? 0 : decimals;
             const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -1264,13 +1421,14 @@
 
         function showToast(msg) {
             const container = document.getElementById('toastContainer');
+            if (!container) return;
             if (container.children.length > 3) container.removeChild(container.firstChild);
             const toast = document.createElement('div');
             toast.className = 'toast';
-            toast.innerHTML = `<i data-lucide="shield-check" style="width:16px;"></i> ${msg}`;
+            toast.innerHTML = `<i data-lucide="shield-check" style="width:16px;"></i> <span>${msg}</span>`;
             container.appendChild(toast);
-            lucide.createIcons();
-            setTimeout(() => toast.remove(), 2800);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 2800);
         }
     </script>
 </body>
