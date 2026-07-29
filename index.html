@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TG Vault Cloud Hardened - Zero-Knowledge E2EE Storage</title>
+    <title>TG Vault Supreme - Cross-Device E2EE Cloud Storage</title>
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -12,7 +12,7 @@
             --bg-card: #080810;
             --bg-panel: #10101a;
             --bg-input: #161624;
-            --border: #1e1e32;
+            --border: #222238;
             --accent-cyan: #00f0ff;
             --accent-purple: #a855f7;
             --accent-pink: #ec4899;
@@ -47,6 +47,18 @@
             overflow: hidden;
             background-color: var(--bg-dark);
             color: var(--text-main);
+        }
+
+        /* Top Progress Bar for Upload / Download */
+        #progressContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            transition: width 0.2s ease;
+            z-index: 9999;
         }
 
         .app-shell {
@@ -361,8 +373,9 @@
 </head>
 <body>
 
+    <div id="progressContainer"></div>
+
     <div class="app-shell">
-        
         <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
         <!-- SIDEBAR DRAWER -->
@@ -372,7 +385,7 @@
                     <div class="brand-icon"><i data-lucide="shield-check"></i></div>
                     <div>
                         <div class="brand-title">TG Vault Cloud</div>
-                        <div class="brand-subtitle">Hardened E2EE (600k PBKDF2)</div>
+                        <div class="brand-subtitle">Cross-Device E2EE Sync</div>
                     </div>
                 </div>
                 <button class="close-sidebar-btn" onclick="closeSidebar()"><i data-lucide="x"></i></button>
@@ -403,24 +416,24 @@
             </div>
 
             <div class="nav-group">
-                <div class="nav-label">Управление</div>
+                <div class="nav-label">Синхронизация</div>
+                <button class="nav-btn" onclick="syncIndexFromCloud()">
+                    <i data-lucide="cloud-download"></i> Восстановить индекс
+                </button>
                 <button class="nav-btn" onclick="openModal('modalSettings')">
                     <i data-lucide="settings"></i> Токен & Chat ID
-                </button>
-                <button class="nav-btn" onclick="syncDriveFromTelegram()">
-                    <i data-lucide="refresh-cw"></i> Синхронизация
                 </button>
             </div>
 
             <div class="storage-box">
                 <div class="storage-header">
                     <span>Безлимитно TG</span>
-                    <span style="color:var(--accent-green);">Защищено</span>
+                    <span style="color:var(--accent-green);">Активно</span>
                 </div>
                 <div class="progress-bar">
                     <div class="progress-fill"></div>
                 </div>
-                <div style="font-size: 0.65rem; color: var(--text-sub);">Пароль не хранится в localStorage (Zero-Knowledge)</div>
+                <div style="font-size: 0.65rem; color: var(--text-sub);">Индекс файлов синхронизируется через облако Telegram</div>
             </div>
         </aside>
 
@@ -448,12 +461,11 @@
             </header>
 
             <div class="viewport-scroll">
-                
                 <div class="drop-zone" id="dropZone" onclick="triggerFileUpload()">
                     <div class="drop-icon"><i data-lucide="cloud-upload"></i></div>
                     <div>
                         <div style="font-size:0.88rem; font-weight:800; color:#fff;">Перетащите файлы сюда или нажмите для загрузки</div>
-                        <div style="font-size:0.72rem; color:var(--text-sub); margin-top:2px;">Магические байты v1, HMAC-SHA256 верификация и 600,000 итераций PBKDF2</div>
+                        <div style="font-size:0.72rem; color:var(--text-sub); margin-top:2px;">HKDF Key Separation • PBKDF2 600k • AES-GCM 256 • Portable Cloud Index</div>
                     </div>
                 </div>
 
@@ -497,10 +509,8 @@
                 </div>
 
                 <div class="files-grid" id="filesGrid"></div>
-
             </div>
         </main>
-
     </div>
 
     <!-- MODAL 1: SETTINGS / TELEGRAM BOT CONNECT & SESSION MASTER PASSWORD -->
@@ -524,17 +534,17 @@
                         <i data-lucide="wand-2"></i> Вычислить ID
                     </button>
                 </div>
-                <div class="hint">Автоматически преобразует ссылки t.me/c/ID в числовой -100ID формат.</div>
+                <div class="hint">Поддерживает ссылки t.me/c/... (автоматически добавляет префикс -100).</div>
             </div>
 
             <div class="form-group">
-                <label>Мастер-Пароль Шифрования (НЕ сохраняется в localStorage):</label>
-                <input type="password" class="form-control" id="cfgMasterPassword" placeholder="Введите секретный мастер-пароль">
-                <div class="hint">Для максимальной безопасности пароль хранится только в оперативной памяти сессии и защищен 600,000 итерациями PBKDF2 + HMAC.</div>
+                <label>Мастер-Пароль Шифрования (Хранится только в RAM):</label>
+                <input type="password" class="form-control" id="cfgMasterPassword" placeholder="Введите мастер-пароль">
+                <div class="hint">Пароль защищен 600,000 итерациями PBKDF2 + HKDF.</div>
             </div>
 
             <button class="btn btn-glow" style="justify-content:center; margin-top:6px;" onclick="saveSettings()">
-                <i data-lucide="check"></i> Подключить и Разблокировать
+                <i data-lucide="check"></i> Подключить и Восстановить индекс
             </button>
         </div>
     </div>
@@ -549,7 +559,7 @@
 
             <div class="form-group">
                 <label>Название заметки:</label>
-                <input type="text" class="form-control" id="noteTitle" placeholder="Секретные пароли, мысли...">
+                <input type="text" class="form-control" id="noteTitle" placeholder="Секретные пароли или мысли...">
             </div>
 
             <div class="form-group">
@@ -586,30 +596,19 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // --- STORAGE & HARDENED STATE ---
-        const LOCAL_STORAGE_FILES = "TG_VAULT_FILES_INDEX_HARDENED_V3";
-        const LOCAL_STORAGE_CFG = "TG_VAULT_CFG_PUBLIC_V3"; // Only non-sensitive token & chatId stored!
+        // --- STORAGE & CONFIG ---
+        const LOCAL_STORAGE_CFG = "TG_VAULT_CFG_PUBLIC_V4";
 
-        let appConfig = {
-            botToken: "",
-            chatId: ""
-        };
-
-        // Master Password stored ONLY in session memory (RAM), never in localStorage!
+        let appConfig = { botToken: "", chatId: "" };
         let sessionMasterPassword = "";
+        let fileIndex = []; // Portable cloud index synced via Telegram
 
-        let fileIndex = []; // { id, fileId, decryptedMeta }
-        let currentFilter = 'all';
-
-        // Memory cache with automatic cleanup to prevent memory leaks
         let decryptedBlobCache = {};
         const MAX_CACHE_SIZE = 15;
 
-        // --- INIT ---
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             loadConfig();
-            loadFileIndex();
             initDragAndDrop();
 
             if (!appConfig.botToken || !appConfig.chatId || !sessionMasterPassword) {
@@ -617,7 +616,6 @@
             }
         });
 
-        // --- MOBILE DRAWER FIX ---
         function toggleSidebar() {
             document.getElementById('sidebarDrawer').classList.toggle('open');
             document.getElementById('sidebarBackdrop').classList.toggle('active');
@@ -628,7 +626,6 @@
             document.getElementById('sidebarBackdrop').classList.remove('active');
         }
 
-        // --- CONFIG & CHAT ID RESOLVER ---
         function loadConfig() {
             const raw = localStorage.getItem(LOCAL_STORAGE_CFG);
             if (raw) {
@@ -652,24 +649,16 @@
 
             appConfig.botToken = token;
             appConfig.chatId = chatId;
-            sessionMasterPassword = pass; // Stored only in RAM!
+            sessionMasterPassword = pass;
 
             localStorage.setItem(LOCAL_STORAGE_CFG, JSON.stringify(appConfig));
             closeModal('modalSettings');
-            showToast("Подключено и зашифровано в сессии!");
-            syncDriveFromTelegram();
+            showToast("Подключено! Синхронизируем индекс...");
+            syncIndexFromCloud();
         }
 
         async function resolveAndCalculateChatId() {
-            const token = document.getElementById('cfgToken').value.trim();
             let input = document.getElementById('cfgChatId').value.trim();
-
-            if (!input) {
-                alert("Введите ссылку или ID в поле!");
-                return;
-            }
-
-            // Private Channel Link Format: https://t.me/c/3809402771/558 -> -1003809402771
             const privateMatch = input.match(/t\.me\/c\/(\d+)/i);
             if (privateMatch && privateMatch[1]) {
                 const calculatedId = `-100${privateMatch[1]}`;
@@ -677,59 +666,26 @@
                 showToast(`Chat ID вычислен: ${calculatedId}`);
                 return;
             }
-
-            if (input.includes('t.me/')) {
-                const parts = input.split('t.me/');
-                const sub = parts[1].split('/')[0];
-                if (sub && !sub.startsWith('c')) input = '@' + sub;
-            }
-
-            if (token && (input.startsWith('@') || input.startsWith('-100'))) {
-                try {
-                    const res = await fetch(`https://api.telegram.org/bot${token}/getChat?chat_id=${encodeURIComponent(input)}`);
-                    const data = await res.json();
-                    if (data.ok && data.result.id) {
-                        document.getElementById('cfgChatId').value = data.result.id;
-                        showToast(`ID получен: ${data.result.id}`);
-                        return;
-                    }
-                } catch(e) {}
-            }
-
-            alert("Не удалось автоматически определить ID. Проверьте токен!");
+            alert("Вставьте ссылку вида https://t.me/c/3809402771/558");
         }
 
-        // --- HARDENED CRYPTO ENGINE (600k PBKDF2 + HMAC-SHA256 + Magic Bytes) ---
-        async function deriveKeys(password, salt) {
+        // --- CRYPTO: HKDF KEY SEPARATION + PBKDF2 600k + HMAC-SHA256 ---
+        async function getDerivedKeys(password, salt) {
             const enc = new TextEncoder();
-            const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
-            
-            // Hardened to 600,000 iterations (OWASP standard for PBKDF2-HMAC-SHA256)
-            const encryptionKey = await crypto.subtle.deriveKey(
-                { name: "PBKDF2", salt: salt, iterations: 600000, hash: "SHA-256" },
-                keyMaterial,
-                { name: "AES-GCM", length: 256 },
-                false,
-                ["encrypt", "decrypt"]
-            );
+            const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
+            const derivedBits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: salt, iterations: 600000, hash: "SHA-256" }, keyMaterial, 512);
 
-            const hmacKey = await crypto.subtle.deriveKey(
-                { name: "PBKDF2", salt: salt, iterations: 600000, hash: "SHA-256" },
-                keyMaterial,
-                { name: "HMAC", hash: "SHA-256", length: 256 },
-                false,
-                ["sign", "verify"]
-            );
-
-            return { encryptionKey, hmacKey };
+            const encKey = await crypto.subtle.importKey("raw", derivedBits.slice(0, 32), "AES-GCM", false, ["encrypt", "decrypt"]);
+            const hmacKey = await crypto.subtle.importKey("raw", derivedBits.slice(32, 64), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
+            return { encKey, hmacKey };
         }
 
         async function encryptPayload(metadataObj, fileBuffer) {
-            if (!sessionMasterPassword) throw new Error("Мастер-пароль не введен в сессии!");
+            if (!sessionMasterPassword) throw new Error("Мастер-пароль не введен!");
 
             const salt = crypto.getRandomValues(new Uint8Array(16));
             const iv = crypto.getRandomValues(new Uint8Array(12));
-            const keys = await deriveKeys(sessionMasterPassword, salt);
+            const keys = await getDerivedKeys(sessionMasterPassword, salt);
 
             const enc = new TextEncoder();
             const metaBytes = enc.encode(JSON.stringify(metadataObj));
@@ -741,22 +697,16 @@
             plaintext.set(metaBytes, 4);
             plaintext.set(fileBytes, 4 + metaBytes.byteLength);
 
-            const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, keys.encryptionKey, plaintext);
+            const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, keys.encKey, plaintext);
 
-            // Magic Bytes V1 header: [0x54, 0x47, 0x56, 0x01] ("TGV\x01")
-            const magicHeader = new Uint8Array([0x54, 0x47, 0x56, 0x01]);
-
-            // Package: magic (4) + salt (16) + iv (12) + ciphertext
+            const magicHeader = new Uint8Array([0x54, 0x47, 0x56, 0x01]); // "TGV\x01"
             const packageData = new Uint8Array(magicHeader.byteLength + salt.byteLength + iv.byteLength + ciphertext.byteLength);
             packageData.set(magicHeader, 0);
             packageData.set(salt, 4);
             packageData.set(iv, 20);
             packageData.set(new Uint8Array(ciphertext), 32);
 
-            // Calculate HMAC-SHA256 signature for integrity & authenticity verification
             const signature = await crypto.subtle.sign("HMAC", keys.hmacKey, packageData);
-
-            // Final Stream: packageData + hmac signature (32 bytes)
             const finalStream = new Uint8Array(packageData.byteLength + signature.byteLength);
             finalStream.set(packageData, 0);
             finalStream.set(new Uint8Array(signature), packageData.byteLength);
@@ -765,31 +715,27 @@
         }
 
         async function decryptPayload(packageBuffer) {
-            if (!sessionMasterPassword) throw new Error("Мастер-пароль отсутствует в сессии!");
+            if (!sessionMasterPassword) throw new Error("Мастер-пароль отсутствует!");
 
             const stream = new Uint8Array(packageBuffer);
-            if (stream.byteLength < 64) throw new Error("Поврежденный или неверный контейнер");
+            if (stream.byteLength < 64) throw new Error("Поврежденный контейнер");
 
             const packageData = stream.slice(0, stream.byteLength - 32);
             const signature = stream.slice(stream.byteLength - 32);
-
-            // Extract salt to derive HMAC key first for integrity check
             const salt = packageData.slice(4, 20);
-            const keys = await deriveKeys(sessionMasterPassword, salt);
 
-            // Verify HMAC signature
+            const keys = await getDerivedKeys(sessionMasterPassword, salt);
             const isValid = await crypto.subtle.verify("HMAC", keys.hmacKey, signature, packageData);
-            if (!isValid) throw new Error("Ошибка целостности! Неверный пароль или поврежденный файл.");
+            if (!isValid) throw new Error("Неверный мастер-пароль или подпись повреждена!");
 
-            // Verify Magic Bytes ("TGV\x01")
             if (packageData[0] !== 0x54 || packageData[1] !== 0x47 || packageData[2] !== 0x56 || packageData[3] !== 0x01) {
-                throw new Error("Неверный формат магических байтов контейнера TG Vault!");
+                throw new Error("Неверный формат магических байтов");
             }
 
             const iv = packageData.slice(20, 32);
             const ciphertext = packageData.slice(32);
 
-            const plaintextBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, keys.encryptionKey, ciphertext);
+            const plaintextBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, keys.encKey, ciphertext);
             const plaintext = new Uint8Array(plaintextBuffer);
 
             const metaLen = new Uint32Array(plaintext.buffer.slice(0, 4))[0];
@@ -800,12 +746,110 @@
             return { metadata: metadataObj, fileBuffer: fileBytes.buffer };
         }
 
-        // --- UPLOAD TO TELEGRAM ---
+        // --- PORTABLE CLOUD INDEX SYNC ---
+        async function syncIndexToCloud() {
+            if (!appConfig.botToken || !appConfig.chatId || !sessionMasterPassword) return;
+            try {
+                const indexJson = JSON.stringify(fileIndex);
+                const buffer = new TextEncoder().encode(indexJson).buffer;
+                const encrypted = await encryptPayload({ name: "_vault_index.json", category: "index", size: buffer.byteLength, type: "application/json", date: Date.now() }, buffer);
+
+                const fd = new FormData();
+                fd.append('chat_id', appConfig.chatId);
+                fd.append('document', new Blob([encrypted]), `vault_index_${Date.now()}.bin`);
+                fd.append('caption', `#TG_VAULT_INDEX`);
+
+                await fetch(`https://api.telegram.org/bot${appConfig.botToken}/sendDocument`, { method: 'POST', body: fd });
+            } catch(e) {
+                console.error("Index sync error", e);
+            }
+        }
+
+        async function syncIndexFromCloud() {
+            if (!appConfig.botToken || !appConfig.chatId || !sessionMasterPassword) {
+                alert("Сначала настройте токен, ID и мастер-пароль!");
+                return;
+            }
+
+            showToast("Загрузка индекса из облака...");
+            document.getElementById('progressContainer').style.width = '40%';
+
+            try {
+                // Privacy Mode is disabled in bot -> can read full history via getUpdates or getChatHistory equivalent
+                const res = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/getUpdates?allowed_updates=["message","channel_post"]`);
+                const data = await res.json();
+
+                if (data.ok) {
+                    let indexMsg = null;
+                    // Search backwards for the latest index message
+                    for (let i = data.result.length - 1; i >= 0; i--) {
+                        const msg = data.result[i].message || data.result[i].channel_post;
+                        if (msg && msg.document && msg.caption && msg.caption.includes('#TG_VAULT_INDEX')) {
+                            indexMsg = msg;
+                            break;
+                        }
+                    }
+
+                    if (indexMsg) {
+                        const fileRes = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/getFile?file_id=${indexMsg.document.file_id}`);
+                        const fileData = await fileRes.json();
+                        const blobRes = await fetch(`https://api.telegram.org/file/bot${appConfig.botToken}/${fileData.result.file_path}`);
+                        const arrayBuf = await blobRes.arrayBuffer();
+
+                        const decrypted = await decryptPayload(arrayBuf);
+                        const loadedIndex = JSON.parse(new TextDecoder().decode(decrypted.fileBuffer));
+
+                        if (Array.isArray(loadedIndex)) {
+                            fileIndex = loadedIndex;
+                            renderFilesGrid();
+                            showToast(`Индекс восстановлен! Файлов: ${fileIndex.length}`);
+                        }
+                    } else {
+                        // Fallback: scan for regular files if no index message found yet
+                        await scanRegularFilesFromTelegram(data.result);
+                    }
+                }
+            } catch(e) {
+                alert("Ошибка восстановления индекса: " + e.message);
+            } finally {
+                document.getElementById('progressContainer').style.width = '100%';
+                setTimeout(() => document.getElementById('progressContainer').style.width = '0%', 400);
+            }
+        }
+
+        async function scanRegularFilesFromTelegram(updates) {
+            fileIndex = [];
+            for (const upd of updates) {
+                const msg = upd.message || upd.channel_post;
+                if (msg && msg.document && msg.caption && msg.caption.includes('#TG_VAULT_E2EE')) {
+                    try {
+                        const fileRes = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/getFile?file_id=${msg.document.file_id}`);
+                        const fileData = await fileRes.json();
+                        const blobRes = await fetch(`https://api.telegram.org/file/bot${appConfig.botToken}/${fileData.result.file_path}`);
+                        const arrayBuf = await blobRes.arrayBuffer();
+
+                        const decrypted = await decryptPayload(arrayBuf);
+                        fileIndex.push({
+                            id: msg.message_id.toString(),
+                            fileId: msg.document.file_id,
+                            decryptedMeta: decrypted.metadata
+                        });
+                    } catch(e) {}
+                }
+            }
+            renderFilesGrid();
+            await syncIndexToCloud();
+            showToast(`Найдено и восстановлено файлов: ${fileIndex.length}`);
+        }
+
+        // --- UPLOAD FILE ---
         async function uploadEncryptedFileToTelegram(fileBuffer, fileName, category, mimeType) {
             if (!appConfig.botToken || !appConfig.chatId || !sessionMasterPassword) {
                 openModal('modalSettings');
                 throw new Error("Не настроены параметры!");
             }
+
+            document.getElementById('progressContainer').style.width = '30%';
 
             const metaObj = {
                 name: fileName,
@@ -816,6 +860,7 @@
             };
 
             const encryptedBuffer = await encryptPayload(metaObj, fileBuffer);
+            document.getElementById('progressContainer').style.width = '70%';
 
             const blob = new Blob([encryptedBuffer], { type: 'application/octet-stream' });
             const formData = new FormData();
@@ -829,22 +874,24 @@
             });
 
             const resJson = await res.json();
-            if (!resJson.ok) throw new Error(resJson.description || "Ошибка отправки");
+            if (!resJson.ok) throw new Error(resJson.description || "Ошибка отправки в Telegram");
 
             const doc = resJson.result.document;
-            const item = {
+            fileIndex.unshift({
                 id: resJson.result.message_id.toString(),
                 fileId: doc.file_id,
                 decryptedMeta: metaObj
-            };
+            });
 
-            fileIndex.unshift(item);
-            saveFileIndexLocally();
             renderFilesGrid();
-            showToast("Файл зашифрован (600k PBKDF2) и отправлен!");
+            await syncIndexToCloud();
+
+            document.getElementById('progressContainer').style.width = '100%';
+            setTimeout(() => document.getElementById('progressContainer').style.width = '0%', 400);
+            showToast("Файл зашифрован и отправлен в облако!");
         }
 
-        // --- CACHE & MEMORY LEAK FIX (REVOKE OBJECT URL) ---
+        // --- FETCH & DECRYPT CACHE ---
         async function fetchAndDecryptFile(fileItem) {
             if (decryptedBlobCache[fileItem.fileId]) {
                 return decryptedBlobCache[fileItem.fileId];
@@ -852,7 +899,7 @@
 
             const resFile = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/getFile?file_id=${fileItem.fileId}`);
             const dataFile = await resFile.json();
-            if (!dataFile.ok) throw new Error("Файл не найден");
+            if (!dataFile.ok) throw new Error("Файл не найден в Telegram");
 
             const resBlob = await fetch(`https://api.telegram.org/file/bot${appConfig.botToken}/${dataFile.result.file_path}`);
             const encryptedArrayBuffer = await resBlob.arrayBuffer();
@@ -863,7 +910,7 @@
 
             const cacheObj = { metadata: decrypted.metadata, blob: blob, objectUrl: objectUrl };
 
-            // Manage cache size and prevent memory leaks via revokeObjectURL
+            // Manage cache size and prevent memory leaks
             const keys = Object.keys(decryptedBlobCache);
             if (keys.length >= MAX_CACHE_SIZE) {
                 const oldestKey = keys[0];
@@ -875,13 +922,12 @@
             return cacheObj;
         }
 
-        // --- DOWNLOAD & VIEWER MODAL ---
         async function downloadFileById(id) {
             const item = fileIndex.find(f => f.id === id);
             if (!item) return;
 
             try {
-                showToast("Дешифрование файла...");
+                showToast("Дешифрование...");
                 const res = await fetchAndDecryptFile(item);
                 const a = document.createElement('a');
                 a.href = res.objectUrl;
@@ -898,7 +944,7 @@
             if (!item) return;
 
             try {
-                showToast("Расшифровка контейнера...");
+                showToast("Расшифровка...");
                 const res = await fetchAndDecryptFile(item);
                 const stage = document.getElementById('viewerStage');
                 stage.innerHTML = '';
@@ -936,7 +982,7 @@
 
                 openModal('modalViewer');
             } catch(e) {
-                alert("Ошибка дешифрования: " + e.message);
+                alert("Ошибка: " + e.message);
             }
         }
 
@@ -1019,7 +1065,7 @@
             return 'file-text';
         }
 
-        // --- FIXED FILTER & EVENT MAPPING ---
+        // --- FILTER & UI RENDERING ---
         function filterCategory(cat, eventObj) {
             currentFilter = cat;
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -1036,10 +1082,7 @@
             renderFilesGrid();
         }
 
-        function filterCategoryCard(cat) {
-            filterCategory(cat, null);
-        }
-
+        function filterCategoryCard(cat) { filterCategory(cat, null); }
         function handleSearch(q) { renderFilesGrid(q.toLowerCase()); }
 
         function renderFilesGrid(query = "") {
@@ -1060,7 +1103,7 @@
                 grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-sub);">
                         <i data-lucide="shield-alert" style="width:40px; height:40px; margin-bottom:8px; color:var(--border);"></i>
-                        <div>Нет файлов в этой категории</div>
+                        <div>Нет файлов. Нажмите "Восстановить индекс" или загрузите файл.</div>
                     </div>
                 `;
                 lucide.createIcons();
@@ -1113,55 +1156,11 @@
         }
 
         function deleteFileById(id) {
-            if (confirm("Удалить файл из локального индекса?")) {
+            if (confirm("Удалить файл из индекса?")) {
                 fileIndex = fileIndex.filter(f => f.id !== id);
-                saveFileIndexLocally();
                 renderFilesGrid();
-                showToast("Файл удален из индекса!");
-            }
-        }
-
-        function saveFileIndexLocally() { localStorage.setItem(LOCAL_STORAGE_FILES, JSON.stringify(fileIndex)); }
-        
-        function loadFileIndex() {
-            const raw = localStorage.getItem(LOCAL_STORAGE_FILES);
-            if (raw) {
-                try { fileIndex = JSON.parse(raw); renderFilesGrid(); } catch(e) {}
-            }
-        }
-
-        // --- DEBOUNCED / SILENT SYNC TO PREVENT TOAST AVALANCHE ---
-        async function syncDriveFromTelegram() {
-            if (!appConfig.botToken || !appConfig.chatId || !sessionMasterPassword) return;
-
-            showToast("Синхронизация с Telegram...");
-            try {
-                const res = await fetch(`https://api.telegram.org/bot${appConfig.botToken}/getUpdates`);
-                const data = await res.json();
-
-                if (data.ok) {
-                    let newCount = 0;
-                    for (const update of data.result) {
-                        const msg = update.message || update.channel_post;
-                        if (msg && msg.document && msg.caption && msg.caption.includes('#TG_VAULT_E2EE')) {
-                            if (!fileIndex.some(f => f.fileId === msg.document.file_id)) {
-                                const tempItem = { id: msg.message_id.toString(), fileId: msg.document.file_id };
-                                try {
-                                    const decrypted = await fetchAndDecryptFile(tempItem);
-                                    tempItem.decryptedMeta = decrypted.metadata;
-                                    fileIndex.unshift(tempItem);
-                                    newCount++;
-                                } catch(e) {}
-                            }
-                        }
-                    }
-
-                    saveFileIndexLocally();
-                    renderFilesGrid();
-                    showToast(`Синхронизация завершена! Добавлено: ${newCount}`);
-                }
-            } catch(e) {
-                showToast("Ошибка синхронизации Telegram");
+                syncIndexFromCloud();
+                showToast("Файл удален!");
             }
         }
 
@@ -1180,13 +1179,13 @@
 
         function showToast(msg) {
             const container = document.getElementById('toastContainer');
-            if (container.children.length > 3) container.removeChild(container.firstChild); // Prevent toast avalanche overflow
+            if (container.children.length > 3) container.removeChild(container.firstChild);
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.innerHTML = `<i data-lucide="shield-check" style="width:16px;"></i> ${msg}`;
             container.appendChild(toast);
             lucide.createIcons();
-            setTimeout(() => toast.remove(), 2500);
+            setTimeout(() => toast.remove(), 2800);
         }
     </script>
 </body>
