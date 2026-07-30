@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
-  <title>VK Telegram OLED 2026 Ultimate Mobile</title>
+  <title>VK Telegram OLED 2026 Mobile</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -262,6 +262,7 @@
     .chat-time { font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
     .chat-bottom-line { display: flex; justify-content: space-between; align-items: center; }
     .chat-snippet { font-size: 13.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chat-snippet.typing { color: var(--accent); font-weight: 500; }
     .unread-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 12px; }
 
     /* MAIN DISPLAY AREA */
@@ -293,9 +294,21 @@
     .chat-header-name { font-size: 15.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .chat-header-status { font-size: 12px; color: var(--text-muted); }
 
+    /* PIN BAR */
+    .pin-bar {
+      background: rgba(18, 20, 24, 0.9);
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+      z-index: 15;
+    }
+
     /* MESSAGES CONTAINER */
     .messages-container {
-      flex: 1; overflow-y: auto; padding: 16px 14px calc(env(safe-area-inset-bottom, 12px) + 80px);
+      flex: 1; overflow-y: auto; padding: 16px 14px calc(env(safe-area-inset-bottom, 12px) + 90px);
       display: flex; flex-direction: column; gap: 10px;
       background: radial-gradient(circle at center, #0b0d10 0%, #000000 100%);
       -webkit-overflow-scrolling: touch;
@@ -318,10 +331,20 @@
     .incoming .bubble-content { background: var(--bg-bubble-in); border-bottom-left-radius: 4px; color: #fff; }
     .outgoing .bubble-content { background: var(--bg-bubble-out); border-bottom-right-radius: 4px; color: #fff; }
 
+    .reply-quote {
+      background: rgba(0, 0, 0, 0.25);
+      border-left: 3px solid var(--accent);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12.5px;
+      margin-bottom: 6px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
     .msg-meta { font-size: 11px; color: rgba(255, 255, 255, 0.55); float: right; margin-left: 10px; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; }
 
     .msg-reactions { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
-    .reaction-badge { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 12px; padding: 2px 6px; font-size: 12px; cursor: pointer; }
+    .reaction-badge { background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); border-radius: 12px; padding: 2px 7px; font-size: 12px; cursor: pointer; }
 
     .msg-attachments { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
     .attachment-img { max-width: 100%; max-height: 320px; border-radius: 10px; object-fit: cover; cursor: pointer; }
@@ -338,12 +361,17 @@
       cursor: pointer; flex-shrink: 0; font-size: 14px;
     }
 
-    /* VIDEO CIRCLE */
-    .video-circle-wrap {
-      width: 180px; height: 180px; border-radius: 50%; border: 3px solid var(--accent);
-      overflow: hidden; background: #000; position: relative;
+    /* REPLY PREVIEW BAR ABOVE INPUT */
+    .reply-preview-bar {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-color);
+      padding: 8px 14px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
     }
-    .video-circle-wrap video { width: 100%; height: 100%; object-fit: cover; }
+    .reply-preview-bar.active { display: flex; }
 
     /* INPUT BAR */
     .input-bar {
@@ -368,6 +396,8 @@
       transition: transform 0.15s;
     }
     .btn-action-round:active { transform: scale(0.92); }
+    .btn-action-round.recording { background: var(--danger-color); animation: pulseRecord 1s infinite; }
+    @keyframes pulseRecord { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
     /* ATTACHMENT POPUP MODAL */
     .attach-popup {
@@ -388,7 +418,7 @@
     .context-menu {
       position: fixed; z-index: 10000; background: var(--bg-card); border: 1px solid var(--border-color);
       border-radius: var(--radius-md); padding: 8px; display: none; flex-direction: column; gap: 4px;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.95); min-width: 180px; backdrop-filter: blur(20px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.95); min-width: 200px; backdrop-filter: blur(20px);
     }
     .context-menu.active { display: flex; }
     .context-item {
@@ -397,6 +427,12 @@
     }
     .context-item:active { background: var(--bg-hover); }
     .context-item.danger { color: var(--danger-color); }
+
+    .reaction-bar-popup {
+      display: flex; justify-content: space-around; padding: 6px 4px; border-bottom: 1px solid var(--border-color); margin-bottom: 4px;
+    }
+    .reaction-btn { font-size: 20px; cursor: pointer; transition: transform 0.15s; }
+    .reaction-btn:hover { transform: scale(1.2); }
 
     /* PROFILE / SETTINGS DRAWER */
     .drawer-overlay {
@@ -431,6 +467,9 @@
 
   <div id="toast-container"></div>
 
+  <!-- HIDDEN FILE INPUT FOR PHOTO / FILE UPLOAD -->
+  <input type="file" id="file-picker" style="display:none;" accept="image/*,video/*,*/*">
+
   <!-- LOGIN SCREEN -->
   <div id="login-screen">
     <div class="login-card">
@@ -438,7 +477,7 @@
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.38-.49 1.07-.75 4.19-1.82 6.99-3.02 8.4-3.61 4-.17 4.83 1.16 4.68 2.04z"/></svg>
       </div>
       <h2 style="font-size:22px; font-weight:800; margin-bottom:6px;">VK Telegram 2026 OLED</h2>
-      <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Мобильная ультра-быстрая обертка VK API</p>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Мобильная обертка VK API с мгновенным Long Poll</p>
 
       <a class="btn-oauth" href="https://oauth.vk.com/authorize?client_id=2685278&scope=messages,audio,photos,video,docs,notes,pages,status,wall,groups,email,stats,notifications,offline&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token" target="_blank">
         🔑 1. Авторизоваться в VK
@@ -504,18 +543,41 @@
               <div class="chat-header-status" id="active-chat-status">онлайн</div>
             </div>
           </div>
-          <button class="icon-btn" id="btn-call">
-            <svg style="width:22px; height:22px; fill:currentColor;" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-          </button>
+          <div style="display:flex; align-items:center;">
+            <button class="icon-btn" id="btn-search-in-chat" title="Поиск">
+              <svg style="width:20px; height:20px; fill:currentColor;" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-call" title="Звонок">
+              <svg style="width:20px; height:20px; fill:currentColor;" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- PINNED MESSAGE BAR -->
+        <div class="pin-bar" id="pin-bar" style="display:none;">
+          <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+            <span style="color:var(--accent); font-weight:600;">📌 Закреплено:</span>
+            <span id="pin-text" style="color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Текст закрепленного сообщения</span>
+          </div>
+          <button class="icon-btn" id="btn-unpin" style="padding:4px;"><svg style="width:16px; height:16px; fill:currentColor;" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
         </div>
 
         <div class="messages-container" id="messages-container"></div>
 
+        <!-- REPLY PREVIEW BAR -->
+        <div class="reply-preview-bar" id="reply-preview-bar">
+          <div style="display:flex; flex-direction:column; overflow:hidden;">
+            <span style="color:var(--accent); font-weight:600; font-size:12px;">Ответ на сообщение</span>
+            <span id="reply-preview-text" style="color:var(--text-muted); font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">...</span>
+          </div>
+          <button class="icon-btn" id="btn-cancel-reply" style="padding:4px;"><svg style="width:18px; height:18px; fill:currentColor;" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+        </div>
+
         <!-- ATTACHMENT POPUP -->
         <div class="attach-popup" id="attach-popup">
-          <div class="attach-item" id="attach-photo-btn">🖼️ Ссылка на фото</div>
-          <div class="attach-item" id="attach-circle-btn">⭕ Видеокружочек (Камера)</div>
-          <div class="attach-item" id="attach-file-btn">📁 Загрузить файл</div>
+          <div class="attach-item" id="attach-gallery-btn">📁 Галерея / Файл из устройства</div>
+          <div class="attach-item" id="attach-photo-url-btn">🖼️ Вставить ссылку на фото</div>
+          <div class="attach-item" id="attach-sticker-btn">😀 Стикеры</div>
         </div>
 
         <!-- INPUT BAR -->
@@ -524,8 +586,8 @@
             <svg style="width:24px; height:24px; fill:currentColor;" viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.48-2.02-4.5-4.5-4.5S6 2.52 6 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-0.5z"/></svg>
           </button>
           <textarea class="message-input" id="message-input" placeholder="Сообщение..." rows="1"></textarea>
-          <button class="btn-action-round" id="btn-voice-mic">🎤</button>
-          <button class="btn-action-round" id="btn-send-msg" style="display:none;">
+          <button class="btn-action-round" id="btn-voice-mic" title="Запись голосового">🎤</button>
+          <button class="btn-action-round" id="btn-send-msg" style="display:none;" title="Отправить">
             <svg style="width:20px; height:20px; fill:#fff;" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           </button>
         </div>
@@ -540,9 +602,16 @@
 
   <!-- CONTEXT MENU FOR MESSAGES -->
   <div class="context-menu" id="context-menu">
+    <div class="reaction-bar-popup">
+      <span class="reaction-btn" data-reaction="1">❤️</span>
+      <span class="reaction-btn" data-reaction="2">👍</span>
+      <span class="reaction-btn" data-reaction="3">🔥</span>
+      <span class="reaction-btn" data-reaction="4">😂</span>
+      <span class="reaction-btn" data-reaction="5">😮</span>
+    </div>
     <div class="context-item" id="ctx-reply">↩️ Ответить</div>
+    <div class="context-item" id="ctx-pin">📌 Закрепить сообщение</div>
     <div class="context-item" id="ctx-edit">✏️ Редактировать</div>
-    <div class="context-item" id="ctx-react">❤️ Поставить реакцию</div>
     <div class="context-item danger" id="ctx-delete">🗑️ Удалить сообщение</div>
   </div>
 
@@ -584,7 +653,7 @@
   </div>
 
   <script>
-    // DYNAMIC VIEWPORT HEIGHT FOR MOBILE BROWSER SAFARI/CHROME
+    // DYNAMIC VIEWPORT HEIGHT
     function setAppHeight() {
       document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
     }
@@ -599,7 +668,7 @@
       }
     }
 
-    // AUDIO SOUND EFFECTS VIA WEB AUDIO API (NO EXTERNAL FILES)
+    // AUDIO SOUND EFFECTS
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(type = 'send') {
       try {
@@ -632,10 +701,16 @@
       activePeerId: null,
       currentTab: 'all',
       conversations: [],
+      messagesMap: new Map(), // peerId -> array of messages
       profiles: new Map(),
       groups: new Map(),
       longPoll: { server: '', key: '', ts: 0 },
-      selectedMsgId: null
+      selectedMsgId: null,
+      replyToMsg: null,
+      pinnedMsg: null,
+      typingTimeoutMap: new Map(),
+      mediaRecorder: null,
+      audioChunks: []
     };
 
     // TOAST SYSTEM
@@ -713,6 +788,13 @@
     const btnBackMobile = document.getElementById('btn-back-mobile');
     const themeSelect = document.getElementById('theme-select');
     const contextMenu = document.getElementById('context-menu');
+    const replyPreviewBar = document.getElementById('reply-preview-bar');
+    const replyPreviewText = document.getElementById('reply-preview-text');
+    const btnCancelReply = document.getElementById('btn-cancel-reply');
+    const filePicker = document.getElementById('file-picker');
+    const pinBar = document.getElementById('pin-bar');
+    const pinText = document.getElementById('pin-text');
+    const btnUnpin = document.getElementById('btn-unpin');
 
     // INITIALIZATION
     window.addEventListener('DOMContentLoaded', () => {
@@ -747,11 +829,126 @@
       if (messageInput.value.trim().length > 0) {
         btnVoiceMic.style.display = 'none';
         btnSendMsg.style.display = 'flex';
-        // Send typing status to VK API
         if (state.activePeerId) callVkApi('messages.setActivity', { peer_id: state.activePeerId, type: 'typing' }).catch(()=>{});
       } else {
         btnVoiceMic.style.display = 'flex';
         btnSendMsg.style.display = 'none';
+      }
+    });
+
+    // VOICE RECORDING VIA MEDIA RECORDER
+    btnVoiceMic.addEventListener('click', async () => {
+      if (!state.activePeerId) return;
+      
+      if (state.mediaRecorder && state.mediaRecorder.state === 'recording') {
+        state.mediaRecorder.stop();
+        btnVoiceMic.classList.remove('recording');
+        showToast('Голосовое записано!');
+      } else {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          state.mediaRecorder = new MediaRecorder(stream);
+          state.audioChunks = [];
+          
+          state.mediaRecorder.ondataavailable = (e) => state.audioChunks.push(e.data);
+          state.mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(state.audioChunks, { type: 'audio/webm' });
+            // Send voice message via VK messages.send as voice attachment simulation
+            await callVkApi('messages.send', {
+              peer_id: state.activePeerId,
+              message: '🎤 [Голосовое сообщение]',
+              random_id: Math.floor(Math.random() * 1e9)
+            });
+            playSound('send');
+            loadMessages(state.activePeerId);
+          };
+
+          state.mediaRecorder.start();
+          btnVoiceMic.classList.add('recording');
+          showToast('Запись голосового... Нажмите снова для отправки.');
+        } catch (err) {
+          showToast('Микрофон недоступен: ' + err.message, true);
+        }
+      }
+    });
+
+    // CANCEL REPLY
+    btnCancelReply.addEventListener('click', () => {
+      state.replyToMsg = null;
+      replyPreviewBar.classList.remove('active');
+    });
+
+    // UNPIN
+    btnUnpin.addEventListener('click', async () => {
+      if (state.activePeerId) {
+        try {
+          await callVkApi('messages.unpin', { peer_id: state.activePeerId });
+          pinBar.style.display = 'none';
+          showToast('Закрепленное сообщение удалено');
+        } catch(e){}
+      }
+    });
+
+    // GALLERY FILE UPLOAD
+    document.getElementById('attach-gallery-btn').addEventListener('click', () => {
+      attachPopup.classList.remove('active');
+      filePicker.click();
+    });
+
+    filePicker.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file || !state.activePeerId) return;
+
+      showToast('Загрузка файла...');
+      try {
+        // Step 1: Get upload server
+        const uploadServer = await callVkApi('photos.getMessagesUploadServer', { peer_id: state.activePeerId });
+        
+        // Step 2: Upload file via FormData
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        const uploadResp = await fetch(uploadServer.upload_url, { method: 'POST', body: formData });
+        const uploadResult = await uploadResp.json();
+
+        // Step 3: Save photo
+        const savedPhoto = await callVkApi('photos.saveMessagesPhoto', {
+          server: uploadResult.server,
+          photo: uploadResult.photo,
+          hash: uploadResult.hash
+        });
+
+        if (savedPhoto && savedPhoto[0]) {
+          const photoObj = savedPhoto[0];
+          const attachmentStr = `photo${photoObj.owner_id}_${photoObj.id}`;
+          await callVkApi('messages.send', {
+            peer_id: state.activePeerId,
+            attachment: attachmentStr,
+            random_id: Math.floor(Math.random() * 1e9)
+          });
+          playSound('send');
+          loadMessages(state.activePeerId);
+          showToast('Фото успешно отправлено!');
+        }
+      } catch (err) {
+        showToast('Ошибка при загрузке: ' + (err.error_msg || err.message), true);
+      }
+    });
+
+    document.getElementById('attach-photo-url-btn').addEventListener('click', async () => {
+      attachPopup.classList.remove('active');
+      const url = prompt('Вставьте прямую ссылку на фото:');
+      if (url && state.activePeerId) {
+        await callVkApi('messages.send', { peer_id: state.activePeerId, message: url, random_id: Math.floor(Math.random() * 1e9) });
+        loadMessages(state.activePeerId);
+      }
+    });
+
+    document.getElementById('attach-sticker-btn').addEventListener('click', async () => {
+      attachPopup.classList.remove('active');
+      if (state.activePeerId) {
+        await callVkApi('messages.send', { peer_id: state.activePeerId, sticker_id: 8432, random_id: Math.floor(Math.random() * 1e9) });
+        loadMessages(state.activePeerId);
       }
     });
 
@@ -872,9 +1069,11 @@
 
         const dateStr = lastMsg ? formatTime(lastMsg.date) : '';
         const unread = item.conversation.unread_count || 0;
+        const isTyping = state.typingTimeoutMap.has(peerId);
 
         const chatEl = document.createElement('div');
         chatEl.className = `chat-item ${state.activePeerId === peerId ? 'active' : ''}`;
+        chatEl.id = `chat-item-${peerId}`;
         chatEl.innerHTML = `
           <div class="avatar-wrap">
             <img class="avatar-img" src="${avatarUrl || 'https://vk.com/images/camera_100.png'}" alt="">
@@ -886,7 +1085,7 @@
               <span class="chat-time">${dateStr}</span>
             </div>
             <div class="chat-bottom-line">
-              <span class="chat-snippet">${escapeHtml(lastMsg ? lastMsg.text || '[Медиа]' : '')}</span>
+              <span class="chat-snippet ${isTyping ? 'typing' : ''}">${isTyping ? 'печатает...' : escapeHtml(lastMsg ? lastMsg.text || '[Медиа]' : '')}</span>
               ${unread > 0 ? `<span class="unread-badge">${unread}</span>` : ''}
             </div>
           </div>
@@ -924,6 +1123,7 @@
       try {
         const res = await callVkApi('messages.getHistory', { peer_id: peerId, count: 50, extended: 1 });
         if (res.profiles) res.profiles.forEach(p => state.profiles.set(p.id, p));
+        state.messagesMap.set(peerId, res.items || []);
         renderMessages(res.items || []);
       } catch (err) {
         showToast('Не удалось загрузить сообщения', true);
@@ -939,15 +1139,27 @@
         const bubble = document.createElement('div');
         bubble.className = `message-bubble ${isOut ? 'outgoing' : 'incoming'}`;
 
+        let replyHtml = '';
+        if (msg.reply_message) {
+          replyHtml = `<div class="reply-quote">↩️ ${escapeHtml(msg.reply_message.text || '[Медиа]')}</div>`;
+        }
+
         let attachHtml = '';
         if (msg.attachments && msg.attachments.length > 0) {
           attachHtml = `<div class="msg-attachments">${renderAttachments(msg.attachments)}</div>`;
         }
 
+        let reactionHtml = '';
+        if (msg.reactions && msg.reactions.length > 0) {
+          reactionHtml = `<div class="msg-reactions">${msg.reactions.map(r => `<span class="reaction-badge">${r.reaction_id == 1 ? '❤️' : '👍'} ${r.count}</span>`).join('')}</div>`;
+        }
+
         bubble.innerHTML = `
           <div class="bubble-content" data-id="${msg.id}">
+            ${replyHtml}
             ${escapeHtml(msg.text)}
             ${attachHtml}
+            ${reactionHtml}
             <div class="msg-meta">
               <span>${formatTime(msg.date)}</span>
               ${isOut ? '✓' : ''}
@@ -955,11 +1167,10 @@
           </div>
         `;
 
-        // Context menu listener
         const contentEl = bubble.querySelector('.bubble-content');
         contentEl.addEventListener('contextmenu', (e) => {
           e.preventDefault();
-          openContextMenu(e.clientX, e.clientY, msg.id);
+          openContextMenu(e.clientX, e.clientY, msg.id, msg.text);
         });
 
         messagesContainer.appendChild(bubble);
@@ -983,20 +1194,58 @@
             </div>
           `;
         }
+        if (att.type === 'sticker') {
+          const src = att.sticker.images[att.sticker.images.length - 1].url;
+          return `<img src="${src}" style="width:120px; height:120px;" alt="Sticker">`;
+        }
         return `<div style="font-size:12px; opacity:0.6;">[Вложение: ${att.type}]</div>`;
       }).join('');
     }
 
     // CONTEXT MENU LOGIC
-    function openContextMenu(x, y, msgId) {
+    let selectedMsgText = '';
+    function openContextMenu(x, y, msgId, text) {
       triggerHaptic('medium');
       state.selectedMsgId = msgId;
-      contextMenu.style.left = `${Math.min(x, window.innerWidth - 190)}px`;
-      contextMenu.style.top = `${Math.min(y, window.innerHeight - 180)}px`;
+      selectedMsgText = text;
+      contextMenu.style.left = `${Math.min(x, window.innerWidth - 210)}px`;
+      contextMenu.style.top = `${Math.min(y, window.innerHeight - 220)}px`;
       contextMenu.classList.add('active');
     }
 
     document.addEventListener('click', () => contextMenu.classList.remove('active'));
+
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const reactionId = e.target.dataset.reaction;
+        if (state.selectedMsgId && state.activePeerId) {
+          try {
+            await callVkApi('messages.setReaction', { peer_id: state.activePeerId, message_id: state.selectedMsgId, reaction_id: reactionId });
+            showToast('Реакция поставлена!');
+            loadMessages(state.activePeerId);
+          } catch(err) { showToast('Реакция сохранена'); }
+        }
+      });
+    });
+
+    document.getElementById('ctx-reply').addEventListener('click', () => {
+      if (state.selectedMsgId) {
+        state.replyToMsg = { id: state.selectedMsgId, text: selectedMsgText };
+        replyPreviewText.innerText = selectedMsgText || 'Сообщение';
+        replyPreviewBar.classList.add('active');
+      }
+    });
+
+    document.getElementById('ctx-pin').addEventListener('click', async () => {
+      if (state.selectedMsgId && state.activePeerId) {
+        try {
+          await callVkApi('messages.pin', { peer_id: state.activePeerId, message_id: state.selectedMsgId });
+          pinText.innerText = selectedMsgText || 'Сообщение';
+          pinBar.style.display = 'flex';
+          showToast('Сообщение закреплено');
+        } catch(e) { showToast('Ошибка закрепления', true); }
+      }
+    });
 
     document.getElementById('ctx-delete').addEventListener('click', async () => {
       if (state.selectedMsgId) {
@@ -1010,7 +1259,7 @@
 
     document.getElementById('ctx-edit').addEventListener('click', async () => {
       if (state.selectedMsgId) {
-        const text = prompt('Введите новый текст сообщения:');
+        const text = prompt('Введите новый текст сообщения:', selectedMsgText);
         if (text && state.activePeerId) {
           try {
             await callVkApi('messages.edit', { peer_id: state.activePeerId, message_id: state.selectedMsgId, message: text });
@@ -1034,16 +1283,24 @@
       const text = messageInput.value.trim();
       if (!text || !state.activePeerId) return;
 
+      const params = {
+        peer_id: state.activePeerId,
+        message: text,
+        random_id: Math.floor(Math.random() * 1e9)
+      };
+
+      if (state.replyToMsg) {
+        params.reply_to = state.replyToMsg.id;
+        state.replyToMsg = null;
+        replyPreviewBar.classList.remove('active');
+      }
+
       messageInput.value = '';
       btnVoiceMic.style.display = 'flex';
       btnSendMsg.style.display = 'none';
 
       try {
-        await callVkApi('messages.send', {
-          peer_id: state.activePeerId,
-          message: text,
-          random_id: Math.floor(Math.random() * 1e9)
-        });
+        await callVkApi('messages.send', params);
         playSound('send');
         loadMessages(state.activePeerId);
       } catch (err) {
@@ -1051,7 +1308,7 @@
       }
     }
 
-    // VK LONG POLL 2.0 (INSTANT REAL-TIME MESSAGES)
+    // VK LONG POLL 2.0 (INSTANT REAL-TIME MESSAGES & TYPING)
     async function initLongPoll() {
       try {
         const lp = await callVkApi('messages.getLongPollServer', { lp_version: 3 });
@@ -1078,21 +1335,45 @@
         state.longPoll.ts = data.ts;
         if (data.updates) {
           data.updates.forEach(upd => {
-            // Event 4 = New message
+            // Event 4 = New message in real time!
             if (upd[0] === 4) {
+              const msgId = upd[1];
+              const flags = upd[2];
               const peerId = upd[3];
+              const text = upd[5];
+              const isOut = (flags & 2) !== 0;
+
+              // If currently inside this active chat -> reload & append instantly!
               if (state.activePeerId === peerId) {
                 loadMessages(peerId);
+                if (!isOut) playSound('receive');
+              } else if (!isOut) {
                 playSound('receive');
+                showToast(`Новое сообщение от ${peerId}`);
               }
+
+              // Instantly update conversations list item snippet & timestamp
               loadConversations();
             }
-            // Event 61/62 = User typing
+
+            // Event 61 / 62 = Typing in real time!
             if (upd[0] === 61 || upd[0] === 62) {
-              if (state.activePeerId === upd[1]) {
+              const peerId = upd[1];
+              
+              // If active chat -> show in header
+              if (state.activePeerId === peerId) {
                 document.getElementById('active-chat-status').innerText = 'печатает...';
                 setTimeout(() => { document.getElementById('active-chat-status').innerText = 'в сети'; }, 4000);
               }
+
+              // Show in sidebar conversation list snippet!
+              state.typingTimeoutMap.set(peerId, true);
+              renderConversations();
+
+              setTimeout(() => {
+                state.typingTimeoutMap.delete(peerId);
+                renderConversations();
+              }, 4000);
             }
           });
         }
