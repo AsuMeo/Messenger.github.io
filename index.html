@@ -2,13 +2,13 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MAX Messenger — Realtime & AI Law Guard</title>
-  
-  <!-- Google Fonts & FontAwesome -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>MAX Telegram Ultra Dark 2026 — Realtime & Law AI</title>
+
+  <!-- Google Fonts & FontAwesome 6 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- Firebase v9 Compat SDKs -->
@@ -17,500 +17,573 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <style>
+    /* TELEGRAM 2026 ULTRA OLED / MODERN DARK THEME */
+    :root {
+      --bg-app: #0e1217;
+      --bg-sidebar: #151d24;
+      --bg-header: rgba(21, 29, 36, 0.95);
+      --bg-input: #1c2733;
+      --bg-bubble-in: #18222d;
+      --bg-bubble-out: #2a619e;
+      --accent: #5288c1;
+      --accent-bright: #64b5f6;
+      --text-main: #f5f7fa;
+      --text-muted: #708499;
+      --border-color: rgba(255, 255, 255, 0.07);
+      --law-badge-color: #4fae4e;
+      --law-badge-warn: #e5a93c;
+      --law-badge-danger: #ef5350;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     body, html {
       height: 100%;
+      height: 100dvh;
       width: 100%;
-      background-color: #0e1621;
-      color: #f5f5f5;
+      background-color: var(--bg-app);
+      color: var(--text-main);
       overflow: hidden;
+      position: fixed;
     }
 
-    /* TELEGRAM DARK THEME COLORS */
-    :root {
-      --bg-dark: #0e1621;
-      --bg-sidebar: #17212b;
-      --bg-chat-header: #17212b;
-      --bg-active-chat: #2b5278;
-      --bg-input: #182533;
-      --bg-msg-in: #182533;
-      --bg-msg-out: #2b5278;
-      --text-main: #f5f5f5;
-      --text-muted: #7f91a4;
-      --accent-blue: #5288c1;
-      --accent-green: #4fae4e;
-      --law-badge-color: #4fae4e;
-      --law-badge-warn: #e5a93c;
-      --law-badge-danger: #e53935;
-    }
-
-    /* AUTH SCREEN */
+    /* AUTH UI - TELEGRAM ULTRA OLED STYLE */
     #auth-screen {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: radial-gradient(circle, #17212b 0%, #0e1621 100%);
+      height: 100dvh;
+      width: 100vw;
+      background: radial-gradient(circle at center, #172330 0%, #090c10 100%);
       padding: 20px;
+      position: absolute;
+      top: 0; left: 0; z-index: 999;
     }
 
     .auth-card {
-      background: #17212b;
-      padding: 30px;
-      border-radius: 16px;
+      background: rgba(21, 29, 36, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 32px 28px;
+      border-radius: 24px;
       width: 100%;
-      max-width: 400px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.05);
+      max-width: 380px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       text-align: center;
     }
 
+    .auth-logo {
+      font-size: 42px;
+      color: var(--accent-bright);
+      margin-bottom: 12px;
+      text-shadow: 0 0 20px rgba(100, 181, 246, 0.4);
+    }
+
     .auth-card h2 {
-      margin-bottom: 8px;
-      color: var(--accent-blue);
+      font-size: 22px;
       font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
     }
 
     .auth-card p {
       color: var(--text-muted);
-      font-size: 14px;
+      font-size: 13px;
       margin-bottom: 24px;
     }
 
-    .input-group {
-      margin-bottom: 16px;
+    .input-field {
+      margin-bottom: 14px;
       text-align: left;
     }
 
-    .input-group label {
+    .input-field label {
       display: block;
-      font-size: 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
       color: var(--text-muted);
       margin-bottom: 6px;
-      margin-left: 4px;
+      font-weight: 600;
     }
 
-    .input-group input {
+    .input-field input {
       width: 100%;
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 1px solid #242f3d;
-      background: #0e1621;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #0d131a;
       color: #fff;
       font-size: 15px;
       outline: none;
-      transition: border 0.2s;
+      transition: all 0.2s;
+      user-select: text;
     }
 
-    .input-group input:focus {
-      border-color: var(--accent-blue);
+    .input-field input:focus {
+      border-color: var(--accent-bright);
+      box-shadow: 0 0 12px rgba(100, 181, 246, 0.2);
     }
 
-    .btn {
+    .btn-primary {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       border: none;
-      border-radius: 10px;
-      background: var(--accent-blue);
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2b6299, #5288c1);
       color: #fff;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s;
+      box-shadow: 0 4px 15px rgba(42, 97, 158, 0.4);
+      transition: transform 0.1s, opacity 0.2s;
     }
 
-    .btn:hover {
-      opacity: 0.9;
+    .btn-primary:active {
+      transform: scale(0.98);
     }
 
-    .auth-toggle {
+    .auth-switch {
       margin-top: 18px;
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-muted);
       cursor: pointer;
     }
 
-    .auth-toggle span {
-      color: var(--accent-blue);
-      text-decoration: underline;
+    .auth-switch span {
+      color: var(--accent-bright);
+      font-weight: 600;
     }
 
-    /* MAIN MESSENGER LAYOUT */
+    /* APP LAYOUT FOR MOBILE AND DESKTOP */
     #app-screen {
       display: none;
-      height: 100vh;
+      height: 100dvh;
       width: 100vw;
+      position: relative;
+      overflow: hidden;
       flex-direction: row;
     }
 
-    /* SIDEBAR */
+    /* SIDEBAR (CHAT LIST) */
     .sidebar {
-      width: 340px;
+      width: 360px;
+      height: 100dvh;
       background: var(--bg-sidebar);
-      border-right: 1px solid rgba(0,0,0,0.2);
+      border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      height: 100%;
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 100%;
-        position: absolute;
-        z-index: 10;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        transition: transform 0.3s ease;
-      }
-      .sidebar.hidden {
-        transform: translateX(-100%);
-      }
+      z-index: 10;
+      flex-shrink: 0;
+      transition: transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
     }
 
     .sidebar-header {
-      padding: 14px;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
       background: var(--bg-sidebar);
-      border-bottom: 1px solid rgba(0,0,0,0.15);
+      border-bottom: 1px solid var(--border-color);
     }
 
     .user-avatar-btn {
       position: relative;
       cursor: pointer;
+      flex-shrink: 0;
     }
 
-    .user-avatar {
-      width: 42px;
-      height: 42px;
+    .avatar-img {
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       object-fit: cover;
-      background: #242f3d;
+      background: linear-gradient(135deg, #2b5278, #5288c1);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: bold;
-      color: #fff;
+      font-weight: 700;
       font-size: 18px;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
 
-    .search-box {
+    .search-bar {
       position: relative;
       flex: 1;
     }
 
-    .search-box i {
+    .search-bar i {
       position: absolute;
-      left: 12px;
+      left: 14px;
       top: 50%;
       transform: translateY(-50%);
       color: var(--text-muted);
       font-size: 14px;
     }
 
-    .search-box input {
+    .search-bar input {
       width: 100%;
-      padding: 8px 12px 8px 36px;
-      border-radius: 20px;
-      border: none;
-      background: #242f3d;
+      padding: 10px 14px 10px 38px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.05);
+      background: #0f1720;
       color: #fff;
       font-size: 14px;
       outline: none;
+      user-select: text;
     }
 
     .chat-list {
       flex: 1;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .chat-item {
       display: flex;
       align-items: center;
-      padding: 12px 14px;
+      padding: 12px 16px;
       gap: 12px;
       cursor: pointer;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-      transition: background 0.2s;
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+      transition: background 0.15s;
     }
 
-    .chat-item:hover, .chat-item.active {
-      background: #202b36;
+    .chat-item:active, .chat-item.active {
+      background: rgba(43, 82, 120, 0.3);
     }
 
     .chat-info {
       flex: 1;
-      overflow: hidden;
+      min-width: 0;
+    }
+
+    .chat-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
     }
 
     .chat-name {
-      font-weight: 500;
+      font-weight: 600;
       font-size: 15px;
       color: #fff;
-      display: flex;
-      justify-content: space-between;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .chat-username {
       font-size: 12px;
-      color: var(--accent-blue);
+      color: var(--accent-bright);
     }
 
-    .chat-last-msg {
+    .chat-preview {
       font-size: 13px;
       color: var(--text-muted);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-top: 4px;
     }
 
-    /* CHAT MAIN AREA */
-    .chat-container {
+    /* MAIN CHAT AREA */
+    .chat-main {
       flex: 1;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
-      height: 100%;
-      background: #0e1621;
+      background: #090e13;
       position: relative;
+      overflow: hidden;
     }
 
-    /* Chat Pattern Background Effect */
-    .chat-container::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
-      background-size: 20px 20px;
-      pointer-events: none;
-    }
-
+    /* TELEGRAM CHAT HEADER */
     .chat-header {
-      padding: 12px 18px;
-      background: var(--bg-chat-header);
+      height: 60px;
+      padding: 0 16px;
+      background: var(--bg-header);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
       display: flex;
       align-items: center;
-      gap: 14px;
-      border-bottom: 1px solid rgba(0,0,0,0.2);
-      z-index: 2;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-color);
+      z-index: 20;
+      flex-shrink: 0;
     }
 
-    .back-btn {
+    .btn-back {
       display: none;
       background: none;
       border: none;
-      color: var(--accent-blue);
-      font-size: 18px;
+      color: var(--accent-bright);
+      font-size: 20px;
+      padding: 8px;
       cursor: pointer;
     }
 
-    @media (max-width: 768px) {
-      .back-btn { display: block; }
-    }
-
-    .chat-header-info {
+    .chat-header-details {
       flex: 1;
+      min-width: 0;
     }
 
     .chat-header-title {
       font-weight: 600;
       font-size: 16px;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .chat-header-status {
+    .chat-header-subtitle {
       font-size: 12px;
-      color: var(--accent-blue);
+      color: var(--accent-bright);
     }
 
-    /* MESSAGES CONTAINER */
+    /* MESSAGES VIEWPORT */
     .messages-viewport {
       flex: 1;
       overflow-y: auto;
-      padding: 16px 20px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      z-index: 1;
+      -webkit-overflow-scrolling: touch;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
     }
 
-    /* BUBBLE DESIGN LIKE THE IMAGE */
+    /* BUBBLE STYLING - EXACT MATCH TO USER'S SCREENSHOT CONCEPT */
     .msg-bubble {
-      max-width: 82%;
+      max-width: 88%;
       padding: 10px 14px;
-      border-radius: 16px;
+      border-radius: 18px;
       position: relative;
-      word-wrap: break-word;
       font-size: 15px;
-      line-height: 1.4;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      line-height: 1.45;
+      word-break: break-word;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      user-select: text;
     }
 
     .msg-in {
       align-self: flex-start;
-      background: var(--bg-msg-in);
-      color: #fff;
+      background: var(--bg-bubble-in);
+      color: #f0f4f8;
       border-bottom-left-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
     .msg-out {
       align-self: flex-end;
-      background: var(--bg-msg-out);
-      color: #fff;
+      background: var(--bg-bubble-out);
+      color: #ffffff;
       border-bottom-right-radius: 4px;
     }
 
-    .msg-meta {
-      display: flex;
+    /* FOOTER INSIDE BUBBLE FOR LAW BADGE & TIME & STATUS */
+    .msg-footer {
+      display: inline-flex;
       align-items: center;
-      justify-content: flex-end;
       gap: 6px;
       font-size: 11px;
-      margin-top: 4px;
       float: right;
+      margin-top: 4px;
       margin-left: 12px;
+      line-height: 1;
+      vertical-align: bottom;
     }
 
-    /* LAW BADGE EXACTLY LIKE PHOTO */
     .law-badge {
-      font-weight: 500;
+      font-weight: 600;
       font-size: 11px;
       color: var(--law-badge-color);
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 1px 4px;
-      border-radius: 4px;
-      background: rgba(79, 174, 78, 0.12);
+      gap: 3px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(79, 174, 78, 0.18);
+      border: 1px solid rgba(79, 174, 78, 0.3);
     }
 
     .law-badge.warn {
       color: var(--law-badge-warn);
-      background: rgba(229, 169, 60, 0.12);
+      background: rgba(229, 169, 60, 0.18);
+      border-color: rgba(229, 169, 60, 0.3);
     }
 
     .law-badge.danger {
       color: var(--law-badge-danger);
-      background: rgba(229, 57, 53, 0.12);
+      background: rgba(239, 83, 80, 0.18);
+      border-color: rgba(239, 83, 80, 0.3);
     }
 
     .msg-time {
-      color: rgba(255,255,255,0.6);
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 11px;
     }
 
-    .msg-status {
-      color: #4fae4e;
+    .msg-check {
+      color: #52b052;
       font-size: 12px;
     }
 
-    /* INPUT BAR */
+    /* MOBILE-OPTIMIZED ALWAYS VISIBLE INPUT BAR AT BOTTOM */
     .input-bar {
-      padding: 12px;
+      padding: 10px 12px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
       background: var(--bg-sidebar);
+      border-top: 1px solid var(--border-color);
       display: flex;
       align-items: center;
-      gap: 10px;
-      z-index: 2;
+      gap: 8px;
+      z-index: 30;
+      flex-shrink: 0;
+      width: 100%;
     }
 
-    .input-bar-btn {
+    .btn-icon {
       background: none;
       border: none;
       color: var(--text-muted);
       font-size: 20px;
-      cursor: pointer;
-      padding: 6px;
-      transition: color 0.2s;
-    }
-
-    .input-bar-btn:hover {
-      color: var(--accent-blue);
-    }
-
-    .msg-input-wrapper {
-      flex: 1;
-      background: #0e1621;
-      border-radius: 22px;
-      padding: 8px 16px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: color 0.2s, background 0.2s;
+      flex-shrink: 0;
     }
 
-    .msg-input-wrapper input {
+    .btn-icon:active {
+      background: rgba(255,255,255,0.08);
+      color: var(--accent-bright);
+    }
+
+    .input-box {
+      flex: 1;
+      background: var(--bg-input);
+      border-radius: 22px;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .input-box input {
       width: 100%;
       background: transparent;
       border: none;
       outline: none;
       color: #fff;
       font-size: 15px;
+      padding: 6px 0;
+      user-select: text;
     }
 
-    .send-btn {
-      width: 42px;
-      height: 42px;
+    .btn-send {
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      background: var(--accent-blue);
+      background: linear-gradient(135deg, #2b6299, #5288c1);
       border: none;
       color: #fff;
-      font-size: 16px;
+      font-size: 17px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(42, 97, 158, 0.4);
       transition: transform 0.1s;
     }
 
-    .send-btn:active {
-      transform: scale(0.95);
+    .btn-send:active {
+      transform: scale(0.92);
     }
 
-    /* MODAL FOR PROFILE & AVATAR */
+    /* MODAL WINDOWS FOR PROFILE / AVATAR SELECT */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       display: none;
       justify-content: center;
       align-items: center;
-      z-index: 100;
+      z-index: 999;
+      padding: 20px;
     }
 
-    .modal {
-      background: #17212b;
-      padding: 24px;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 360px;
+    .modal-card {
+      background: var(--bg-sidebar);
+      padding: 28px 24px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 350px;
       text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
     }
 
-    .modal-avatar-preview {
-      width: 90px;
-      height: 90px;
+    .modal-avatar {
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
       object-fit: cover;
-      margin: 12px auto;
-      background: #242f3d;
+      margin: 16px auto;
+      background: linear-gradient(135deg, #2b5278, #5288c1);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 32px;
+      font-size: 36px;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
     }
 
-    .hidden-file-input {
+    .hidden-file {
       display: none;
     }
 
-    /* EMPTY STATE */
-    .empty-chat {
+    /* RESPONSIVE MOBILE ADAPTABILITY */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100vw;
+        position: absolute;
+        top: 0; left: 0; bottom: 0;
+      }
+
+      .sidebar.hidden {
+        transform: translateX(-100%);
+      }
+
+      .chat-main {
+        width: 100vw;
+      }
+
+      .btn-back {
+        display: block;
+      }
+    }
+
+    /* EMPTY CHAT PLACEHOLDER */
+    .empty-state {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -518,123 +591,124 @@
       height: 100%;
       color: var(--text-muted);
       text-align: center;
-      padding: 20px;
+      padding: 30px;
     }
 
-    .empty-chat i {
-      font-size: 48px;
-      margin-bottom: 12px;
-      color: var(--accent-blue);
+    .empty-state i {
+      font-size: 54px;
+      color: var(--accent-bright);
+      margin-bottom: 16px;
     }
   </style>
 </head>
 <body>
 
-  <!-- AUTH SCREEN -->
+  <!-- AUTHENTICATION SCREEN -->
   <div id="auth-screen">
     <div class="auth-card">
-      <h2 id="auth-title"><i class="fa-solid fa-paper-plane"></i> MAX Messenger</h2>
-      <p id="auth-subtitle">Вход в аккаунт с реальным ИИ и Законами</p>
+      <div class="auth-logo"><i class="fa-solid fa-paper-plane"></i></div>
+      <h2 id="auth-title">Вход в MAX</h2>
+      <p id="auth-subtitle">Мессенджер с ИИ и анализом законов</p>
 
-      <div class="input-group" id="group-username" style="display: none;">
-        <label>Юзернейм (@username)</label>
-        <input type="text" id="auth-username" placeholder="@alex_max" />
+      <div class="input-field" id="field-username" style="display: none;">
+        <label>Уникальный @username</label>
+        <input type="text" id="auth-username" placeholder="@alex_2026" autocomplete="off" />
       </div>
 
-      <div class="input-group">
+      <div class="input-field">
         <label>Email</label>
-        <input type="email" id="auth-email" placeholder="example@mail.com" />
+        <input type="email" id="auth-email" placeholder="mail@example.com" autocomplete="off" />
       </div>
 
-      <div class="input-group">
+      <div class="input-field">
         <label>Пароль</label>
         <input type="password" id="auth-password" placeholder="••••••••" />
       </div>
 
-      <button class="btn" id="auth-submit-btn" onclick="handleAuthSubmit()">Войти</button>
+      <button class="btn-primary" id="auth-btn" onclick="handleAuth()">Войти</button>
 
-      <div class="auth-toggle" onclick="toggleAuthMode()">
-        <span id="auth-toggle-text">Нет аккаунта? Зарегистрироваться</span>
+      <div class="auth-switch" onclick="toggleAuthMode()">
+        <span id="auth-switch-text">Нет аккаунта? Зарегистрироваться</span>
       </div>
     </div>
   </div>
 
-  <!-- APP SCREEN -->
+  <!-- MAIN MESSENGER SCREEN -->
   <div id="app-screen">
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR / CHATS LIST -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="user-avatar-btn" onclick="openProfileModal()">
-          <div class="user-avatar" id="my-sidebar-avatar">U</div>
+          <div class="avatar-img" id="my-avatar-display">M</div>
         </div>
-        <div class="search-box">
+        <div class="search-bar">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input type="text" id="search-input" placeholder="Поиск по @username..." oninput="handleSearch(this.value)" />
         </div>
       </div>
 
       <div class="chat-list" id="chat-list">
-        <!-- Dynamic Chat Items -->
+        <!-- Chats will render dynamically -->
       </div>
     </div>
 
-    <!-- CHAT VIEW CONTAINER -->
-    <div class="chat-container">
+    <!-- MAIN CHAT VIEW -->
+    <div class="chat-main" id="chat-main">
       <div class="chat-header" id="chat-header" style="display: none;">
-        <button class="back-btn" onclick="closeChatMobile()"><i class="fa-solid fa-arrow-left"></i></button>
-        <div class="user-avatar" id="active-chat-avatar">?</div>
-        <div class="chat-header-info">
-          <div class="chat-header-title" id="active-chat-title">Выберите чат</div>
-          <div class="chat-header-status" id="active-chat-status">в сети</div>
+        <button class="btn-back" onclick="closeChatMobile()"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="avatar-img" id="chat-header-avatar" style="width: 40px; height: 40px; font-size: 16px;">?</div>
+        <div class="chat-header-details">
+          <div class="chat-header-title" id="chat-header-title">Выберите диалог</div>
+          <div class="chat-header-subtitle" id="chat-header-subtitle">в сети</div>
         </div>
       </div>
 
-      <!-- MESSAGES VIEW -->
+      <!-- MESSAGES VIEWPORT -->
       <div class="messages-viewport" id="messages-viewport">
-        <div class="empty-chat" id="empty-placeholder">
-          <i class="fa-regular fa-comments"></i>
-          <h3>Выберите диалог или найдите по @username</h3>
-          <p style="font-size: 13px; margin-top: 6px;">В каждом сообщении автоматически проверяются статьи законов УК/КоАП РФ!</p>
+        <div class="empty-state" id="empty-state">
+          <i class="fa-solid fa-comments"></i>
+          <h3>Выберите чат или нажмите на ИИ</h3>
+          <p style="font-size: 13px; margin-top: 8px;">Все сообщения анализируются в реальном времени с выводом статьи законов РФ!</p>
         </div>
       </div>
 
-      <!-- INPUT BAR -->
+      <!-- MOBILE-OPTIMIZED ALWAYS VISIBLE INPUT BAR -->
       <div class="input-bar" id="input-bar" style="display: none;">
-        <button class="input-bar-btn" onclick="openGalleryAvatarPicker()"><i class="fa-solid fa-paperclip"></i></button>
-        <div class="msg-input-wrapper">
+        <button class="btn-icon" onclick="triggerGalleryPick()" title="Галерея / Google Фото"><i class="fa-solid fa-paperclip"></i></button>
+        <div class="input-box">
           <input type="text" id="message-input" placeholder="Сообщение..." onkeydown="if(event.key==='Enter') sendMessage()" />
         </div>
-        <button class="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        <button class="btn-send" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
       </div>
     </div>
   </div>
 
-  <!-- PROFILE & AVATAR MODAL -->
+  <!-- PROFILE & GALLERY AVATAR MODAL -->
   <div class="modal-overlay" id="profile-modal">
-    <div class="modal">
-      <h3>Мой Профиль</h3>
-      <div class="modal-avatar-preview" id="modal-avatar-preview">?</div>
+    <div class="modal-card">
+      <h3 style="color:#fff;">Профиль</h3>
+      <div class="modal-avatar" id="modal-avatar">?</div>
       
-      <button class="btn" style="margin-bottom: 12px; background: #242f3d;" onclick="document.getElementById('avatar-file-input').click()">
-        <i class="fa-solid fa-image"></i> Выбрать фото (Галерея / Google Фото)
+      <button class="btn-primary" style="margin-bottom: 12px; background: #1c2733; box-shadow: none;" onclick="document.getElementById('avatar-input').click()">
+        <i class="fa-solid fa-image"></i> Изменить аватар (Галерея / Google Фото)
       </button>
-      <input type="file" id="avatar-file-input" class="hidden-file-input" accept="image/*" onchange="handleAvatarSelected(event)">
+      <input type="file" id="avatar-input" class="hidden-file" accept="image/*" onchange="uploadAvatar(event)" />
 
-      <div class="input-group">
-        <label>Ваш Юзернейм</label>
-        <input type="text" id="profile-username-input" readonly style="opacity: 0.7;" />
+      <div class="input-field">
+        <label>Юзернейм</label>
+        <input type="text" id="profile-username" readonly style="opacity: 0.7;" />
       </div>
 
       <div style="display: flex; gap: 10px; margin-top: 16px;">
-        <button class="btn" style="background: #e53935;" onclick="logout()">Выйти</button>
-        <button class="btn" onclick="closeProfileModal()">Закрыть</button>
+        <button class="btn-primary" style="background: #ef5350; box-shadow: none;" onclick="logout()">Выйти</button>
+        <button class="btn-primary" style="background: #2b5278; box-shadow: none;" onclick="closeProfileModal()">Закрыть</button>
       </div>
     </div>
   </div>
 
   <script>
     // -------------------------------------------------------------
-    // FIREBASE INITIALIZATION WITH YOUR CONFIG
+    // FIREBASE REALTIME CONFIG
     // -------------------------------------------------------------
     const firebaseConfig = {
       apiKey: "AIzaSyBm0mIvHVznIeF2PoFk6dtdaiT5r877wyA",
@@ -650,109 +724,99 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // APP STATE
     let currentUser = null;
     let currentUserProfile = null;
-    let activeChatUser = null; // target user obj
-    let isRegisterMode = false;
-    let activeMessagesRef = null;
+    let activeChatUser = null;
+    let isRegister = false;
+    let messagesListener = null;
 
-    // AI BOT PROFILE CONSTANT
-    const AI_BOT_USER = {
-      uid: "ai_law_bot_system",
-      username: "ai_bot",
+    // REAL WORKING AI BOT OBJECT
+    const AI_BOT = {
+      uid: "ai_bot_system_2026",
+      username: "@ai_bot",
       displayName: "ИИ Юрист-Консультант",
       photoURL: "https://cdn-icons-png.flaticon.com/512/4712/4712109.png",
       isAI: true
     };
 
     // -------------------------------------------------------------
-    // REALTIME LEGAL RISK EVALUATOR (УК РФ / КоАП РФ / Конституция)
+    // REALTIME LEGAL RISK EVALUATOR (EXACTLY AS SCREENSHOT)
     // -------------------------------------------------------------
-    function analyzeLegalRisk(text) {
+    function getLawAnalysis(text) {
       if (!text) return { badge: "УК РФ 207.2", text: "Срок от 3 до 5 лет", type: "warn" };
       const lower = text.toLowerCase();
 
       if (lower.includes("бомб") || lower.includes("теракт") || lower.includes("взрыв") || lower.includes("заминиро")) {
         return { badge: "УК РФ 207.1", text: "Срок от 3 до 5 лет", type: "danger" };
       }
-      if (lower.includes("фейк") || lower.includes("макс") || lower.includes("новост") || lower.includes("сесть") || lower.includes("добавит")) {
+      if (lower.includes("мах") || lower.includes("макс") || lower.includes("сесть") || lower.includes("сообщени") || lower.includes("добавить")) {
         return { badge: "УК РФ 207.2", text: "Срок от 3 до 5 лет", type: "warn" };
       }
-      if (lower.includes("убью") || lower.includes("расправ") || lower.includes("угрож")) {
+      if (lower.includes("убью") || lower.includes("расправ") || lower.includes("угроза")) {
         return { badge: "УК РФ 119", text: "Срок до 2 лет", type: "danger" };
       }
       if (lower.includes("дурак") || lower.includes("идиот") || lower.includes("оскорб")) {
         return { badge: "КоАП РФ 5.61", text: "Штраф до 5 000 ₽", type: "warn" };
       }
-      if (lower.includes("украл") || lower.includes("деньги") || lower.includes("взлом") || lower.includes("парол")) {
-        return { badge: "УК РФ 272", text: "Срок до 7 лет", type: "danger" };
-      }
-      if (lower.includes("привет") || lower.includes("как дела") || lower.includes("добрый") || lower.includes("хай")) {
-        return { badge: "УК РФ ст. 29", text: "Свобода слова ✓", type: "safe" };
+      if (lower.includes("привет") || lower.includes("как дела") || lower.includes("добрый")) {
+        return { badge: "ст. 29 К РФ", text: "Законно ✓", type: "safe" };
       }
 
-      // Default smart dynamic legal assignation
-      const sampleArticles = [
+      // Default dynamic article mapping
+      const defaultArticles = [
         { badge: "УК РФ 207.2", text: "Срок от 3 до 5 лет", type: "warn" },
         { badge: "УК РФ 128.1", text: "Клевета (Штраф)", type: "warn" },
-        { badge: "Конституция 29", text: "Законно", type: "safe" }
+        { badge: "ст. 29 К РФ", text: "Свобода слова ✓", type: "safe" }
       ];
-      return sampleArticles[Math.abs(hashString(text)) % sampleArticles.length];
-    }
-
-    function hashString(str) {
       let hash = 0;
-      for (let i = 0; i < str.length; i++) hash = (hash << 5) - hash + str.charCodeAt(i);
-      return hash;
+      for (let i = 0; i < text.length; i++) hash = (hash << 5) - hash + text.charCodeAt(i);
+      return defaultArticles[Math.abs(hash) % defaultArticles.length];
     }
 
     // -------------------------------------------------------------
-    // AUTHENTICATION FLOW
+    // AUTH LOGIC
     // -------------------------------------------------------------
     function toggleAuthMode() {
-      isRegisterMode = !isRegisterMode;
-      document.getElementById("auth-title").innerText = isRegisterMode ? "Регистрация" : "Вход в MAX";
-      document.getElementById("auth-subtitle").innerText = isRegisterMode ? "Создайте ваш уникальный @username" : "Вход с реальным ИИ и Законами";
-      document.getElementById("group-username").style.display = isRegisterMode ? "block" : "none";
-      document.getElementById("auth-submit-btn").innerText = isRegisterMode ? "Зарегистрироваться" : "Войти";
-      document.getElementById("auth-toggle-text").innerText = isRegisterMode ? "Уже есть аккаунт? Войти" : "Нет аккаунта? Зарегистрироваться";
+      isRegister = !isRegister;
+      document.getElementById("auth-title").innerText = isRegister ? "Регистрация" : "Вход в MAX";
+      document.getElementById("field-username").style.display = isRegister ? "block" : "none";
+      document.getElementById("auth-btn").innerText = isRegister ? "Создать аккаунт" : "Войти";
+      document.getElementById("auth-switch-text").innerText = isRegister ? "Уже есть аккаунт? Войти" : "Нет аккаунта? Зарегистрироваться";
     }
 
-    async function handleAuthSubmit() {
+    async function handleAuth() {
       const email = document.getElementById("auth-email").value.trim();
       const password = document.getElementById("auth-password").value.trim();
 
-      if (!email || !password) return alert("Заполните Email и Пароль!");
+      if (!email || !password) return alert("Введите Email и Пароль!");
 
       try {
-        if (isRegisterMode) {
-          const usernameInput = document.getElementById("auth-username").value.trim().toLowerCase().replace('@','');
-          if (!usernameInput) return alert("Введите желаемый @username!");
+        if (isRegister) {
+          const usernameVal = document.getElementById("auth-username").value.trim().toLowerCase().replace('@','');
+          if (!usernameVal) return alert("Укажите желаемый @username!");
 
-          // Check if username unique
-          const snap = await db.ref('usernames/' + usernameInput).once('value');
+          // Check if username taken
+          const snap = await db.ref('usernames/' + usernameVal).once('value');
           if (snap.exists()) return alert("Этот @username уже занят!");
 
           const res = await auth.createUserWithEmailAndPassword(email, password);
           const uid = res.user.uid;
 
-          // Save user profile
-          const profileData = {
+          const profile = {
             uid: uid,
             email: email,
-            username: "@" + usernameInput,
-            displayName: usernameInput,
+            username: "@" + usernameVal,
+            displayName: usernameVal,
             photoURL: ""
           };
 
-          await db.ref('users/' + uid).set(profileData);
-          await db.ref('usernames/' + usernameInput).set(uid);
+          await db.ref('users/' + uid).set(profile);
+          await db.ref('usernames/' + usernameVal).set(uid);
         } else {
           await auth.signInWithEmailAndPassword(email, password);
         }
       } catch (err) {
-        alert("Ошибка: " + err.message);
+        alert("Ошибка авторизации: " + err.message);
       }
     }
 
@@ -760,7 +824,6 @@
       auth.signOut().then(() => window.location.reload());
     }
 
-    // AUTH STATE LISTENER
     auth.onAuthStateChanged(async (user) => {
       if (user) {
         currentUser = user;
@@ -770,8 +833,11 @@
         document.getElementById("auth-screen").style.display = "none";
         document.getElementById("app-screen").style.display = "flex";
 
-        renderMyAvatar();
-        loadRecentChats();
+        updateMyAvatarUI();
+        loadChatList();
+
+        // Auto select AI Chat on mobile/desktop so input box is immediately visible & ready!
+        selectChat(AI_BOT);
       } else {
         document.getElementById("auth-screen").style.display = "flex";
         document.getElementById("app-screen").style.display = "none";
@@ -783,72 +849,70 @@
     // -------------------------------------------------------------
     function openProfileModal() {
       document.getElementById("profile-modal").style.display = "flex";
-      document.getElementById("profile-username-input").value = currentUserProfile.username || "";
-      renderModalAvatar();
+      document.getElementById("profile-username").value = currentUserProfile.username || "";
+      updateModalAvatarUI();
     }
 
     function closeProfileModal() {
       document.getElementById("profile-modal").style.display = "none";
     }
 
-    function renderMyAvatar() {
-      const el = document.getElementById("my-sidebar-avatar");
-      if (currentUserProfile && currentUserProfile.photoURL) {
-        el.innerHTML = `<img src="${currentUserProfile.photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-      } else {
-        el.innerText = (currentUserProfile.displayName || "U")[0].toUpperCase();
-      }
-    }
-
-    function renderModalAvatar() {
-      const el = document.getElementById("modal-avatar-preview");
-      if (currentUserProfile && currentUserProfile.photoURL) {
-        el.innerHTML = `<img src="${currentUserProfile.photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-      } else {
-        el.innerText = (currentUserProfile.displayName || "U")[0].toUpperCase();
-      }
-    }
-
-    function openGalleryAvatarPicker() {
+    function triggerGalleryPick() {
       openProfileModal();
     }
 
-    function handleAvatarSelected(event) {
-      const file = event.target.files[0];
+    function updateMyAvatarUI() {
+      const el = document.getElementById("my-avatar-display");
+      if (currentUserProfile && currentUserProfile.photoURL) {
+        el.innerHTML = `<img src="${currentUserProfile.photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+      } else {
+        el.innerText = (currentUserProfile.displayName || "M")[0].toUpperCase();
+      }
+    }
+
+    function updateModalAvatarUI() {
+      const el = document.getElementById("modal-avatar");
+      if (currentUserProfile && currentUserProfile.photoURL) {
+        el.innerHTML = `<img src="${currentUserProfile.photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+      } else {
+        el.innerText = (currentUserProfile.displayName || "M")[0].toUpperCase();
+      }
+    }
+
+    function uploadAvatar(e) {
+      const file = e.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
-        const base64Img = e.target.result;
-        currentUserProfile.photoURL = base64Img;
-        // Save to RTDB
-        db.ref('users/' + currentUser.uid + '/photoURL').set(base64Img);
-        renderMyAvatar();
-        renderModalAvatar();
+      reader.onload = function(evt) {
+        const base64 = evt.target.result;
+        currentUserProfile.photoURL = base64;
+        db.ref('users/' + currentUser.uid + '/photoURL').set(base64);
+        updateMyAvatarUI();
+        updateModalAvatarUI();
       };
       reader.readAsDataURL(file);
     }
 
     // -------------------------------------------------------------
-    // REALTIME GLOBAL SEARCH BY @USERNAME
+    // CHAT LIST & GLOBAL SEARCH BY @USERNAME
     // -------------------------------------------------------------
     async function handleSearch(query) {
-      const chatListEl = document.getElementById("chat-list");
       query = query.trim().toLowerCase().replace('@','');
+      const listEl = document.getElementById("chat-list");
 
       if (!query) {
-        loadRecentChats();
+        loadChatList();
         return;
       }
 
       const snap = await db.ref('users').once('value');
       const users = snap.val() || {};
-      
-      chatListEl.innerHTML = `<div style="padding:10px;color:var(--text-muted);font-size:12px;">Результаты поиска:</div>`;
 
-      // Always show AI bot if matches query
-      if ("ai_bot".includes(query) || "консультант".includes(query)) {
-        renderChatItem(AI_BOT_USER, "Настоящий ИИ Юрист-Консультант");
+      listEl.innerHTML = `<div style="padding:10px 16px;color:var(--text-muted);font-size:12px;">Результаты поиска:</div>`;
+
+      if ("ai_bot".includes(query) || "ии".includes(query) || "юрист".includes(query)) {
+        renderChatItem(AI_BOT, "Настоящий ИИ Юрист");
       }
 
       Object.values(users).forEach(u => {
@@ -858,88 +922,84 @@
       });
     }
 
-    // -------------------------------------------------------------
-    // CHAT LIST & RECENT CHATS
-    // -------------------------------------------------------------
-    function loadRecentChats() {
-      const chatListEl = document.getElementById("chat-list");
-      chatListEl.innerHTML = "";
+    function loadChatList() {
+      const listEl = document.getElementById("chat-list");
+      listEl.innerHTML = "";
 
-      // Always show AI Assistant Chat first
-      renderChatItem(AI_BOT_USER, "Задайте любой вопрос или тезис");
+      // Render AI Bot
+      renderChatItem(AI_BOT, "Нажмите, чтобы открыть диалог с ИИ");
 
-      // Load user conversations from RTDB
+      // Load user conversations from Realtime DB
       db.ref('user_chats/' + currentUser.uid).on('value', (snap) => {
         const chats = snap.val() || {};
-        chatListEl.innerHTML = "";
-        renderChatItem(AI_BOT_USER, "Задайте любой вопрос или тезис");
+        listEl.innerHTML = "";
+        renderChatItem(AI_BOT, "Нажмите, чтобы открыть диалог с ИИ");
 
         Object.keys(chats).forEach(async (peerUid) => {
-          if (peerUid === AI_BOT_USER.uid) return;
-          const userSnap = await db.ref('users/' + peerUid).once('value');
-          if (userSnap.exists()) {
-            renderChatItem(userSnap.val(), chats[peerUid].lastMessage || "Диалог открыт");
+          if (peerUid === AI_BOT.uid) return;
+          const uSnap = await db.ref('users/' + peerUid).once('value');
+          if (uSnap.exists()) {
+            renderChatItem(uSnap.val(), chats[peerUid].lastMessage || "Сообщений нет");
           }
         });
       });
     }
 
-    function renderChatItem(userObj, subtext) {
-      const chatListEl = document.getElementById("chat-list");
+    function renderChatItem(userObj, previewText) {
+      const listEl = document.getElementById("chat-list");
       const item = document.createElement("div");
-      item.className = "chat-item";
+      item.className = `chat-item ${activeChatUser && activeChatUser.uid === userObj.uid ? 'active' : ''}`;
       item.onclick = () => selectChat(userObj);
 
       const avatarHtml = userObj.photoURL 
-        ? `<img src="${userObj.photoURL}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">`
-        : `<div class="user-avatar">${(userObj.displayName || userObj.username || "?")[0].toUpperCase()}</div>`;
+        ? `<img src="${userObj.photoURL}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">`
+        : `<div class="avatar-img">${(userObj.displayName || userObj.username || "?")[0].toUpperCase()}</div>`;
 
       item.innerHTML = `
         ${avatarHtml}
         <div class="chat-info">
-          <div class="chat-name">
-            <span>${userObj.displayName || userObj.username}</span>
+          <div class="chat-top-row">
+            <span class="chat-name">${userObj.displayName || userObj.username}</span>
             <span class="chat-username">${userObj.username}</span>
           </div>
-          <div class="chat-last-msg">${subtext}</div>
+          <div class="chat-preview">${previewText}</div>
         </div>
       `;
-      chatListEl.appendChild(item);
+      listEl.appendChild(item);
     }
 
     // -------------------------------------------------------------
-    // REALTIME CHAT SELECTION & MESSAGES
+    // CHAT SELECTION & MOBILE LAYOUT SWITCHING
     // -------------------------------------------------------------
     function selectChat(userObj) {
       activeChatUser = userObj;
 
       document.getElementById("chat-header").style.display = "flex";
       document.getElementById("input-bar").style.display = "flex";
-      document.getElementById("active-chat-title").innerText = userObj.displayName || userObj.username;
-      document.getElementById("active-chat-status").innerText = userObj.isAI ? "ИИ онлайн" : "в сети";
+      document.getElementById("chat-header-title").innerText = userObj.displayName || userObj.username;
+      document.getElementById("chat-header-subtitle").innerText = userObj.isAI ? "ИИ в сети" : "онлайн";
 
-      const avatarEl = document.getElementById("active-chat-avatar");
+      const headerAvatar = document.getElementById("chat-header-avatar");
       if (userObj.photoURL) {
-        avatarEl.innerHTML = `<img src="${userObj.photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+        headerAvatar.innerHTML = `<img src="${userObj.photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
       } else {
-        avatarEl.innerText = (userObj.displayName || userObj.username || "?")[0].toUpperCase();
+        headerAvatar.innerText = (userObj.displayName || userObj.username || "?")[0].toUpperCase();
       }
 
-      // Hide sidebar on mobile
+      // Hide sidebar on mobile screens
       document.getElementById("sidebar").classList.add("hidden");
 
-      // Detach existing listener
-      if (activeMessagesRef) activeMessagesRef.off();
+      // Load Realtime Messages
+      if (messagesListener) messagesListener.off();
 
-      // Compute chat ID
       const chatId = getChatId(currentUser.uid, activeChatUser.uid);
       const viewport = document.getElementById("messages-viewport");
       viewport.innerHTML = "";
 
-      activeMessagesRef = db.ref('chats/' + chatId + '/messages');
-      activeMessagesRef.on('child_added', (snapshot) => {
+      messagesListener = db.ref('chats/' + chatId + '/messages');
+      messagesListener.on('child_added', (snapshot) => {
         const msg = snapshot.val();
-        appendMessageBubble(msg);
+        appendMessage(msg);
       });
     }
 
@@ -947,31 +1007,31 @@
       document.getElementById("sidebar").classList.remove("hidden");
     }
 
-    function getChatId(uid1, uid2) {
-      return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
+    function getChatId(u1, u2) {
+      return u1 < u2 ? `${u1}_${u2}` : `${u2}_${u1}`;
     }
 
     // -------------------------------------------------------------
-    // RENDER MESSAGE BUBBLE (EXACTLY MATCHING PHOTO DESIGN)
+    // RENDER MESSAGE BUBBLE WITH LAWS EXACTLY LIKE PHOTO
     // -------------------------------------------------------------
-    function appendMessageBubble(msg) {
+    function appendMessage(msg) {
       const viewport = document.getElementById("messages-viewport");
-      const emptyPlaceholder = document.getElementById("empty-placeholder");
-      if (emptyPlaceholder) emptyPlaceholder.style.display = "none";
+      const emptyState = document.getElementById("empty-state");
+      if (emptyState) emptyState.style.display = "none";
 
       const isOut = msg.senderUid === currentUser.uid;
       const bubble = document.createElement("div");
       bubble.className = `msg-bubble ${isOut ? 'msg-out' : 'msg-in'}`;
 
-      const law = analyzeLegalRisk(msg.text);
+      const law = getLawAnalysis(msg.text);
       const badgeClass = law.type === 'danger' ? 'danger' : (law.type === 'warn' ? 'warn' : '');
 
       bubble.innerHTML = `
-        <div>${escapeHtml(msg.text)}</div>
-        <div class="msg-meta">
+        <span>${escapeHtml(msg.text)}</span>
+        <div class="msg-footer">
           <span class="law-badge ${badgeClass}">${law.badge} ${law.text}</span>
           <span class="msg-time">${msg.time}</span>
-          ${isOut ? '<span class="msg-status"><i class="fa-solid fa-check-double"></i></span>' : ''}
+          ${isOut ? '<span class="msg-check"><i class="fa-solid fa-check-double"></i></span>' : ''}
         </div>
       `;
 
@@ -980,7 +1040,7 @@
     }
 
     // -------------------------------------------------------------
-    // SEND MESSAGE & REAL AI CALL (Pollinations / Free AI CDN)
+    // SEND MESSAGE & REAL AI INTEGRATION
     // -------------------------------------------------------------
     async function sendMessage() {
       const input = document.getElementById("message-input");
@@ -999,42 +1059,39 @@
         time: timeStr
       };
 
-      // Push to RTDB
       await db.ref('chats/' + chatId + '/messages').push(msgObj);
 
-      // Update recent chat references
       db.ref(`user_chats/${currentUser.uid}/${activeChatUser.uid}`).set({ lastMessage: text, timestamp: Date.now() });
       if (!activeChatUser.isAI) {
         db.ref(`user_chats/${activeChatUser.uid}/${currentUser.uid}`).set({ lastMessage: text, timestamp: Date.now() });
       }
 
-      // HANDLE REAL AI RESPONSE IF CHATTING WITH AI BOT
+      // IF CHATTING WITH AI BOT -> TRIGGER REAL AI CALL
       if (activeChatUser.isAI) {
-        fetchAIResponse(text, chatId);
+        triggerAIResponse(text, chatId);
       }
     }
 
-    async function fetchAIResponse(userQuery, chatId) {
+    async function triggerAIResponse(query, chatId) {
       try {
-        // Real free open LLM endpoint via Pollinations AI API
-        const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent("Ты юрист и ИИ-помощник мессенджера MAX. Ответь кратко и понятно: " + userQuery)}`);
+        const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent("Ты юрист и ИИ помощник мессенджера MAX. Ответь кратко на русском языке: " + query)}`);
         const replyText = await response.text();
 
         const now = new Date();
         const timeStr = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
 
         const aiMsgObj = {
-          senderUid: AI_BOT_USER.uid,
-          text: replyText || "Запрос проанализирован. Сообщение не нарушает базовые нормы законодательства РФ.",
+          senderUid: AI_BOT.uid,
+          text: replyText || "Запрос успешно принят и обработан ИИ.",
           timestamp: firebase.database.ServerValue.TIMESTAMP,
           time: timeStr
         };
 
         setTimeout(() => {
           db.ref('chats/' + chatId + '/messages').push(aiMsgObj);
-        }, 600);
+        }, 500);
       } catch (e) {
-        console.error("AI Error:", e);
+        console.error("AI Fetch Error:", e);
       }
     }
 
