@@ -41,7 +41,7 @@
             border-radius: 4px;
         }
 
-        /* CSS Анимации для предпросмотра */
+        /* CSS Анимации для эдитов */
         @keyframes beatScale {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.09); }
@@ -137,19 +137,9 @@
             45% { transform: scale(1.28); filter: brightness(1.6); }
             60% { transform: scale(1); filter: brightness(1); }
         }
-        @keyframes dualSplit {
-            0% { clip-path: inset(0 0 0 0); transform: scale(1); }
-            50% { clip-path: inset(10% 20% 10% 20%); transform: scale(1.12); filter: hue-rotate(180deg); }
-            100% { clip-path: inset(0 0 0 0); transform: scale(1); }
-        }
         @keyframes lightningFlash {
             0%, 90%, 94%, 98%, 100% { transform: scale(1); filter: brightness(1); }
             92%, 96% { transform: scale(1.15); filter: brightness(3) contrast(2) invert(0.2); }
-        }
-        @keyframes portalVortex {
-            0% { transform: rotate(0deg) scale(1); border-radius: 0%; }
-            50% { transform: rotate(180deg) scale(0.85); border-radius: 50%; }
-            100% { transform: rotate(360deg) scale(1); border-radius: 0%; }
         }
         @keyframes liquidMorph {
             0%, 100% { transform: scale(1); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
@@ -189,7 +179,7 @@
             75% { transform: scale(1.2) skew(-5deg); filter: contrast(1.8); }
         }
 
-        /* Кастомный стиль для слайдеров */
+        /* Кастомный стиль слайдеров */
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
             height: 18px;
@@ -225,10 +215,13 @@
             </div>
             <div>
                 <h1 class="font-cyber text-base font-black tracking-wider text-white">EDIT GOD</h1>
-                <p class="text-[9px] text-zinc-400 font-bold uppercase tracking-widest">PRO EDIT ENGINE v10.0</p>
+                <p class="text-[9px] text-zinc-400 font-bold uppercase tracking-widest">PRO EDIT ENGINE v10.5</p>
             </div>
         </div>
         <div class="flex items-center space-x-2">
+            <button onclick="clearLocalStorageData()" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 p-2 rounded-xl text-xs transition active:scale-95" title="Очистить сохранение">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
             <button onclick="openCustomTemplateModal()" class="bg-zinc-900 hover:bg-zinc-800 border border-purple-500/40 text-purple-300 px-3 py-1.5 rounded-xl text-xs font-bold font-cyber flex items-center space-x-1.5 transition active:scale-95">
                 <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
                 <span>ГЕНЕРАТОР</span>
@@ -261,7 +254,7 @@
                         <i data-lucide="image-plus" class="w-5 h-5"></i>
                     </div>
                     <span class="text-xs font-bold text-zinc-200">Выбрать фото из устройства</span>
-                    <span class="text-[10px] text-zinc-500">Поддерживает JPG, PNG, WEBP</span>
+                    <span class="text-[10px] text-zinc-500">Авто-сохранение включено</span>
                 </div>
             </label>
 
@@ -298,16 +291,22 @@
                     <i data-lucide="film" class="w-4 h-4 text-purple-400"></i>
                     <span>Предпросмотр Эдита</span>
                 </div>
-                <div class="flex items-center space-x-1 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-lg text-[10px] text-cyan-400 font-mono">
-                    <i data-lucide="eye" class="w-3 h-3"></i>
-                    <span id="activeTemplateName">Шаблон не выбран</span>
+                <div class="flex items-center space-x-2">
+                    <button onclick="openFullScreenModal()" class="flex items-center space-x-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-2 py-0.5 rounded-lg text-[10px] text-purple-400 font-mono transition">
+                        <i data-lucide="maximize-2" class="w-3 h-3"></i>
+                        <span>ПОЛНЫЙ ЭКРАН</span>
+                    </button>
+                    <div class="flex items-center space-x-1 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-lg text-[10px] text-cyan-400 font-mono">
+                        <i data-lucide="eye" class="w-3 h-3"></i>
+                        <span id="activeTemplateName">Не выбран</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Edit Screen Canvas / Stage with Elegant Rounded Frame -->
-            <div id="editStage" class="w-full aspect-[9/16] max-h-[380px] bg-black rounded-[28px] overflow-hidden relative flex items-center justify-center border-2 border-purple-500/40 shadow-2xl video-stage-frame">
+            <div id="editStage" onclick="openFullScreenModal()" class="w-full aspect-[9/16] max-h-[380px] bg-black rounded-[28px] overflow-hidden relative flex items-center justify-center border-2 border-purple-500/40 shadow-2xl video-stage-frame cursor-pointer group">
                 <div id="stagePlaceholder" class="flex flex-col items-center justify-center p-6 text-center space-y-2 z-10">
-                    <i data-lucide="play-circle" class="w-12 h-12 text-zinc-700 animate-pulse"></i>
+                    <i data-lucide="play-circle" class="w-12 h-12 text-zinc-700 animate-pulse group-hover:text-purple-400 transition"></i>
                     <p class="text-xs text-zinc-400 font-medium">Загрузите фото и выберите шаблон</p>
                 </div>
                 <div id="slideShowContainer" class="absolute inset-0 w-full h-full hidden rounded-[26px] overflow-hidden">
@@ -317,6 +316,12 @@
                 <div id="beatFlash" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-75 z-20 rounded-[26px]"></div>
                 <!-- Stylish Inner Frame Line -->
                 <div class="absolute inset-0 border border-purple-500/30 pointer-events-none rounded-[26px] z-30"></div>
+                
+                <!-- Fullscreen Hint Badge -->
+                <div class="absolute bottom-3 bg-black/60 backdrop-blur border border-zinc-800 text-[10px] text-zinc-300 px-2.5 py-1 rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition z-40 flex items-center space-x-1">
+                    <i data-lucide="maximize" class="w-3 h-3 text-cyan-400"></i>
+                    <span>Нажмите для полного экрана</span>
+                </div>
             </div>
 
             <!-- Playback Controls -->
@@ -334,14 +339,34 @@
             </div>
         </section>
 
-        <!-- STEP 3: EXPORT & STATS -->
+        <!-- STEP 3: EXPORT & QUALITY SETTINGS -->
         <section class="bg-[#09090b] border border-zinc-800/80 rounded-2xl p-4 flex flex-col space-y-3 shadow-2xl">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
                     <span class="w-6 h-6 rounded-lg bg-cyan-600/20 border border-cyan-500/40 text-cyan-400 text-xs font-bold flex items-center justify-center font-cyber">3</span>
-                    <h2 class="font-cyber text-xs font-bold tracking-wide text-zinc-200">РЕНДЕР И ЭКСПОРТ MP4</h2>
+                    <h2 class="font-cyber text-xs font-bold tracking-wide text-zinc-200">НАСТРОЙКА РЕНДЕРА И КАЧЕСТВА</h2>
                 </div>
-                <span class="text-[10px] text-cyan-400 font-mono bg-cyan-950/40 border border-cyan-800/50 px-2 py-0.5 rounded-md">1080p 60FPS</span>
+                <span class="text-[10px] text-cyan-400 font-mono bg-cyan-950/40 border border-cyan-800/50 px-2 py-0.5 rounded-md" id="currentQualityBadge">1080p 60FPS</span>
+            </div>
+
+            <!-- Quality & FPS Selectors -->
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 block mb-1">Разрешение видео:</label>
+                    <select id="renderQualitySelect" onchange="updateQualitySettings()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono">
+                        <option value="1080">1080p (Full HD)</option>
+                        <option value="720" selected>720p (HD Баланс)</option>
+                        <option value="480">480p (Быстрый рендер)</option>
+                        <option value="360">360p (Легкий файл)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 block mb-1">Кадровая частота (FPS):</label>
+                    <select id="renderFpsSelect" onchange="updateQualitySettings()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono">
+                        <option value="60">60 FPS (Плавность)</option>
+                        <option value="30" selected>30 FPS (Стандарт)</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Stats & Video Info Box -->
@@ -349,16 +374,16 @@
                 <div class="flex flex-col items-center justify-center p-2 bg-zinc-900/50 rounded-lg border border-zinc-800">
                     <div class="flex items-center space-x-1 text-zinc-400 text-[10px]">
                         <i data-lucide="clock" class="w-3 h-3 text-cyan-400"></i>
-                        <span>Длительность:</span>
+                        <span>Длительность шаблона:</span>
                     </div>
-                    <span id="exportDurationDisplay" class="font-bold text-white text-sm mt-0.5">10.0 сек</span>
+                    <span id="exportDurationDisplay" class="font-bold text-white text-sm mt-0.5">5.0 сек</span>
                 </div>
                 <div class="flex flex-col items-center justify-center p-2 bg-zinc-900/50 rounded-lg border border-zinc-800">
                     <div class="flex items-center space-x-1 text-zinc-400 text-[10px]">
                         <i data-lucide="hard-drive" class="w-3 h-3 text-purple-400"></i>
-                        <span>Объем файла:</span>
+                        <span>Точный размер MP4:</span>
                     </div>
-                    <span id="exportSizeDisplay" class="font-bold text-white text-sm mt-0.5">~9.6 МБ</span>
+                    <span id="exportSizeDisplay" class="font-bold text-white text-sm mt-0.5">~3.2 МБ</span>
                 </div>
             </div>
 
@@ -376,13 +401,39 @@
 
     </main>
 
+    <!-- FULL SCREEN PREVIEW MODAL -->
+    <div id="fullScreenModal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-lg hidden flex flex-col items-center justify-between p-4">
+        <div class="w-full flex items-center justify-between z-10 pt-2 px-2">
+            <span id="fsTemplateTitle" class="font-cyber text-xs font-bold text-purple-400">EDIT GOD PREVIEW</span>
+            <button onclick="closeFullScreenModal()" class="w-9 h-9 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Fullscreen Stage Frame -->
+        <div class="w-full max-w-sm aspect-[9/16] my-auto bg-black rounded-[32px] overflow-hidden relative flex items-center justify-center border-2 border-purple-500/50 shadow-2xl video-stage-frame">
+            <div id="fsSlideShowContainer" class="absolute inset-0 w-full h-full rounded-[30px] overflow-hidden">
+                <!-- Сюда дублируется слайдшоу -->
+            </div>
+            <div id="fsBeatFlash" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-75 z-20 rounded-[30px]"></div>
+            <div class="absolute inset-0 border border-purple-500/30 pointer-events-none rounded-[30px] z-30"></div>
+        </div>
+
+        <div class="w-full max-w-sm pb-4 flex items-center justify-center space-x-3">
+            <button onclick="togglePlayPreview()" class="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-cyber text-xs font-bold flex items-center space-x-2">
+                <i data-lucide="play-circle" class="w-4 h-4"></i>
+                <span>УПРАВЛЕНИЕ</span>
+            </button>
+        </div>
+    </div>
+
     <!-- MUSIC MODAL WITH PRECISE AUDIO TRIMMER -->
     <div id="musicModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="bg-[#09090b] border-t sm:border border-zinc-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 flex flex-col space-y-4 shadow-2xl animate-in slide-in-from-bottom duration-300">
             <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
                 <div class="flex items-center space-x-2">
                     <i data-lucide="music" class="w-5 h-5 text-cyan-400"></i>
-                    <h3 class="font-cyber text-xs font-bold text-white">МУЗЫКА И ТОЧНАЯ ОБРЕЗКА</h3>
+                    <h3 class="font-cyber text-xs font-bold text-white">МУЗЫКА И ОБРЕЗКА</h3>
                 </div>
                 <button onclick="toggleMusicModal()" class="w-7 h-7 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white">
                     <i data-lucide="x" class="w-4 h-4"></i>
@@ -398,7 +449,7 @@
                             <i data-lucide="folder-open" class="w-5 h-5"></i>
                         </div>
                         <span class="text-xs font-bold text-zinc-200">Выбрать аудио из проводника</span>
-                        <span class="text-[10px] text-zinc-500">MP3, WAV, AAC, M4A</span>
+                        <span class="text-[10px] text-zinc-500">MP3, WAV, AAC, M4A (Автосохранение)</span>
                     </div>
                 </label>
 
@@ -424,15 +475,15 @@
                         <div class="flex items-center justify-between text-[11px] font-mono">
                             <span class="text-zinc-400 flex items-center space-x-1">
                                 <i data-lucide="scissors" class="w-3.5 h-3.5 text-cyan-400"></i>
-                                <span>Отрезок эдита:</span>
+                                <span>Отрезок аудио:</span>
                             </span>
-                            <span id="trimRangeText" class="text-cyan-400 font-bold">00:00 - 00:10 (10.0 сек)</span>
+                            <span id="trimRangeText" class="text-cyan-400 font-bold">00:00 - 00:05 (5.0 сек)</span>
                         </div>
 
                         <!-- Start Slider & Fine Tuning Buttons -->
                         <div class="space-y-1.5">
                             <div class="flex justify-between items-center text-[10px] text-zinc-400">
-                                <span>Начало отрезка:</span>
+                                <span>Начало фоновой музыки:</span>
                                 <span id="startTimeText" class="text-white font-mono font-bold">00:00.0</span>
                             </div>
                             <input type="range" id="trimStartSlider" min="0" max="100" value="0" step="0.1" oninput="updateAudioTrim()" class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
@@ -441,21 +492,6 @@
                                 <button onclick="adjustTrim('start', -0.1)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">-0.1s</button>
                                 <button onclick="adjustTrim('start', 0.1)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">+0.1s</button>
                                 <button onclick="adjustTrim('start', 0.5)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">+0.5s</button>
-                            </div>
-                        </div>
-
-                        <!-- End Slider & Fine Tuning Buttons -->
-                        <div class="space-y-1.5 pt-1">
-                            <div class="flex justify-between items-center text-[10px] text-zinc-400">
-                                <span>Конец отрезка:</span>
-                                <span id="endTimeText" class="text-white font-mono font-bold">00:10.0</span>
-                            </div>
-                            <input type="range" id="trimEndSlider" min="0" max="100" value="10" step="0.1" oninput="updateAudioTrim()" class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
-                            <div class="flex space-x-1 justify-end pt-1">
-                                <button onclick="adjustTrim('end', -0.5)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">-0.5s</button>
-                                <button onclick="adjustTrim('end', -0.1)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">-0.1s</button>
-                                <button onclick="adjustTrim('end', 0.1)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">+0.1s</button>
-                                <button onclick="adjustTrim('end', 0.5)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">+0.5s</button>
                             </div>
                         </div>
 
@@ -497,7 +533,17 @@
                 </button>
             </div>
 
-            <p class="text-xs text-zinc-400">Сконструируй свой собственное сочетание эффектов:</p>
+            <!-- RANDOM GENERATOR BUTTON -->
+            <button onclick="generateRandomTemplate()" class="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-purple-500/50 rounded-xl font-cyber text-xs font-bold text-purple-300 flex items-center justify-center space-x-2 active:scale-95 transition shadow-lg">
+                <i data-lucide="dices" class="w-4 h-4 text-pink-400"></i>
+                <span>СГЕНЕРИРОВАТЬ СЛУЧАЙНЫЙ ШАБЛОН</span>
+            </button>
+
+            <div class="relative flex py-1 items-center">
+                <div class="flex-grow border-t border-zinc-800"></div>
+                <span class="flex-shrink mx-3 text-[10px] text-zinc-500 font-bold uppercase">или ручной конструктор</span>
+                <div class="flex-grow border-t border-zinc-800"></div>
+            </div>
 
             <div class="space-y-3">
                 <div>
@@ -547,7 +593,7 @@
                 </div>
 
                 <button onclick="createAndAddCustomTemplate()" class="w-full py-3 bg-purple-600 hover:bg-purple-500 border border-purple-400 rounded-xl font-cyber text-xs font-bold text-white active:scale-95 transition shadow-lg mt-2">
-                    ДОБАВИТЬ ШАБЛОН
+                    СОЗДАТЬ СВОЙ ШАБЛОН
                 </button>
             </div>
         </div>
@@ -561,7 +607,7 @@
             </div>
             <div>
                 <h3 class="font-cyber text-xs font-bold text-white">РЕНДЕР MP4 ВИДЕО</h3>
-                <p id="renderStatusText" class="text-[11px] text-cyan-400 mt-1">Отрисовка кадра и закругленного профиля...</p>
+                <p id="renderStatusText" class="text-[11px] text-cyan-400 mt-1">Детерминированная сборка кадров без лагов...</p>
             </div>
             <!-- Progress Bar -->
             <div class="w-full bg-zinc-900 border border-zinc-800 h-2 rounded-full overflow-hidden">
@@ -595,43 +641,62 @@
         // Переменные обрезки аудио (в секундах)
         let audioDurationSec = 0;
         let trimStartSec = 0;
-        let trimEndSec = 10;
+        let trimEndSec = 5;
 
-        // База из 30+ Крутых Шаблонов Эдитов без эмодзи в названиях
+        // База из 30+ Крутых Шаблонов Эдитов
         const defaultTemplates = [
-            { id: 1, name: "PHONK DEATH", category: "tiktok", anim: "shakeHard", speed: "0.3s", filter: "contrast(1.8) saturate(2)", flash: true, icon: "zap" },
-            { id: 2, name: "CYBERPUNK 2077", category: "cyber", anim: "cyberpunkFlash", speed: "0.4s", filter: "hue-rotate(180deg) contrast(1.5)", flash: true, icon: "cpu" },
-            { id: 3, name: "ANIME KALEIDOSCOPE", category: "tiktok", anim: "kaleidoscopeSpin", speed: "0.5s", filter: "saturate(3)", flash: false, icon: "disc" },
-            { id: 4, name: "EARTHQUAKE BASS", category: "tiktok", anim: "earthquakeGod", speed: "0.3s", filter: "contrast(2)", flash: true, icon: "activity" },
-            { id: 5, name: "3D FLIP GOD", category: "cyber", anim: "3dFlipRot", speed: "0.6s", filter: "brightness(1.2)", flash: false, icon: "box" },
-            { id: 6, name: "PSYCHEDELIC TRIP", category: "cyber", anim: "psychedelicWobble", speed: "0.5s", filter: "hue-rotate(90deg) saturate(2)", flash: true, icon: "eye" },
-            { id: 7, name: "CINEMATIC EPIC", category: "tiktok", anim: "cinematicPan", speed: "1.0s", filter: "contrast(1.4) brightness(0.9)", flash: false, icon: "film" },
-            { id: 8, name: "LIGHTNING FLASH", category: "tiktok", anim: "lightningFlash", speed: "0.35s", filter: "invert(0.1) contrast(1.8)", flash: true, icon: "sparkles" },
-            { id: 9, name: "NEON PINK VIBE", category: "cyber", anim: "heartbeatGod", speed: "0.4s", filter: "sepia(1) hue-rotate(300deg) saturate(3)", flash: true, icon: "heart" },
-            { id: 10, name: "VINTAGE GLITCH", category: "tiktok", anim: "vintageFilm", speed: "0.8s", filter: "sepia(0.8) contrast(1.5)", flash: false, icon: "video" },
-            { id: 11, name: "WARP SPEED", category: "cyber", anim: "dramaticZoom", speed: "0.4s", filter: "contrast(1.6)", flash: true, icon: "compass" },
-            { id: 12, name: "GHOST TRAIL", category: "tiktok", anim: "ghostTrail", speed: "0.5s", filter: "blur(0.5px) contrast(1.5)", flash: false, icon: "ghost" },
-            { id: 13, name: "LIQUID MORPH", category: "cyber", anim: "liquidMorph", speed: "0.7s", filter: "hue-rotate(240deg)", flash: false, icon: "droplet" },
-            { id: 14, name: "BASS DROP BEAT", category: "tiktok", anim: "bassDropVibe", speed: "0.3s", filter: "contrast(2) saturate(2)", flash: true, icon: "radio" },
-            { id: 15, name: "DIAMOND GLOW", category: "cyber", anim: "neonPulseGlow", speed: "0.6s", filter: "brightness(1.3) contrast(1.4)", flash: false, icon: "shield" },
-            { id: 16, name: "HELLFIRE SHAKE", category: "tiktok", anim: "shakeHard", speed: "0.25s", filter: "sepia(1) hue-rotate(-50deg) contrast(2)", flash: true, icon: "flame" },
-            { id: 17, name: "MATRIX GREEN", category: "cyber", anim: "matrixRain", speed: "0.5s", filter: "sepia(1) hue-rotate(90deg) contrast(2)", flash: true, icon: "terminal" },
-            { id: 18, name: "TOXIC SHOCK", category: "tiktok", anim: "earthquakeGod", speed: "0.3s", filter: "hue-rotate(120deg) contrast(2.5)", flash: true, icon: "alert-triangle" },
-            { id: 19, name: "SUPERNOVA", category: "cyber", anim: "animeZoom", speed: "0.4s", filter: "brightness(1.5) contrast(1.6)", flash: true, icon: "sun" },
-            { id: 20, name: "FROSTBITE", category: "cyber", anim: "smoothSlideRight", speed: "0.6s", filter: "hue-rotate(180deg) brightness(1.2)", flash: false, icon: "snowflake" },
-            { id: 21, name: "EMPEROR EDIT", category: "tiktok", anim: "beatScale", speed: "0.4s", filter: "contrast(1.7) saturate(1.8)", flash: true, icon: "award" },
-            { id: 22, name: "TORNADO SPIN", category: "tiktok", anim: "spinSlow", speed: "0.5s", filter: "contrast(1.5)", flash: false, icon: "wind" },
-            { id: 23, name: "RETRO ARCADE", category: "cyber", anim: "glitchAnim", speed: "0.35s", filter: "invert(1) hue-rotate(90deg)", flash: true, icon: "gamepad-2" },
-            { id: 24, name: "ASSASSIN VIBE", category: "tiktok", anim: "shakeHard", speed: "0.3s", filter: "grayscale(0.5) contrast(2)", flash: true, icon: "crosshair" },
-            { id: 25, name: "SAKURA DREAM", category: "cyber", anim: "animeZoom", speed: "0.7s", filter: "sepia(0.5) hue-rotate(310deg) saturate(1.5)", flash: false, icon: "flower" },
-            { id: 26, name: "THUNDER GOD", category: "tiktok", anim: "lightningFlash", speed: "0.25s", filter: "contrast(2.2)", flash: true, icon: "zap" },
-            { id: 27, name: "MIDNIGHT ECLIPSE", category: "cyber", anim: "cinematicPan", speed: "0.9s", filter: "brightness(0.7) contrast(1.8)", flash: false, icon: "moon" },
-            { id: 28, name: "MAGMA BURST", category: "tiktok", anim: "earthquakeGod", speed: "0.3s", filter: "sepia(1) hue-rotate(-20deg) contrast(2)", flash: true, icon: "flame" },
-            { id: 29, name: "CRYSTAL MATRIX", category: "cyber", anim: "kaleidoscopeSpin", speed: "0.5s", filter: "hue-rotate(200deg) saturate(2)", flash: true, icon: "gem" },
-            { id: 30, name: "GOAT ULTIMATE", category: "tiktok", anim: "heartbeatGod", speed: "0.35s", filter: "contrast(2) saturate(2.5)", flash: true, icon: "trophy" }
+            { id: 1, name: "PHONK DEATH", category: "tiktok", anim: "shakeHard", speed: "0.3s", filter: "contrast(1.8) saturate(2)", flash: true, icon: "zap", repeatCycles: 3 },
+            { id: 2, name: "CYBERPUNK 2077", category: "cyber", anim: "cyberpunkFlash", speed: "0.4s", filter: "hue-rotate(180deg) contrast(1.5)", flash: true, icon: "cpu", repeatCycles: 2 },
+            { id: 3, name: "ANIME KALEIDOSCOPE", category: "tiktok", anim: "kaleidoscopeSpin", speed: "0.5s", filter: "saturate(3)", flash: false, icon: "disc", repeatCycles: 2 },
+            { id: 4, name: "EARTHQUAKE BASS", category: "tiktok", anim: "earthquakeGod", speed: "0.3s", filter: "contrast(2)", flash: true, icon: "activity", repeatCycles: 3 },
+            { id: 5, name: "3D FLIP GOD", category: "cyber", anim: "3dFlipRot", speed: "0.6s", filter: "brightness(1.2)", flash: false, icon: "box", repeatCycles: 2 },
+            { id: 6, name: "PSYCHEDELIC TRIP", category: "cyber", anim: "psychedelicWobble", speed: "0.5s", filter: "hue-rotate(90deg) saturate(2)", flash: true, icon: "eye", repeatCycles: 2 },
+            { id: 7, name: "CINEMATIC EPIC", category: "tiktok", anim: "cinematicPan", speed: "1.0s", filter: "contrast(1.4) brightness(0.9)", flash: false, icon: "film", repeatCycles: 1 },
+            { id: 8, name: "LIGHTNING FLASH", category: "tiktok", anim: "lightningFlash", speed: "0.35s", filter: "invert(0.1) contrast(1.8)", flash: true, icon: "sparkles", repeatCycles: 3 },
+            { id: 9, name: "NEON PINK VIBE", category: "cyber", anim: "heartbeatGod", speed: "0.4s", filter: "sepia(1) hue-rotate(300deg) saturate(3)", flash: true, icon: "heart", repeatCycles: 2 },
+            { id: 10, name: "VINTAGE GLITCH", category: "tiktok", anim: "vintageFilm", speed: "0.8s", filter: "sepia(0.8) contrast(1.5)", flash: false, icon: "video", repeatCycles: 1 },
+            { id: 11, name: "WARP SPEED", category: "cyber", anim: "dramaticZoom", speed: "0.4s", filter: "contrast(1.6)", flash: true, icon: "compass", repeatCycles: 2 },
+            { id: 12, name: "GHOST TRAIL", category: "tiktok", anim: "ghostTrail", speed: "0.5s", filter: "blur(0.5px) contrast(1.5)", flash: false, icon: "ghost", repeatCycles: 2 },
+            { id: 13, name: "LIQUID MORPH", category: "cyber", anim: "liquidMorph", speed: "0.7s", filter: "hue-rotate(240deg)", flash: false, icon: "droplet", repeatCycles: 2 },
+            { id: 14, name: "BASS DROP BEAT", category: "tiktok", anim: "bassDropVibe", speed: "0.3s", filter: "contrast(2) saturate(2)", flash: true, icon: "radio", repeatCycles: 3 },
+            { id: 15, name: "DIAMOND GLOW", category: "cyber", anim: "neonPulseGlow", speed: "0.6s", filter: "brightness(1.3) contrast(1.4)", flash: false, icon: "shield", repeatCycles: 2 },
+            { id: 16, name: "HELLFIRE SHAKE", category: "tiktok", anim: "shakeHard", speed: "0.25s", filter: "sepia(1) hue-rotate(-50deg) contrast(2)", flash: true, icon: "flame", repeatCycles: 3 },
+            { id: 17, name: "MATRIX GREEN", category: "cyber", anim: "matrixRain", speed: "0.5s", filter: "sepia(1) hue-rotate(90deg) contrast(2)", flash: true, icon: "terminal", repeatCycles: 2 },
+            { id: 18, name: "TOXIC SHOCK", category: "tiktok", anim: "earthquakeGod", speed: "0.3s", filter: "hue-rotate(120deg) contrast(2.5)", flash: true, icon: "alert-triangle", repeatCycles: 3 },
+            { id: 19, name: "SUPERNOVA", category: "cyber", anim: "animeZoom", speed: "0.4s", filter: "brightness(1.5) contrast(1.6)", flash: true, icon: "sun", repeatCycles: 2 },
+            { id: 20, name: "FROSTBITE", category: "cyber", anim: "smoothSlideRight", speed: "0.6s", filter: "hue-rotate(180deg) brightness(1.2)", flash: false, icon: "snowflake", repeatCycles: 2 },
+            { id: 21, name: "EMPEROR EDIT", category: "tiktok", anim: "beatScale", speed: "0.4s", filter: "contrast(1.7) saturate(1.8)", flash: true, icon: "award", repeatCycles: 2 },
+            { id: 22, name: "TORNADO SPIN", category: "tiktok", anim: "spinSlow", speed: "0.5s", filter: "contrast(1.5)", flash: false, icon: "wind", repeatCycles: 2 },
+            { id: 23, name: "RETRO ARCADE", category: "cyber", anim: "glitchAnim", speed: "0.35s", filter: "invert(1) hue-rotate(90deg)", flash: true, icon: "gamepad-2", repeatCycles: 3 },
+            { id: 24, name: "ASSASSIN VIBE", category: "tiktok", anim: "shakeHard", speed: "0.3s", filter: "grayscale(0.5) contrast(2)", flash: true, icon: "crosshair", repeatCycles: 3 },
+            { id: 25, name: "SAKURA DREAM", category: "cyber", anim: "animeZoom", speed: "0.7s", filter: "sepia(0.5) hue-rotate(310deg) saturate(1.5)", flash: false, icon: "flower", repeatCycles: 2 },
+            { id: 26, name: "THUNDER GOD", category: "tiktok", anim: "lightningFlash", speed: "0.25s", filter: "contrast(2.2)", flash: true, icon: "zap", repeatCycles: 3 },
+            { id: 27, name: "MIDNIGHT ECLIPSE", category: "cyber", anim: "cinematicPan", speed: "0.9s", filter: "brightness(0.7) contrast(1.8)", flash: false, icon: "moon", repeatCycles: 1 },
+            { id: 28, name: "MAGMA BURST", category: "tiktok", anim: "earthquakeGod", speed: "0.3s", filter: "sepia(1) hue-rotate(-20deg) contrast(2)", flash: true, icon: "flame", repeatCycles: 3 },
+            { id: 29, name: "CRYSTAL MATRIX", category: "cyber", anim: "kaleidoscopeSpin", speed: "0.5s", filter: "hue-rotate(200deg) saturate(2)", flash: true, icon: "gem", repeatCycles: 2 },
+            { id: 30, name: "GOAT ULTIMATE", category: "tiktok", anim: "heartbeatGod", speed: "0.35s", filter: "contrast(2) saturate(2.5)", flash: true, icon: "trophy", repeatCycles: 3 }
         ];
 
         templates = [...defaultTemplates];
+
+        // -------------------------------------------------------------
+        // РАСЧЕТ ДЛИТЕЛЬНОСТИ ЭДИТА СТРОГО НА ОСНОВЕ ШАБЛОНА И ФОТОГРАФИЙ
+        // -------------------------------------------------------------
+        function calculateTemplateEditDuration() {
+            const t = templates.find(item => item.id === selectedTemplateId) || templates[0];
+            const photosCount = userPhotos.length > 0 ? userPhotos.length : 5;
+            const speedSec = parseFloat(t.speed) || 0.4;
+            const cycles = t.repeatCycles || 2;
+            
+            // Расчет: кол-во фото * скорость смены * количество повторов слайдшоу
+            let totalDuration = photosCount * speedSec * cycles;
+            
+            // Ограничение идеальной длительности динамичного эдита в TikTok/Reels (3-12 секунд)
+            if (totalDuration < 3.0) totalDuration = 4.0;
+            if (totalDuration > 12.0) totalDuration = 10.0;
+            
+            return parseFloat(totalDuration.toFixed(1));
+        }
 
         function renderTemplates(filter = 'all') {
             const container = document.getElementById('templatesContainer');
@@ -683,6 +748,9 @@
             }
             renderTemplates(document.querySelector('.template-filter.active')?.dataset.filter || 'all');
             
+            saveStateToLocalStorage();
+            updateQualitySettings();
+
             if(isPlaying) {
                 restartEditPreview();
             }
@@ -697,6 +765,7 @@
                 reader.onload = (e) => {
                     userPhotos.push(e.target.result);
                     updatePhotoPreviewUI();
+                    saveStateToLocalStorage();
                 };
                 reader.readAsDataURL(files[i]);
             }
@@ -716,12 +785,13 @@
                 `;
                 grid.appendChild(thumb);
             });
-            updateStatsInfo();
+            updateQualitySettings();
         }
 
         function removePhoto(index) {
             userPhotos.splice(index, 1);
             updatePhotoPreviewUI();
+            saveStateToLocalStorage();
         }
 
         function formatTime(sec) {
@@ -790,6 +860,7 @@
             } else {
                 setupTrimSliders(15);
             }
+            saveStateToLocalStorage();
         }
 
         function setupTrimSliders(duration) {
@@ -797,70 +868,65 @@
             document.getElementById('trackDurationDisplay').textContent = `Длительность: ${formatTime(audioDurationSec)}`;
 
             const startSlider = document.getElementById('trimStartSlider');
-            const endSlider = document.getElementById('trimEndSlider');
-
             startSlider.max = audioDurationSec;
-            endSlider.max = audioDurationSec;
 
             trimStartSec = 0;
-            trimEndSec = Math.min(10, audioDurationSec);
+            const editDuration = calculateTemplateEditDuration();
+            trimEndSec = Math.min(audioDurationSec, trimStartSec + editDuration);
 
             startSlider.value = trimStartSec;
-            endSlider.value = trimEndSec;
-
             updateAudioTrim();
         }
 
         function adjustTrim(type, delta) {
             const startSlider = document.getElementById('trimStartSlider');
-            const endSlider = document.getElementById('trimEndSlider');
 
             if (type === 'start') {
                 let val = parseFloat(startSlider.value) + delta;
-                val = Math.max(0, Math.min(val, parseFloat(endSlider.value) - 0.5));
+                val = Math.max(0, Math.min(val, audioDurationSec - 1));
                 startSlider.value = val.toFixed(1);
-            } else {
-                let val = parseFloat(endSlider.value) + delta;
-                val = Math.min(audioDurationSec, Math.max(val, parseFloat(startSlider.value) + 0.5));
-                endSlider.value = val.toFixed(1);
             }
             updateAudioTrim();
         }
 
         function updateAudioTrim() {
             const startSlider = document.getElementById('trimStartSlider');
-            const endSlider = document.getElementById('trimEndSlider');
-
             let valStart = parseFloat(startSlider.value);
-            let valEnd = parseFloat(endSlider.value);
-
-            if (valStart >= valEnd) {
-                valStart = Math.max(0, valEnd - 0.5);
-                startSlider.value = valStart;
-            }
+            const editDuration = calculateTemplateEditDuration();
 
             trimStartSec = valStart;
-            trimEndSec = valEnd;
-
-            const diff = Math.max(0.5, trimEndSec - trimStartSec).toFixed(1);
+            trimEndSec = Math.min(audioDurationSec, trimStartSec + editDuration);
 
             document.getElementById('startTimeText').textContent = formatTime(trimStartSec);
-            document.getElementById('endTimeText').textContent = formatTime(trimEndSec);
-            document.getElementById('trimRangeText').textContent = `${formatTime(trimStartSec)} - ${formatTime(trimEndSec)} (${diff} сек)`;
+            document.getElementById('trimRangeText').textContent = `${formatTime(trimStartSec)} - ${formatTime(trimEndSec)} (${editDuration} сек)`;
 
             const audioPlayer = document.getElementById('audioPlayer');
             audioPlayer.currentTime = trimStartSec;
 
-            updateStatsInfo();
+            updateQualitySettings();
         }
 
-        function updateStatsInfo() {
-            const durationSec = (audioFileObj && trimEndSec > trimStartSec) ? (trimEndSec - trimStartSec) : 10;
+        function updateQualitySettings() {
+            const quality = document.getElementById('renderQualitySelect').value;
+            const fps = document.getElementById('renderFpsSelect').value;
+            document.getElementById('currentQualityBadge').textContent = `${quality}p ${fps}FPS`;
+
+            const durationSec = calculateTemplateEditDuration();
             document.getElementById('exportDurationDisplay').textContent = `${durationSec.toFixed(1)} сек`;
 
-            // Расчет размера файла: Bitrate ~ 8Mbps video + 128kbps audio => ~1.02 MB/sec
-            const estimatedMB = (durationSec * 1.02).toFixed(1);
+            // Вычисление битрейта для точного размера видео
+            let mbps = 2.0; // 480p fallback
+            if(quality === '1080') mbps = 7.0;
+            else if(quality === '720') mbps = 4.0;
+            else if(quality === '480') mbps = 2.0;
+            else if(quality === '360') mbps = 1.0;
+
+            if(fps === '60') mbps *= 1.25;
+
+            const estimatedMB = ((durationSec * (mbps / 8)) + 0.1).toFixed(1);
             document.getElementById('exportSizeDisplay').textContent = `~${estimatedMB} МБ`;
+
+            saveStateToLocalStorage();
         }
 
         function previewTrimmedAudio() {
@@ -868,10 +934,10 @@
             audioPlayer.currentTime = trimStartSec;
             audioPlayer.play();
             
-            const durationMs = (trimEndSec - trimStartSec) * 1000;
+            const editDuration = calculateTemplateEditDuration();
             setTimeout(() => {
                 audioPlayer.pause();
-            }, durationMs);
+            }, editDuration * 1000);
         }
 
         function removeAudio() {
@@ -883,7 +949,8 @@
             audioPlayer.pause();
             audioPlayer.src = "";
             showToast('Аудио удалено');
-            updateStatsInfo();
+            updateQualitySettings();
+            saveStateToLocalStorage();
         }
 
         function toggleMusicModal() {
@@ -894,6 +961,49 @@
         function openCustomTemplateModal() {
             const modal = document.getElementById('customTemplateModal');
             modal.classList.toggle('hidden');
+        }
+
+        // -------------------------------------------------------------
+        // ПОЛНОСТЬЮ СЛУЧАЙНЫЙ РАНДОМНЫЙ ГЕНЕРАТОР ШАБЛОНОВ
+        // -------------------------------------------------------------
+        function generateRandomTemplate() {
+            const anims = ['glitchAnim', 'earthquakeGod', 'kaleidoscopeSpin', 'psychedelicWobble', '3dFlipRot', 'animeZoom', 'cinematicPan', 'lightningFlash', 'bassDropVibe', 'spinSlow'];
+            const speeds = ['0.25s', '0.3s', '0.4s', '0.5s', '0.7s', '0.9s'];
+            const filters = [
+                'hue-rotate(90deg) contrast(1.8)',
+                'sepia(1) hue-rotate(300deg) saturate(3)',
+                'invert(1) contrast(2)',
+                'saturate(3) contrast(1.5)',
+                'hue-rotate(180deg) brightness(1.3)',
+                'contrast(2) saturate(2)'
+            ];
+            const icons = ['zap', 'cpu', 'activity', 'sparkles', 'flame', 'disc', 'eye', 'star', 'trophy'];
+
+            const randAnim = anims[Math.floor(Math.random() * anims.length)];
+            const randSpeed = speeds[Math.floor(Math.random() * speeds.length)];
+            const randFilter = filters[Math.floor(Math.random() * filters.length)];
+            const randFlash = Math.random() > 0.3;
+            const randIcon = icons[Math.floor(Math.random() * icons.length)];
+            const randIdNum = Math.floor(100 + Math.random() * 900);
+
+            const newT = {
+                id: templates.length + 1,
+                name: `RANDOM GOD #${randIdNum}`,
+                category: "cyber",
+                anim: randAnim,
+                speed: randSpeed,
+                filter: randFilter,
+                flash: randFlash,
+                icon: randIcon,
+                repeatCycles: 2
+            };
+
+            templates.unshift(newT);
+            renderTemplates();
+            openCustomTemplateModal();
+            selectTemplate(newT.id);
+            showToast('🎲 Создан уникальный случайный шаблон!');
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         }
 
         function createAndAddCustomTemplate() {
@@ -911,7 +1021,8 @@
                 speed: speed,
                 filter: filter,
                 flash: flash,
-                icon: "sliders"
+                icon: "sliders",
+                repeatCycles: 2
             };
 
             templates.unshift(newT);
@@ -922,14 +1033,39 @@
             confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
         }
 
-        // ПРЕВЬЮ ЭДИТА С ПЛАВНОЙ ОТРЕДАКТИРОВАННОЙ СКОРОСТЬЮ
+        // FULL SCREEN PREVIEW MODAL
+        function openFullScreenModal() {
+            if(userPhotos.length === 0) {
+                alert('Загрузите фото для воспроизведения предпросмотра!');
+                return;
+            }
+            const modal = document.getElementById('fullScreenModal');
+            const fsContainer = document.getElementById('fsSlideShowContainer');
+            const mainContainer = document.getElementById('slideShowContainer');
+            const t = templates.find(item => item.id === selectedTemplateId) || templates[0];
+
+            document.getElementById('fsTemplateTitle').textContent = `EDIT GOD - ${t.name}`;
+            fsContainer.innerHTML = mainContainer.innerHTML;
+            modal.classList.remove('hidden');
+
+            if(!isPlaying) {
+                togglePlayPreview();
+            }
+        }
+
+        function closeFullScreenModal() {
+            const modal = document.getElementById('fullScreenModal');
+            modal.classList.add('hidden');
+        }
+
+        // ПРЕВЬЮ ЭДИТА С ПЛАВНОЙ СКОРОСТЬЮ
         function togglePlayPreview() {
             if(userPhotos.length === 0) {
                 alert('Сначала выберите от 5 до 10 фотографий из галереи!');
                 return;
             }
             if(!selectedTemplateId) {
-                alert('Выберите шаблон эдита из списка (шаг 2)!');
+                alert('Выберите шаблон эдита из списка!');
                 return;
             }
 
@@ -975,6 +1111,7 @@
 
         function startSlideShow() {
             const container = document.getElementById('slideShowContainer');
+            const fsContainer = document.getElementById('fsSlideShowContainer');
             const t = templates.find(item => item.id === selectedTemplateId) || templates[0];
             
             let speedMs = Math.round(parseFloat(t.speed) * 1000) || 400;
@@ -984,16 +1121,24 @@
                 if(!isPlaying) return;
                 const photoSrc = userPhotos[currentSlideIndex % userPhotos.length];
                 
-                container.innerHTML = `
+                const slideHtml = `
                     <div class="w-full h-full relative overflow-hidden flex items-center justify-center">
                         <img id="activeSlideImg" src="${photoSrc}" style="animation: ${t.anim} ${t.speed} infinite linear; filter: ${t.filter};" class="w-full h-full object-cover rounded-[26px]">
                     </div>
                 `;
 
+                container.innerHTML = slideHtml;
+                if(fsContainer) fsContainer.innerHTML = slideHtml;
+
                 if(t.flash) {
                     const flashEl = document.getElementById('beatFlash');
-                    flashEl.style.opacity = '0.75';
-                    setTimeout(() => { flashEl.style.opacity = '0'; }, 80);
+                    const fsFlashEl = document.getElementById('fsBeatFlash');
+                    if(flashEl) flashEl.style.opacity = '0.75';
+                    if(fsFlashEl) fsFlashEl.style.opacity = '0.75';
+                    setTimeout(() => { 
+                        if(flashEl) flashEl.style.opacity = '0';
+                        if(fsFlashEl) fsFlashEl.style.opacity = '0';
+                    }, 80);
                 }
 
                 const audio = document.getElementById('audioPlayer');
@@ -1019,7 +1164,7 @@
         }
 
         // =========================================================
-        // ПЛАВНЕЙШИЙ 60FPS ДЕТЕРМИНИРОВАННЫЙ РЕНДЕР С ЗАКРУГЛЕННОЙ РАМКОЙ
+        // ДЕТЕРМИНИРОВАННЫЙ ПОКАДРОВЫЙ CANVAS РЕНДЕР С ТОЧНОЙ ДЛИТЕЛЬНОСТЬЮ ШАБЛОНА
         // =========================================================
         async function renderAndDownloadVideo() {
             if(userPhotos.length === 0) {
@@ -1040,10 +1185,14 @@
             modal.classList.remove('hidden');
             progressBar.style.width = '0%';
             percentText.textContent = '0%';
-            statusText.textContent = "Подготовка ресурсов и закругленной рамки...";
+            statusText.textContent = "Подготовка детерминированного кадров...";
 
-            const videoDurationSec = (audioFileObj && trimEndSec > trimStartSec) ? (trimEndSec - trimStartSec) : 10;
-            const fps = 30;
+            // Длительность рассчитывается СТРОГО от шаблона и количества фото!
+            const videoDurationSec = calculateTemplateEditDuration();
+
+            // Выбранное пользователем качество и FPS
+            const qualityStr = document.getElementById('renderQualitySelect').value;
+            const fps = parseInt(document.getElementById('renderFpsSelect').value) || 30;
             const totalFrames = Math.floor(videoDurationSec * fps);
 
             const speedSec = parseFloat(t.speed) || 0.4;
@@ -1051,8 +1200,15 @@
 
             const canvas = document.getElementById('exportCanvas');
             const ctx = canvas.getContext('2d');
-            const width = canvas.width;   // 720
-            const height = canvas.height; // 1280
+
+            // Установка разрешения холста по вертикальной сетке 9:16
+            if (qualityStr === '1080') { canvas.width = 1080; canvas.height = 1920; }
+            else if (qualityStr === '720') { canvas.width = 720; canvas.height = 1280; }
+            else if (qualityStr === '480') { canvas.width = 480; canvas.height = 854; }
+            else if (qualityStr === '360') { canvas.width = 360; canvas.height = 640; }
+
+            const width = canvas.width;
+            const height = canvas.height;
 
             // Загрузка изображений
             const imgElements = await Promise.all(userPhotos.map(src => {
@@ -1099,11 +1255,17 @@
                 }
             }
 
+            let targetBitrate = 4000000;
+            if (qualityStr === '1080') targetBitrate = 7000000;
+            else if (qualityStr === '720') targetBitrate = 4000000;
+            else if (qualityStr === '480') targetBitrate = 2000000;
+            else if (qualityStr === '360') targetBitrate = 1000000;
+
             let mediaRecorder;
             try {
                 mediaRecorder = new MediaRecorder(combinedStream, {
                     mimeType: mimeType,
-                    videoBitsPerSecond: 8000000
+                    videoBitsPerSecond: targetBitrate
                 });
             } catch (e) {
                 mediaRecorder = new MediaRecorder(combinedStream);
@@ -1125,8 +1287,8 @@
 
             mediaRecorder.start();
 
-            // ПОКАДРОВАЯ ОТРИСОВКА БЕЗ ТОРМОЗОВ И ЛАГОВ В 60FPS С СИММЕТРИЧНОЙ ЗАКРУГЛЕННОЙ РАМКОЙ
-            const frameRadius = 52; // Радиус закругления углов рамки на Canvas 720x1280
+            // ПОКАДРОВАЯ ДЕТЕРМИНИРОВАННАЯ СБОРКА БЕЗ ПРОПУСКОВ И ТОРМОЗОВ
+            const frameRadius = Math.round(width * 0.072); // Пропорциональный радиус закругления
 
             for (let f = 0; f < totalFrames; f++) {
                 const photoIdx = Math.floor(f / framesPerSlide) % imgElements.length;
@@ -1135,16 +1297,14 @@
                 ctx.save();
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-                // Очистка и черный фон Canvas
                 ctx.fillStyle = "#030305";
                 ctx.fillRect(0, 0, width, height);
 
-                // Маска для закругленной рамки видео
+                // Отрисовка закругленной границы
                 ctx.beginPath();
                 ctx.roundRect(0, 0, width, height, frameRadius);
                 ctx.clip();
 
-                // Прогресс внутри слайда (0.0 -> 1.0)
                 const p = (f % framesPerSlide) / framesPerSlide;
 
                 let scale = 1.0;
@@ -1154,13 +1314,12 @@
                 let skewX = 0;
                 let extraFilter = "";
 
-                // ТОЧНАЯ МАТЕМАТИЧЕСКАЯ МОДЕЛЬ КЛЮЧЕВЫХ КАДРОВ
                 switch(t.anim) {
                     case 'shakeHard':
                     case 'earthquakeGod':
                         scale = 1.08 + Math.sin(p * Math.PI * 4) * 0.08;
-                        offsetX = Math.sin(p * Math.PI * 10) * 22;
-                        offsetY = Math.cos(p * Math.PI * 10) * 22;
+                        offsetX = Math.sin(p * Math.PI * 10) * (width * 0.03);
+                        offsetY = Math.cos(p * Math.PI * 10) * (height * 0.02);
                         rotate = Math.sin(p * Math.PI * 8) * 0.08;
                         break;
                     case 'beatScale':
@@ -1168,8 +1327,8 @@
                         scale = 1.0 + Math.abs(Math.sin(p * Math.PI * 2)) * 0.22;
                         break;
                     case 'glitchAnim':
-                        offsetX = (Math.sin(p * Math.PI * 12) > 0 ? 1 : -1) * 18;
-                        offsetY = (Math.cos(p * Math.PI * 12) > 0 ? 1 : -1) * 12;
+                        offsetX = (Math.sin(p * Math.PI * 12) > 0 ? 1 : -1) * (width * 0.025);
+                        offsetY = (Math.cos(p * Math.PI * 12) > 0 ? 1 : -1) * (height * 0.015);
                         if (f % 4 === 0) extraFilter = " invert(0.8) hue-rotate(90deg)";
                         break;
                     case 'cyberpunkFlash':
@@ -1195,8 +1354,8 @@
                         break;
                     case 'cinematicPan':
                         scale = 1.1 + p * 0.2;
-                        offsetX = (p - 0.5) * 50;
-                        offsetY = (p - 0.5) * 30;
+                        offsetX = (p - 0.5) * (width * 0.06);
+                        offsetY = (p - 0.5) * (height * 0.03);
                         break;
                     case 'lightningFlash':
                         if (f % 5 === 0) extraFilter = " brightness(3) invert(0.3)";
@@ -1223,16 +1382,13 @@
                         break;
                 }
 
-                // ПРИМЕНЯЕМ ФИЛЬТР В КАНВАС
                 ctx.filter = (t.filter || "none") + extraFilter;
 
-                // ЦЕНТРИРОВАНИЕ И ТРАНСФОРМАЦИЯ
                 ctx.translate(width / 2 + offsetX, height / 2 + offsetY);
                 ctx.rotate(rotate);
                 if (skewX !== 0) ctx.transform(1, 0, skewX, 1, 0, 0);
                 ctx.scale(scale, scale);
 
-                // Отрисовка изображения
                 const imgAspect = currentImg.width / currentImg.height;
                 const canvasAspect = width / height;
                 let drawW, drawH;
@@ -1247,12 +1403,12 @@
 
                 ctx.restore();
 
-                // Отрисовка закругленной стильной контурной рамки поверх слоя
+                // Отрисовка стильного закругленного контура
                 ctx.save();
-                ctx.lineWidth = 12;
+                ctx.lineWidth = Math.round(width * 0.016);
                 ctx.strokeStyle = "rgba(139, 92, 246, 0.4)";
                 ctx.beginPath();
-                ctx.roundRect(6, 6, width - 12, height - 12, frameRadius - 6);
+                ctx.roundRect(4, 4, width - 8, height - 8, frameRadius - 4);
                 ctx.stroke();
                 ctx.restore();
 
@@ -1270,9 +1426,8 @@
                 const pct = Math.floor(((f + 1) / totalFrames) * 100);
                 progressBar.style.width = pct + '%';
                 percentText.textContent = pct + '%';
-                statusText.textContent = `Плавный рендер 60FPS: ${f + 1} / ${totalFrames}`;
+                statusText.textContent = `Рендеринг кадра: ${f + 1} / ${totalFrames} (${qualityStr}p ${fps}fps)`;
 
-                // Кротчайшая пауза для плавной асинхронной записи кадра
                 await new Promise(r => setTimeout(r, 1000 / fps));
             }
 
@@ -1283,7 +1438,7 @@
             confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 } });
             showToast('Готовое MP4 видео сохранено');
 
-            downloadBlobFile(finalVideoBlob, `EDIT_GOD_${t.name.replace(/[^\w]/g, '_')}_${Date.now()}.mp4`);
+            downloadBlobFile(finalVideoBlob, `EDIT_GOD_${t.name.replace(/[^\w]/g, '_')}_${qualityStr}p.mp4`);
         }
 
         function downloadBlobFile(blob, filename) {
@@ -1298,6 +1453,55 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             }, 1000);
+        }
+
+        // -------------------------------------------------------------
+        // ЛОКАЛЬНОЕ СОХРАНЕНИЕ В LOCALSTORAGE
+        // -------------------------------------------------------------
+        function saveStateToLocalStorage() {
+            try {
+                const state = {
+                    userPhotos: userPhotos,
+                    selectedTemplateId: selectedTemplateId,
+                    trimStartSec: trimStartSec,
+                    renderQuality: document.getElementById('renderQualitySelect')?.value || '720',
+                    renderFps: document.getElementById('renderFpsSelect')?.value || '30'
+                };
+                localStorage.setItem('EDIT_GOD_STATE_V10', JSON.stringify(state));
+            } catch (e) {
+                console.log("LocalStorage Limit exceeded for photos", e);
+            }
+        }
+
+        function loadStateFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem('EDIT_GOD_STATE_V10');
+                if (saved) {
+                    const state = JSON.parse(saved);
+                    if (state.userPhotos && Array.isArray(state.userPhotos)) {
+                        userPhotos = state.userPhotos;
+                        updatePhotoPreviewUI();
+                    }
+                    if (state.selectedTemplateId) {
+                        selectTemplate(state.selectedTemplateId);
+                    }
+                    if (state.renderQuality && document.getElementById('renderQualitySelect')) {
+                        document.getElementById('renderQualitySelect').value = state.renderQuality;
+                    }
+                    if (state.renderFps && document.getElementById('renderFpsSelect')) {
+                        document.getElementById('renderFpsSelect').value = state.renderFps;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        function clearLocalStorageData() {
+            if (confirm("Очистить все сохраненные фото и настройки?")) {
+                localStorage.removeItem('EDIT_GOD_STATE_V10');
+                userPhotos = [];
+                updatePhotoPreviewUI();
+                showToast("Данные сброшены");
+            }
         }
 
         function shareEditAndroid() {
@@ -1322,7 +1526,8 @@
 
         window.onload = () => {
             renderTemplates();
-            updateStatsInfo();
+            loadStateFromLocalStorage();
+            updateQualitySettings();
         };
     </script>
 </body>
