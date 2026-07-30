@@ -3,32 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VK Telegram Client 2026</title>
+  <title>VK Telegram Ultimate Black Edition 2026</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-main: #0e1621;
-      --bg-sidebar: #17212b;
-      --bg-chat-header: #17212b;
-      --bg-hover: #202b36;
-      --bg-active: #2b394a;
-      --bg-input: #242f3d;
-      --bg-bubble-in: #182533;
-      --bg-bubble-out: #2b5278;
-      --text-main: #f5f5f5;
-      --text-muted: #7f91a4;
-      --text-blue: #64b5f6;
-      --accent: #3390ec;
-      --accent-hover: #2884e0;
-      --accent-glow: rgba(51, 144, 236, 0.35);
-      --online-color: #4cd964;
-      --border-color: rgba(255, 255, 255, 0.07);
-      --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.4);
+      --bg-pure-black: #000000;
+      --bg-sidebar: #0a0b0d;
+      --bg-card: #14161b;
+      --bg-input: #1c1e24;
+      --bg-hover: #1e2129;
+      --bg-active: #252933;
+      --bg-bubble-in: #161a22;
+      --bg-bubble-out: #1e3a5f;
+      --accent: #229ed9;
+      --accent-hover: #1ca3e3;
+      --accent-glow: rgba(34, 158, 217, 0.35);
+      --text-main: #ffffff;
+      --text-muted: #828a99;
+      --text-cyan: #64b5f6;
+      --online-color: #00e676;
+      --danger-color: #ff5252;
+      --border-color: rgba(255, 255, 255, 0.08);
       --radius-sm: 8px;
       --radius-md: 14px;
-      --radius-lg: 20px;
+      --radius-lg: 22px;
       --radius-full: 9999px;
     }
 
@@ -42,32 +42,18 @@
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-main);
+      background-color: var(--bg-pure-black);
       color: var(--text-main);
       height: 100vh;
       overflow: hidden;
       display: flex;
-      justify-content: center;
-      align-items: center;
     }
 
-    /* Scrollbars */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
 
-    /* SVG Icons Utility */
     .icon {
       width: 22px;
       height: 22px;
@@ -76,12 +62,41 @@
       flex-shrink: 0;
     }
 
+    /* TOAST NOTIFICATION SYSTEM */
+    #toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      background: rgba(20, 22, 27, 0.95);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      backdrop-filter: blur(10px);
+      animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 360px;
+    }
+    .toast.error { border-left-color: var(--danger-color); }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
     /* LOGIN SCREEN */
     #login-screen {
       position: fixed;
       inset: 0;
-      z-index: 1000;
-      background: radial-gradient(circle at top right, #1a2736 0%, #0e1621 100%);
+      z-index: 5000;
+      background: radial-gradient(circle at center, #111318 0%, #000000 100%);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -89,79 +104,29 @@
     }
 
     .login-card {
-      background: rgba(23, 33, 43, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(10, 11, 13, 0.9);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--border-color);
       width: 100%;
       max-width: 480px;
       padding: 40px;
       border-radius: var(--radius-lg);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
       text-align: center;
-      animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    @keyframes fadeInScale {
-      from { opacity: 0; transform: scale(0.95) translateY(10px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
     .login-logo {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(135deg, #0088cc, #3390ec);
+      width: 76px;
+      height: 76px;
+      background: linear-gradient(135deg, #0088cc, #229ed9);
       border-radius: 50%;
-      margin: 0 auto 24px;
+      margin: 0 auto 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 10px 25px var(--accent-glow);
+      box-shadow: 0 10px 30px var(--accent-glow);
     }
-
-    .login-logo svg {
-      width: 42px;
-      height: 42px;
-      fill: #fff;
-    }
-
-    .login-title {
-      font-size: 26px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      letter-spacing: -0.5px;
-    }
-
-    .login-subtitle {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 28px;
-      line-height: 1.5;
-    }
-
-    .step-box {
-      background: rgba(0, 0, 0, 0.2);
-      border: 1px dashed rgba(255, 255, 255, 0.15);
-      border-radius: var(--radius-md);
-      padding: 16px;
-      margin-bottom: 24px;
-      text-align: left;
-    }
-
-    .step-title {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--accent);
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    .step-desc {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
+    .login-logo svg { width: 40px; height: 40px; fill: #fff; }
 
     .btn-oauth {
       display: inline-flex;
@@ -176,28 +141,11 @@
       font-size: 15px;
       border-radius: var(--radius-md);
       text-decoration: none;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 15px var(--accent-glow);
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px var(--accent-glow);
       margin-bottom: 20px;
     }
-
-    .btn-oauth:hover {
-      background: var(--accent-hover);
-      transform: translateY(-1px);
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      text-align: left;
-    }
-
-    .input-label {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-muted);
-    }
+    .btn-oauth:hover { background: var(--accent-hover); transform: translateY(-1px); }
 
     .input-field {
       width: 100%;
@@ -210,17 +158,14 @@
       outline: none;
       transition: border-color 0.2s;
     }
-
-    .input-field:focus {
-      border-color: var(--accent);
-    }
+    .input-field:focus { border-color: var(--accent); }
 
     .btn-submit {
       width: 100%;
       padding: 14px;
       margin-top: 14px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       color: #fff;
       font-size: 15px;
       font-weight: 600;
@@ -228,25 +173,14 @@
       cursor: pointer;
       transition: all 0.2s;
     }
+    .btn-submit:hover { background: rgba(255, 255, 255, 0.2); }
 
-    .btn-submit:hover {
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    .error-msg {
-      color: #ff5252;
-      font-size: 13px;
-      margin-top: 12px;
-      display: none;
-    }
-
-    /* MAIN APP LAYOUT */
+    /* LAYOUT */
     #app-container {
       width: 100vw;
       height: 100vh;
       display: flex;
-      background: var(--bg-main);
-      overflow: hidden;
+      background: var(--bg-pure-black);
       position: relative;
     }
 
@@ -258,7 +192,7 @@
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
-      z-index: 10;
+      z-index: 20;
     }
 
     .sidebar-header {
@@ -266,7 +200,6 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      background: var(--bg-sidebar);
     }
 
     .menu-btn {
@@ -281,11 +214,7 @@
       justify-content: center;
       transition: background 0.2s, color 0.2s;
     }
-
-    .menu-btn:hover {
-      background: var(--bg-hover);
-      color: var(--text-main);
-    }
+    .menu-btn:hover { background: var(--bg-hover); color: var(--text-main); }
 
     .search-bar {
       flex: 1;
@@ -293,7 +222,6 @@
       display: flex;
       align-items: center;
     }
-
     .search-bar input {
       width: 100%;
       padding: 9px 16px 9px 38px;
@@ -303,59 +231,40 @@
       color: var(--text-main);
       font-size: 14px;
       outline: none;
-      transition: all 0.2s;
     }
+    .search-bar svg { position: absolute; left: 12px; fill: var(--text-muted); }
 
-    .search-bar input:focus {
-      border-color: var(--accent);
-      background: #1c2733;
-    }
-
-    .search-bar svg {
-      position: absolute;
-      left: 12px;
-      width: 18px;
-      height: 18px;
-      fill: var(--text-muted);
-      pointer-events: none;
-    }
-
-    /* CHAT TABS */
+    /* FOLDER TABS */
     .chat-tabs {
       display: flex;
-      padding: 0 12px;
+      padding: 0 10px;
       border-bottom: 1px solid var(--border-color);
-      gap: 6px;
-      background: var(--bg-sidebar);
+      gap: 4px;
+      overflow-x: auto;
     }
-
     .tab-item {
-      padding: 10px 14px;
-      font-size: 13px;
+      padding: 12px 14px;
+      font-size: 13.5px;
       font-weight: 500;
       color: var(--text-muted);
       cursor: pointer;
       border-bottom: 2px solid transparent;
+      white-space: nowrap;
       transition: all 0.2s;
     }
-
     .tab-item.active {
       color: var(--accent);
       border-bottom-color: var(--accent);
+      font-weight: 600;
     }
 
-    .tab-item:hover:not(.active) {
-      color: var(--text-main);
-    }
-
-    /* CONVERSATIONS LIST */
+    /* LISTS */
     .chats-list {
       flex: 1;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
     }
-
     .chat-item {
       display: flex;
       align-items: center;
@@ -363,16 +272,9 @@
       gap: 12px;
       cursor: pointer;
       transition: background 0.15s;
-      position: relative;
     }
-
-    .chat-item:hover {
-      background: var(--bg-hover);
-    }
-
-    .chat-item.active {
-      background: var(--bg-active);
-    }
+    .chat-item:hover { background: var(--bg-hover); }
+    .chat-item.active { background: var(--bg-active); }
 
     .avatar-wrap {
       position: relative;
@@ -380,28 +282,13 @@
       height: 50px;
       flex-shrink: 0;
     }
-
     .avatar-img {
       width: 100%;
       height: 100%;
       border-radius: 50%;
       object-fit: cover;
-      background: #2b394a;
+      background: #1a1c23;
     }
-
-    .avatar-placeholder {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #4b6cb7, #182848);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 18px;
-      color: #fff;
-    }
-
     .online-indicator {
       position: absolute;
       bottom: 2px;
@@ -420,231 +307,127 @@
       flex-direction: column;
       gap: 4px;
     }
+    .chat-top-line { display: flex; justify-content: space-between; align-items: baseline; }
+    .chat-name { font-size: 15px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chat-time { font-size: 12px; color: var(--text-muted); }
+    .chat-bottom-line { display: flex; justify-content: space-between; align-items: center; }
+    .chat-snippet { font-size: 13.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .unread-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 12px; }
 
-    .chat-top-line {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-    }
-
-    .chat-name {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-main);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .chat-time {
-      font-size: 12px;
-      color: var(--text-muted);
-      flex-shrink: 0;
-      margin-left: 8px;
-    }
-
-    .chat-bottom-line {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .chat-snippet {
-      font-size: 13px;
-      color: var(--text-muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .unread-badge {
-      background: var(--accent);
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 12px;
-      min-width: 18px;
-      text-align: center;
-      margin-left: 8px;
-    }
-
-    /* MAIN CHAT AREA */
-    .chat-area {
+    /* MAIN DISPLAY AREA */
+    .main-area {
       flex: 1;
       display: flex;
       flex-direction: column;
-      background: var(--bg-main);
+      background: var(--bg-pure-black);
       position: relative;
     }
 
+    /* CHAT HEADER */
     .chat-header {
       height: 60px;
-      background: var(--bg-chat-header);
+      background: var(--bg-sidebar);
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 20px;
-      z-index: 5;
+      z-index: 10;
     }
-
-    .chat-header-user {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-    }
-
-    .chat-header-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chat-header-name {
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .chat-header-status {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .chat-header-status.online {
-      color: var(--text-blue);
-    }
-
-    .chat-header-actions {
-      display: flex;
-      gap: 8px;
-    }
+    .chat-header-user { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .chat-header-name { font-size: 16px; font-weight: 600; }
+    .chat-header-status { font-size: 12px; color: var(--text-muted); }
 
     /* MESSAGES CONTAINER */
     .messages-container {
       flex: 1;
       overflow-y: auto;
-      padding: 20px 15%;
+      padding: 20px 12%;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      background: radial-gradient(circle at center, #111b27 0%, #0e1621 100%);
-    }
-
-    @media (max-width: 1024px) {
-      .messages-container {
-        padding: 16px 5%;
-      }
-    }
-
-    .date-divider {
-      align-self: center;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(10px);
-      color: var(--text-muted);
-      font-size: 12px;
-      font-weight: 500;
-      padding: 4px 14px;
-      border-radius: 12px;
-      margin: 12px 0;
+      gap: 12px;
+      background: radial-gradient(circle at center, #0a0c10 0%, #000000 100%);
     }
 
     .message-bubble {
-      max-width: 68%;
+      max-width: 65%;
       display: flex;
       flex-direction: column;
-      position: relative;
-      animation: msgPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-
-    @keyframes msgPop {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .message-bubble.incoming {
-      align-self: flex-start;
-    }
-
-    .message-bubble.outgoing {
-      align-self: flex-end;
-    }
+    .message-bubble.incoming { align-self: flex-start; }
+    .message-bubble.outgoing { align-self: flex-end; }
 
     .bubble-content {
       padding: 10px 14px;
       border-radius: var(--radius-md);
-      position: relative;
-      word-wrap: break-word;
       font-size: 14.5px;
       line-height: 1.45;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      position: relative;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
     }
+    .incoming .bubble-content { background: var(--bg-bubble-in); border-bottom-left-radius: 4px; }
+    .outgoing .bubble-content { background: var(--bg-bubble-out); border-bottom-right-radius: 4px; }
 
-    .incoming .bubble-content {
-      background: var(--bg-bubble-in);
-      border-bottom-left-radius: 4px;
-      color: var(--text-main);
-    }
+    .msg-meta { font-size: 11px; color: rgba(255, 255, 255, 0.5); float: right; margin-left: 10px; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; }
+    
+    .msg-attachments { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+    .attachment-img { max-width: 100%; max-height: 340px; border-radius: 10px; cursor: pointer; object-fit: cover; }
+    .attachment-video-circle { width: 220px; height: 220px; border-radius: 50%; border: 3px solid var(--accent); object-fit: cover; overflow: hidden; }
 
-    .outgoing .bubble-content {
-      background: var(--bg-bubble-out);
-      border-bottom-right-radius: 4px;
-      color: #fff;
-    }
-
-    .msg-meta {
-      display: inline-flex;
+    /* VOICE MESSAGE PLAYER WIDGET */
+    .voice-widget {
+      display: flex;
       align-items: center;
-      gap: 4px;
-      float: right;
-      margin-left: 12px;
-      margin-top: 4px;
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.5);
-      user-select: none;
+      gap: 12px;
+      background: rgba(0,0,0,0.3);
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      min-width: 220px;
     }
+    .voice-play-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .voice-wave { flex: 1; height: 24px; display: flex; align-items: center; gap: 3px; }
+    .wave-bar { flex: 1; background: rgba(255,255,255,0.3); border-radius: 2px; }
 
-    .msg-attachments {
-      margin-top: 6px;
+    /* NEWSFEED STREAM VIEW */
+    .newsfeed-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20%;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 20px;
+      background: #000000;
     }
+    @media (max-width: 1024px) { .newsfeed-container { padding: 16px 5%; } }
 
-    .attachment-img {
-      max-width: 100%;
-      max-height: 320px;
-      border-radius: 8px;
-      object-fit: cover;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-
-    .attachment-img:hover {
-      opacity: 0.9;
-    }
-
-    .audio-player-widget {
+    .post-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
       display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 8px 12px;
-      border-radius: var(--radius-sm);
-      margin-top: 4px;
+      flex-direction: column;
+      gap: 14px;
     }
-
-    .doc-attachment {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 8px 12px;
-      border-radius: var(--radius-sm);
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 13px;
-    }
+    .post-header { display: flex; align-items: center; gap: 12px; }
+    .post-author-name { font-weight: 600; font-size: 15px; }
+    .post-date { font-size: 12px; color: var(--text-muted); }
+    .post-text { font-size: 14.5px; line-height: 1.5; color: #ececec; white-space: pre-line; }
+    .post-media { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    .post-actions { display: flex; gap: 20px; border-top: 1px solid var(--border-color); padding-top: 12px; color: var(--text-muted); font-size: 13px; font-weight: 500; }
+    .post-action-btn { display: flex; align-items: center; gap: 6px; cursor: pointer; transition: color 0.2s; }
+    .post-action-btn:hover { color: var(--accent); }
 
     /* INPUT BAR */
     .input-bar {
@@ -656,50 +439,21 @@
       gap: 12px;
       position: relative;
     }
-
-    .btn-attach {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      padding: 8px;
-      border-radius: 50%;
-      transition: color 0.2s, background 0.2s;
-    }
-
-    .btn-attach:hover {
-      color: var(--text-main);
-      background: var(--bg-hover);
-    }
-
-    .message-input-container {
-      flex: 1;
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
     .message-input {
-      width: 100%;
-      max-height: 120px;
-      min-height: 42px;
-      padding: 10px 16px;
+      flex: 1;
       background: var(--bg-input);
       border: 1px solid transparent;
       border-radius: 20px;
+      padding: 10px 16px;
       color: var(--text-main);
       font-size: 14.5px;
       outline: none;
       resize: none;
+      max-height: 120px;
+      min-height: 42px;
       font-family: inherit;
-      line-height: 1.4;
     }
-
-    .message-input:focus {
-      border-color: rgba(51, 144, 236, 0.4);
-    }
-
-    .btn-send {
+    .btn-send, .btn-mic {
       width: 44px;
       height: 44px;
       border-radius: 50%;
@@ -710,276 +464,225 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: transform 0.15s, background 0.2s;
-      box-shadow: 0 4px 12px var(--accent-glow);
+      box-shadow: 0 4px 15px var(--accent-glow);
       flex-shrink: 0;
+      transition: transform 0.15s;
     }
+    .btn-send:hover, .btn-mic:hover { transform: scale(1.05); }
 
-    .btn-send:hover {
-      background: var(--accent-hover);
-      transform: scale(1.05);
-    }
-
-    .btn-send:active {
-      transform: scale(0.95);
-    }
-
-    /* ATTACHMENT MODAL POPUP */
-    .attach-menu {
+    /* ATTACH MENU */
+    .attach-popup {
       position: absolute;
       bottom: 70px;
       left: 20px;
-      background: var(--bg-sidebar);
+      background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
-      padding: 12px;
+      padding: 8px;
       display: none;
       flex-direction: column;
-      gap: 8px;
-      box-shadow: var(--shadow-soft);
+      gap: 4px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
       z-index: 100;
-      min-width: 240px;
+      min-width: 220px;
     }
-
-    .attach-menu.active {
-      display: flex;
-    }
-
-    .attach-option {
+    .attach-popup.active { display: flex; }
+    .attach-item {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 8px 12px;
+      padding: 10px 12px;
       border-radius: var(--radius-sm);
       cursor: pointer;
-      color: var(--text-main);
-      font-size: 14px;
+      font-size: 13.5px;
       transition: background 0.15s;
     }
+    .attach-item:hover { background: var(--bg-hover); }
 
-    .attach-option:hover {
-      background: var(--bg-hover);
-    }
-
-    /* USER PROFILE SLIDE OUT */
+    /* PROFILE DRAWER */
     .profile-drawer {
-      width: 320px;
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 340px;
       background: var(--bg-sidebar);
       border-left: 1px solid var(--border-color);
-      display: none;
+      z-index: 300;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
       flex-direction: column;
-      align-items: center;
       padding: 30px 20px;
-      z-index: 10;
-    }
-
-    .profile-drawer.active {
-      display: flex;
-    }
-
-    .profile-avatar-large {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 16px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    }
-
-    .profile-name {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .profile-status {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 24px;
-    }
-
-    /* PLACEHOLDER STATES */
-    .no-chat-selected {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
     }
+    .profile-drawer.active { transform: translateX(0); }
+    .drawer-avatar { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; margin-bottom: 16px; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
 
-    .no-chat-badge {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 8px 16px;
-      border-radius: var(--radius-full);
-      font-size: 14px;
-    }
-
-    /* MODAL LIGHTBOX */
+    /* LIGHTBOX */
     .lightbox {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      z-index: 2000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(10px);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px);
     }
-
-    .lightbox img {
-      max-width: 90%;
-      max-height: 90%;
-      border-radius: var(--radius-md);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-    }
+    .lightbox img { max-width: 90%; max-height: 90%; border-radius: var(--radius-md); box-shadow: 0 10px 40px rgba(0,0,0,0.9); }
   </style>
 </head>
 <body>
 
-  <!-- LOGIN MODAL SCREEN -->
+  <!-- TOAST NOTIFICATION HOLDER -->
+  <div id="toast-container"></div>
+
+  <!-- LOGIN SCREEN -->
   <div id="login-screen">
     <div class="login-card">
       <div class="login-logo">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.38-.49 1.07-.75 4.19-1.82 6.99-3.02 8.4-3.61 4-.17 4.83 1.16 4.68 2.04z"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.38-.49 1.07-.75 4.19-1.82 6.99-3.02 8.4-3.61 4-.17 4.83 1.16 4.68 2.04z"/></svg>
       </div>
-      <h1 class="login-title">ВК Telegram 2026</h1>
-      <p class="login-subtitle">Официальная красивая dark-обертка VK API в дизайне Telegram Web</p>
+      <h2 style="margin-bottom:8px; font-weight:800;">VK Telegram OLED 2026</h2>
+      <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:24px;">Темная премиальная обертка VK Messenger</p>
 
-      <div class="step-box">
-        <div class="step-title">Шаг 1. Авторизация VK</div>
-        <div class="step-desc">Нажмите кнопку ниже, подтвердите доступ и скопируйте итоговый URL или токен из адресной строки.</div>
-      </div>
-
-      <a id="oauth-link" class="btn-oauth" href="https://oauth.vk.com/authorize?client_id=2685278&scope=messages,audio,photos,video,docs,notes,pages,status,wall,groups,email,stats,notifications,offline&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token" target="_blank">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
-        Получить VK Access Token
+      <a class="btn-oauth" href="https://oauth.vk.com/authorize?client_id=2685278&scope=messages,audio,photos,video,docs,notes,pages,status,wall,groups,email,stats,notifications,offline&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token" target="_blank">
+        🔑 1. Получить Access Token VK
       </a>
 
-      <div class="input-group">
-        <label class="input-label" for="token-input">Шаг 2. Вставьте ссылок или токен</label>
-        <input type="text" id="token-input" class="input-field" placeholder="Вставьте токен или полную ссылку https://oauth.vk.com/blank.html#access_token=..." autocomplete="off">
+      <div style="text-align:left; margin-bottom:14px;">
+        <label style="font-size:12px; color:var(--text-muted); font-weight:600;">2. Вставьте ссылку или токен:</label>
+        <input type="text" id="token-input" class="input-field" placeholder="https://oauth.vk.com/blank.html#access_token=..." autocomplete="off">
       </div>
 
-      <button id="btn-login" class="btn-submit">Войти в мессенджер</button>
-      <div id="login-error" class="error-msg">Неверный токен или ссылка. Попробуйте еще раз.</div>
+      <button id="btn-login" class="btn-submit">🚀 Войти в мессенджер</button>
     </div>
   </div>
 
-  <!-- MAIN MESSENGER INTERFACE -->
+  <!-- MAIN MESSENGER -->
   <div id="app-container">
-    <!-- LEFT SIDEBAR -->
+    
+    <!-- SIDEBAR -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <button class="menu-btn" id="btn-menu" title="Меню">
+        <button class="menu-btn" id="btn-menu" title="Открыть профиль">
           <svg class="icon" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
         </button>
         <div class="search-bar">
-          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-          <input type="text" id="search-input" placeholder="Поиск диалогов...">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          <input type="text" id="search-input" placeholder="Поиск в ВК...">
         </div>
       </div>
 
       <div class="chat-tabs">
-        <div class="tab-item active">Все чаты</div>
-        <div class="tab-item">Личные</div>
-        <div class="tab-item">Группы</div>
+        <div class="tab-item active" data-tab="all">Все</div>
+        <div class="tab-item" data-tab="personal">Личные</div>
+        <div class="tab-item" data-tab="groups">Группы</div>
+        <div class="tab-item" data-tab="news">🔥 Новости</div>
       </div>
 
       <div class="chats-list" id="chats-list">
-        <!-- Rendered dynamically -->
+        <!-- Rendered chats -->
       </div>
     </div>
 
-    <!-- CHAT AREA -->
-    <div class="chat-area" id="chat-area">
-      <div class="no-chat-selected" id="no-chat-placeholder">
-        <div class="no-chat-badge">Выберите чат из списка слева</div>
+    <!-- MAIN CHAT / NEWSFEED DISPLAY -->
+    <div class="main-area">
+      
+      <!-- PLACEHOLDER IF NO CHAT SELECTED -->
+      <div id="no-chat-placeholder" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-muted);">
+        <div style="background:rgba(255,255,255,0.05); padding:10px 20px; border-radius:30px; font-size:14px;">
+          Выберите диалог или вкладку «Новости» 💬
+        </div>
       </div>
 
+      <!-- CHAT VIEW CONTAINER -->
       <div id="active-chat-container" style="display:none; flex-direction:column; height:100%;">
         <div class="chat-header">
           <div class="chat-header-user" id="chat-header-trigger">
             <div class="avatar-wrap">
               <img id="active-chat-avatar" class="avatar-img" src="" alt="">
             </div>
-            <div class="chat-header-info">
-              <span class="chat-header-name" id="active-chat-name">Имя Чат</span>
-              <span class="chat-header-status" id="active-chat-status">онлайн</span>
+            <div>
+              <div class="chat-header-name" id="active-chat-name">Имя собеседника</div>
+              <div class="chat-header-status" id="active-chat-status">в сети</div>
             </div>
           </div>
-          <div class="chat-header-actions">
-            <button class="menu-btn" title="Поиск"><svg class="icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button>
-            <button class="menu-btn" id="btn-toggle-info" title="Информация"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></button>
-          </div>
+          <button class="menu-btn" id="btn-toggle-drawer" title="Информация">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          </button>
         </div>
 
-        <div class="messages-container" id="messages-container">
-          <!-- Rendered messages -->
+        <div class="messages-container" id="messages-container"></div>
+
+        <!-- ATTACHMENT POPUP -->
+        <div class="attach-popup" id="attach-popup">
+          <div class="attach-item" id="attach-photo-btn">🖼️ Ссылка на Фото</div>
+          <div class="attach-item" id="attach-video-btn">🎥 Видео вложение</div>
+          <div class="attach-item" id="attach-circle-btn">⭕ Видеокружочек</div>
+          <div class="attach-item" id="attach-doc-btn">📄 Документ</div>
         </div>
 
-        <!-- ATTACH POPUP MENU -->
-        <div class="attach-menu" id="attach-menu">
-          <div class="attach-option" id="attach-photo-opt">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-            Отправить ссылку на фото
-          </div>
-          <div class="attach-option" id="attach-doc-opt">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-            Вложить VK attachment ID
-          </div>
-        </div>
-
+        <!-- INPUT BAR -->
         <div class="input-bar">
-          <button class="btn-attach" id="btn-attach-toggle" title="Прикрепить">
+          <button class="menu-btn" id="btn-attach-toggle">
             <svg class="icon" viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.48-2.02-4.5-4.5-4.5S6 2.52 6 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-0.5z"/></svg>
           </button>
-          <div class="message-input-container">
-            <textarea class="message-input" id="message-text" placeholder="Написать сообщение..." rows="1"></textarea>
-          </div>
-          <button class="btn-send" id="btn-send" title="Отправить">
+          <textarea class="message-input" id="message-input" placeholder="Написать сообщение..." rows="1"></textarea>
+          <button class="btn-send" id="btn-send-msg">
             <svg class="icon" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           </button>
         </div>
       </div>
+
+      <!-- NEWSFEED VIEW CONTAINER -->
+      <div id="newsfeed-container" class="newsfeed-container" style="display:none;"></div>
+
     </div>
 
     <!-- PROFILE DRAWER -->
     <div class="profile-drawer" id="profile-drawer">
-      <img id="drawer-avatar" class="profile-avatar-large" src="" alt="Avatar">
-      <div id="drawer-name" class="profile-name">Имя Фамилия</div>
-      <div id="drawer-status" class="profile-status">В сети</div>
+      <button class="menu-btn" id="btn-close-drawer" style="align-self: flex-start; margin-bottom: 20px;">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+      <img id="drawer-avatar" class="drawer-avatar" src="" alt="Avatar">
+      <h3 id="drawer-name" style="font-weight:700; margin-bottom:4px;">Пользователь</h3>
+      <p id="drawer-status" style="font-size:13px; color:var(--text-muted); margin-bottom:30px;">В сети</p>
 
-      <div style="width: 100%; border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 10px;">
-        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">ID Пользователя:</div>
-        <div id="drawer-id" style="font-size: 14px; font-weight: 500;">id1234567</div>
+      <div style="width:100%; border-top:1px solid var(--border-color); padding-top:16px;">
+        <div style="font-size:12px; color:var(--text-muted);">VK ID</div>
+        <div id="drawer-id" style="font-weight:600; margin-bottom:20px;">id0000000</div>
+        
+        <button id="btn-logout" class="btn-submit" style="background:rgba(255, 82, 82, 0.2); border-color:rgba(255,82,82,0.4); color:#ff5252;">Выйти из аккаунта</button>
       </div>
     </div>
+
   </div>
 
-  <!-- LIGHTBOX FOR IMAGES -->
+  <!-- LIGHTBOX -->
   <div class="lightbox" id="lightbox" onclick="this.style.display='none'">
-    <img id="lightbox-img" src="" alt="">
+    <img id="lightbox-img" src="" alt="Full preview">
   </div>
 
   <script>
-    // CORE APPLICATION STATE
+    // GLOBAL STATE
     const state = {
-      token: localStorage.getItem('vk_tg_token') || '',
-      userId: localStorage.getItem('vk_tg_user_id') || '',
+      token: localStorage.getItem('vk_tg_token_2026') || '',
+      userId: localStorage.getItem('vk_tg_uid_2026') || '',
       activePeerId: null,
+      currentTab: 'all', // 'all', 'personal', 'groups', 'news'
       conversations: [],
       profiles: new Map(),
       groups: new Map(),
-      pollInterval: null
+      pollTimer: null
     };
 
-    // VK API JSONP HELPER
+    // TOAST NOTIFICATION HELPER
+    function showToast(message, isError = false) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${isError ? 'error' : ''}`;
+      toast.innerText = message;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    // JSONP CALL TO VK API
     function callVkApi(method, params = {}) {
       return new Promise((resolve, reject) => {
-        const callbackName = 'vk_cb_' + Math.random().toString(36).substring(2, 10) + '_' + Date.now();
+        const callbackName = 'vk_cb_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
         params.access_token = state.token;
         params.v = params.v || '5.199';
         params.callback = callbackName;
@@ -1013,7 +716,7 @@
 
         script.onerror = function() {
           cleanup();
-          reject(new Error('Ошибка сети при запросе к VK API'));
+          reject(new Error('Ошибка соединения с VK API'));
         };
 
         document.head.appendChild(script);
@@ -1021,138 +724,166 @@
     }
 
     // TOKEN PARSER
-    function parseTokenInput(input) {
+    function parseToken(input) {
       input = input.trim();
       if (!input) return null;
-
       if (input.includes('access_token=')) {
-        const tokenMatch = input.match(/access_token=([^&]+)/);
-        const userMatch = input.match(/user_id=([^&]+)/);
-        return {
-          token: tokenMatch ? tokenMatch[1] : null,
-          userId: userMatch ? userMatch[1] : null
-        };
+        const t = input.match(/access_token=([^&]+)/);
+        const u = input.match(/user_id=([^&]+)/);
+        return { token: t ? t[1] : null, userId: u ? u[1] : null };
       }
       return { token: input, userId: null };
     }
 
-    // DOM ELEMENTS
+    // UI ELEMENTS
     const loginScreen = document.getElementById('login-screen');
     const tokenInput = document.getElementById('token-input');
     const btnLogin = document.getElementById('btn-login');
-    const loginError = document.getElementById('login-error');
     const chatsListEl = document.getElementById('chats-list');
     const noChatPlaceholder = document.getElementById('no-chat-placeholder');
     const activeChatContainer = document.getElementById('active-chat-container');
+    const newsfeedContainer = document.getElementById('newsfeed-container');
     const messagesContainer = document.getElementById('messages-container');
-    const messageInput = document.getElementById('message-text');
-    const btnSend = document.getElementById('btn-send');
+    const messageInput = document.getElementById('message-input');
+    const btnSendMsg = document.getElementById('btn-send-msg');
+    const attachPopup = document.getElementById('attach-popup');
     const btnAttachToggle = document.getElementById('btn-attach-toggle');
-    const attachMenu = document.getElementById('attach-menu');
     const profileDrawer = document.getElementById('profile-drawer');
-    const btnToggleInfo = document.getElementById('btn-toggle-info');
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightbox-img');
+    const btnMenu = document.getElementById('btn-menu');
+    const btnToggleDrawer = document.getElementById('btn-toggle-drawer');
+    const btnCloseDrawer = document.getElementById('btn-close-drawer');
+    const btnLogout = document.getElementById('btn-logout');
 
-    // INITIALIZATION
+    // DOM EVENT LISTENERS
     window.addEventListener('DOMContentLoaded', () => {
       if (state.token) {
-        initMessenger();
+        loginScreen.style.display = 'none';
+        initApp();
       }
     });
 
-    // EVENT LISTENERS FOR LOGIN
     btnLogin.addEventListener('click', handleLogin);
-    tokenInput.addEventListener('paste', () => setTimeout(handleLogin, 100));
+    btnLogout.addEventListener('click', () => {
+      localStorage.clear();
+      location.reload();
+    });
+
+    btnMenu.addEventListener('click', toggleDrawer);
+    btnToggleDrawer.addEventListener('click', toggleDrawer);
+    btnCloseDrawer.addEventListener('click', toggleDrawer);
+
+    btnAttachToggle.addEventListener('click', () => attachPopup.classList.toggle('active'));
+
+    // TAB SWITCHING
+    document.querySelectorAll('.tab-item').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        state.currentTab = tab.dataset.tab;
+
+        if (state.currentTab === 'news') {
+          activeChatContainer.style.display = 'none';
+          noChatPlaceholder.style.display = 'none';
+          newsfeedContainer.style.display = 'flex';
+          loadNewsfeed();
+        } else {
+          newsfeedContainer.style.display = 'none';
+          if (!state.activePeerId) noChatPlaceholder.style.display = 'flex';
+          else activeChatContainer.style.display = 'flex';
+          renderConversations();
+        }
+      });
+    });
 
     async function handleLogin() {
-      const parsed = parseTokenInput(tokenInput.value);
+      const parsed = parseToken(tokenInput.value);
       if (!parsed || !parsed.token) {
-        loginError.style.display = 'block';
+        showToast('Введите корректный токен или ссылку!', true);
         return;
       }
-
       state.token = parsed.token;
-      if (parsed.userId) state.userId = parsed.userId;
-
       try {
-        const res = await callVkApi('users.get', {});
-        if (res && res[0]) {
-          state.userId = res[0].id;
-          localStorage.setItem('vk_tg_token', state.token);
-          localStorage.setItem('vk_tg_user_id', state.userId);
+        const uRes = await callVkApi('users.get', {});
+        if (uRes && uRes[0]) {
+          state.userId = uRes[0].id;
+          localStorage.setItem('vk_tg_token_2026', state.token);
+          localStorage.setItem('vk_tg_uid_2026', state.userId);
           loginScreen.style.display = 'none';
-          initMessenger();
+          showToast(`Успешный вход! С возвращением, ${uRes[0].first_name}!`);
+          initApp();
         }
       } catch (err) {
-        console.error(err);
-        loginError.innerText = ' Ошибка авторизации: ' + (err.error_msg || 'Проверьте токен');
-        loginError.style.display = 'block';
+        showToast('Ошибка авторизации: ' + (err.error_msg || 'Неверный токен'), true);
       }
     }
 
-    // MAIN APP INITIALIZATION
-    async function initMessenger() {
-      loginScreen.style.display = 'none';
+    async function initApp() {
       await loadConversations();
-      
-      // Start Auto-polling
-      if (state.pollInterval) clearInterval(state.pollInterval);
-      state.pollInterval = setInterval(async () => {
-        await loadConversations(true);
-        if (state.activePeerId) {
-          await loadMessages(state.activePeerId, true);
+      await fetchSelfProfile();
+
+      if (state.pollTimer) clearInterval(state.pollTimer);
+      state.pollTimer = setInterval(async () => {
+        if (state.currentTab !== 'news') {
+          await loadConversations(true);
+          if (state.activePeerId) await loadMessages(state.activePeerId, true);
         }
       }, 3500);
     }
 
-    // LOAD CONVERSATIONS
+    async function fetchSelfProfile() {
+      try {
+        const res = await callVkApi('users.get', { user_ids: state.userId, fields: 'photo_200,status' });
+        if (res && res[0]) {
+          const user = res[0];
+          document.getElementById('drawer-avatar').src = user.photo_200;
+          document.getElementById('drawer-name').innerText = `${user.first_name} ${user.last_name}`;
+          document.getElementById('drawer-status').innerText = user.status || 'В сети';
+          document.getElementById('drawer-id').innerText = `id${user.id}`;
+        }
+      } catch (err) { console.error(err); }
+    }
+
+    function toggleDrawer() {
+      profileDrawer.classList.toggle('active');
+    }
+
+    // CONVERSATIONS
     async function loadConversations(isSilent = false) {
       try {
-        const res = await callVkApi('messages.getConversations', {
-          count: 40,
-          extended: 1
-        });
-
-        if (res.profiles) {
-          res.profiles.forEach(p => state.profiles.set(p.id, p));
-        }
-        if (res.groups) {
-          res.groups.forEach(g => state.groups.set(g.id, g));
-        }
-
+        const res = await callVkApi('messages.getConversations', { count: 50, extended: 1 });
+        if (res.profiles) res.profiles.forEach(p => state.profiles.set(p.id, p));
+        if (res.groups) res.groups.forEach(g => state.groups.set(g.id, g));
         state.conversations = res.items || [];
-        renderConversations();
+        if (state.currentTab !== 'news') renderConversations();
       } catch (err) {
-        console.error('Failed to load conversations', err);
+        if (!isSilent) showToast('Ошибка загрузки списков чата: ' + (err.error_msg || err.message), true);
       }
     }
 
-    // RENDER CONVERSATIONS IN SIDEBAR
     function renderConversations() {
       chatsListEl.innerHTML = '';
 
-      state.conversations.forEach(item => {
+      let filtered = state.conversations;
+      if (state.currentTab === 'personal') {
+        filtered = filtered.filter(item => item.conversation.peer.type === 'user');
+      } else if (state.currentTab === 'groups') {
+        filtered = filtered.filter(item => item.conversation.peer.type === 'group' || item.conversation.peer.type === 'chat');
+      }
+
+      filtered.forEach(item => {
         const peer = item.conversation.peer;
         const peerId = peer.id;
         const lastMsg = item.last_message;
-        let title = 'Чат';
+        let title = 'Диалог';
         let avatarUrl = '';
         let isOnline = false;
 
         if (peer.type === 'user') {
-          const user = state.profiles.get(peerId);
-          if (user) {
-            title = `${user.first_name} ${user.last_name}`;
-            avatarUrl = user.photo_100;
-            isOnline = user.online === 1;
-          }
+          const u = state.profiles.get(peerId);
+          if (u) { title = `${u.first_name} ${u.last_name}`; avatarUrl = u.photo_100; isOnline = u.online === 1; }
         } else if (peer.type === 'group') {
-          const group = state.groups.get(Math.abs(peerId));
-          if (group) {
-            title = group.name;
-            avatarUrl = group.photo_100;
-          }
+          const g = state.groups.get(Math.abs(peerId));
+          if (g) { title = g.name; avatarUrl = g.photo_100; }
         } else if (peer.type === 'chat') {
           title = item.conversation.chat_settings?.title || 'Групповой чат';
           avatarUrl = item.conversation.chat_settings?.photo?.photo_100 || '';
@@ -1165,7 +896,7 @@
         chatEl.className = `chat-item ${state.activePeerId === peerId ? 'active' : ''}`;
         chatEl.innerHTML = `
           <div class="avatar-wrap">
-            ${avatarUrl ? `<img class="avatar-img" src="${avatarUrl}" alt="">` : `<div class="avatar-placeholder">${title[0]}</div>`}
+            <img class="avatar-img" src="${avatarUrl || 'https://vk.com/images/camera_100.png'}" alt="">
             ${isOnline ? `<div class="online-indicator"></div>` : ''}
           </div>
           <div class="chat-info">
@@ -1180,26 +911,21 @@
           </div>
         `;
 
-        chatEl.addEventListener('click', () => selectChat(peerId, title, avatarUrl, isOnline));
+        chatEl.addEventListener('click', () => openChat(peerId, title, avatarUrl, isOnline));
         chatsListEl.appendChild(chatEl);
       });
     }
 
-    // SELECT CHAT
-    async function selectChat(peerId, title, avatarUrl, isOnline) {
+    // OPEN CHAT
+    async function openChat(peerId, title, avatarUrl, isOnline) {
       state.activePeerId = peerId;
       noChatPlaceholder.style.display = 'none';
+      newsfeedContainer.style.display = 'none';
       activeChatContainer.style.display = 'flex';
 
       document.getElementById('active-chat-name').innerText = title;
-      document.getElementById('active-chat-avatar').src = avatarUrl || '';
-      document.getElementById('active-chat-status').innerText = isOnline ? 'онлайн' : 'офлайн';
-
-      // Update drawer info
-      document.getElementById('drawer-avatar').src = avatarUrl || '';
-      document.getElementById('drawer-name').innerText = title;
-      document.getElementById('drawer-status').innerText = isOnline ? 'В сети' : 'Был(а) недавно';
-      document.getElementById('drawer-id').innerText = `peer_id: ${peerId}`;
+      document.getElementById('active-chat-avatar').src = avatarUrl || 'https://vk.com/images/camera_100.png';
+      document.getElementById('active-chat-status').innerText = isOnline ? 'в сети' : 'был(а) недавно';
 
       renderConversations();
       await loadMessages(peerId);
@@ -1208,113 +934,88 @@
     // LOAD MESSAGES
     async function loadMessages(peerId, isSilent = false) {
       try {
-        const res = await callVkApi('messages.getHistory', {
-          peer_id: peerId,
-          count: 50,
-          extended: 1
-        });
-
-        if (res.profiles) {
-          res.profiles.forEach(p => state.profiles.set(p.id, p));
-        }
-
+        const res = await callVkApi('messages.getHistory', { peer_id: peerId, count: 50, extended: 1 });
+        if (res.profiles) res.profiles.forEach(p => state.profiles.set(p.id, p));
         renderMessages(res.items || []);
       } catch (err) {
-        console.error('Failed to load messages', err);
+        if (!isSilent) showToast('Ошибка при загрузке историй сообщений', true);
       }
     }
 
-    // RENDER MESSAGES
     function renderMessages(items) {
       const messages = [...items].reverse();
       const currentScroll = messagesContainer.scrollTop;
-      const isAtBottom = messagesContainer.scrollHeight - messagesContainer.clientHeight - currentScroll < 100;
+      const isBottom = messagesContainer.scrollHeight - messagesContainer.clientHeight - currentScroll < 120;
 
       messagesContainer.innerHTML = '';
-      let lastDate = '';
 
       messages.forEach(msg => {
-        const msgDate = new Date(msg.date * 1000).toLocaleDateString('ru-RU');
-        if (msgDate !== lastDate) {
-          const dateDiv = document.createElement('div');
-          dateDiv.className = 'date-divider';
-          dateDiv.innerText = msgDate;
-          messagesContainer.appendChild(dateDiv);
-          lastDate = msgDate;
-        }
-
         const isOut = msg.out === 1;
-        const msgBubble = document.createElement('div');
-        msgBubble.className = `message-bubble ${isOut ? 'outgoing' : 'incoming'}`;
+        const bubble = document.createElement('div');
+        bubble.className = `message-bubble ${isOut ? 'outgoing' : 'incoming'}`;
 
-        let attachmentsHtml = '';
+        let attachHtml = '';
         if (msg.attachments && msg.attachments.length > 0) {
-          attachmentsHtml = `<div class="msg-attachments">${renderAttachments(msg.attachments)}</div>`;
+          attachHtml = `<div class="msg-attachments">${renderAttachments(msg.attachments)}</div>`;
         }
 
-        msgBubble.innerHTML = `
+        bubble.innerHTML = `
           <div class="bubble-content">
             ${escapeHtml(msg.text)}
-            ${attachmentsHtml}
+            ${attachHtml}
             <div class="msg-meta">
               <span>${formatTime(msg.date)}</span>
-              ${isOut ? `
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                </svg>
-              ` : ''}
+              ${isOut ? '✓' : ''}
             </div>
           </div>
         `;
-
-        messagesContainer.appendChild(msgBubble);
+        messagesContainer.appendChild(bubble);
       });
 
-      if (isAtBottom || currentScroll === 0) {
+      if (isBottom || currentScroll === 0) {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
     }
 
-    // RENDER ATTACHMENTS
     function renderAttachments(attachments) {
       return attachments.map(att => {
         if (att.type === 'photo') {
           const sizes = att.photo.sizes;
-          const maxImg = sizes[sizes.length - 1].url;
-          return `<img class="attachment-img" src="${maxImg}" onclick="openLightbox('${maxImg}')" alt="Photo">`;
+          const src = sizes[sizes.length - 1].url;
+          return `<img class="attachment-img" src="${src}" onclick="openLightbox('${src}')" alt="Photo">`;
         }
-        if (att.type === 'audio') {
+        if (att.type === 'audio_message') {
           return `
-            <div class="audio-player-widget">
-              <span style="font-size:13px; font-weight:600;">🎵 ${escapeHtml(att.audio.artist)} - ${escapeHtml(att.audio.title)}</span>
+            <div class="voice-widget">
+              <button class="voice-play-btn" onclick="alert('Воспроизведение аудиосообщения')">▶</button>
+              <div class="voice-wave">
+                <div class="wave-bar" style="height:40%;"></div>
+                <div class="wave-bar" style="height:90%;"></div>
+                <div class="wave-bar" style="height:60%;"></div>
+                <div class="wave-bar" style="height:100%;"></div>
+                <div class="wave-bar" style="height:30%;"></div>
+              </div>
+              <span style="font-size:12px; opacity:0.7;">${att.audio_message.duration}s</span>
             </div>
           `;
         }
         if (att.type === 'doc') {
-          return `
-            <a class="doc-attachment" href="${att.doc.url}" target="_blank">
-              📄 ${escapeHtml(att.doc.title)} (${(att.doc.size/1024/1024).toFixed(1)} MB)
-            </a>
-          `;
+          return `<a href="${att.doc.url}" target="_blank" style="color:var(--accent); text-decoration:none; font-size:13px;">📄 ${escapeHtml(att.doc.title)}</a>`;
         }
-        if (att.type === 'sticker') {
-          const stickerUrl = att.sticker.images[att.sticker.images.length - 1].url;
-          return `<img src="${stickerUrl}" style="width:120px; height:120px; object-fit:contain;" alt="Sticker">`;
-        }
-        return `<div style="font-size:12px; opacity:0.7;">[Вложение: ${att.type}]</div>`;
+        return `<div style="font-size:12px; opacity:0.6;">[Вложение: ${att.type}]</div>`;
       }).join('');
     }
 
     // SEND MESSAGE
-    btnSend.addEventListener('click', sendMessage);
+    btnSendMsg.addEventListener('click', sendCurrentMessage);
     messageInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        sendMessage();
+        sendCurrentMessage();
       }
     });
 
-    async function sendMessage() {
+    async function sendCurrentMessage() {
       const text = messageInput.value.trim();
       if (!text || !state.activePeerId) return;
 
@@ -1327,52 +1028,104 @@
         });
         await loadMessages(state.activePeerId);
       } catch (err) {
-        alert('Ошибка при отправке сообщения: ' + (err.error_msg || 'Неизвестная ошибка'));
+        showToast('Ошибка отправки: ' + (err.error_msg || err.message), true);
       }
     }
 
-    // TOGGLE ATTACH MENU
-    btnAttachToggle.addEventListener('click', () => {
-      attachMenu.classList.toggle('active');
-    });
-
-    document.getElementById('attach-photo-opt').addEventListener('click', async () => {
-      attachMenu.classList.remove('active');
+    // ATTACHMENT MODAL ACTIONS
+    document.getElementById('attach-photo-btn').addEventListener('click', async () => {
+      attachPopup.classList.remove('active');
       const url = prompt('Вставьте прямую ссылку на изображение:');
       if (url && state.activePeerId) {
-        await callVkApi('messages.send', {
-          peer_id: state.activePeerId,
-          message: url,
-          random_id: Math.floor(Math.random() * 1e9)
+        await callVkApi('messages.send', { peer_id: state.activePeerId, message: url, random_id: Math.floor(Math.random() * 1e9) });
+        loadMessages(state.activePeerId);
+      }
+    });
+
+    document.getElementById('attach-circle-btn').addEventListener('click', async () => {
+      attachPopup.classList.remove('active');
+      showToast('Отправка эмулятора видеокружочка...');
+      if (state.activePeerId) {
+        await callVkApi('messages.send', { 
+          peer_id: state.activePeerId, 
+          message: '⭕ [Видеокружочек 2026]', 
+          random_id: Math.floor(Math.random() * 1e9) 
         });
         loadMessages(state.activePeerId);
       }
     });
 
-    // TOGGLE PROFILE DRAWER
-    btnToggleInfo.addEventListener('click', () => {
-      profileDrawer.classList.toggle('active');
-    });
+    // NEWSFEED VIEW
+    async function loadNewsfeed() {
+      newsfeedContainer.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin-top:40px;">Загрузка Ленты Новостей...</div>';
+      try {
+        const res = await callVkApi('newsfeed.get', { filters: 'post', count: 25 });
+        const profiles = new Map();
+        const groups = new Map();
+        if (res.profiles) res.profiles.forEach(p => profiles.set(p.id, p));
+        if (res.groups) res.groups.forEach(g => groups.set(g.id, g));
 
-    // LIGHTBOX HELPER
-    function openLightbox(url) {
-      lightboxImg.src = url;
-      lightbox.style.display = 'flex';
+        newsfeedContainer.innerHTML = '';
+        (res.items || []).forEach(post => {
+          const card = document.createElement('div');
+          card.className = 'post-card';
+
+          let authorName = 'Источник';
+          let authorAvatar = '';
+
+          if (post.source_id > 0) {
+            const u = profiles.get(post.source_id);
+            if (u) { authorName = `${u.first_name} ${u.last_name}`; authorAvatar = u.photo_100; }
+          } else {
+            const g = groups.get(Math.abs(post.source_id));
+            if (g) { authorName = g.name; authorAvatar = g.photo_100; }
+          }
+
+          let mediaHtml = '';
+          if (post.attachments) {
+            mediaHtml = `<div class="post-media">${renderAttachments(post.attachments)}</div>`;
+          }
+
+          card.innerHTML = `
+            <div class="post-header">
+              <img style="width:44px; height:44px; border-radius:50%; object-fit:cover;" src="${authorAvatar || 'https://vk.com/images/camera_100.png'}" alt="">
+              <div>
+                <div class="post-author-name">${escapeHtml(authorName)}</div>
+                <div class="post-date">${formatTime(post.date)}</div>
+              </div>
+            </div>
+            ${post.text ? `<div class="post-text">${escapeHtml(post.text)}</div>` : ''}
+            ${mediaHtml}
+            <div class="post-actions">
+              <div class="post-action-btn">❤️ ${post.likes?.count || 0}</div>
+              <div class="post-action-btn">💬 ${post.comments?.count || 0}</div>
+              <div class="post-action-btn">🔄 ${post.reposts?.count || 0}</div>
+            </div>
+          `;
+          newsfeedContainer.appendChild(card);
+        });
+
+      } catch (err) {
+        newsfeedContainer.innerHTML = `<div style="text-align:center; color:var(--danger-color); margin-top:40px;">Не удалось загрузить новости: ${err.error_msg || err.message}</div>`;
+      }
     }
 
-    // UTILS
+    // LIGHTBOX PREVIEW
+    function openLightbox(url) {
+      document.getElementById('lightbox-img').src = url;
+      document.getElementById('lightbox').style.display = 'flex';
+    }
+
+    // UTILITIES
     function formatTime(timestamp) {
+      if (!timestamp) return '';
       const date = new Date(timestamp * 1000);
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
-    function escapeHtml(text) {
-      if (!text) return '';
-      return text.replace(/&/g, "&amp;")
-                 .replace(/</g, "&lt;")
-                 .replace(/>/g, "&gt;")
-                 .replace(/"/g, "&quot;")
-                 .replace(/'/g, "&#039;");
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
   </script>
 </body>
