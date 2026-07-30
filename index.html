@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EDIT GOD PRO - Полноценный Видеоредактор</title>
+    <title>EDIT GOD PRO - Видеоредактор для Android</title>
     <!-- Tailwind CSS, Lucide Icons, Canvas Confetti, GSAP -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -16,14 +16,16 @@
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
+            touch-action: manipulation;
         }
 
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: #030305;
             color: #f4f4f5;
-            overflow-x: hidden;
+            overflow: hidden;
             height: 100vh;
+            width: 100vw;
             display: flex;
             flex-direction: column;
         }
@@ -32,430 +34,382 @@
         .font-impact { font-family: 'Russo One', sans-serif; }
 
         ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
+            width: 3px;
+            height: 3px;
         }
         ::-webkit-scrollbar-track { background: #09090b; }
         ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
 
-        /* Timeline & Track Styling */
-        .timeline-track {
-            background: linear-gradient(180deg, #09090b 0%, #121217 100%);
-            border-bottom: 1px solid #1f1f23;
+        /* Timeline & Touch Controls */
+        .timeline-scroll-container {
+            touch-action: pan-x pan-y;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
         }
-        
+
+        .timeline-ruler {
+            background: linear-gradient(180deg, #121217 0%, #09090b 100%);
+            touch-action: none;
+        }
+
+        .timeline-track {
+            background: #0d0d12;
+            border-bottom: 1px solid #1f1f28;
+            touch-action: pan-x;
+        }
+
         .timeline-clip {
             transition: border-color 0.15s, transform 0.1s;
-            cursor: grab;
+            cursor: pointer;
+            touch-action: manipulation;
         }
-        .timeline-clip:active { cursor: grabbing; }
 
         .timeline-clip.selected {
             border-color: #a855f7 !important;
-            box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
         }
 
-        /* Video Stage Frame */
+        /* Touch Playhead Knob */
+        .playhead-knob {
+            touch-action: none;
+            cursor: grab;
+        }
+        .playhead-knob:active {
+            cursor: grabbing;
+        }
+
+        /* Video Frame Box */
         .video-stage-frame {
-            box-shadow: 0 0 35px rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(168, 85, 247, 0.3);
-        }
-
-        /* Keyframe Marker */
-        .keyframe-node {
-            width: 8px;
-            height: 8px;
-            transform: rotate(45deg);
-            background: #06b6d4;
-            box-shadow: 0 0 6px #06b6d4;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(168, 85, 247, 0.3);
+            border-radius: 20px;
         }
 
         /* Custom Slider Range */
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
+            height: 22px;
+            width: 22px;
             border-radius: 50%;
             background: #a855f7;
             cursor: pointer;
-            box-shadow: 0 0 8px rgba(168, 85, 247, 0.8);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.9);
         }
     </style>
 </head>
-<body class="selection:bg-purple-600 selection:text-white bg-[#030305] flex flex-col h-screen overflow-hidden">
+<body class="bg-[#030305] flex flex-col h-screen w-screen overflow-hidden select-none">
 
-    <!-- TOP NAVBAR -->
-    <header class="h-14 bg-[#09090b] border-b border-zinc-800/80 px-3 flex items-center justify-between shrink-0 z-40">
-        <div class="flex items-center space-x-2.5">
-            <div class="w-9 h-9 bg-purple-950/60 border border-purple-500/50 rounded-xl flex items-center justify-center shadow-lg">
-                <i data-lucide="video" class="w-5 h-5 text-purple-400"></i>
+    <!-- TOP MOBILE HEADER -->
+    <header class="h-12 bg-[#09090b] border-b border-zinc-800/80 px-3 flex items-center justify-between shrink-0 z-40">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-purple-950/80 border border-purple-500/50 rounded-xl flex items-center justify-center shadow-lg shrink-0">
+                <i data-lucide="video" class="w-4 h-4 text-purple-400"></i>
             </div>
-            <div>
-                <h1 class="font-cyber text-sm font-black tracking-wider text-white flex items-center space-x-1.5">
-                    <span>EDIT GOD STUDIO</span>
-                    <span class="text-[9px] bg-purple-600/30 border border-purple-500/50 text-purple-300 font-mono px-1.5 py-0.5 rounded">PRO v12.0</span>
+            <div class="truncate">
+                <h1 class="font-cyber text-xs font-black tracking-wider text-white flex items-center space-x-1">
+                    <span>EDIT GOD</span>
+                    <span class="text-[8px] bg-purple-600/30 border border-purple-500/50 text-purple-300 font-mono px-1 py-0.2 rounded">PRO</span>
                 </h1>
-                <p class="text-[9px] text-zinc-400 font-medium">Мощный видеоредактор (Alight Motion & CapCut Engine)</p>
             </div>
         </div>
 
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-1.5">
             <!-- Aspect Ratio Selector -->
-            <select id="aspectRatioSelect" onchange="changeAspectRatio(this.value)" class="bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-mono font-bold rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500">
-                <option value="9:16">9:16 (TikTok/Shorts)</option>
+            <select id="aspectRatioSelect" onchange="changeAspectRatio(this.value)" class="bg-zinc-900 border border-zinc-800 text-zinc-300 text-[10px] font-mono font-bold rounded-lg px-2 py-1 focus:outline-none">
+                <option value="9:16">9:16 (TikTok)</option>
                 <option value="16:9">16:9 (YouTube)</option>
-                <option value="1:1">1:1 (Square)</option>
+                <option value="1:1">1:1 (Квадрат)</option>
             </select>
 
-            <button onclick="clearProjectData()" title="Очистить проект" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-red-400 p-2 rounded-xl transition active:scale-95">
+            <button onclick="clearProjectData()" title="Очистить проект" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-red-400 p-1.5 rounded-lg active:scale-90 transition">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
             </button>
 
-            <button onclick="openExportModal()" class="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white font-cyber text-xs font-bold px-3.5 py-1.5 rounded-xl border border-purple-400 shadow-lg flex items-center space-x-1.5 active:scale-95 transition">
-                <i data-lucide="download" class="w-4 h-4"></i>
+            <button onclick="openExportModal()" class="bg-purple-600 hover:bg-purple-500 text-white font-cyber text-[10px] font-bold px-3 py-1.5 rounded-lg border border-purple-400 shadow-lg flex items-center space-x-1 active:scale-95 transition">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
                 <span>ЭКСПОРТ</span>
             </button>
         </div>
     </header>
 
-    <!-- MAIN EDITOR WORKSPACE -->
-    <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-
-        <!-- PREVIEW STAGE (CENTER) -->
-        <div class="flex-1 bg-[#050507] p-3 flex flex-col items-center justify-between relative overflow-hidden">
-            <!-- Canvas Controls Bar -->
-            <div class="w-full max-w-sm flex items-center justify-between text-xs font-mono text-zinc-400 px-1 py-1">
-                <div class="flex items-center space-x-2">
-                    <span id="timecodeDisplay" class="text-purple-400 font-bold text-sm bg-zinc-900 border border-zinc-800 px-2.5 py-0.5 rounded-lg">00:00.0</span>
-                    <span class="text-[10px] text-zinc-500">/</span>
-                    <span id="totalTimeDisplay" class="text-zinc-500 text-xs">00:10.0</span>
-                </div>
-                <div class="flex items-center space-x-1">
-                    <button onclick="openFullscreenModal()" class="p-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg text-zinc-300 hover:text-white transition">
-                        <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
-                    </button>
-                </div>
+    <!-- MAIN PREVIEW & CANVAS AREA -->
+    <main class="flex-1 bg-[#050507] p-2 flex flex-col items-center justify-between relative overflow-hidden">
+        
+        <!-- Timecode & Aspect Indicator -->
+        <div class="w-full max-w-md flex items-center justify-between text-xs font-mono text-zinc-400 px-1 py-0.5">
+            <div class="flex items-center space-x-1.5">
+                <span id="timecodeDisplay" class="text-purple-400 font-bold text-xs bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-md">00:00.0</span>
+                <span class="text-[10px] text-zinc-600">/</span>
+                <span id="totalTimeDisplay" class="text-zinc-500 text-[11px]">00:10.0</span>
             </div>
+            <button onclick="openFullscreenModal()" class="p-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg text-zinc-300 active:scale-90 transition flex items-center space-x-1 text-[10px] px-2">
+                <i data-lucide="maximize-2" class="w-3 h-3 text-purple-400"></i>
+                <span>Полный экран</span>
+            </button>
+        </div>
 
-            <!-- Preview Canvas Screen Frame -->
-            <div id="canvasViewport" class="relative flex-1 flex items-center justify-center w-full my-1 overflow-hidden">
-                <div id="stageContainer" class="relative bg-black rounded-[24px] overflow-hidden video-stage-frame flex items-center justify-center transition-all duration-300 aspect-[9/16] max-h-[380px] w-auto">
-                    <!-- MAIN RENDER CANVAS -->
-                    <canvas id="previewCanvas" class="w-full h-full object-contain pointer-events-none"></canvas>
-                    
-                    <!-- Flash Effect Layer -->
-                    <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-75 z-20"></div>
+        <!-- Preview Canvas Container -->
+        <div id="canvasViewport" class="relative flex-1 flex items-center justify-center w-full my-1 overflow-hidden">
+            <div id="stageContainer" class="relative bg-black rounded-[20px] overflow-hidden video-stage-frame flex items-center justify-center transition-all duration-300 aspect-[9/16] max-h-[340px] w-auto">
+                <canvas id="previewCanvas" class="w-full h-full object-contain pointer-events-none"></canvas>
+                <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-75 z-20"></div>
 
-                    <!-- Placeholder text when no media -->
-                    <div id="emptyCanvasNotice" class="absolute inset-0 flex flex-col items-center justify-center text-center p-4 pointer-events-none z-10">
-                        <i data-lucide="clapperboard" class="w-10 h-10 text-zinc-700 mb-2"></i>
-                        <p class="text-xs font-medium text-zinc-500">Добавьте видео, фото или музыку на дорожку ниже</p>
-                    </div>
+                <div id="emptyCanvasNotice" class="absolute inset-0 flex flex-col items-center justify-center text-center p-4 pointer-events-none z-10">
+                    <i data-lucide="clapperboard" class="w-8 h-8 text-zinc-700 mb-1"></i>
+                    <p class="text-[11px] font-medium text-zinc-500">Нажмите "+ ФАЙЛ" внизу для создания эдита</p>
                 </div>
-            </div>
-
-            <!-- Transport Controls (Play, Pause, Split, Duplicate) -->
-            <div class="w-full max-w-md flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-2 px-3 shadow-xl space-x-2">
-                <button onclick="splitActiveClip()" title="Разрезать клип" class="p-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-zinc-300 active:scale-95 transition flex items-center space-x-1 text-xs font-bold">
-                    <i data-lucide="scissors" class="w-4 h-4 text-purple-400"></i>
-                    <span class="hidden sm:inline">Разрезать</span>
-                </button>
-                
-                <button onclick="togglePlay()" id="masterPlayBtn" class="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 border border-purple-400 text-white rounded-xl font-cyber text-xs font-bold flex items-center justify-center space-x-2 active:scale-95 transition shadow-lg">
-                    <i data-lucide="play" class="w-4 h-4 fill-current"></i>
-                    <span id="masterPlayText">ИГРАТЬ</span>
-                </button>
-
-                <button onclick="deleteActiveClip()" title="Удалить выбранное" class="p-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-red-400 active:scale-95 transition flex items-center space-x-1 text-xs font-bold">
-                    <i data-lucide="trash" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Удалить</span>
-                </button>
             </div>
         </div>
 
-        <!-- CONTROL PANEL & INSPECTOR (RIGHT OR SIDE) -->
-        <div class="w-full md:w-80 bg-[#09090b] border-t md:border-t-0 md:border-l border-zinc-800 flex flex-col shrink-0 h-64 md:h-auto">
-            <!-- Inspector Tabs -->
-            <div class="flex items-center border-b border-zinc-800/80 bg-zinc-950 text-xs font-bold text-zinc-400 overflow-x-auto">
-                <button onclick="switchInspectorTab('media')" id="tabBtnMedia" class="inspector-tab py-2.5 px-3 flex items-center space-x-1.5 border-b-2 border-purple-500 text-purple-400">
-                    <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i>
-                    <span>Медиа</span>
-                </button>
-                <button onclick="switchInspectorTab('fx')" id="tabBtnFx" class="inspector-tab py-2.5 px-3 flex items-center space-x-1.5 border-b-2 border-transparent hover:text-zinc-200">
-                    <i data-lucide="wand2" class="w-3.5 h-3.5 text-pink-400"></i>
-                    <span>Эффекты</span>
-                </button>
-                <button onclick="switchInspectorTab('text')" id="tabBtnText" class="inspector-tab py-2.5 px-3 flex items-center space-x-1.5 border-b-2 border-transparent hover:text-zinc-200">
-                    <i data-lucide="type" class="w-3.5 h-3.5 text-cyan-400"></i>
-                    <span>Текст</span>
-                </button>
-                <button onclick="switchInspectorTab('anim')" id="tabBtnAnim" class="inspector-tab py-2.5 px-3 flex items-center space-x-1.5 border-b-2 border-transparent hover:text-zinc-200">
-                    <i data-lucide="activity" class="w-3.5 h-3.5 text-amber-400"></i>
-                    <span>Анимация</span>
-                </button>
-            </div>
+        <!-- Quick Mobile Transport Controls -->
+        <div class="w-full max-w-md flex items-center justify-between bg-zinc-950 border border-zinc-800/80 rounded-xl p-1.5 px-2 shadow-xl space-x-1.5">
+            <button onclick="splitActiveClip()" class="flex-1 py-2 bg-zinc-900 active:bg-zinc-800 border border-zinc-800 rounded-lg text-zinc-200 active:scale-95 transition flex items-center justify-center space-x-1 text-xs font-bold">
+                <i data-lucide="scissors" class="w-3.5 h-3.5 text-purple-400"></i>
+                <span>Разрезать</span>
+            </button>
+            
+            <button onclick="togglePlay()" id="masterPlayBtn" class="flex-1 py-2 bg-purple-600 hover:bg-purple-500 border border-purple-400 text-white rounded-lg font-cyber text-xs font-bold flex items-center justify-center space-x-1.5 active:scale-95 transition shadow-lg">
+                <i data-lucide="play" class="w-3.5 h-3.5 fill-current" id="masterPlayIcon"></i>
+                <span id="masterPlayText">ИГРАТЬ</span>
+            </button>
 
-            <!-- Inspector Tab Content Body -->
-            <div class="flex-1 overflow-y-auto p-3 space-y-4 text-xs">
+            <button onclick="deleteActiveClip()" class="flex-1 py-2 bg-zinc-900 active:bg-zinc-800 border border-zinc-800 rounded-lg text-red-400 active:scale-95 transition flex items-center justify-center space-x-1 text-xs font-bold">
+                <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+                <span>Удалить</span>
+            </button>
+        </div>
 
-                <!-- TAB 1: MEDIA IMPORT & PRESETS -->
-                <div id="tabContentMedia" class="space-y-3">
-                    <label class="block w-full border border-dashed border-purple-500/50 hover:border-purple-400 bg-purple-950/20 hover:bg-purple-950/30 rounded-xl p-3 text-center cursor-pointer transition active:scale-[0.98]">
+    </main>
+
+    <!-- MOBILE TOOLBAR & INSPECTOR DRAWER -->
+    <div class="bg-[#09090b] border-t border-zinc-800 flex flex-col shrink-0 z-30">
+        
+        <!-- Inspector Tab Headers (Large Touch Targets) -->
+        <div class="flex items-center border-b border-zinc-800/80 bg-zinc-950 text-xs font-bold text-zinc-400 justify-around">
+            <button onclick="switchInspectorTab('media')" id="tabBtnMedia" class="inspector-tab flex-1 py-2.5 flex items-center justify-center space-x-1 border-b-2 border-purple-500 text-purple-400">
+                <i data-lucide="folder-plus" class="w-4 h-4"></i>
+                <span>Медиа</span>
+            </button>
+            <button onclick="switchInspectorTab('fx')" id="tabBtnFx" class="inspector-tab flex-1 py-2.5 flex items-center justify-center space-x-1 border-b-2 border-transparent hover:text-zinc-200">
+                <i data-lucide="wand2" class="w-4 h-4 text-pink-400"></i>
+                <span>Эффекты</span>
+            </button>
+            <button onclick="switchInspectorTab('text')" id="tabBtnText" class="inspector-tab flex-1 py-2.5 flex items-center justify-center space-x-1 border-b-2 border-transparent hover:text-zinc-200">
+                <i data-lucide="type" class="w-4 h-4 text-cyan-400"></i>
+                <span>Текст</span>
+            </button>
+            <button onclick="switchInspectorTab('anim')" id="tabBtnAnim" class="inspector-tab flex-1 py-2.5 flex items-center justify-center space-x-1 border-b-2 border-transparent hover:text-zinc-200">
+                <i data-lucide="sliders" class="w-4 h-4 text-amber-400"></i>
+                <span>Анимация</span>
+            </button>
+        </div>
+
+        <!-- Inspector Drawer Body (Collapsible or Scrollable) -->
+        <div id="inspectorDrawer" class="max-h-36 overflow-y-auto p-2 space-y-2 text-xs">
+            
+            <!-- MEDIA TAB -->
+            <div id="tabContentMedia" class="space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="border border-dashed border-purple-500/60 bg-purple-950/20 active:bg-purple-900/40 rounded-xl p-2.5 text-center cursor-pointer transition active:scale-95 flex items-center justify-center space-x-2">
                         <input type="file" id="mediaInput" accept="image/*,video/*,audio/*" multiple class="hidden" onchange="handleImportMedia(event)">
-                        <div class="flex flex-col items-center space-y-1">
-                            <i data-lucide="plus-circle" class="w-6 h-6 text-purple-400"></i>
-                            <span class="font-bold text-white">Добавить файл (Видео, Фото, Аудио)</span>
-                            <span class="text-[10px] text-zinc-400">Загрузка с устройства или ПК</span>
-                        </div>
+                        <i data-lucide="plus-circle" class="w-5 h-5 text-purple-400"></i>
+                        <span class="font-bold text-white text-xs">+ ФАЙЛ С ТЕЛЕФОНА</span>
                     </label>
 
-                    <div class="pt-2">
-                        <p class="font-cyber text-[11px] font-bold text-zinc-300 mb-2">Готовый Phonk / Cyber Аудио Ряд:</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="addPresetAudio('Phonk Drift', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-xl text-left hover:border-cyan-500/50 transition">
-                                <p class="font-bold text-cyan-400">Phonk Death Drift</p>
-                                <p class="text-[9px] text-zinc-500">10 сек бит</p>
-                            </button>
-                            <button onclick="addPresetAudio('Cyber Bass', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-xl text-left hover:border-pink-500/50 transition">
-                                <p class="font-bold text-pink-400">Cyberpunk Bass</p>
-                                <p class="text-[9px] text-zinc-500">Эпик ритм</p>
-                            </button>
+                    <button onclick="addPresetAudio('Phonk Drift', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-xl text-left active:border-cyan-500 flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-cyan-400 text-xs">Phonk Drift MP3</p>
+                            <p class="text-[9px] text-zinc-500">Готовый бит</p>
                         </div>
-                    </div>
-                </div>
-
-                <!-- TAB 2: FX, SHAKE, GLITCH & FILTERS (CapCut style) -->
-                <div id="tabContentFx" class="space-y-3 hidden">
-                    <div>
-                        <label class="font-bold text-zinc-300 block mb-1.5">Пресет Эффекта / Анимации клипа:</label>
-                        <div class="grid grid-cols-2 gap-1.5">
-                            <button onclick="applyEffectToSelected('phonkShake')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-xl text-left hover:border-purple-500">
-                                <span class="font-bold text-purple-400 block">Phonk Shake</span>
-                                <span class="text-[9px] text-zinc-500">Агрессивный тряс</span>
-                            </button>
-                            <button onclick="applyEffectToSelected('glitchCyber')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-xl text-left hover:border-cyan-500">
-                                <span class="font-bold text-cyan-400 block">Glitch Cyber</span>
-                                <span class="text-[9px] text-zinc-500">Сбой матрицы</span>
-                            </button>
-                            <button onclick="applyEffectToSelected('zoomBounce')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-xl text-left hover:border-pink-500">
-                                <span class="font-bold text-pink-400 block">Zoom Bounce</span>
-                                <span class="text-[9px] text-zinc-500">Импульс под бит</span>
-                            </button>
-                            <button onclick="applyEffectToSelected('flashBeat')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-xl text-left hover:border-amber-500">
-                                <span class="font-bold text-amber-400 block">Flash Beat</span>
-                                <span class="text-[9px] text-zinc-500">Белые вспышки</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="pt-2 border-t border-zinc-800">
-                        <label class="font-bold text-zinc-300 block mb-1.5">Цветовой Фильтр (LUTs):</label>
-                        <select id="filterSelect" onchange="applyFilterToSelected(this.value)" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2 text-white font-mono focus:outline-none focus:border-purple-500">
-                            <option value="none">Без фильтра</option>
-                            <option value="contrast(1.8) saturate(1.8)">Cyber Phonk (Контраст)</option>
-                            <option value="hue-rotate(180deg) contrast(1.5)">Neon Blue</option>
-                            <option value="sepia(1) hue-rotate(300deg) saturate(2)">Pink Glow</option>
-                            <option value="grayscale(1) contrast(2)">Noir Dark</option>
-                            <option value="invert(1) contrast(2)">Negative God</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- TAB 3: TEXT & SUBTITLES OVERLAY -->
-                <div id="tabContentText" class="space-y-3 hidden">
-                    <button onclick="addNewTextLayer()" class="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-cyber font-bold rounded-xl active:scale-95 transition flex items-center justify-center space-x-1.5">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                        <span>ДОБАВИТЬ ТЕКСТ</span>
+                        <i data-lucide="music" class="w-4 h-4 text-cyan-400"></i>
                     </button>
-
-                    <div id="textControlsBox" class="space-y-3 pt-2 border-t border-zinc-800 hidden">
-                        <div>
-                            <label class="font-bold text-zinc-400 block mb-1">Содержимое текста:</label>
-                            <input type="text" id="textLayerInput" oninput="updateActiveTextLayer()" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500 font-impact">
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="font-bold text-zinc-400 block mb-1">Стиль шрифта:</label>
-                                <select id="fontSelect" onchange="updateActiveTextLayer()" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-2 py-1.5 text-white">
-                                    <option value="Russo One">Impact Heavy</option>
-                                    <option value="Orbitron">Cyberpunk</option>
-                                    <option value="Montserrat">Montserrat Pro</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="font-bold text-zinc-400 block mb-1">Цвет текста:</label>
-                                <input type="color" id="textColorInput" value="#ffffff" onchange="updateActiveTextLayer()" class="w-full h-8 bg-zinc-950 border border-zinc-800 rounded-xl cursor-pointer">
-                            </div>
-                        </div>
-                    </div>
                 </div>
-
-                <!-- TAB 4: KEYFRAME MOTION ANIMATION (Alight Motion style) -->
-                <div id="tabContentAnim" class="space-y-3 hidden">
-                    <p class="text-zinc-400 text-[10px]">Управление движениями клипа во времени (Keyframe Motion Engine):</p>
-                    
-                    <div class="space-y-2">
-                        <div>
-                            <div class="flex justify-between text-zinc-400 mb-1">
-                                <span>Масштаб (Scale):</span>
-                                <span id="scaleValText" class="font-mono text-amber-400">100%</span>
-                            </div>
-                            <input type="range" id="scaleSlider" min="50" max="300" value="100" oninput="updateClipTransform()" class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
-                        </div>
-
-                        <div>
-                            <div class="flex justify-between text-zinc-400 mb-1">
-                                <span>Поворот (Rotate):</span>
-                                <span id="rotateValText" class="font-mono text-amber-400">0°</span>
-                            </div>
-                            <input type="range" id="rotateSlider" min="-180" max="180" value="0" oninput="updateClipTransform()" class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
-                        </div>
-
-                        <div>
-                            <div class="flex justify-between text-zinc-400 mb-1">
-                                <span>Прозрачность (Opacity):</span>
-                                <span id="opacityValText" class="font-mono text-amber-400">100%</span>
-                            </div>
-                            <input type="range" id="opacitySlider" min="0" max="100" value="100" oninput="updateClipTransform()" class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
-                        </div>
-                    </div>
-                </div>
-
             </div>
+
+            <!-- FX TAB -->
+            <div id="tabContentFx" class="space-y-2 hidden">
+                <div class="grid grid-cols-4 gap-1.5">
+                    <button onclick="applyEffectToSelected('phonkShake')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-xl text-center active:scale-95">
+                        <span class="font-bold text-purple-400 block text-[11px]">Phonk Shake</span>
+                    </button>
+                    <button onclick="applyEffectToSelected('glitchCyber')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-xl text-center active:scale-95">
+                        <span class="font-bold text-cyan-400 block text-[11px]">Glitch Cyber</span>
+                    </button>
+                    <button onclick="applyEffectToSelected('zoomBounce')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-xl text-center active:scale-95">
+                        <span class="font-bold text-pink-400 block text-[11px]">Zoom Beat</span>
+                    </button>
+                    <button onclick="applyEffectToSelected('flashBeat')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-xl text-center active:scale-95">
+                        <span class="font-bold text-amber-400 block text-[11px]">Flash Beat</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <span class="text-[10px] font-bold text-zinc-400 shrink-0">Цвет / LUT:</span>
+                    <select id="filterSelect" onchange="applyFilterToSelected(this.value)" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-1.5 text-xs text-white">
+                        <option value="none">Без фильтра</option>
+                        <option value="contrast(1.8) saturate(1.8)">Cyber Phonk (Контраст)</option>
+                        <option value="hue-rotate(180deg) contrast(1.5)">Neon Blue</option>
+                        <option value="sepia(1) hue-rotate(300deg) saturate(2)">Pink Glow</option>
+                        <option value="grayscale(1) contrast(2)">Noir Dark</option>
+                        <option value="invert(1) contrast(2)">Negative God</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- TEXT TAB -->
+            <div id="tabContentText" class="space-y-2 hidden">
+                <div class="flex items-center space-x-2">
+                    <button onclick="addNewTextLayer()" class="py-2 px-3 bg-cyan-600 active:bg-cyan-500 text-white font-cyber font-bold rounded-lg text-xs flex items-center space-x-1 shrink-0">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                        <span>+ ТЕКСТ</span>
+                    </button>
+                    <input type="text" id="textLayerInput" placeholder="Введите текст..." oninput="updateActiveTextLayer()" class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-impact focus:outline-none focus:border-cyan-500">
+                </div>
+            </div>
+
+            <!-- ANIMATION TAB -->
+            <div id="tabContentAnim" class="space-y-2 hidden">
+                <div class="grid grid-cols-3 gap-2 text-[10px]">
+                    <div>
+                        <div class="flex justify-between text-zinc-400 mb-0.5">
+                            <span>Размер:</span>
+                            <span id="scaleValText" class="text-amber-400 font-mono">100%</span>
+                        </div>
+                        <input type="range" id="scaleSlider" min="50" max="300" value="100" oninput="updateClipTransform()" class="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-zinc-400 mb-0.5">
+                            <span>Поворот:</span>
+                            <span id="rotateValText" class="text-amber-400 font-mono">0°</span>
+                        </div>
+                        <input type="range" id="rotateSlider" min="-180" max="180" value="0" oninput="updateClipTransform()" class="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-zinc-400 mb-0.5">
+                            <span>Прозрачн:</span>
+                            <span id="opacityValText" class="text-amber-400 font-mono">100%</span>
+                        </div>
+                        <input type="range" id="opacitySlider" min="0" max="100" value="100" oninput="updateClipTransform()" class="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </div>
 
-    <!-- TIMELINE EDITOR AREA (BOTTOM) -->
-    <div class="h-48 bg-[#070709] border-t border-zinc-800/90 flex flex-col shrink-0 relative select-none">
+    <!-- TOUCH TIMELINE AREA WITH DRAGGABLE RED SCRUBBER -->
+    <div class="h-44 bg-[#070709] border-t border-zinc-800 flex flex-col shrink-0 relative select-none">
         
-        <!-- Timeline Toolbar -->
-        <div class="h-8 bg-zinc-950 border-b border-zinc-800/80 px-3 flex items-center justify-between text-[11px] text-zinc-400 font-mono">
-            <div class="flex items-center space-x-3">
-                <span class="flex items-center space-x-1 text-purple-400 font-bold">
-                    <i data-lucide="layers" class="w-3.5 h-3.5"></i>
-                    <span>ДОРОЖКИ:</span>
-                </span>
-                <button onclick="addTimelineTrack('video')" class="hover:text-white flex items-center space-x-1 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-md">
-                    <i data-lucide="plus" class="w-3 h-3 text-purple-400"></i>
-                    <span>Видео</span>
-                </button>
-                <button onclick="addTimelineTrack('audio')" class="hover:text-white flex items-center space-x-1 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-md">
-                    <i data-lucide="plus" class="w-3 h-3 text-cyan-400"></i>
-                    <span>Аудио</span>
-                </button>
-            </div>
-
-            <!-- Playhead Scrub Time Slider -->
-            <div class="flex items-center space-x-2">
-                <span>Масштаб таймлайна:</span>
-                <input type="range" id="timelineZoomSlider" min="1" max="5" value="2" step="0.5" oninput="updateTimelineZoom()" class="w-20 h-1 bg-zinc-800 rounded appearance-none cursor-pointer">
-            </div>
-        </div>
-
-        <!-- Scrollable Tracks Container with Playhead Indicator -->
-        <div id="timelineScrollArea" class="flex-1 overflow-x-auto overflow-y-auto relative p-2 space-y-2">
+        <!-- Timeline Touch Ruler & Scrubber Area -->
+        <div id="timelineScrollArea" class="timeline-scroll-container flex-1 relative overflow-x-auto overflow-y-hidden p-1 space-y-1.5">
             
-            <!-- RED PLAYHEAD SCRUBBER LINE -->
-            <div id="playheadLine" class="absolute top-0 bottom-0 w-0.5 bg-red-500 z-30 pointer-events-none transition-all duration-75" style="left: 10px;">
-                <div class="w-3 h-3 bg-red-500 rounded-full -translate-x-1.2 -translate-y-1 shadow-lg"></div>
+            <!-- TIME RULER STRIP WITH TOUCH DRAG SUPPORT -->
+            <div id="timelineRuler" class="timeline-ruler h-6 rounded-md w-[2000px] relative flex items-center px-3 border-b border-zinc-800/80 cursor-pointer">
+                <!-- Dynamic Ruler Ticks Generated by JS -->
             </div>
 
-            <!-- TRACK 1: VIDEO / PHOTO CLIPS -->
-            <div class="timeline-track h-12 rounded-xl border border-zinc-800/80 relative flex items-center px-1 overflow-hidden" id="videoTrackContainer">
-                <div class="absolute left-2 text-[9px] font-cyber text-purple-400 font-bold opacity-30 pointer-events-none">VIDEO TRACK</div>
-                <!-- Clips are dynamically injected here -->
+            <!-- RED DRAGGABLE PLAYHEAD KNOB & SCRUBBER LINE -->
+            <div id="playheadGroup" class="absolute top-0 bottom-0 z-40 flex flex-col items-center pointer-events-none transition-none" style="left: 12px;">
+                <!-- Easy Touch Scrubber Head Handle -->
+                <div id="playheadKnob" class="playhead-knob w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-xl flex items-center justify-center -translate-y-1 pointer-events-auto">
+                    <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                </div>
+                <!-- Vertical Line -->
+                <div class="w-0.5 flex-1 bg-red-500 shadow-lg"></div>
+            </div>
+
+            <!-- TRACK 1: VIDEO & PHOTO CLIPS -->
+            <div class="timeline-track h-10 rounded-lg relative flex items-center px-1 w-[2000px]" id="videoTrackContainer">
+                <div class="absolute left-2 text-[8px] font-cyber text-purple-400 font-bold opacity-30 pointer-events-none">VIDEO / PHOTO TRACK</div>
             </div>
 
             <!-- TRACK 2: TEXT & OVERLAYS -->
-            <div class="timeline-track h-10 rounded-xl border border-zinc-800/80 relative flex items-center px-1 overflow-hidden" id="textTrackContainer">
-                <div class="absolute left-2 text-[9px] font-cyber text-cyan-400 font-bold opacity-30 pointer-events-none">TEXT & SUBTITLES</div>
-                <!-- Text clips injected here -->
+            <div class="timeline-track h-8 rounded-lg relative flex items-center px-1 w-[2000px]" id="textTrackContainer">
+                <div class="absolute left-2 text-[8px] font-cyber text-cyan-400 font-bold opacity-30 pointer-events-none">TEXT TRACK</div>
             </div>
 
             <!-- TRACK 3: AUDIO / MUSIC -->
-            <div class="timeline-track h-10 rounded-xl border border-zinc-800/80 relative flex items-center px-1 overflow-hidden" id="audioTrackContainer">
-                <div class="absolute left-2 text-[9px] font-cyber text-amber-400 font-bold opacity-30 pointer-events-none">AUDIO TRACK</div>
-                <!-- Audio clips injected here -->
+            <div class="timeline-track h-8 rounded-lg relative flex items-center px-1 w-[2000px]" id="audioTrackContainer">
+                <div class="absolute left-2 text-[8px] font-cyber text-amber-400 font-bold opacity-30 pointer-events-none">AUDIO TRACK</div>
             </div>
 
         </div>
     </div>
 
     <!-- FULLSCREEN PREVIEW MODAL -->
-    <div id="fullscreenModal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl hidden flex flex-col items-center justify-between p-4">
+    <div id="fullscreenModal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl hidden flex flex-col items-center justify-between p-3">
         <div class="w-full max-w-lg flex items-center justify-between z-20">
-            <span class="font-cyber text-xs font-bold text-white">Предпросмотр В Полном Размере</span>
-            <button onclick="closeFullscreenModal()" class="w-8 h-8 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center text-zinc-300 hover:text-white">
+            <span class="font-cyber text-xs font-bold text-white">Предпросмотр Эдита</span>
+            <button onclick="closeFullscreenModal()" class="w-8 h-8 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center text-zinc-300">
                 <i data-lucide="x" class="w-4 h-4"></i>
             </button>
         </div>
 
         <div class="flex-1 w-full flex items-center justify-center my-auto relative">
-            <canvas id="fullscreenCanvas" class="max-h-[85vh] max-w-full rounded-2xl border border-purple-500/40 shadow-2xl object-contain"></canvas>
+            <canvas id="fullscreenCanvas" class="max-h-[82vh] max-w-full rounded-2xl border border-purple-500/40 shadow-2xl object-contain"></canvas>
         </div>
 
-        <div class="w-full max-w-sm py-3 z-20 flex justify-center">
-            <button onclick="togglePlay()" class="px-6 py-3 bg-purple-600 text-white font-cyber text-xs font-bold rounded-xl shadow-lg active:scale-95 transition">
+        <div class="w-full max-w-sm py-2 z-20 flex justify-center">
+            <button onclick="togglePlay()" class="px-6 py-2.5 bg-purple-600 text-white font-cyber text-xs font-bold rounded-xl shadow-lg active:scale-95 transition">
                 СТАРТ / ПАУЗА
             </button>
         </div>
     </div>
 
-    <!-- EXPORT MODAL WITH RESOLUTION & FPS OPTIONS -->
+    <!-- EXPORT MODAL -->
     <div id="exportModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="bg-[#09090b] border border-zinc-800 w-full max-w-sm rounded-3xl p-5 flex flex-col space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+        <div class="bg-[#09090b] border border-zinc-800 w-full max-w-xs rounded-2xl p-4 flex flex-col space-y-3 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
                 <div class="flex items-center space-x-2">
-                    <i data-lucide="download" class="w-5 h-5 text-cyan-400"></i>
+                    <i data-lucide="download" class="w-4 h-4 text-cyan-400"></i>
                     <h3 class="font-cyber text-xs font-bold text-white">РЕНДЕР И ЭКСПОРТ MP4</h3>
                 </div>
-                <button onclick="closeExportModal()" class="w-7 h-7 bg-zinc-900 rounded-full border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white">
-                    <i data-lucide="x" class="w-4 h-4"></i>
+                <button onclick="closeExportModal()" class="w-6 h-6 bg-zinc-900 rounded-full border border-zinc-800 flex items-center justify-center text-zinc-400">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
                 </button>
             </div>
 
             <div class="space-y-3 text-xs">
                 <div>
-                    <label class="font-bold text-zinc-300 block mb-1">Разрешение кадра:</label>
-                    <div class="grid grid-cols-4 gap-1.5">
-                        <button onclick="setExportRes('360')" id="expRes360" class="exp-res-btn py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-bold rounded-lg">360p</button>
-                        <button onclick="setExportRes('480')" id="expRes480" class="exp-res-btn py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-bold rounded-lg">480p</button>
-                        <button onclick="setExportRes('720')" id="expRes720" class="exp-res-btn py-1.5 bg-purple-600 border border-purple-500 text-white font-mono font-bold rounded-lg">720p</button>
-                        <button onclick="setExportRes('1080')" id="expRes1080" class="exp-res-btn py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-bold rounded-lg">1080p</button>
+                    <label class="font-bold text-zinc-300 block mb-1">Разрешение:</label>
+                    <div class="grid grid-cols-4 gap-1">
+                        <button onclick="setExportRes('360')" id="expRes360" class="exp-res-btn py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-bold rounded-lg text-[10px]">360p</button>
+                        <button onclick="setExportRes('480')" id="expRes480" class="exp-res-btn py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-bold rounded-lg text-[10px]">480p</button>
+                        <button onclick="setExportRes('720')" id="expRes720" class="exp-res-btn py-1.5 bg-purple-600 border border-purple-500 text-white font-mono font-bold rounded-lg text-[10px]">720p</button>
+                        <button onclick="setExportRes('1080')" id="expRes1080" class="exp-res-btn py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-bold rounded-lg text-[10px]">1080p</button>
                     </div>
                 </div>
 
                 <div>
-                    <label class="font-bold text-zinc-300 block mb-1">Частота кадров (FPS):</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="setExportFps(30)" id="expFps30" class="exp-fps-btn py-1.5 bg-purple-600 border border-purple-500 text-white font-mono font-bold rounded-lg">30 FPS</button>
-                        <button onclick="setExportFps(60)" id="expFps60" class="exp-fps-btn py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-bold rounded-lg">60 FPS</button>
+                    <label class="font-bold text-zinc-300 block mb-1">FPS (Кадры в сек):</label>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button onclick="setExportFps(30)" id="expFps30" class="exp-fps-btn py-1.5 bg-purple-600 border border-purple-500 text-white font-mono font-bold rounded-lg text-[10px]">30 FPS</button>
+                        <button onclick="setExportFps(60)" id="expFps60" class="exp-fps-btn py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-bold rounded-lg text-[10px]">60 FPS</button>
                     </div>
                 </div>
 
-                <!-- Progress Render Bar -->
-                <div id="renderProgressContainer" class="hidden space-y-2 pt-2 border-t border-zinc-800 text-center">
-                    <p id="renderStatusLabel" class="text-cyan-400 font-mono text-[11px]">Рендеринг кадров...</p>
-                    <div class="w-full bg-zinc-900 h-2 rounded-full overflow-hidden border border-zinc-800">
+                <div id="renderProgressContainer" class="hidden space-y-1.5 pt-2 border-t border-zinc-800 text-center">
+                    <p id="renderStatusLabel" class="text-cyan-400 font-mono text-[10px]">Рендеринг кадров...</p>
+                    <div class="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-zinc-800">
                         <div id="renderProgressBar" class="bg-gradient-to-r from-purple-500 to-cyan-400 h-full w-0 transition-all duration-75"></div>
                     </div>
-                    <span id="renderPercentText" class="text-zinc-400 font-mono text-xs">0%</span>
+                    <span id="renderPercentText" class="text-zinc-400 font-mono text-[10px]">0%</span>
                 </div>
 
-                <button onclick="startVideoRender()" id="startRenderBtn" class="w-full py-3 bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-cyber text-xs font-bold rounded-xl active:scale-95 transition shadow-lg mt-2">
+                <button onclick="startVideoRender()" id="startRenderBtn" class="w-full py-2.5 bg-purple-600 text-white font-cyber text-xs font-bold rounded-xl active:scale-95 transition shadow-lg mt-1">
                     НАЧАТЬ РЕНДЕР MP4
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- MAIN STUDIO APPLICATION SCRIPT -->
+    <!-- MAIN APP ENGINE SCRIPT -->
     <script>
         lucide.createIcons();
 
-        // INDEXED DB PERSISTENCE SYSTEM
-        const DB_NAME = 'EditGodStudioDB_v12';
+        // INDEXED DB PERSISTENCE
+        const DB_NAME = 'EditGodStudioDB_v13';
         function openDB() {
             return new Promise((resolve, reject) => {
                 const req = indexedDB.open(DB_NAME, 1);
@@ -478,12 +432,11 @@
                     effect: c.effect, filter: c.filter, scale: c.scale, rotate: c.rotate, opacity: c.opacity
                 }));
                 tx.objectStore('project').put(cleanClips, 'clips');
-                tx.objectStore('project').put(projectDurationSec, 'duration');
             } catch(e) {}
         }
 
         async function clearProjectData() {
-            if(confirm('Очистить проект и удалить все дорожки?')) {
+            if(confirm('Очистить проект и удалить все файлы?')) {
                 try {
                     const db = await openDB();
                     const tx = db.transaction('project', 'readwrite');
@@ -498,7 +451,7 @@
             }
         }
 
-        // STUDIO STATE MANAGEMENT
+        // APP STATE
         let clips = [];
         let selectedClipId = null;
         let isPlaying = false;
@@ -510,17 +463,16 @@
         let selectedExportRes = '720';
         let selectedExportFps = 30;
         let currentAspectRatio = '9:16';
+        let pxPerSec = 25; // Scale factor for timeline
 
-        // Audio System
-        let audioContext = null;
-        let activeAudioSources = {};
-
-        // INITIALIZE EDITOR
+        // INITIALIZATION
         window.onload = async () => {
             setupCanvasDimensions();
+            renderRulerTicks();
+            setupPlayheadTouchScrubber();
             renderTimelineUI();
-            
-            // Restore from IndexedDB
+
+            // Restore from DB
             try {
                 const db = await openDB();
                 const tx = db.transaction('project', 'readonly');
@@ -528,7 +480,6 @@
                 reqClips.onsuccess = () => {
                     if (reqClips.result && Array.isArray(reqClips.result)) {
                         clips = reqClips.result;
-                        // Reload media elements
                         clips.forEach(c => {
                             if (c.type === 'video') {
                                 const v = document.createElement('video');
@@ -558,11 +509,8 @@
             else if (currentAspectRatio === '1:1') { w = 1080; h = 1080; viewport.style.aspectRatio = '1/1'; }
             else { w = 720; h = 1280; viewport.style.aspectRatio = '9/16'; }
 
-            canvas.width = w;
-            canvas.height = h;
-            fullCanvas.width = w;
-            fullCanvas.height = h;
-
+            canvas.width = w; canvas.height = h;
+            fullCanvas.width = w; fullCanvas.height = h;
             renderCanvas();
         }
 
@@ -571,20 +519,84 @@
             setupCanvasDimensions();
         }
 
+        // TOUCH DRAGGABLE SCRUBBER LOGIC (ANDROID / MOBILE PERFECT SCRUBBING)
+        function setupPlayheadTouchScrubber() {
+            const scrollArea = document.getElementById('timelineScrollArea');
+            const knob = document.getElementById('playheadKnob');
+            const ruler = document.getElementById('timelineRuler');
+            let isDragging = false;
+
+            function updateTimeFromTouch(clientX) {
+                const rect = scrollArea.getBoundingClientRect();
+                const scrollLeft = scrollArea.scrollLeft;
+                let offsetX = clientX - rect.left + scrollLeft - 12; // 12px padding offset
+                offsetX = Math.max(0, offsetX);
+
+                let targetSec = offsetX / pxPerSec;
+                currentTimeSec = Math.max(0, Math.min(targetSec, projectDurationSec));
+
+                document.getElementById('timecodeDisplay').textContent = formatTimecode(currentTimeSec);
+                updatePlayheadUI();
+                renderCanvas();
+            }
+
+            // Knob Touch events
+            knob.addEventListener('pointerdown', (e) => {
+                isDragging = true;
+                knob.setPointerCapture(e.pointerId);
+                updateTimeFromTouch(e.clientX);
+            });
+
+            knob.addEventListener('pointermove', (e) => {
+                if (isDragging) updateTimeFromTouch(e.clientX);
+            });
+
+            const stopDrag = (e) => {
+                if (isDragging) {
+                    isDragging = false;
+                    try { knob.releasePointerCapture(e.pointerId); } catch(err){}
+                }
+            };
+            knob.addEventListener('pointerup', stopDrag);
+            knob.addEventListener('pointercancel', stopDrag);
+
+            // Tap anywhere on ruler to move playhead
+            ruler.addEventListener('pointerdown', (e) => {
+                updateTimeFromTouch(e.clientX);
+            });
+        }
+
+        function updatePlayheadUI() {
+            const group = document.getElementById('playheadGroup');
+            group.style.left = `${currentTimeSec * pxPerSec + 12}px`;
+        }
+
+        function renderRulerTicks() {
+            const ruler = document.getElementById('timelineRuler');
+            ruler.innerHTML = '';
+            for (let s = 0; s <= 80; s += 2) {
+                const tick = document.createElement('div');
+                tick.className = "absolute text-[8px] font-mono text-zinc-500 border-l border-zinc-700 h-3 flex items-end pl-0.5 select-none";
+                tick.style.left = `${s * pxPerSec + 12}px`;
+                tick.textContent = `${s}s`;
+                ruler.appendChild(tick);
+            }
+        }
+
         // INSPECTOR TABS SWITCHING
         function switchInspectorTab(tab) {
             document.querySelectorAll('.inspector-tab').forEach(b => {
-                b.className = "inspector-tab py-2.5 px-3 flex items-center space-x-1.5 border-b-2 border-transparent hover:text-zinc-200";
+                b.className = "inspector-tab flex-1 py-2.5 flex items-center justify-center space-x-1 border-b-2 border-transparent hover:text-zinc-200";
             });
             ['media','fx','text','anim'].forEach(t => {
                 document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden');
             });
 
-            document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`).className = "inspector-tab py-2.5 px-3 flex items-center space-x-1.5 border-b-2 border-purple-500 text-purple-400 font-bold";
+            document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`).className = "inspector-tab flex-1 py-2.5 flex items-center justify-center space-x-1 border-b-2 border-purple-500 text-purple-400 font-bold";
             document.getElementById(`tabContent${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove('hidden');
         }
 
-        // IMPORT MEDIA HANDLER
+        // MEDIA IMPORT
         function handleImportMedia(e) {
             const files = e.target.files;
             if(!files || files.length === 0) return;
@@ -601,16 +613,12 @@
                     src: url,
                     startSec: currentTimeSec,
                     durationSec: 4.0,
-                    effect: 'none',
-                    filter: 'none',
-                    scale: 100,
-                    rotate: 0,
-                    opacity: 100
+                    effect: 'none', filter: 'none',
+                    scale: 100, rotate: 0, opacity: 100
                 };
 
                 if (type === 'video') {
-                    const v = document.createElement('video');
-                    v.src = url; v.muted = true; v.loop = true;
+                    const v = document.createElement('video'); v.src = url; v.muted = true; v.loop = true;
                     newClip.mediaEl = v;
                 } else if (type === 'image') {
                     const img = new Image(); img.src = url;
@@ -623,7 +631,7 @@
             saveProjectState();
             renderTimelineUI();
             renderCanvas();
-            showToast('Медиафайлы добавлены');
+            showToast('Файлы добавлена на дорожку');
         }
 
         function addPresetAudio(name, url) {
@@ -638,55 +646,50 @@
             clips.push(newClip);
             saveProjectState();
             renderTimelineUI();
-            showToast('Аудио трек подключен');
+            showToast('Аудио добавлен');
         }
 
-        // TEXT OVERLAY LAYER
+        // TEXT LAYER
         function addNewTextLayer() {
+            const inputVal = document.getElementById('textLayerInput').value || 'EDIT GOD';
             const newText = {
                 id: Date.now() + Math.random(),
                 type: 'text',
                 name: 'ТЕКСТ',
-                text: 'EDIT GOD',
+                text: inputVal,
                 font: 'Russo One',
                 color: '#ffffff',
                 startSec: currentTimeSec,
                 durationSec: 5.0,
-                scale: 100,
-                rotate: 0,
-                opacity: 100
+                scale: 100, rotate: 0, opacity: 100
             };
             clips.push(newText);
             selectedClipId = newText.id;
             saveProjectState();
             renderTimelineUI();
             renderCanvas();
-            switchInspectorTab('text');
-            document.getElementById('textControlsBox').classList.remove('hidden');
-            document.getElementById('textLayerInput').value = newText.text;
+            showToast('Текст добавлен');
         }
 
         function updateActiveTextLayer() {
             if(!selectedClipId) return;
             const clip = clips.find(c => c.id === selectedClipId);
             if(clip && clip.type === 'text') {
-                clip.text = document.getElementById('textLayerInput').value;
-                clip.font = document.getElementById('fontSelect').value;
-                clip.color = document.getElementById('textColorInput').value;
+                clip.text = document.getElementById('textLayerInput').value || 'EDIT GOD';
                 saveProjectState();
                 renderCanvas();
             }
         }
 
-        // CLIP TRANSFORMATIONS & EFFECTS
+        // EFFECTS & FILTERS
         function applyEffectToSelected(effectName) {
-            if(!selectedClipId) return alert('Выберите клип на дорожке!');
+            if(!selectedClipId) return alert('Сначала нажмите на клип на дорожке!');
             const clip = clips.find(c => c.id === selectedClipId);
             if(clip) {
                 clip.effect = effectName;
                 saveProjectState();
                 renderCanvas();
-                showToast(`Эффект ${effectName} применен`);
+                showToast(`Эффект ${effectName} включен`);
             }
         }
 
@@ -717,13 +720,12 @@
             }
         }
 
-        // TIMELINE RENDERING & INTERACTION
+        // TIMELINE RENDER & CLIPS
         function renderTimelineUI() {
             const vTrack = document.getElementById('videoTrackContainer');
             const tTrack = document.getElementById('textTrackContainer');
             const aTrack = document.getElementById('audioTrackContainer');
 
-            // Clear clips inside tracks
             vTrack.querySelectorAll('.timeline-clip').forEach(el => el.remove());
             tTrack.querySelectorAll('.timeline-clip').forEach(el => el.remove());
             aTrack.querySelectorAll('.timeline-clip').forEach(el => el.remove());
@@ -735,14 +737,14 @@
 
                 const clipEl = document.createElement('div');
                 const isSel = clip.id === selectedClipId;
-                const leftPx = clip.startSec * 25; // Scale factor
-                const widthPx = Math.max(30, clip.durationSec * 25);
+                const leftPx = clip.startSec * pxPerSec + 12;
+                const widthPx = Math.max(30, clip.durationSec * pxPerSec);
 
                 let bgClass = "bg-purple-900/80 border-purple-500/80 text-purple-200";
                 if (clip.type === 'text') bgClass = "bg-cyan-900/80 border-cyan-500/80 text-cyan-200";
                 if (clip.type === 'audio') bgClass = "bg-amber-900/80 border-amber-500/80 text-amber-200";
 
-                clipEl.className = `timeline-clip absolute h-8 rounded-lg border px-2 text-[10px] font-mono font-bold flex items-center justify-between truncate ${bgClass} ${isSel ? 'selected' : ''}`;
+                clipEl.className = `timeline-clip absolute h-7 rounded-md border px-1.5 text-[9px] font-mono font-bold flex items-center justify-between truncate ${bgClass} ${isSel ? 'selected' : ''}`;
                 clipEl.style.left = `${leftPx}px`;
                 clipEl.style.width = `${widthPx}px`;
 
@@ -763,12 +765,8 @@
 
             projectDurationSec = maxDur;
             document.getElementById('totalTimeDisplay').textContent = formatTimecode(projectDurationSec);
+            updatePlayheadUI();
 
-            // Update Playhead position
-            const playhead = document.getElementById('playheadLine');
-            playhead.style.left = `${currentTimeSec * 25 + 10}px`;
-
-            // Hide empty canvas notice if clips exist
             document.getElementById('emptyCanvasNotice').style.display = clips.length > 0 ? 'none' : 'flex';
         }
 
@@ -778,7 +776,6 @@
             if(clip) {
                 if(clip.type === 'text') {
                     switchInspectorTab('text');
-                    document.getElementById('textControlsBox').classList.remove('hidden');
                     document.getElementById('textLayerInput').value = clip.text;
                 } else {
                     switchInspectorTab('anim');
@@ -791,12 +788,12 @@
         }
 
         function splitActiveClip() {
-            if(!selectedClipId) return alert('Выберите клип на таймлайне!');
+            if(!selectedClipId) return alert('Нажмите на клип на дорожке!');
             const index = clips.findIndex(c => c.id === selectedClipId);
             if(index !== -1) {
                 const c = clips[index];
                 const splitPoint = currentTimeSec - c.startSec;
-                if(splitPoint > 0.5 && splitPoint < c.durationSec - 0.5) {
+                if(splitPoint > 0.3 && splitPoint < c.durationSec - 0.3) {
                     const originalDur = c.durationSec;
                     c.durationSec = splitPoint;
 
@@ -823,15 +820,19 @@
         function togglePlay() {
             isPlaying = !isPlaying;
             const playBtnText = document.getElementById('masterPlayText');
+            const playIcon = document.getElementById('masterPlayIcon');
             
             if(isPlaying) {
                 playBtnText.textContent = "ПАУЗА";
+                playIcon.setAttribute('data-lucide', 'pause');
                 lastTimestamp = performance.now();
                 animationFrameId = requestAnimationFrame(playbackLoop);
             } else {
                 playBtnText.textContent = "ИГРАТЬ";
+                playIcon.setAttribute('data-lucide', 'play');
                 if(animationFrameId) cancelAnimationFrame(animationFrameId);
             }
+            lucide.createIcons();
         }
 
         function playbackLoop(timestamp) {
@@ -845,13 +846,13 @@
             }
 
             document.getElementById('timecodeDisplay').textContent = formatTimecode(currentTimeSec);
-            renderTimelineUI();
+            updatePlayheadUI();
             renderCanvas();
 
             animationFrameId = requestAnimationFrame(playbackLoop);
         }
 
-        // CANVAS RENDERING ENGINE (CAPCUT / ALIGHT MOTION FX)
+        // CANVAS RENDERING
         function renderCanvas() {
             const canvas = document.getElementById('previewCanvas');
             const fullCanvas = document.getElementById('fullscreenCanvas');
@@ -865,13 +866,10 @@
             ctx.fillStyle = '#030305';
             ctx.fillRect(0, 0, w, h);
 
-            // Active visual clips at currentTimeSec
             const activeVisuals = clips.filter(c => (c.type === 'video' || c.type === 'image') && currentTimeSec >= c.startSec && currentTimeSec <= c.startSec + c.durationSec);
 
             activeVisuals.forEach(c => {
                 ctx.save();
-
-                // Calculate clip progression (0 to 1)
                 const p = (currentTimeSec - c.startSec) / c.durationSec;
 
                 let scale = (c.scale || 100) / 100;
@@ -879,7 +877,6 @@
                 let opacity = (c.opacity || 100) / 100;
                 let offsetX = 0, offsetY = 0;
 
-                // Motion Effects Engine
                 if (c.effect === 'phonkShake') {
                     scale *= 1.05 + Math.sin(p * Math.PI * 12) * 0.08;
                     offsetX = Math.sin(p * Math.PI * 20) * (w * 0.02);
@@ -908,9 +905,7 @@
                 ctx.scale(scale, scale);
 
                 if (c.mediaEl) {
-                    if (c.type === 'video') {
-                        if (c.mediaEl.paused) c.mediaEl.play();
-                    }
+                    if (c.type === 'video' && c.mediaEl.paused) c.mediaEl.play();
                     const imgAspect = c.mediaEl.videoWidth ? (c.mediaEl.videoWidth / c.mediaEl.videoHeight) : (c.mediaEl.width / c.mediaEl.height);
                     const canvasAspect = w / h;
                     let drawW, drawH;
@@ -923,7 +918,7 @@
                 ctx.restore();
             });
 
-            // Active Text Layers
+            // Text Layers
             const activeTexts = clips.filter(c => c.type === 'text' && currentTimeSec >= c.startSec && currentTimeSec <= c.startSec + c.durationSec);
 
             activeTexts.forEach(c => {
@@ -932,32 +927,32 @@
                 ctx.fillStyle = c.color || '#ffffff';
                 ctx.textAlign = 'center';
                 ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 6;
+                ctx.lineWidth = 5;
 
                 ctx.strokeText(c.text, w / 2, h / 2);
                 ctx.fillText(c.text, w / 2, h / 2);
                 ctx.restore();
             });
 
-            // Mirror to Fullscreen Canvas
+            // Mirror
             fullCtx.clearRect(0, 0, w, h);
             fullCtx.drawImage(canvas, 0, 0);
         }
 
-        // EXPORT SYSTEM (CANVAS + MEDIARECORDER)
+        // EXPORT SYSTEM
         function openExportModal() { document.getElementById('exportModal').classList.remove('hidden'); }
         function closeExportModal() { document.getElementById('exportModal').classList.add('hidden'); }
 
         function setExportRes(res) {
             selectedExportRes = res;
-            document.querySelectorAll('.exp-res-btn').forEach(b => b.className = "exp-res-btn py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-bold rounded-lg");
-            document.getElementById(`expRes${res}`).className = "exp-res-btn py-1.5 bg-purple-600 border border-purple-500 text-white font-mono font-bold rounded-lg";
+            document.querySelectorAll('.exp-res-btn').forEach(b => b.className = "exp-res-btn py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-bold rounded-lg text-[10px]");
+            document.getElementById(`expRes${res}`).className = "exp-res-btn py-1.5 bg-purple-600 border border-purple-500 text-white font-mono font-bold rounded-lg text-[10px]";
         }
 
         function setExportFps(fps) {
             selectedExportFps = fps;
-            document.querySelectorAll('.exp-fps-btn').forEach(b => b.className = "exp-fps-btn py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-bold rounded-lg");
-            document.getElementById(`expFps${fps}`).className = "exp-fps-btn py-1.5 bg-purple-600 border border-purple-500 text-white font-mono font-bold rounded-lg";
+            document.querySelectorAll('.exp-fps-btn').forEach(b => b.className = "exp-fps-btn py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono font-bold rounded-lg text-[10px]");
+            document.getElementById(`expFps${fps}`).className = "exp-fps-btn py-1.5 bg-purple-600 border border-purple-500 text-white font-mono font-bold rounded-lg text-[10px]";
         }
 
         async function startVideoRender() {
@@ -1008,9 +1003,9 @@
             
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `EDIT_GOD_PRO_${Date.now()}.mp4`;
+            a.download = `EDIT_GOD_${Date.now()}.mp4`;
             a.click();
-            showToast('Готовое MP4 сохранено');
+            showToast('Готовое MP4 сохранено!');
         }
 
         function openFullscreenModal() { document.getElementById('fullscreenModal').classList.remove('hidden'); }
@@ -1025,7 +1020,7 @@
 
         function showToast(text) {
             const toast = document.createElement('div');
-            toast.className = "fixed bottom-12 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 border border-purple-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-2xl animate-bounce";
+            toast.className = "fixed bottom-12 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 border border-purple-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xl animate-bounce";
             toast.textContent = text;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 2000);
