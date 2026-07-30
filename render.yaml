@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: youtube-vk-uploader
+    runtime: node
+    plan: standard  # или free, но free может не хватить на yt-dlp
+    buildCommand: |
+      npm install
+      apt-get update
+      apt-get install -y python3 python3-pip ffmpeg
+      pip3 install yt-dlp
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+
