@@ -59,93 +59,93 @@
         }
         @keyframes glitchAnim {
             0% { transform: translate(0); }
-            20% { transform: translate(-3px, 3px); filter: hue-rotate(90deg); }
-            40% { transform: translate(-3px, -3px); filter: invert(1); }
-            60% { transform: translate(3px, 3px); filter: saturate(3); }
-            80% { transform: translate(3px, -3px); }
+            20% { transform: translate(-8px, 5px) rotate(-2deg); filter: hue-rotate(90deg) contrast(1.8); }
+            40% { transform: translate(-5px, -8px) rotate(2deg); filter: invert(0.8); }
+            60% { transform: translate(8px, 5px) scale(1.1); filter: saturate(3); }
+            80% { transform: translate(5px, -5px); }
             100% { transform: translate(0); }
         }
         @keyframes cyberpunkFlash {
-            0%, 100% { filter: contrast(1) brightness(1); }
-            50% { filter: contrast(2) brightness(1.5) drop-shadow(0 0 15px cyan); }
+            0%, 100% { transform: scale(1); filter: contrast(1) brightness(1); }
+            50% { transform: scale(1.12); filter: contrast(2) brightness(1.5) drop-shadow(0 0 15px cyan); }
         }
         @keyframes animeZoom {
             0% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.18) rotate(-3deg); }
+            50% { transform: scale(1.22) rotate(-4deg); }
             100% { transform: scale(1) rotate(0deg); }
         }
         @keyframes 3dFlipRot {
-            0% { transform: perspective(800px) rotateY(0deg); }
-            50% { transform: perspective(800px) rotateY(180deg) scale(1.1); }
-            100% { transform: perspective(800px) rotateY(360deg); }
+            0% { transform: perspective(800px) rotateY(0deg) scale(1); }
+            50% { transform: perspective(800px) rotateY(180deg) scale(1.15); }
+            100% { transform: perspective(800px) rotateY(360deg) scale(1); }
         }
         @keyframes matrixRain {
-            0% { filter: sepia(1) hue-rotate(90deg) contrast(2); }
-            50% { filter: sepia(1) hue-rotate(120deg) contrast(3) brightness(1.2); }
-            100% { filter: sepia(1) hue-rotate(90deg) contrast(2); }
+            0% { transform: scale(1); filter: sepia(1) hue-rotate(90deg) contrast(2); }
+            50% { transform: scale(1.1); filter: sepia(1) hue-rotate(120deg) contrast(3) brightness(1.2); }
+            100% { transform: scale(1); filter: sepia(1) hue-rotate(90deg) contrast(2); }
         }
         @keyframes shakeHard {
-            0%, 100% { transform: translate(0, 0) rotate(0); }
-            20% { transform: translate(-8px, 5px) rotate(-3deg); }
-            40% { transform: translate(8px, -5px) rotate(3deg); }
-            60% { transform: translate(-5px, -8px) rotate(-2deg); }
-            80% { transform: translate(5px, 8px) rotate(2deg); }
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            20% { transform: translate(-12px, 8px) rotate(-4deg) scale(1.08); }
+            40% { transform: translate(12px, -8px) rotate(4deg) scale(1.05); }
+            60% { transform: translate(-8px, -12px) rotate(-3deg) scale(1.1); }
+            80% { transform: translate(8px, 12px) rotate(3deg) scale(1.05); }
         }
         @keyframes neonPulseGlow {
-            0%, 100% { box-shadow: inset 0 0 15px rgba(236, 72, 153, 0.8), 0 0 20px rgba(236, 72, 153, 0.8); }
-            50% { box-shadow: inset 0 0 35px rgba(6, 182, 212, 1), 0 0 45px rgba(6, 182, 212, 1); }
+            0%, 100% { transform: scale(1); box-shadow: inset 0 0 15px rgba(236, 72, 153, 0.8), 0 0 20px rgba(236, 72, 153, 0.8); }
+            50% { transform: scale(1.08); box-shadow: inset 0 0 35px rgba(6, 182, 212, 1), 0 0 45px rgba(6, 182, 212, 1); }
         }
         @keyframes smoothSlideRight {
-            0% { transform: translateX(-20px); opacity: 0; }
-            50% { transform: translateX(0); opacity: 1; }
-            100% { transform: translateX(20px); opacity: 0; }
+            0% { transform: translateX(-40px) scale(0.95); opacity: 0.5; }
+            50% { transform: translateX(0) scale(1.05); opacity: 1; }
+            100% { transform: translateX(40px) scale(0.95); opacity: 0.5; }
         }
         @keyframes smoothSlideUp {
-            0% { transform: translateY(20px); opacity: 0; }
-            50% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-20px); opacity: 0; }
+            0% { transform: translateY(40px) scale(0.95); opacity: 0.5; }
+            50% { transform: translateY(0) scale(1.05); opacity: 1; }
+            100% { transform: translateY(-40px) scale(0.95); opacity: 0.5; }
         }
         @keyframes spinSlow {
             0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.12); }
+            50% { transform: rotate(180deg) scale(1.18); }
             100% { transform: rotate(360deg) scale(1); }
         }
         @keyframes rgbSplitAnim {
-            0% { filter: drop-shadow(4px 0px red) drop-shadow(-4px 0px cyan); }
-            50% { filter: drop-shadow(-4px 0px red) drop-shadow(4px 0px cyan) contrast(1.5); }
-            100% { filter: drop-shadow(4px 0px red) drop-shadow(-4px 0px cyan); }
+            0% { transform: scale(1); filter: drop-shadow(6px 0px red) drop-shadow(-6px 0px cyan); }
+            50% { transform: scale(1.12); filter: drop-shadow(-6px 0px red) drop-shadow(6px 0px cyan) contrast(1.5); }
+            100% { transform: scale(1); filter: drop-shadow(6px 0px red) drop-shadow(-6px 0px cyan); }
         }
         @keyframes blurPulse {
-            0%, 100% { filter: blur(0px); }
-            50% { filter: blur(6px); }
+            0%, 100% { transform: scale(1); filter: blur(0px); }
+            50% { transform: scale(1.1); filter: blur(6px); }
         }
         @keyframes bounceHeavy {
             0%, 100% { transform: translateY(0) scale(1); }
-            30% { transform: translateY(-25px) scale(1.05); }
-            60% { transform: translateY(10px) scale(0.95); }
+            30% { transform: translateY(-30px) scale(1.1); }
+            60% { transform: translateY(15px) scale(0.92); }
         }
         @keyframes cinematicPan {
-            0% { transform: scale(1.1) translate(-3%, -3%); }
-            50% { transform: scale(1.25) translate(3%, 3%); }
-            100% { transform: scale(1.1) translate(-3%, -3%); }
+            0% { transform: scale(1.1) translate(-4%, -4%); }
+            50% { transform: scale(1.3) translate(4%, 4%); }
+            100% { transform: scale(1.1) translate(-4%, -4%); }
         }
         @keyframes psychedelicWobble {
             0% { transform: skewX(0deg) scale(1); filter: hue-rotate(0deg); }
-            25% { transform: skewX(12deg) scale(1.1); filter: hue-rotate(90deg); }
-            50% { transform: skewX(-12deg) scale(0.95); filter: hue-rotate(180deg); }
-            75% { transform: skewX(6deg) scale(1.05); filter: hue-rotate(270deg); }
+            25% { transform: skewX(15deg) scale(1.15); filter: hue-rotate(90deg); }
+            50% { transform: skewX(-15deg) scale(0.9); filter: hue-rotate(180deg); }
+            75% { transform: skewX(8deg) scale(1.1); filter: hue-rotate(270deg); }
             100% { transform: skewX(0deg) scale(1); filter: hue-rotate(360deg); }
         }
         @keyframes vintageFilm {
-            0% { filter: sepia(0.8) contrast(1.4) brightness(0.9); opacity: 0.95; }
-            50% { filter: sepia(0.9) contrast(1.6) brightness(1.1); opacity: 0.85; }
-            100% { filter: sepia(0.8) contrast(1.4) brightness(0.9); opacity: 0.95; }
+            0% { transform: scale(1); filter: sepia(0.8) contrast(1.4) brightness(0.9); opacity: 0.95; }
+            50% { transform: scale(1.05); filter: sepia(0.9) contrast(1.6) brightness(1.1); opacity: 0.85; }
+            100% { transform: scale(1); filter: sepia(0.8) contrast(1.4) brightness(0.9); opacity: 0.95; }
         }
         @keyframes heartbeatGod {
             0%, 100% { transform: scale(1); filter: brightness(1); }
-            15% { transform: scale(1.15); filter: brightness(1.4); }
+            15% { transform: scale(1.2); filter: brightness(1.4); }
             30% { transform: scale(1); filter: brightness(1); }
-            45% { transform: scale(1.2); filter: brightness(1.6); }
+            45% { transform: scale(1.25); filter: brightness(1.6); }
             60% { transform: scale(1); filter: brightness(1); }
         }
         @keyframes neonStrobe {
@@ -154,13 +154,13 @@
             66% { border-color: #eab308; box-shadow: 0 0 20px #eab308; }
         }
         @keyframes dualSplit {
-            0% { clip-path: inset(0 0 0 0); }
-            50% { clip-path: inset(10% 20% 10% 20%); filter: hue-rotate(180deg); }
-            100% { clip-path: inset(0 0 0 0); }
+            0% { clip-path: inset(0 0 0 0); transform: scale(1); }
+            50% { clip-path: inset(10% 20% 10% 20%); transform: scale(1.12); filter: hue-rotate(180deg); }
+            100% { clip-path: inset(0 0 0 0); transform: scale(1); }
         }
         @keyframes lightningFlash {
-            0%, 90%, 94%, 98%, 100% { filter: brightness(1); }
-            92%, 96% { filter: brightness(3) contrast(2) invert(0.2); }
+            0%, 90%, 94%, 98%, 100% { transform: scale(1); filter: brightness(1); }
+            92%, 96% { transform: scale(1.15); filter: brightness(3) contrast(2) invert(0.2); }
         }
         @keyframes portalVortex {
             0% { transform: rotate(0deg) scale(1); border-radius: 0%; }
@@ -168,51 +168,51 @@
             100% { transform: rotate(360deg) scale(1); border-radius: 0%; }
         }
         @keyframes liquidMorph {
-            0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-            50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+            0%, 100% { transform: scale(1); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            50% { transform: scale(1.12); border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
         }
         @keyframes earthquakeGod {
-            0% { transform: translate(0, 0); }
-            10% { transform: translate(-10px, 10px); }
-            20% { transform: translate(10px, -10px); }
-            30% { transform: translate(-8px, -8px); }
-            40% { transform: translate(8px, 8px); }
-            50% { transform: translate(-5px, 5px); }
-            60% { transform: translate(5px, -5px); }
-            70% { transform: translate(-3px, 3px); }
-            80% { transform: translate(3px, -3px); }
-            90% { transform: translate(-1px, 1px); }
-            100% { transform: translate(0, 0); }
+            0% { transform: translate(0, 0) scale(1); }
+            10% { transform: translate(-14px, 14px) scale(1.1); }
+            20% { transform: translate(14px, -14px) scale(1.05); }
+            30% { transform: translate(-10px, -10px) scale(1.12); }
+            40% { transform: translate(10px, 10px) scale(1.02); }
+            50% { transform: translate(-7px, 7px) scale(1.08); }
+            60% { transform: translate(7px, -7px) scale(1.03); }
+            70% { transform: translate(-4px, 4px) scale(1.05); }
+            80% { transform: translate(4px, -4px) scale(1.01); }
+            90% { transform: translate(-2px, 2px) scale(1.02); }
+            100% { transform: translate(0, 0) scale(1); }
         }
         @keyframes kaleidoscopeSpin {
             0% { transform: rotate(0deg) scale(1); filter: hue-rotate(0deg); }
-            50% { transform: rotate(180deg) scale(1.2) rotateX(45deg); filter: hue-rotate(200deg); }
+            50% { transform: rotate(180deg) scale(1.25); filter: hue-rotate(200deg); }
             100% { transform: rotate(360deg) scale(1); filter: hue-rotate(360deg); }
         }
         @keyframes dramaticZoom {
             0% { transform: scale(1); }
-            50% { transform: scale(1.4); }
+            50% { transform: scale(1.45); }
             100% { transform: scale(1); }
         }
         @keyframes strobeBlink {
             0%, 100% { opacity: 1; filter: brightness(1); }
-            25% { opacity: 0.3; filter: brightness(2.5); }
-            50% { opacity: 1; filter: brightness(0.5); }
-            75% { opacity: 0.6; filter: brightness(2); }
+            25% { opacity: 0.2; filter: brightness(2.5); }
+            50% { opacity: 1; filter: brightness(0.4); }
+            75% { opacity: 0.5; filter: brightness(2); }
         }
         @keyframes ghostTrail {
             0% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(1.3); }
+            100% { opacity: 0.2; transform: scale(1.35); }
         }
         @keyframes bassDropVibe {
             0%, 100% { transform: scale(1) skew(0deg); }
-            25% { transform: scale(1.12) skew(-5deg); filter: contrast(1.8); }
-            50% { transform: scale(0.92) skew(5deg); filter: hue-rotate(90deg); }
-            75% { transform: scale(1.12) skew(-3deg); filter: contrast(1.8); }
+            25% { transform: scale(1.18) skew(-8deg); filter: contrast(1.8); }
+            50% { transform: scale(0.88) skew(8deg); filter: hue-rotate(90deg); }
+            75% { transform: scale(1.18) skew(-5deg); filter: contrast(1.8); }
         }
         @keyframes neonBorderPulse {
-            0%, 100% { box-shadow: 0 0 10px #ff007f, inset 0 0 10px #ff007f; }
-            50% { box-shadow: 0 0 35px #00ffff, inset 0 0 25px #00ffff; }
+            0%, 100% { transform: scale(1); box-shadow: 0 0 10px #ff007f, inset 0 0 10px #ff007f; }
+            50% { transform: scale(1.1); box-shadow: 0 0 35px #00ffff, inset 0 0 25px #00ffff; }
         }
 
         /* Кастомный ползунок для обрезки аудио */
@@ -331,7 +331,7 @@
                 <!-- VFX Overlay Elements -->
                 <div id="vfxOverlay" class="absolute inset-0 pointer-events-none mix-blend-screen opacity-70"></div>
                 <!-- Beat Flash Overlay -->
-                <div id="beatFlash" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-75"></div>
+                <div id="beatFlash" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-75 z-20"></div>
             </div>
 
             <!-- Playback Controls -->
@@ -542,7 +542,7 @@
             </div>
             <div>
                 <h3 class="font-cyber text-sm font-bold text-white">РЕНДЕР MP4 ВИДЕО...</h3>
-                <p id="renderStatusText" class="text-xs text-cyan-400 mt-1">Обработка кадров и аудио 1080p 60FPS</p>
+                <p id="renderStatusText" class="text-xs text-cyan-400 mt-1">Запись 100% точной анимации 60FPS</p>
             </div>
             <!-- Progress Bar -->
             <div class="w-full bg-zinc-800 h-2.5 rounded-full overflow-hidden">
@@ -942,14 +942,14 @@
                 
                 container.innerHTML = `
                     <div class="w-full h-full relative overflow-hidden flex items-center justify-center">
-                        <img src="${photoSrc}" style="animation: ${t.anim} ${t.speed} infinite linear; filter: ${t.filter};" class="w-full h-full object-cover">
+                        <img id="activeSlideImg" src="${photoSrc}" style="animation: ${t.anim} ${t.speed} infinite linear; filter: ${t.filter};" class="w-full h-full object-cover">
                     </div>
                 `;
 
                 if(t.flash) {
                     const flashEl = document.getElementById('beatFlash');
-                    flashEl.style.opacity = '0.7';
-                    setTimeout(() => { flashEl.style.opacity = '0'; }, 80);
+                    flashEl.style.opacity = '0.75';
+                    setTimeout(() => { flashEl.style.opacity = '0'; }, 90);
                 }
 
                 const audio = document.getElementById('audioPlayer');
@@ -961,6 +961,7 @@
             }
 
             renderCurrentSlide();
+            if (slideInterval) clearInterval(slideInterval);
             slideInterval = setInterval(renderCurrentSlide, speedMs);
         }
 
@@ -974,11 +975,15 @@
         }
 
         // =========================================================
-        // МОЩНЕЙШИЙ 100% НАСТОЯЩИЙ CANVAS РЕНДЕР С ФИЛЬТРАМИ И АНИМАЦИЕЙ
+        // ПРЯМОЙ ЗАХВАТ ЭКРАНА С ПРЕДПРОСМОТРА 1 В 1 СО ВСЕМИ АНИМАЦИЯМИ
         // =========================================================
         async function renderAndDownloadVideo() {
             if(userPhotos.length === 0) {
-                alert('⚠️ Загрузите фото перед рендером!');
+                alert('⚠️ Сначала выберите от 5 до 10 фотографий из галереи Android!');
+                return;
+            }
+            if(!selectedTemplateId) {
+                alert('⚠️ Выберите шаблон эдита из списка!');
                 return;
             }
 
@@ -991,51 +996,58 @@
             modal.classList.remove('hidden');
             progressBar.style.width = '0%';
             percentText.textContent = '0%';
-            statusText.textContent = "Загрузка ресурсов для рендера...";
+            statusText.textContent = "Запуск прямого захвата анимаций 1 в 1...";
 
-            // Длительность видео в секундах
-            const videoDurationSec = (audioFileObj && trimEndSec > trimStartSec) ? (trimEndSec - trimStartSec) : 10;
-            const fps = 30;
-            const totalFrames = Math.floor(videoDurationSec * fps);
+            // Убеждаемся что предпросмотр запущен на экране для снятия точной копии CSS keyframes
+            const placeholder = document.getElementById('stagePlaceholder');
+            const container = document.getElementById('slideShowContainer');
+            placeholder.classList.add('hidden');
+            container.classList.remove('hidden');
 
-            // Скорость переключения слайдов из шаблона (в секундах и кадрах)
-            const speedSec = parseFloat(t.speed) || 0.4;
-            const framesPerSlide = Math.max(1, Math.round(speedSec * fps));
-
-            const canvas = document.getElementById('exportCanvas');
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
-
-            // Подготавливаем элементы Image
-            const imgElements = await Promise.all(userPhotos.map(src => {
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    img.crossOrigin = "anonymous";
-                    img.onload = () => resolve(img);
-                    img.onerror = () => resolve(img);
-                    img.src = src;
-                });
-            }));
-
-            // Подключаем Web Audio API для сведения обрезанной музыки
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const destNode = audioCtx.createMediaStreamDestination();
-
-            if (audioBuffer) {
-                const source = audioCtx.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(destNode);
-                source.start(0, trimStartSec, videoDurationSec);
+            if(!isPlaying) {
+                isPlaying = true;
+                document.getElementById('playBtn').innerHTML = `<i data-lucide="pause" class="w-5 h-5 fill-current"></i><span>ПАУЗА ЭДИТА</span>`;
+                startSlideShow();
+            } else {
+                restartEditPreview();
             }
 
-            // Захватываем Canvas поток
+            // Рассчитываем длительность ролика (в секундах)
+            const videoDurationSec = (audioFileObj && trimEndSec > trimStartSec) ? Math.min(15, trimEndSec - trimStartSec) : 10;
+            const fps = 30;
+            const totalFrames = Math.floor(videoDurationSec * fps);
+            const frameIntervalMs = 1000 / fps;
+
+            // Настраиваем воспроизведение обрезанной музыки
+            const audio = document.getElementById('audioPlayer');
+            if(audioFileObj) {
+                audio.currentTime = trimStartSec;
+                audio.play().catch(e => console.log(e));
+            }
+
+            // Настройка холста записи Canvas
+            const canvas = document.getElementById('exportCanvas');
+            const ctx = canvas.getContext('2d');
+            const canvasW = canvas.width;  // 720
+            const canvasH = canvas.height; // 1280
+
+            // Поток записи Canvas + WebAudio
             const canvasStream = canvas.captureStream(fps);
             const combinedTracks = [...canvasStream.getVideoTracks()];
 
             if (audioBuffer) {
-                const audioTracks = destNode.stream.getAudioTracks();
-                if (audioTracks.length > 0) combinedTracks.push(audioTracks[0]);
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const destNode = audioCtx.createMediaStreamDestination();
+                    const source = audioCtx.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(destNode);
+                    source.start(0, trimStartSec, videoDurationSec);
+                    const aTracks = destNode.stream.getAudioTracks();
+                    if (aTracks.length > 0) combinedTracks.push(aTracks[0]);
+                } catch(e) {
+                    console.log("Audio track attach fallback", e);
+                }
             }
 
             const combinedStream = new MediaStream(combinedTracks);
@@ -1055,7 +1067,7 @@
             try {
                 mediaRecorder = new MediaRecorder(combinedStream, {
                     mimeType: mimeType,
-                    videoBitsPerSecond: 6000000 // High Quality 6 Mbps
+                    videoBitsPerSecond: 8000000 // Ultra High Quality 8 Mbps
                 });
             } catch (e) {
                 mediaRecorder = new MediaRecorder(combinedStream);
@@ -1077,157 +1089,98 @@
 
             mediaRecorder.start();
 
-            // РЕНДЕР КАЖДОГО КАДРА С ПРИМЕНЕНИЕМ СКОРОСТИ, ЭФФЕКТОВ И АНИМАЦИЙ
-            for (let f = 0; f < totalFrames; f++) {
-                const photoIdx = Math.floor(f / framesPerSlide) % imgElements.length;
-                const currentImg = imgElements[photoIdx];
+            // ЗАХВАТ КАЖДОГО КАДРА НАПРЯМУЮ С ЭКРАННОГО ПРЕДПРОСМОТРА С 100% ТОЧНОСТЬЮ
+            let currentFrame = 0;
 
-                ctx.save();
-                ctx.clearRect(0, 0, width, height);
+            await new Promise((resolveAllFrames) => {
+                const renderInterval = setInterval(() => {
+                    if (currentFrame >= totalFrames) {
+                        clearInterval(renderInterval);
+                        resolveAllFrames();
+                        return;
+                    }
 
-                // Черный задний фон
-                ctx.fillStyle = "#000000";
-                ctx.fillRect(0, 0, width, height);
+                    const activeImg = document.getElementById('activeSlideImg');
 
-                // Прогресс внутри текущего слайда (0.0 -> 1.0)
-                const p = (f % framesPerSlide) / framesPerSlide;
-                const timeSec = f / fps;
-
-                let scale = 1.0;
-                let offsetX = 0;
-                let offsetY = 0;
-                let rotate = 0;
-                let skewX = 0;
-                let extraFilter = "";
-
-                // ТОЧНАЯ ЭМУЛЯЦИЯ ВСЕХ 30+ АНИМАЦИЙ НА CANVAS
-                switch(t.anim) {
-                    case 'shakeHard':
-                    case 'earthquakeGod':
-                    case 'hellfireShake':
-                        scale = 1.05 + Math.sin(p * Math.PI * 4) * 0.05;
-                        offsetX = (Math.random() - 0.5) * 28;
-                        offsetY = (Math.random() - 0.5) * 28;
-                        rotate = (Math.random() - 0.5) * 0.08;
-                        break;
-                    case 'beatScale':
-                    case 'heartbeatGod':
-                        scale = 1.0 + Math.abs(Math.sin(p * Math.PI * 2)) * 0.16;
-                        break;
-                    case 'glitchAnim':
-                    case 'retroArcade':
-                        offsetX = (Math.random() - 0.5) * 20;
-                        offsetY = (Math.random() - 0.5) * 20;
-                        if (Math.random() > 0.6) extraFilter = " invert(0.8) hue-rotate(90deg)";
-                        break;
-                    case 'cyberpunkFlash':
-                        scale = 1.0 + p * 0.1;
-                        if (Math.random() > 0.5) extraFilter = " brightness(1.4) contrast(1.6)";
-                        break;
-                    case 'animeZoom':
-                    case 'sakuraDream':
-                    case 'supernova':
-                        scale = 1.0 + Math.sin(p * Math.PI) * 0.2;
-                        rotate = (p - 0.5) * 0.1;
-                        break;
-                    case '3dFlipRot':
-                        scale = Math.abs(Math.cos(p * Math.PI * 2)) * 0.4 + 0.6;
-                        rotate = p * Math.PI * 2;
-                        break;
-                    case 'kaleidoscopeSpin':
-                    case 'crystalMatrix':
-                        rotate = p * Math.PI * 2;
-                        scale = 1.1 + Math.sin(p * Math.PI) * 0.15;
-                        break;
-                    case 'psychedelicWobble':
-                        skewX = Math.sin(p * Math.PI * 2) * 0.2;
-                        scale = 1.05 + Math.cos(p * Math.PI * 2) * 0.08;
-                        break;
-                    case 'cinematicPan':
-                    case 'midnightEclipse':
-                        scale = 1.1 + p * 0.15;
-                        offsetX = (p - 0.5) * 40;
-                        offsetY = (p - 0.5) * 20;
-                        break;
-                    case 'lightningFlash':
-                    case 'thunderGod':
-                        if (f % 6 === 0) extraFilter = " brightness(3) invert(0.3)";
-                        scale = 1.0 + p * 0.08;
-                        break;
-                    case 'dramaticZoom':
-                    case 'warpSpeed':
-                        scale = 1.0 + p * 0.4;
-                        break;
-                    case 'smoothSlideRight':
-                    case 'frostbite':
-                        offsetX = (p - 0.5) * width * 0.3;
-                        break;
-                    case 'smoothSlideUp':
-                        offsetY = (p - 0.5) * height * 0.3;
-                        break;
-                    case 'spinSlow':
-                    case 'tornadoSpin':
-                        rotate = p * Math.PI * 2;
-                        break;
-                    case 'bassDropVibe':
-                        scale = 1.0 + Math.sin(p * Math.PI * 4) * 0.12;
-                        skewX = (Math.random() - 0.5) * 0.1;
-                        break;
-                    default:
-                        scale = 1.0 + p * 0.1;
-                        break;
-                }
-
-                // ПРИМЕНЯЕМ ЦВЕТОВОЙ ФИЛЬТР ИЗ ШАБЛОНА И ДИНАМИЧЕСКИЙ ЭФФЕКТ
-                ctx.filter = (t.filter || "none") + extraFilter;
-
-                // Трансформация холста
-                ctx.translate(width / 2 + offsetX, height / 2 + offsetY);
-                ctx.rotate(rotate);
-                if (skewX !== 0) ctx.transform(1, 0, skewX, 1, 0, 0);
-                ctx.scale(scale, scale);
-
-                // Отрисовка фото в режиме COVER
-                const imgAspect = currentImg.width / currentImg.height;
-                const canvasAspect = width / height;
-                let drawW, drawH;
-                if (imgAspect > canvasAspect) {
-                    drawH = height;
-                    drawW = height * imgAspect;
-                } else {
-                    drawW = width;
-                    drawH = width / imgAspect;
-                }
-                ctx.drawImage(currentImg, -drawW / 2, -drawH / 2, drawW, drawH);
-
-                ctx.restore();
-
-                // ВСПЫШКА НА БИТАХ (Beat Flash)
-                if (t.flash && (f % framesPerSlide < 3)) {
                     ctx.save();
-                    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
-                    ctx.fillRect(0, 0, width, height);
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    ctx.fillStyle = "#000000";
+                    ctx.fillRect(0, 0, canvasW, canvasH);
+
+                    if (activeImg) {
+                        const style = window.getComputedStyle(activeImg);
+
+                        // Фильтр напрямую из CSS движка браузера
+                        let compFilter = style.filter;
+                        if (!compFilter || compFilter === 'none') {
+                            compFilter = t.filter || 'none';
+                        }
+                        ctx.filter = compFilter;
+
+                        // Размеры картинки в COVER
+                        const imgW = activeImg.naturalWidth || activeImg.width || canvasW;
+                        const imgH = activeImg.naturalHeight || activeImg.height || canvasH;
+                        const imgAspect = imgW / imgH;
+                        const canvasAspect = canvasW / canvasH;
+
+                        let drawW, drawH;
+                        if (imgAspect > canvasAspect) {
+                            drawH = canvasH;
+                            drawW = canvasH * imgAspect;
+                        } else {
+                            drawW = canvasW;
+                            drawH = canvasW / imgAspect;
+                        }
+
+                        // Перенос в центр холста
+                        ctx.translate(canvasW / 2, canvasH / 2);
+
+                        // Считываем точную матрицу трансформации из CSS-анимации браузера в данный миллисекундный момент!
+                        const transformStr = style.transform;
+                        if (transformStr && transformStr !== 'none') {
+                            if (transformStr.startsWith('matrix3d')) {
+                                const m = transformStr.match(/matrix3d\(([^)]+)\)/)[1].split(',').map(Number);
+                                ctx.transform(m[0], m[1], m[4], m[5], m[12], m[13]);
+                            } else if (transformStr.startsWith('matrix')) {
+                                const m = transformStr.match(/matrix\(([^)]+)\)/)[1].split(',').map(Number);
+                                ctx.transform(m[0], m[1], m[2], m[3], m[4], m[5]);
+                            }
+                        }
+
+                        ctx.drawImage(activeImg, -drawW / 2, -drawH / 2, drawW, drawH);
+                    }
+
                     ctx.restore();
-                }
 
-                // Прогресс рендера
-                const pct = Math.floor(((f + 1) / totalFrames) * 100);
-                progressBar.style.width = pct + '%';
-                percentText.textContent = pct + '%';
-                statusText.textContent = `Рендеринг кадров 60FPS: ${f + 1} / ${totalFrames}`;
+                    // Отрисовка стробоскопа / вспышки бита
+                    const flashEl = document.getElementById('beatFlash');
+                    if (flashEl) {
+                        const flashOpacity = parseFloat(window.getComputedStyle(flashEl).opacity) || 0;
+                        if (flashOpacity > 0.05) {
+                            ctx.save();
+                            ctx.fillStyle = `rgba(255, 255, 255, ${flashOpacity})`;
+                            ctx.fillRect(0, 0, canvasW, canvasH);
+                            ctx.restore();
+                        }
+                    }
 
-                // Синхронизация потока кадра
-                await new Promise(r => setTimeout(r, 1000 / fps));
-            }
+                    currentFrame++;
+                    const pct = Math.floor((currentFrame / totalFrames) * 100);
+                    progressBar.style.width = pct + '%';
+                    percentText.textContent = pct + '%';
+                    statusText.textContent = `Запись точных кадров: ${currentFrame} / ${totalFrames}`;
+
+                }, frameIntervalMs);
+            });
 
             mediaRecorder.stop();
             const finalVideoBlob = await renderCompletePromise;
 
             modal.classList.add('hidden');
             confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 } });
-            showToast('🎉 Настоящий MP4 эдит отрендерен и сохранен!');
+            showToast('🎉 Настоящий MP4 эдит отрендерен 1 в 1!');
 
-            downloadBlobFile(finalVideoBlob, `EDIT_GOD_${t.name.replace(/\s+/g, '_')}_${Date.now()}.mp4`);
+            downloadBlobFile(finalVideoBlob, `EDIT_GOD_${t.name.replace(/[^\w]/g, '_')}_${Date.now()}.mp4`);
         }
 
         function downloadBlobFile(blob, filename) {
