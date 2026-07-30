@@ -23,11 +23,37 @@ function extractPinterestId(url) {
   return pinMatch ? pinMatch[1] : null;
 }
 
+async function resolveShortUrl(shortUrl) {
+  try {
+    const res = await axios.head(shortUrl, {
+      maxRedirects: 5,
+      timeout: 10000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+    return res.request.res.responseUrl || res.headers.location || shortUrl;
+  } catch (err) {
+    if (err.response && err.response.request.res.responseUrl) {
+      return err.response.request.res.responseUrl;
+    }
+    throw new Error('Не удалось развернуть короткую ссылку');
+  }
+}
+
 async function getPinVideoUrl(pinUrl) {
-  const pinId = extractPinterestId(pinUrl);
+  let resolvedUrl = pinUrl;
+  
+  if (pinUrl.includes('pin.it/')) {
+    console.log('Разворачиваю короткую ссылку...');
+    resolvedUrl = await resolveShortUrl(pinUrl);
+    console.log('Развернуто:', resolvedUrl);
+  }
+
+  const pinId = extractPinterestId(resolvedUrl);
   if (!pinId) throw new Error('Неверная ссылка на Pinterest');
 
-  const res = await axios.get(pinUrl, {
+  const res = await axios.get(resolvedUrl, {
     headers: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.0',
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
