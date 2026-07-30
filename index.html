@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YouTube → VK</title>
+  <title>Pinterest → VK</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -27,7 +27,7 @@
     h1 {
       font-size: 24px;
       margin-bottom: 8px;
-      background: linear-gradient(90deg, #ff4444, #4472ff);
+      background: linear-gradient(90deg, #e60023, #bd081c);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -52,11 +52,11 @@
       outline: none;
       transition: border-color 0.2s;
     }
-    input:focus, textarea:focus { border-color: #4472ff; }
-    textarea { resize: none; height: 80px; font-family: monospace; font-size: 12px; }
+    input:focus, textarea:focus { border-color: #e60023; }
+    textarea { resize: none; height: 100px; font-family: monospace; font-size: 12px; }
     button {
       width: 100%;
-      background: linear-gradient(135deg, #4472ff, #7c3aed);
+      background: linear-gradient(135deg, #e60023, #bd081c);
       border: none;
       border-radius: 10px;
       padding: 14px;
@@ -67,10 +67,7 @@
       transition: opacity 0.2s;
     }
     button:hover { opacity: 0.9; }
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
     .status {
       margin-top: 16px;
       padding: 12px;
@@ -98,26 +95,34 @@
       padding: 12px;
       background: #0a0a0a;
       border-radius: 10px;
-      border-left: 3px solid #ff4444;
+      border-left: 3px solid #e60023;
     }
-    .hint h3 { font-size: 13px; color: #ff4444; margin-bottom: 6px; }
+    .hint h3 { font-size: 13px; color: #e60023; margin-bottom: 6px; }
     .hint ol { padding-left: 16px; color: #888; font-size: 13px; line-height: 1.8; }
-    .hint a { color: #4472ff; }
+    .hint a { color: #e60023; }
+    .parsed {
+      font-size: 12px;
+      color: #e60023;
+      margin-top: 4px;
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>YouTube → VK</h1>
-    <p>Скачай видео с YouTube и загрузи на свой аккаунт ВК</p>
+    <h1>Pinterest → VK</h1>
+    <p>Скачай видео с Pinterest и загрузи на свой аккаунт ВК</p>
 
     <div class="input-group">
-      <label>Ссылка на YouTube</label>
-      <input type="text" id="url" placeholder="https://youtube.com/watch?v=..." autocomplete="off">
+      <label>Ссылка на Pinterest</label>
+      <input type="text" id="url" placeholder="https://pinterest.com/pin/1234567890..." autocomplete="off">
+      <div class="parsed" id="parsedUrl"></div>
     </div>
 
     <div class="input-group">
-      <label>Токен доступа VK</label>
-      <textarea id="token" placeholder="vk1.a.xxx..." spellcheck="false"></textarea>
+      <label>Токен доступа VK (или полная ссылка с vkhost)</label>
+      <textarea id="token" placeholder="vk1.a.xxx... или https://oauth.vk.com/blank.html#access_token=..." spellcheck="false"></textarea>
+      <div class="parsed" id="parsedToken"></div>
     </div>
 
     <button id="btn" onclick="upload()">Загрузить на VK</button>
@@ -128,18 +133,45 @@
       <h3>Как получить токен VK:</h3>
       <ol>
         <li>Открой: <a href="https://vkhost.github.io/" target="_blank">vkhost.github.io</a></li>
-        <li>Выбери "VK Admin" или "Kate Mobile"</li>
+        <li>Выбери "VK Admin"</li>
         <li>Нажми "Получить", разреши доступ</li>
-        <li>Скопируй токен из адресной строки (после <code>#access_token=</code>)</li>
-        <li>Вставь сюда 👆</li>
+        <li>Скопируй <b>всю ссылку</b> из адресной строки и вставь сюда 👆</li>
       </ol>
     </div>
   </div>
 
   <script>
+    const urlInput = document.getElementById('url');
+    const tokenInput = document.getElementById('token');
+    const parsedUrl = document.getElementById('parsedUrl');
+    const parsedToken = document.getElementById('parsedToken');
+
+    function parseToken(input) {
+      const match = input.match(/access_token=([a-zA-Z0-9_.-]+)/);
+      return match ? match[1] : input.trim();
+    }
+
+    function extractPinId(url) {
+      const match = url.match(/pin\/(\d+)/);
+      return match ? match[1] : null;
+    }
+
+    urlInput.addEventListener('input', () => {
+      const pinId = extractPinId(urlInput.value);
+      parsedUrl.style.display = pinId ? 'block' : 'none';
+      parsedUrl.textContent = pinId ? `Pin ID: ${pinId}` : '';
+    });
+
+    tokenInput.addEventListener('input', () => {
+      const parsed = parseToken(tokenInput.value);
+      const isFullUrl = tokenInput.value.includes('access_token=');
+      parsedToken.style.display = isFullUrl ? 'block' : 'none';
+      parsedToken.textContent = isFullUrl ? `Токен извлечён: ${parsed.slice(0, 20)}...` : '';
+    });
+
     async function upload() {
-      const url = document.getElementById('url').value.trim();
-      const token = document.getElementById('token').value.trim();
+      const url = urlInput.value.trim();
+      const token = tokenInput.value.trim();
       const btn = document.getElementById('btn');
       const status = document.getElementById('status');
 
@@ -149,19 +181,19 @@
       }
 
       btn.disabled = true;
-      showStatus('loading', 'Скачиваю видео... Это может занять минуту');
+      showStatus('loading', 'Ищу видео на Pinterest...');
 
       try {
         const res = await fetch('/api/upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ youtubeUrl: url, vkToken: token })
+          body: JSON.stringify({ pinterestUrl: url, vkToken: token })
         });
 
         const data = await res.json();
 
         if (data.success) {
-          showStatus('success', `✅ ${data.message}\n\n<a href="${data.vkUrl}" target="_blank" style="color:#69f0ae">Открыть видео в VK</a>`);
+          showStatus('success', `✅ ${data.message}<br><br><a href="${data.vkUrl}" target="_blank" style="color:#69f0ae;text-decoration:underline">Открыть видео в VK</a>`);
         } else {
           showStatus('error', data.error || 'Ошибка');
         }
