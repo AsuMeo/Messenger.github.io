@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const FormData = require('form-data');
@@ -14,84 +13,115 @@ app.use(express.static('.'));
 
 const PORT = process.env.PORT || 3000;
 
-// Скачивание видео через yt-dlp
-function downloadVideo(url, outputPath) {
-  return new Promise((resolve, reject) => {
-    const cmd = `yt-dlp -f "best[height<=720][filesize<100M]" --no-playlist -o "${outputPath}" "${url}"`;
-    exec(cmd, { timeout: 300000 }, (err) => {
-      if (err) reject(err);
-      else resolve(outputPath);
+function parseToken(input) {
+  const match = input.match(/access_token=([a-zA-Z0-9_.-]+)/);
+  return match ? match[1] : input.trim();
+}
+
+function extractPinterestId(url) {
+  const pinMatch = url.match(/pinterest\.com\/pin\/(\d+)/);
+  return pinMatch ? pinMatch[1] : null;
+}
+
+async function getPinVideoUrl(pinUrl) {
+  // Способ 1: через Pinterest API (публичный, без ключа)
+  const pinId = extractPinterestId(pinUrl);
+  if (!pinId) throw new Error('Неверная ссылка на Pinterest');
+
+  // Пробуем через публичный embed/oembed
+  try {
+    const oembedRes = await axios.get(`https://www.pinterest.com/oembed.json?url=${encodeURIComponent(pinUrl)}`, {
+      timeout: 10000
     });
+    // oembed даёт HTML, но не прямую ссылку на видео
+    console.log('oembed:', oembedRes.data);
+  } catch (e) {
+    console.log('oembed failed, trying next method');
+  }
+
+  // Способ 2: парсим страницу Pinterest
+  const res = await axios.get(pinUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.0'
+    },
+    timeout: 15000
+  });
+
+  const html = res.data;
+
+  // Ищем видео URL в JSON данных страницы
+  const jsonMatch = html.match(/<script id="initial-state" type="application\/json">(.+?)<\/script>/);
+  if (jsonMatch) {
+    const data = JSON.parse(jsonMatch[1]);
+    const pins = data?.resourceResponses?.[0]?.response?.data;
+    const pin = pins || data?.resources?.data?.[`PinResource:/pin/${pinId}/`];
+    
+    if (pin?.videos?.video_list) {
+      const videos = pin.videos.video_list;
+      const best = Object.values(videos).sort((a, b) => (b.width || 0) - (a.width || 0))[0];
+      if (best?.url) return best.url;
+    }
+  }
+
+  // Способ 3: ищем прямую ссылку на видео в HTML
+  const videoMatch = html.match(/"url":"(https:\/\/v\.pinimg\.com\/[^"]+\.mp4)"/);
+  if (videoMatch) return videoMatch[1].replace(/\\/g, '');
+
+  const videoMatch2 = html.match(/(https:\/\/v\.pinimg\.com\/[^"']+\.mp4)/);
+  if (videoMatch2) return videoMatch2[1];
+
+  throw new Error('Не удалось найти видео на странице Pinterest');
+}
+
+async function downloadFile(url, outputPath) {
+  const res = await axios.get(url, {
+    responseType: 'stream',
+    timeout: 120000,
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.0',
+      'Referer': 'https://www.pinterest.com/'
+    }
+  });
+
+  const writer = fs.createWriteStream(outputPath);
+  res.data.pipe(writer);
+
+  return new Promise((resolve, reject) => {
+    writer.on('finish', () => resolve(outputPath));
+    writer.on('error', reject);
   });
 }
 
-// API: загрузка видео на ВК
 app.post('/api/upload', async (req, res) => {
-  const { youtubeUrl, vkToken } = req.body;
+  let { pinterestUrl, vkToken } = req.body;
   
-  if (!youtubeUrl || !vkToken) {
-    return res.status(400).json({ error: 'Нужна ссылка и токен ВК' });
+  vkToken = parseToken(vkToken);
+
+  if (!pinterestUrl || !vkToken) {
+    return res.status(400).json({ error: 'Нужна ссылка на Pinterest и токен ВК' });
   }
 
-  const videoId = youtubeUrl.match(/(?:v=|\/)([a-zA-Z0-9_-]{11})/)?.[1] || 'video';
-  const tempPath = path.join(__dirname, `temp_${Date.now()}_${videoId}.mp4`);
+  const pinId = extractPinterestId(pinterestUrl);
+  const tempPath = path.join(__dirname, `temp_${Date.now()}_${pinId || 'video'}.mp4`);
 
   try {
-    // 1. Скачиваем видео
+    console.log('Ищу видео на Pinterest...');
+    const videoUrl = await getPinVideoUrl(pinterestUrl);
+    console.log('Найдено:', videoUrl);
+
     console.log('Скачиваю...');
-    await downloadVideo(youtubeUrl, tempPath);
+    await downloadFile(videoUrl, tempPath);
 
-    // 2. Получаем сервер загрузки ВК
-    const videoSave = await axios.get('https://api.vk.com/method/video.save', {
-      params: {
-        access_token: vkToken,
-        v: '5.199',
-        name: `YouTube ${videoId}`,
-        description: youtubeUrl,
-        is_private: 1,
-        wallpost: 0
-      }
-    });
+    const stats = fs.statSync(tempPath);
+    console.log('Размер:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
 
-    if (videoSave.data.error) {
-      throw new Error(videoSave.data.error.error_msg);
-    }
-
-    const uploadUrl = videoSave.data.response.upload_url;
-    const videoData = fs.readFileSync(tempPath);
-
-    // 3. Загружаем видео на сервер ВК
-    console.log('Загружаю на ВК...');
-    const form = new FormData();
-    form.append('video_file', videoData, { filename: 'video.mp4', contentType: 'video/mp4' });
-
-    const uploadRes = await axios.post(uploadUrl, form, {
-      headers: form.getHeaders(),
-      maxBodyLength: Infinity,
-      maxContentLength: Infinity
-    });
-
-    // 4. Видео загружено, получаем owner_id и video_id
-    const { owner_id, video_id } = uploadRes.data;
-
-    res.json({
-      success: true,
-      message: 'Видео загружено!',
-      vkUrl: `https://vk.com/video${owner_id}_${video_id}`,
-      owner_id,
-      video_id
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  } finally {
-    if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+    if (stats.size > 200 * 1024 * 1024) {
+      throw new Error('В {
+    {
+    "express": "^ "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
   }
-});
-
-// Health check
-app.get('/health', (req, res) => res.json({ ok: true }));
-
-app.listen(PORT, () => console.log(`Server on port ${PORT}`));
+}
 
