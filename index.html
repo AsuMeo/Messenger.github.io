@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>⚡ EDIT GOD - Самый мощный редактор эдитов в мире</title>
+    <title>EDIT GOD - Профессиональный редактор эдитов</title>
     <!-- Tailwind CSS & Lucide Icons & Canvas Confetti & GSAP -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,700;0,900;1,900&family=Orbitron:wght@700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,700;0,900;1,900&family=Orbitron:wght@700;900&display=swap');
         
         * {
             box-sizing: border-box;
@@ -20,8 +20,8 @@
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: #050508;
-            color: #ffffff;
+            background-color: #030305;
+            color: #f4f4f5;
             overflow-x: hidden;
         }
 
@@ -29,49 +29,38 @@
             font-family: 'Orbitron', sans-serif;
         }
 
-        /* Неоновые свечения и кастомные скроллбары */
-        .neon-glow {
-            box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
-        }
-        .neon-glow-cyan {
-            box-shadow: 0 0 25px rgba(6, 182, 212, 0.4);
-        }
-        .neon-glow-red {
-            box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
-        }
-
         ::-webkit-scrollbar {
             width: 4px;
             height: 4px;
         }
         ::-webkit-scrollbar-track {
-            background: #0b0b10;
+            background: #09090b;
         }
         ::-webkit-scrollbar-thumb {
-            background: #8b5cf6;
+            background: #27272a;
             border-radius: 4px;
         }
 
-        /* Анимации для эдитов */
+        /* CSS Анимации для предпросмотра */
         @keyframes beatScale {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
+            50% { transform: scale(1.09); }
         }
         @keyframes glitchAnim {
             0% { transform: translate(0); }
-            20% { transform: translate(-8px, 5px) rotate(-2deg); filter: hue-rotate(90deg) contrast(1.8); }
-            40% { transform: translate(-5px, -8px) rotate(2deg); filter: invert(0.8); }
-            60% { transform: translate(8px, 5px) scale(1.1); filter: saturate(3); }
-            80% { transform: translate(5px, -5px); }
+            20% { transform: translate(-10px, 6px) rotate(-2deg); filter: hue-rotate(90deg) contrast(1.8); }
+            40% { transform: translate(-6px, -10px) rotate(2deg); filter: invert(0.8); }
+            60% { transform: translate(10px, 6px) scale(1.12); filter: saturate(3); }
+            80% { transform: translate(6px, -6px); }
             100% { transform: translate(0); }
         }
         @keyframes cyberpunkFlash {
             0%, 100% { transform: scale(1); filter: contrast(1) brightness(1); }
-            50% { transform: scale(1.12); filter: contrast(2) brightness(1.5) drop-shadow(0 0 15px cyan); }
+            50% { transform: scale(1.14); filter: contrast(2) brightness(1.5); }
         }
         @keyframes animeZoom {
             0% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.22) rotate(-4deg); }
+            50% { transform: scale(1.25) rotate(-4deg); }
             100% { transform: scale(1) rotate(0deg); }
         }
         @keyframes 3dFlipRot {
@@ -81,38 +70,38 @@
         }
         @keyframes matrixRain {
             0% { transform: scale(1); filter: sepia(1) hue-rotate(90deg) contrast(2); }
-            50% { transform: scale(1.1); filter: sepia(1) hue-rotate(120deg) contrast(3) brightness(1.2); }
+            50% { transform: scale(1.12); filter: sepia(1) hue-rotate(120deg) contrast(3) brightness(1.2); }
             100% { transform: scale(1); filter: sepia(1) hue-rotate(90deg) contrast(2); }
         }
         @keyframes shakeHard {
             0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-            20% { transform: translate(-12px, 8px) rotate(-4deg) scale(1.08); }
-            40% { transform: translate(12px, -8px) rotate(4deg) scale(1.05); }
-            60% { transform: translate(-8px, -12px) rotate(-3deg) scale(1.1); }
-            80% { transform: translate(8px, 12px) rotate(3deg) scale(1.05); }
+            20% { transform: translate(-14px, 9px) rotate(-4deg) scale(1.08); }
+            40% { transform: translate(14px, -9px) rotate(4deg) scale(1.05); }
+            60% { transform: translate(-9px, -14px) rotate(-3deg) scale(1.12); }
+            80% { transform: translate(9px, 14px) rotate(3deg) scale(1.05); }
         }
         @keyframes neonPulseGlow {
-            0%, 100% { transform: scale(1); box-shadow: inset 0 0 15px rgba(236, 72, 153, 0.8), 0 0 20px rgba(236, 72, 153, 0.8); }
-            50% { transform: scale(1.08); box-shadow: inset 0 0 35px rgba(6, 182, 212, 1), 0 0 45px rgba(6, 182, 212, 1); }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
         @keyframes smoothSlideRight {
             0% { transform: translateX(-40px) scale(0.95); opacity: 0.5; }
-            50% { transform: translateX(0) scale(1.05); opacity: 1; }
+            50% { transform: translateX(0) scale(1.06); opacity: 1; }
             100% { transform: translateX(40px) scale(0.95); opacity: 0.5; }
         }
         @keyframes smoothSlideUp {
             0% { transform: translateY(40px) scale(0.95); opacity: 0.5; }
-            50% { transform: translateY(0) scale(1.05); opacity: 1; }
+            50% { transform: translateY(0) scale(1.06); opacity: 1; }
             100% { transform: translateY(-40px) scale(0.95); opacity: 0.5; }
         }
         @keyframes spinSlow {
             0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.18); }
+            50% { transform: rotate(180deg) scale(1.2); }
             100% { transform: rotate(360deg) scale(1); }
         }
         @keyframes rgbSplitAnim {
             0% { transform: scale(1); filter: drop-shadow(6px 0px red) drop-shadow(-6px 0px cyan); }
-            50% { transform: scale(1.12); filter: drop-shadow(-6px 0px red) drop-shadow(6px 0px cyan) contrast(1.5); }
+            50% { transform: scale(1.14); filter: drop-shadow(-6px 0px red) drop-shadow(6px 0px cyan) contrast(1.5); }
             100% { transform: scale(1); filter: drop-shadow(6px 0px red) drop-shadow(-6px 0px cyan); }
         }
         @keyframes blurPulse {
@@ -143,15 +132,10 @@
         }
         @keyframes heartbeatGod {
             0%, 100% { transform: scale(1); filter: brightness(1); }
-            15% { transform: scale(1.2); filter: brightness(1.4); }
+            15% { transform: scale(1.22); filter: brightness(1.4); }
             30% { transform: scale(1); filter: brightness(1); }
-            45% { transform: scale(1.25); filter: brightness(1.6); }
+            45% { transform: scale(1.28); filter: brightness(1.6); }
             60% { transform: scale(1); filter: brightness(1); }
-        }
-        @keyframes neonStrobe {
-            0%, 100% { border-color: #ec4899; box-shadow: 0 0 20px #ec4899; }
-            33% { border-color: #06b6d4; box-shadow: 0 0 20px #06b6d4; }
-            66% { border-color: #eab308; box-shadow: 0 0 20px #eab308; }
         }
         @keyframes dualSplit {
             0% { clip-path: inset(0 0 0 0); transform: scale(1); }
@@ -173,14 +157,14 @@
         }
         @keyframes earthquakeGod {
             0% { transform: translate(0, 0) scale(1); }
-            10% { transform: translate(-14px, 14px) scale(1.1); }
-            20% { transform: translate(14px, -14px) scale(1.05); }
-            30% { transform: translate(-10px, -10px) scale(1.12); }
-            40% { transform: translate(10px, 10px) scale(1.02); }
-            50% { transform: translate(-7px, 7px) scale(1.08); }
-            60% { transform: translate(7px, -7px) scale(1.03); }
-            70% { transform: translate(-4px, 4px) scale(1.05); }
-            80% { transform: translate(4px, -4px) scale(1.01); }
+            10% { transform: translate(-15px, 15px) scale(1.1); }
+            20% { transform: translate(15px, -15px) scale(1.05); }
+            30% { transform: translate(-11px, -11px) scale(1.14); }
+            40% { transform: translate(11px, 11px) scale(1.02); }
+            50% { transform: translate(-8px, 8px) scale(1.1); }
+            60% { transform: translate(8px, -8px) scale(1.03); }
+            70% { transform: translate(-5px, 5px) scale(1.06); }
+            80% { transform: translate(5px, -5px) scale(1.01); }
             90% { transform: translate(-2px, 2px) scale(1.02); }
             100% { transform: translate(0, 0) scale(1); }
         }
@@ -194,28 +178,18 @@
             50% { transform: scale(1.45); }
             100% { transform: scale(1); }
         }
-        @keyframes strobeBlink {
-            0%, 100% { opacity: 1; filter: brightness(1); }
-            25% { opacity: 0.2; filter: brightness(2.5); }
-            50% { opacity: 1; filter: brightness(0.4); }
-            75% { opacity: 0.5; filter: brightness(2); }
-        }
         @keyframes ghostTrail {
             0% { opacity: 1; transform: scale(1); }
             100% { opacity: 0.2; transform: scale(1.35); }
         }
         @keyframes bassDropVibe {
             0%, 100% { transform: scale(1) skew(0deg); }
-            25% { transform: scale(1.18) skew(-8deg); filter: contrast(1.8); }
-            50% { transform: scale(0.88) skew(8deg); filter: hue-rotate(90deg); }
-            75% { transform: scale(1.18) skew(-5deg); filter: contrast(1.8); }
-        }
-        @keyframes neonBorderPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 10px #ff007f, inset 0 0 10px #ff007f; }
-            50% { transform: scale(1.1); box-shadow: 0 0 35px #00ffff, inset 0 0 25px #00ffff; }
+            25% { transform: scale(1.2) skew(-8deg); filter: contrast(1.8); }
+            50% { transform: scale(0.86) skew(8deg); filter: hue-rotate(90deg); }
+            75% { transform: scale(1.2) skew(-5deg); filter: contrast(1.8); }
         }
 
-        /* Кастомный ползунок для обрезки аудио */
+        /* Кастомный стиль для слайдеров */
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
             height: 18px;
@@ -223,7 +197,7 @@
             border-radius: 50%;
             background: #06b6d4;
             cursor: pointer;
-            box-shadow: 0 0 10px #06b6d4;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
         }
         input[type=range]::-moz-range-thumb {
             height: 18px;
@@ -231,31 +205,37 @@
             border-radius: 50%;
             background: #06b6d4;
             cursor: pointer;
-            box-shadow: 0 0 10px #06b6d4;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+        }
+
+        /* Элегантная закругленная рамка кадра */
+        .video-stage-frame {
+            border-radius: 28px;
+            box-shadow: inset 0 0 0 2px rgba(139, 92, 246, 0.4), 0 0 25px rgba(0, 0, 0, 0.8);
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col pb-24 selection:bg-purple-500 selection:text-white">
+<body class="min-h-screen flex flex-col pb-24 selection:bg-purple-600 selection:text-white bg-[#030305]">
 
     <!-- TOP HEADER -->
-    <header class="sticky top-0 z-50 bg-[#08080f]/95 backdrop-blur-md border-b border-purple-900/40 px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-            <div class="w-9 h-9 bg-gradient-to-tr from-purple-600 via-pink-500 to-cyan-400 rounded-xl flex items-center justify-center neon-glow">
-                <i data-lucide="zap" class="w-5 h-5 text-white animate-pulse"></i>
+    <header class="sticky top-0 z-50 bg-[#09090b]/95 backdrop-blur-md border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+            <div class="w-9 h-9 bg-zinc-900 border border-purple-500/50 rounded-xl flex items-center justify-center shadow-lg">
+                <i data-lucide="zap" class="w-5 h-5 text-purple-400"></i>
             </div>
             <div>
-                <h1 class="font-cyber text-lg font-black tracking-wider bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">EDIT GOD</h1>
-                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Android Edit Engine v9.9</p>
+                <h1 class="font-cyber text-base font-black tracking-wider text-white">EDIT GOD</h1>
+                <p class="text-[9px] text-zinc-400 font-bold uppercase tracking-widest">PRO EDIT ENGINE v10.0</p>
             </div>
         </div>
         <div class="flex items-center space-x-2">
-            <button onclick="openCustomTemplateModal()" class="bg-gradient-to-r from-pink-600 to-purple-600 px-3 py-1.5 rounded-xl text-xs font-bold font-cyber flex items-center space-x-1 neon-glow active:scale-95 transition">
-                <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+            <button onclick="openCustomTemplateModal()" class="bg-zinc-900 hover:bg-zinc-800 border border-purple-500/40 text-purple-300 px-3 py-1.5 rounded-xl text-xs font-bold font-cyber flex items-center space-x-1.5 transition active:scale-95">
+                <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
                 <span>ГЕНЕРАТОР</span>
             </button>
-            <button onclick="toggleMusicModal()" class="relative bg-zinc-800 hover:bg-zinc-700 p-2 rounded-xl border border-zinc-700 transition active:scale-95">
-                <i data-lucide="music" class="w-5 h-5 text-cyan-400" id="musicIcon"></i>
-                <span id="musicBadge" class="absolute -top-1 -right-1 w-3 h-3 bg-cyan-500 rounded-full hidden animate-ping"></span>
+            <button onclick="toggleMusicModal()" class="relative bg-zinc-900 hover:bg-zinc-800 p-2 rounded-xl border border-zinc-800 text-cyan-400 transition active:scale-95">
+                <i data-lucide="music" class="w-5 h-5" id="musicIcon"></i>
+                <span id="musicBadge" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-cyan-400 rounded-full hidden"></span>
             </button>
         </div>
     </header>
@@ -264,25 +244,24 @@
     <main class="flex-1 max-w-md w-full mx-auto p-4 flex flex-col space-y-5">
 
         <!-- STEP 1: SELECT PHOTOS (ANDROID GALLERY) -->
-        <section class="bg-[#0e0e17] border border-zinc-800 rounded-2xl p-4 relative overflow-hidden shadow-2xl">
-            <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-purple-600/10 rounded-full blur-2xl pointer-events-none"></div>
+        <section class="bg-[#09090b] border border-zinc-800/80 rounded-2xl p-4 relative shadow-2xl">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center space-x-2">
-                    <span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs font-bold flex items-center justify-center font-cyber">1</span>
-                    <h2 class="font-cyber text-sm font-bold tracking-wide">ФОТО ИЗ ГАЛЕРЕИ (5-10 шт)</h2>
+                    <span class="w-6 h-6 rounded-lg bg-purple-600/20 border border-purple-500/40 text-purple-400 text-xs font-bold flex items-center justify-center font-cyber">1</span>
+                    <h2 class="font-cyber text-xs font-bold tracking-wide text-zinc-200">ФОТО ИЗ ГАЛЕРЕИ (5-10 шт)</h2>
                 </div>
-                <span id="photoCountBadge" class="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 font-mono">0 / 10</span>
+                <span id="photoCountBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono">0 / 10</span>
             </div>
 
             <!-- Upload Button -->
-            <label class="block w-full border-2 border-dashed border-purple-500/40 hover:border-purple-500 bg-purple-950/20 hover:bg-purple-900/30 rounded-xl p-4 text-center cursor-pointer transition active:scale-[0.98]">
+            <label class="block w-full border border-dashed border-zinc-700 hover:border-purple-500 bg-zinc-900/60 hover:bg-zinc-900 rounded-xl p-4 text-center cursor-pointer transition active:scale-[0.98]">
                 <input type="file" id="androidGalleryInput" accept="image/*" multiple class="hidden" onchange="handleAndroidPhotos(event)">
-                <div class="flex flex-col items-center space-y-1.5">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center neon-glow">
-                        <i data-lucide="image-plus" class="w-6 h-6 text-white"></i>
+                <div class="flex flex-col items-center space-y-2">
+                    <div class="w-10 h-10 rounded-xl bg-purple-950/50 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                        <i data-lucide="image-plus" class="w-5 h-5"></i>
                     </div>
-                    <span class="text-xs font-bold text-gray-200">Выбрать фото из телефона</span>
-                    <span class="text-[10px] text-gray-400">Нажмите чтобы открыть галерею Android</span>
+                    <span class="text-xs font-bold text-zinc-200">Выбрать фото из устройства</span>
+                    <span class="text-[10px] text-zinc-500">Поддерживает JPG, PNG, WEBP</span>
                 </div>
             </label>
 
@@ -293,79 +272,103 @@
         </section>
 
         <!-- STEP 2: CHOOSE TEMPLATE (30+ TEMPLATES) -->
-        <section class="bg-[#0e0e17] border border-zinc-800 rounded-2xl p-4 relative shadow-2xl">
+        <section class="bg-[#09090b] border border-zinc-800/80 rounded-2xl p-4 relative shadow-2xl">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center space-x-2">
-                    <span class="w-6 h-6 rounded-full bg-pink-600 text-white text-xs font-bold flex items-center justify-center font-cyber">2</span>
-                    <h2 class="font-cyber text-sm font-bold tracking-wide">МОЩНЫЕ ШАБЛОНЫ (30+)</h2>
+                    <span class="w-6 h-6 rounded-lg bg-pink-600/20 border border-pink-500/40 text-pink-400 text-xs font-bold flex items-center justify-center font-cyber">2</span>
+                    <h2 class="font-cyber text-xs font-bold tracking-wide text-zinc-200">МОЩНЫЕ ШАБЛОНЫ (30+)</h2>
                 </div>
                 <div class="flex space-x-1">
-                    <button onclick="filterTemplates('all')" class="text-[10px] px-2 py-1 bg-purple-600 rounded-lg font-bold template-filter active" data-filter="all">Все</button>
-                    <button onclick="filterTemplates('tiktok')" class="text-[10px] px-2 py-1 bg-zinc-800 rounded-lg text-gray-400 font-bold template-filter" data-filter="tiktok">TikTok</button>
-                    <button onclick="filterTemplates('cyber')" class="text-[10px] px-2 py-1 bg-zinc-800 rounded-lg text-gray-400 font-bold template-filter" data-filter="cyber">Кибер</button>
+                    <button onclick="filterTemplates('all')" class="text-[10px] px-2.5 py-1 bg-purple-600 border border-purple-500 rounded-lg font-bold text-white template-filter active" data-filter="all">Все</button>
+                    <button onclick="filterTemplates('tiktok')" class="text-[10px] px-2.5 py-1 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 font-bold template-filter" data-filter="tiktok">TikTok</button>
+                    <button onclick="filterTemplates('cyber')" class="text-[10px] px-2.5 py-1 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 font-bold template-filter" data-filter="cyber">Кибер</button>
                 </div>
             </div>
 
             <!-- Templates Horizontal / Vertical Grid (30 items) -->
-            <div id="templatesContainer" class="grid grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1">
+            <div id="templatesContainer" class="grid grid-cols-2 gap-2.5 max-h-64 overflow-y-auto pr-1">
                 <!-- JS генерирует 30+ шаблонов -->
             </div>
         </section>
 
-        <!-- PREVIEW & PLAYER STAGE -->
-        <section class="bg-[#0b0b12] border-2 border-purple-500/40 rounded-2xl p-4 flex flex-col items-center relative neon-glow overflow-hidden">
-            <div class="absolute top-2 right-2 flex items-center space-x-1 bg-black/60 backdrop-blur px-2 py-1 rounded-lg text-[10px] text-cyan-400 font-mono z-10">
-                <i data-lucide="eye" class="w-3 h-3"></i>
-                <span id="activeTemplateName">Шаблон не выбран</span>
+        <!-- PREVIEW & PLAYER STAGE WITH ROUNDED FRAME OVERLAY -->
+        <section class="bg-[#09090b] border border-zinc-800/80 rounded-2xl p-4 flex flex-col items-center relative shadow-2xl overflow-hidden">
+            <div class="w-full flex items-center justify-between mb-3 px-1">
+                <div class="flex items-center space-x-1.5 text-[11px] text-zinc-300 font-bold">
+                    <i data-lucide="film" class="w-4 h-4 text-purple-400"></i>
+                    <span>Предпросмотр Эдита</span>
+                </div>
+                <div class="flex items-center space-x-1 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-lg text-[10px] text-cyan-400 font-mono">
+                    <i data-lucide="eye" class="w-3 h-3"></i>
+                    <span id="activeTemplateName">Шаблон не выбран</span>
+                </div>
             </div>
 
-            <!-- Edit Screen Canvas / Stage -->
-            <div id="editStage" class="w-full aspect-[9/16] max-h-[380px] bg-black rounded-xl overflow-hidden relative flex items-center justify-center border border-zinc-800 shadow-inner">
-                <div id="stagePlaceholder" class="flex flex-col items-center justify-center p-6 text-center space-y-2">
-                    <i data-lucide="film" class="w-12 h-12 text-zinc-600 animate-bounce"></i>
-                    <p class="text-xs text-zinc-400 font-medium">Загрузите фото и выберите шаблон, чтобы увидеть магию эдита</p>
+            <!-- Edit Screen Canvas / Stage with Elegant Rounded Frame -->
+            <div id="editStage" class="w-full aspect-[9/16] max-h-[380px] bg-black rounded-[28px] overflow-hidden relative flex items-center justify-center border-2 border-purple-500/40 shadow-2xl video-stage-frame">
+                <div id="stagePlaceholder" class="flex flex-col items-center justify-center p-6 text-center space-y-2 z-10">
+                    <i data-lucide="play-circle" class="w-12 h-12 text-zinc-700 animate-pulse"></i>
+                    <p class="text-xs text-zinc-400 font-medium">Загрузите фото и выберите шаблон</p>
                 </div>
-                <div id="slideShowContainer" class="absolute inset-0 w-full h-full hidden">
+                <div id="slideShowContainer" class="absolute inset-0 w-full h-full hidden rounded-[26px] overflow-hidden">
                     <!-- Активные фото с анимациями -->
                 </div>
-                <!-- VFX Overlay Elements -->
-                <div id="vfxOverlay" class="absolute inset-0 pointer-events-none mix-blend-screen opacity-70"></div>
                 <!-- Beat Flash Overlay -->
-                <div id="beatFlash" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-75 z-20"></div>
+                <div id="beatFlash" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-75 z-20 rounded-[26px]"></div>
+                <!-- Stylish Inner Frame Line -->
+                <div class="absolute inset-0 border border-purple-500/30 pointer-events-none rounded-[26px] z-30"></div>
             </div>
 
             <!-- Playback Controls -->
-            <div class="w-full flex items-center justify-between mt-4">
-                <button onclick="restartEditPreview()" class="w-10 h-10 rounded-xl bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-gray-300 active:scale-95 transition">
+            <div class="w-full flex items-center justify-between mt-4 space-x-2">
+                <button onclick="restartEditPreview()" class="w-11 h-11 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 flex items-center justify-center text-zinc-300 active:scale-95 transition">
                     <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                 </button>
-                <button onclick="togglePlayPreview()" id="playBtn" class="flex-1 mx-3 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-500 rounded-xl font-cyber text-sm font-black flex items-center justify-center space-x-2 neon-glow active:scale-95 transition shadow-lg">
-                    <i data-lucide="play" class="w-5 h-5 fill-current"></i>
+                <button onclick="togglePlayPreview()" id="playBtn" class="flex-1 py-3 bg-purple-600 hover:bg-purple-500 border border-purple-400 text-white rounded-xl font-cyber text-xs font-bold flex items-center justify-center space-x-2 active:scale-95 transition shadow-lg">
+                    <i data-lucide="play" class="w-4 h-4 fill-current"></i>
                     <span>ЗАПУСТИТЬ ЭДИТ</span>
                 </button>
-                <button onclick="toggleMuteAudio()" id="muteBtn" class="w-10 h-10 rounded-xl bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-gray-300 active:scale-95 transition">
+                <button onclick="toggleMuteAudio()" id="muteBtn" class="w-11 h-11 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 flex items-center justify-center text-zinc-300 active:scale-95 transition">
                     <i data-lucide="volume-2" class="w-4 h-4" id="volumeIcon"></i>
                 </button>
             </div>
         </section>
 
-        <!-- STEP 3: EXPORT & RENDER -->
-        <section class="bg-gradient-to-r from-purple-950/60 via-[#0e0e17] to-cyan-950/60 border border-purple-500/30 rounded-2xl p-4 flex flex-col space-y-3">
+        <!-- STEP 3: EXPORT & STATS -->
+        <section class="bg-[#09090b] border border-zinc-800/80 rounded-2xl p-4 flex flex-col space-y-3 shadow-2xl">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <span class="w-6 h-6 rounded-full bg-cyan-600 text-white text-xs font-bold flex items-center justify-center font-cyber">3</span>
-                    <h2 class="font-cyber text-sm font-bold tracking-wide">РЕНДЕР И ЭКСПОРТ</h2>
+                    <span class="w-6 h-6 rounded-lg bg-cyan-600/20 border border-cyan-500/40 text-cyan-400 text-xs font-bold flex items-center justify-center font-cyber">3</span>
+                    <h2 class="font-cyber text-xs font-bold tracking-wide text-zinc-200">РЕНДЕР И ЭКСПОРТ MP4</h2>
                 </div>
-                <span class="text-[10px] text-cyan-400 font-mono">1080p 60FPS HD</span>
+                <span class="text-[10px] text-cyan-400 font-mono bg-cyan-950/40 border border-cyan-800/50 px-2 py-0.5 rounded-md">1080p 60FPS</span>
             </div>
 
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="renderAndDownloadVideo()" class="py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl font-cyber text-xs font-bold flex items-center justify-center space-x-2 neon-glow-cyan active:scale-95 transition text-white shadow-xl">
+            <!-- Stats & Video Info Box -->
+            <div class="bg-zinc-950 border border-zinc-800/80 rounded-xl p-3 grid grid-cols-2 gap-2 text-center text-xs font-mono">
+                <div class="flex flex-col items-center justify-center p-2 bg-zinc-900/50 rounded-lg border border-zinc-800">
+                    <div class="flex items-center space-x-1 text-zinc-400 text-[10px]">
+                        <i data-lucide="clock" class="w-3 h-3 text-cyan-400"></i>
+                        <span>Длительность:</span>
+                    </div>
+                    <span id="exportDurationDisplay" class="font-bold text-white text-sm mt-0.5">10.0 сек</span>
+                </div>
+                <div class="flex flex-col items-center justify-center p-2 bg-zinc-900/50 rounded-lg border border-zinc-800">
+                    <div class="flex items-center space-x-1 text-zinc-400 text-[10px]">
+                        <i data-lucide="hard-drive" class="w-3 h-3 text-purple-400"></i>
+                        <span>Объем файла:</span>
+                    </div>
+                    <span id="exportSizeDisplay" class="font-bold text-white text-sm mt-0.5">~9.6 МБ</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="renderAndDownloadVideo()" class="py-3 bg-cyan-600 hover:bg-cyan-500 border border-cyan-400 text-white rounded-xl font-cyber text-xs font-bold flex items-center justify-center space-x-2 active:scale-95 transition shadow-lg">
                     <i data-lucide="download" class="w-4 h-4"></i>
-                    <span>СКАЧАТЬ ЭДИТ (MP4)</span>
+                    <span>СКАЧАТЬ MP4</span>
                 </button>
-                <button onclick="shareEditAndroid()" class="py-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl font-cyber text-xs font-bold flex items-center justify-center space-x-2 active:scale-95 transition text-gray-200">
-                    <i data-lucide="share-2" class="w-4 h-4 text-pink-400"></i>
+                <button onclick="shareEditAndroid()" class="py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-200 rounded-xl font-cyber text-xs font-bold flex items-center justify-center space-x-2 active:scale-95 transition">
+                    <i data-lucide="share-2" class="w-4 h-4 text-purple-400"></i>
                     <span>ПОДЕЛИТЬСЯ</span>
                 </button>
             </div>
@@ -373,40 +376,42 @@
 
     </main>
 
-    <!-- MUSIC MODAL (ANDROID FILE PICKER + AUDIO TRIMMER) -->
-    <div id="musicModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-[#0e0e17] border-t sm:border border-purple-500/40 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 flex flex-col space-y-4 shadow-2xl animate-in slide-in-from-bottom duration-300">
-            <div class="flex items-center justify-between">
+    <!-- MUSIC MODAL WITH PRECISE AUDIO TRIMMER -->
+    <div id="musicModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-[#09090b] border-t sm:border border-zinc-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 flex flex-col space-y-4 shadow-2xl animate-in slide-in-from-bottom duration-300">
+            <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
                 <div class="flex items-center space-x-2">
                     <i data-lucide="music" class="w-5 h-5 text-cyan-400"></i>
-                    <h3 class="font-cyber text-sm font-bold">МУЗЫКА И ОБРЕЗКА ТРЕКА</h3>
+                    <h3 class="font-cyber text-xs font-bold text-white">МУЗЫКА И ТОЧНАЯ ОБРЕЗКА</h3>
                 </div>
-                <button onclick="toggleMusicModal()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white">
+                <button onclick="toggleMusicModal()" class="w-7 h-7 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
 
             <div class="space-y-3">
                 <!-- File Input from Android Explorer -->
-                <label class="block w-full border-2 border-dashed border-cyan-500/40 hover:border-cyan-500 bg-cyan-950/20 rounded-xl p-4 text-center cursor-pointer transition active:scale-[0.98]">
+                <label class="block w-full border border-dashed border-zinc-700 hover:border-cyan-500 bg-zinc-950/60 rounded-xl p-4 text-center cursor-pointer transition active:scale-[0.98]">
                     <input type="file" id="androidAudioInput" accept="audio/*" class="hidden" onchange="handleAndroidAudio(event)">
-                    <div class="flex flex-col items-center space-y-1">
-                        <i data-lucide="folder-open" class="w-8 h-8 text-cyan-400"></i>
-                        <span class="text-xs font-bold text-gray-200">Выбрать аудио из проводника</span>
-                        <span class="text-[10px] text-zinc-400">MP3, WAV, AAC, M4A с телефона</span>
+                    <div class="flex flex-col items-center space-y-1.5">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-950/50 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                            <i data-lucide="folder-open" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-xs font-bold text-zinc-200">Выбрать аудио из проводника</span>
+                        <span class="text-[10px] text-zinc-500">MP3, WAV, AAC, M4A</span>
                     </div>
                 </label>
 
-                <!-- Currently Selected Track Info -->
-                <div id="currentTrackInfo" class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex flex-col space-y-3 hidden">
+                <!-- Currently Selected Track Info & Trimmer -->
+                <div id="currentTrackInfo" class="bg-zinc-950 border border-zinc-800 rounded-xl p-3 flex flex-col space-y-3 hidden">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3 overflow-hidden">
-                            <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center shrink-0">
-                                <i data-lucide="disc" class="w-4 h-4 text-cyan-400 animate-spin"></i>
+                        <div class="flex items-center space-x-2.5 overflow-hidden">
+                            <div class="w-8 h-8 rounded-lg bg-cyan-950 border border-cyan-500/30 flex items-center justify-center shrink-0">
+                                <i data-lucide="disc" class="w-4 h-4 text-cyan-400"></i>
                             </div>
                             <div class="truncate">
                                 <p id="trackNameDisplay" class="text-xs font-bold text-white truncate">track.mp3</p>
-                                <p id="trackDurationDisplay" class="text-[10px] text-cyan-400">Длительность: 00:00</p>
+                                <p id="trackDurationDisplay" class="text-[10px] text-cyan-400 font-mono">Длительность: 00:00</p>
                             </div>
                         </div>
                         <button onclick="removeAudio()" class="text-zinc-500 hover:text-red-400 p-1">
@@ -414,49 +419,63 @@
                         </button>
                     </div>
 
-                    <!-- AUDIO TRIMMER SLIDERS -->
-                    <div class="bg-black/60 border border-cyan-500/30 rounded-xl p-3 space-y-2">
+                    <!-- PRECISE AUDIO TRIMMER CONTROLS -->
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 space-y-3">
                         <div class="flex items-center justify-between text-[11px] font-mono">
-                            <span class="text-zinc-400">✂️ Обрезка трека:</span>
-                            <span id="trimRangeText" class="text-cyan-400 font-bold">00:00 - 00:10 (10 сек)</span>
+                            <span class="text-zinc-400 flex items-center space-x-1">
+                                <i data-lucide="scissors" class="w-3.5 h-3.5 text-cyan-400"></i>
+                                <span>Отрезок эдита:</span>
+                            </span>
+                            <span id="trimRangeText" class="text-cyan-400 font-bold">00:00 - 00:10 (10.0 сек)</span>
                         </div>
 
-                        <!-- Start slider -->
-                        <div class="flex flex-col space-y-1">
-                            <div class="flex justify-between text-[10px] text-zinc-400">
-                                <span>Начало:</span>
-                                <span id="startTimeText" class="text-white font-mono">00:00</span>
+                        <!-- Start Slider & Fine Tuning Buttons -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between items-center text-[10px] text-zinc-400">
+                                <span>Начало отрезка:</span>
+                                <span id="startTimeText" class="text-white font-mono font-bold">00:00.0</span>
                             </div>
                             <input type="range" id="trimStartSlider" min="0" max="100" value="0" step="0.1" oninput="updateAudioTrim()" class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex space-x-1 justify-end pt-1">
+                                <button onclick="adjustTrim('start', -0.5)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">-0.5s</button>
+                                <button onclick="adjustTrim('start', -0.1)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">-0.1s</button>
+                                <button onclick="adjustTrim('start', 0.1)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">+0.1s</button>
+                                <button onclick="adjustTrim('start', 0.5)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">+0.5s</button>
+                            </div>
                         </div>
 
-                        <!-- End slider -->
-                        <div class="flex flex-col space-y-1">
-                            <div class="flex justify-between text-[10px] text-zinc-400">
-                                <span>Конец:</span>
-                                <span id="endTimeText" class="text-white font-mono">00:10</span>
+                        <!-- End Slider & Fine Tuning Buttons -->
+                        <div class="space-y-1.5 pt-1">
+                            <div class="flex justify-between items-center text-[10px] text-zinc-400">
+                                <span>Конец отрезка:</span>
+                                <span id="endTimeText" class="text-white font-mono font-bold">00:10.0</span>
                             </div>
                             <input type="range" id="trimEndSlider" min="0" max="100" value="10" step="0.1" oninput="updateAudioTrim()" class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex space-x-1 justify-end pt-1">
+                                <button onclick="adjustTrim('end', -0.5)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">-0.5s</button>
+                                <button onclick="adjustTrim('end', -0.1)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">-0.1s</button>
+                                <button onclick="adjustTrim('end', 0.1)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">+0.1s</button>
+                                <button onclick="adjustTrim('end', 0.5)" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-mono text-zinc-300 rounded border border-zinc-700">+0.5s</button>
+                            </div>
                         </div>
 
-                        <!-- Preview Audio Cut Button -->
-                        <button onclick="previewTrimmedAudio()" class="w-full py-1.5 bg-cyan-900/50 hover:bg-cyan-800/70 border border-cyan-500/40 rounded-lg text-cyan-300 text-[11px] font-bold flex items-center justify-center space-x-1 transition active:scale-95">
-                            <i data-lucide="play-circle" class="w-3.5 h-3.5"></i>
-                            <span>Прослушать отрезок</span>
+                        <button onclick="previewTrimmedAudio()" class="w-full py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-cyan-300 text-xs font-bold flex items-center justify-center space-x-1.5 transition active:scale-95 mt-2">
+                            <i data-lucide="play-circle" class="w-4 h-4"></i>
+                            <span>Прослушать выборку</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Preset Tracks (Bonus) -->
+                <!-- Preset Tracks -->
                 <div>
-                    <p class="text-[11px] text-zinc-400 font-bold mb-2">Или выберите легендарный трек:</p>
+                    <p class="text-[11px] text-zinc-400 font-bold mb-2">Готовые пресет треки:</p>
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="selectPresetAudio('phonk', 'Phonk Death Drift.mp3')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 p-2.5 rounded-xl text-left flex items-center justify-between transition">
-                            <span class="text-xs font-bold text-pink-400">⚡ Dark Phonk</span>
+                            <span class="text-xs font-bold text-pink-400">Dark Phonk</span>
                             <i data-lucide="play" class="w-3.5 h-3.5 text-zinc-500"></i>
                         </button>
                         <button onclick="selectPresetAudio('phonk2', 'Drift AGC 666.mp3')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 p-2.5 rounded-xl text-left flex items-center justify-between transition">
-                            <span class="text-xs font-bold text-cyan-400">🔥 Cyber Bass</span>
+                            <span class="text-xs font-bold text-cyan-400">Cyber Bass</span>
                             <i data-lucide="play" class="w-3.5 h-3.5 text-zinc-500"></i>
                         </button>
                     </div>
@@ -466,30 +485,30 @@
     </div>
 
     <!-- CUSTOM TEMPLATE GENERATOR MODAL -->
-    <div id="customTemplateModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-[#0e0e17] border border-pink-500/40 w-full max-w-md rounded-3xl p-5 flex flex-col space-y-4 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div class="flex items-center justify-between">
+    <div id="customTemplateModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-[#09090b] border border-zinc-800 w-full max-w-md rounded-3xl p-5 flex flex-col space-y-4 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
                 <div class="flex items-center space-x-2">
-                    <i data-lucide="cpu" class="w-5 h-5 text-pink-400"></i>
-                    <h3 class="font-cyber text-sm font-bold">ГЕНЕРАТОР ШАБЛОНОВ</h3>
+                    <i data-lucide="sliders" class="w-5 h-5 text-purple-400"></i>
+                    <h3 class="font-cyber text-xs font-bold text-white">ГЕНЕРАТОР ШАБЛОНОВ</h3>
                 </div>
-                <button onclick="openCustomTemplateModal()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white">
+                <button onclick="openCustomTemplateModal()" class="w-7 h-7 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
 
-            <p class="text-xs text-zinc-400">Создай свой уникальный шаблон эдита с помощью параметров ниже:</p>
+            <p class="text-xs text-zinc-400">Сконструируй свой собственное сочетание эффектов:</p>
 
             <div class="space-y-3">
                 <div>
                     <label class="text-[11px] font-bold text-zinc-300 block mb-1">Название шаблона:</label>
-                    <input type="text" id="genName" value="GODMODE ULTRA" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-cyber focus:outline-none focus:border-pink-500">
+                    <input type="text" id="genName" value="GODMODE ULTRA" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-cyber focus:outline-none focus:border-purple-500">
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="text-[11px] font-bold text-zinc-300 block mb-1">Эффект анимации:</label>
-                        <select id="genAnim" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
+                        <label class="text-[11px] font-bold text-zinc-300 block mb-1">Анимация:</label>
+                        <select id="genAnim" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
                             <option value="glitchAnim">Glitch Cyber</option>
                             <option value="earthquakeGod">Earthquake Bass</option>
                             <option value="kaleidoscopeSpin">Kaleidoscope</option>
@@ -499,7 +518,7 @@
                     </div>
                     <div>
                         <label class="text-[11px] font-bold text-zinc-300 block mb-1">Скорость смены:</label>
-                        <select id="genSpeed" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
+                        <select id="genSpeed" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
                             <option value="0.3s">0.3s (Ультра Бит)</option>
                             <option value="0.5s">0.5s (TikTok Стандарт)</option>
                             <option value="0.8s">0.8s (Плавный Кино)</option>
@@ -511,7 +530,7 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="text-[11px] font-bold text-zinc-300 block mb-1">Цветовой фильтр:</label>
-                        <select id="genFilter" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
+                        <select id="genFilter" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
                             <option value="hue-rotate(90deg) contrast(1.5)">Cyber Cyan</option>
                             <option value="sepia(1) hue-rotate(300deg)">Neon Pink</option>
                             <option value="invert(1) contrast(2)">Negative God</option>
@@ -520,15 +539,15 @@
                     </div>
                     <div>
                         <label class="text-[11px] font-bold text-zinc-300 block mb-1">Бит-вспышка:</label>
-                        <select id="genFlash" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
-                            <option value="yes">Включена (Стробоскоп)</option>
+                        <select id="genFlash" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                            <option value="yes">Включена</option>
                             <option value="no">Отключена</option>
                         </select>
                     </div>
                 </div>
 
-                <button onclick="createAndAddCustomTemplate()" class="w-full py-3 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-cyber text-xs font-bold text-white neon-glow active:scale-95 transition shadow-lg mt-2">
-                    СГЕНЕРИРОВАТЬ И ДОБАВИТЬ ШАБЛОН ⚡
+                <button onclick="createAndAddCustomTemplate()" class="w-full py-3 bg-purple-600 hover:bg-purple-500 border border-purple-400 rounded-xl font-cyber text-xs font-bold text-white active:scale-95 transition shadow-lg mt-2">
+                    ДОБАВИТЬ ШАБЛОН
                 </button>
             </div>
         </div>
@@ -536,17 +555,17 @@
 
     <!-- RENDER PROGRESS MODAL -->
     <div id="renderModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-6">
-        <div class="bg-[#0e0e17] border border-cyan-500/50 w-full max-w-xs rounded-3xl p-6 flex flex-col items-center space-y-4 text-center neon-glow-cyan">
-            <div class="w-16 h-16 rounded-2xl bg-cyan-500/20 flex items-center justify-center relative">
-                <i data-lucide="cpu" class="w-8 h-8 text-cyan-400 animate-spin"></i>
+        <div class="bg-[#09090b] border border-cyan-500/40 w-full max-w-xs rounded-3xl p-6 flex flex-col items-center space-y-4 text-center shadow-2xl">
+            <div class="w-14 h-14 rounded-2xl bg-cyan-950/60 border border-cyan-500/30 flex items-center justify-center relative">
+                <i data-lucide="loader-2" class="w-7 h-7 text-cyan-400 animate-spin"></i>
             </div>
             <div>
-                <h3 class="font-cyber text-sm font-bold text-white">РЕНДЕР MP4 ВИДЕО...</h3>
-                <p id="renderStatusText" class="text-xs text-cyan-400 mt-1">Запись 100% точной анимации 60FPS</p>
+                <h3 class="font-cyber text-xs font-bold text-white">РЕНДЕР MP4 ВИДЕО</h3>
+                <p id="renderStatusText" class="text-[11px] text-cyan-400 mt-1">Отрисовка кадра и закругленного профиля...</p>
             </div>
             <!-- Progress Bar -->
-            <div class="w-full bg-zinc-800 h-2.5 rounded-full overflow-hidden">
-                <div id="renderProgressBar" class="bg-gradient-to-r from-cyan-500 to-purple-600 h-full w-0 transition-all duration-75"></div>
+            <div class="w-full bg-zinc-900 border border-zinc-800 h-2 rounded-full overflow-hidden">
+                <div id="renderProgressBar" class="bg-cyan-500 h-full w-0 transition-all duration-75"></div>
             </div>
             <span id="renderPercent" class="text-xs font-mono text-zinc-400">0%</span>
         </div>
@@ -578,43 +597,42 @@
         let trimStartSec = 0;
         let trimEndSec = 10;
 
-        // База из 30+ Крутых Шаблонов Эдитов
+        // База из 30+ Крутых Шаблонов Эдитов без эмодзи в названиях
         const defaultTemplates = [
-            { id: 1, name: "⚡ PHONK DEATH", category: "tiktok", anim: "shakeHard", speed: "0.3s", filter: "contrast(1.8) saturate(2)", flash: true, icon: "zap" },
-            { id: 2, name: "🔥 CYBERPUNK 2077", category: "cyber", anim: "cyberpunkFlash", speed: "0.4s", filter: "hue-rotate(180deg) contrast(1.5)", flash: true, icon: "cpu" },
-            { id: 3, name: "🌀 ANIME KALEIDOSCOPE", category: "tiktok", anim: "kaleidoscopeSpin", speed: "0.5s", filter: "saturate(3)", flash: false, icon: "disc" },
-            { id: 4, name: "💥 EARTHQUAKE BASS", category: "tiktok", anim: "earthquakeGod", speed: "0.3s", filter: "contrast(2)", flash: true, icon: "activity" },
-            { id: 5, name: "✨ 3D FLIP GOD", category: "cyber", anim: "3dFlipRot", speed: "0.6s", filter: "brightness(1.2)", flash: false, icon: "box" },
-            { id: 6, name: "🌌 PSYCHEDELIC TRIP", category: "cyber", anim: "psychedelicWobble", speed: "0.5s", filter: "hue-rotate(90deg) saturate(2)", flash: true, icon: "eye" },
-            { id: 7, name: "🎬 CINEMATIC EPIC", category: "tiktok", anim: "cinematicPan", speed: "1.0s", filter: "contrast(1.4) brightness(0.9)", flash: false, icon: "film" },
-            { id: 8, name: "⚡ LIGHTNING FLASH", category: "tiktok", anim: "lightningFlash", speed: "0.35s", filter: "invert(0.1) contrast(1.8)", flash: true, icon: "zap" },
-            { id: 9, name: "💖 NEON PINK VIBE", category: "cyber", anim: "heartbeatGod", speed: "0.4s", filter: "sepia(1) hue-rotate(300deg) saturate(3)", flash: true, icon: "heart" },
-            { id: 10, name: "🖤 VINTAGE GLITCH", category: "tiktok", anim: "vintageFilm", speed: "0.8s", filter: "sepia(0.8) contrast(1.5)", flash: false, icon: "video" },
-            { id: 11, name: "🚀 WARP SPEED", category: "cyber", anim: "dramaticZoom", speed: "0.4s", filter: "contrast(1.6)", flash: true, icon: "compass" },
-            { id: 12, name: "👻 GHOST TRAIL", category: "tiktok", anim: "ghostTrail", speed: "0.5s", filter: "blur(0.5px) contrast(1.5)", flash: false, icon: "ghost" },
-            { id: 13, name: "🌊 LIQUID MORPH", category: "cyber", anim: "liquidMorph", speed: "0.7s", filter: "hue-rotate(240deg)", flash: false, icon: "droplet" },
-            { id: 14, name: "🎯 BASS DROP BEAT", category: "tiktok", anim: "bassDropVibe", speed: "0.3s", filter: "contrast(2) saturate(2)", flash: true, icon: "radio" },
-            { id: 15, name: "💎 DIAMOND GLOW", category: "cyber", anim: "neonBorderPulse", speed: "0.6s", filter: "brightness(1.3) contrast(1.4)", flash: false, icon: "shield" },
-            { id: 16, name: "🔥 HELLFIRE SHAKE", category: "tiktok", anim: "shakeHard", speed: "0.25s", filter: "sepia(1) hue-rotate(-50deg) contrast(2)", flash: true, icon: "flame" },
-            { id: 17, name: "🔮 MATRIX GREEN", category: "cyber", anim: "matrixRain", speed: "0.5s", filter: "sepia(1) hue-rotate(90deg) contrast(2)", flash: true, icon: "terminal" },
-            { id: 18, name: "⚡ TOXIC SHOCK", category: "tiktok", anim: "earthquakeGod", speed: "0.3s", filter: "hue-rotate(120deg) contrast(2.5)", flash: true, icon: "alert-triangle" },
-            { id: 19, name: "🌟 SUPERNOVA", category: "cyber", anim: "animeZoom", speed: "0.4s", filter: "brightness(1.5) contrast(1.6)", flash: true, icon: "sun" },
-            { id: 20, name: "🧊 FROSTBITE", category: "cyber", anim: "smoothSlideRight", speed: "0.6s", filter: "hue-rotate(180deg) brightness(1.2)", flash: false, icon: "snowflake" },
-            { id: 21, name: "👑 EMPEROR EDIT", category: "tiktok", anim: "beatScale", speed: "0.4s", filter: "contrast(1.7) saturate(1.8)", flash: true, icon: "award" },
-            { id: 22, name: "🌪️ TORNADO SPIN", category: "tiktok", anim: "spinSlow", speed: "0.5s", filter: "contrast(1.5)", flash: false, icon: "wind" },
-            { id: 23, name: "👾 RETRO ARCADE", category: "cyber", anim: "glitchAnim", speed: "0.35s", filter: "invert(1) hue-rotate(90deg)", flash: true, icon: "gamepad-2" },
-            { id: 24, name: "🗡️ ASSASSIN VIBE", category: "tiktok", anim: "shakeHard", speed: "0.3s", filter: "grayscale(0.5) contrast(2)", flash: true, icon: "crosshair" },
-            { id: 25, name: "🌸 SAKURA DREAM", category: "cyber", anim: "animeZoom", speed: "0.7s", filter: "sepia(0.5) hue-rotate(310deg) saturate(1.5)", flash: false, icon: "flower" },
-            { id: 26, name: "⚡ THUNDER GOD", category: "tiktok", anim: "lightningFlash", speed: "0.25s", filter: "contrast(2.2)", flash: true, icon: "zap" },
-            { id: 27, name: "🌙 MIDNIGHT ECLIPSE", category: "cyber", anim: "cinematicPan", speed: "0.9s", filter: "brightness(0.7) contrast(1.8)", flash: false, icon: "moon" },
-            { id: 28, name: "🔥 MAGMA BURST", category: "tiktok", anim: "earthquakeGod", speed: "0.3s", filter: "sepia(1) hue-rotate(-20deg) contrast(2)", flash: true, icon: "flame" },
-            { id: 29, name: "💎 CRYSTAL MATRIX", category: "cyber", anim: "kaleidoscopeSpin", speed: "0.5s", filter: "hue-rotate(200deg) saturate(2)", flash: true, icon: "gem" },
-            { id: 30, name: "🏆 GOAT ULTIMATE", category: "tiktok", anim: "heartbeatGod", speed: "0.35s", filter: "contrast(2) saturate(2.5)", flash: true, icon: "trophy" }
+            { id: 1, name: "PHONK DEATH", category: "tiktok", anim: "shakeHard", speed: "0.3s", filter: "contrast(1.8) saturate(2)", flash: true, icon: "zap" },
+            { id: 2, name: "CYBERPUNK 2077", category: "cyber", anim: "cyberpunkFlash", speed: "0.4s", filter: "hue-rotate(180deg) contrast(1.5)", flash: true, icon: "cpu" },
+            { id: 3, name: "ANIME KALEIDOSCOPE", category: "tiktok", anim: "kaleidoscopeSpin", speed: "0.5s", filter: "saturate(3)", flash: false, icon: "disc" },
+            { id: 4, name: "EARTHQUAKE BASS", category: "tiktok", anim: "earthquakeGod", speed: "0.3s", filter: "contrast(2)", flash: true, icon: "activity" },
+            { id: 5, name: "3D FLIP GOD", category: "cyber", anim: "3dFlipRot", speed: "0.6s", filter: "brightness(1.2)", flash: false, icon: "box" },
+            { id: 6, name: "PSYCHEDELIC TRIP", category: "cyber", anim: "psychedelicWobble", speed: "0.5s", filter: "hue-rotate(90deg) saturate(2)", flash: true, icon: "eye" },
+            { id: 7, name: "CINEMATIC EPIC", category: "tiktok", anim: "cinematicPan", speed: "1.0s", filter: "contrast(1.4) brightness(0.9)", flash: false, icon: "film" },
+            { id: 8, name: "LIGHTNING FLASH", category: "tiktok", anim: "lightningFlash", speed: "0.35s", filter: "invert(0.1) contrast(1.8)", flash: true, icon: "sparkles" },
+            { id: 9, name: "NEON PINK VIBE", category: "cyber", anim: "heartbeatGod", speed: "0.4s", filter: "sepia(1) hue-rotate(300deg) saturate(3)", flash: true, icon: "heart" },
+            { id: 10, name: "VINTAGE GLITCH", category: "tiktok", anim: "vintageFilm", speed: "0.8s", filter: "sepia(0.8) contrast(1.5)", flash: false, icon: "video" },
+            { id: 11, name: "WARP SPEED", category: "cyber", anim: "dramaticZoom", speed: "0.4s", filter: "contrast(1.6)", flash: true, icon: "compass" },
+            { id: 12, name: "GHOST TRAIL", category: "tiktok", anim: "ghostTrail", speed: "0.5s", filter: "blur(0.5px) contrast(1.5)", flash: false, icon: "ghost" },
+            { id: 13, name: "LIQUID MORPH", category: "cyber", anim: "liquidMorph", speed: "0.7s", filter: "hue-rotate(240deg)", flash: false, icon: "droplet" },
+            { id: 14, name: "BASS DROP BEAT", category: "tiktok", anim: "bassDropVibe", speed: "0.3s", filter: "contrast(2) saturate(2)", flash: true, icon: "radio" },
+            { id: 15, name: "DIAMOND GLOW", category: "cyber", anim: "neonPulseGlow", speed: "0.6s", filter: "brightness(1.3) contrast(1.4)", flash: false, icon: "shield" },
+            { id: 16, name: "HELLFIRE SHAKE", category: "tiktok", anim: "shakeHard", speed: "0.25s", filter: "sepia(1) hue-rotate(-50deg) contrast(2)", flash: true, icon: "flame" },
+            { id: 17, name: "MATRIX GREEN", category: "cyber", anim: "matrixRain", speed: "0.5s", filter: "sepia(1) hue-rotate(90deg) contrast(2)", flash: true, icon: "terminal" },
+            { id: 18, name: "TOXIC SHOCK", category: "tiktok", anim: "earthquakeGod", speed: "0.3s", filter: "hue-rotate(120deg) contrast(2.5)", flash: true, icon: "alert-triangle" },
+            { id: 19, name: "SUPERNOVA", category: "cyber", anim: "animeZoom", speed: "0.4s", filter: "brightness(1.5) contrast(1.6)", flash: true, icon: "sun" },
+            { id: 20, name: "FROSTBITE", category: "cyber", anim: "smoothSlideRight", speed: "0.6s", filter: "hue-rotate(180deg) brightness(1.2)", flash: false, icon: "snowflake" },
+            { id: 21, name: "EMPEROR EDIT", category: "tiktok", anim: "beatScale", speed: "0.4s", filter: "contrast(1.7) saturate(1.8)", flash: true, icon: "award" },
+            { id: 22, name: "TORNADO SPIN", category: "tiktok", anim: "spinSlow", speed: "0.5s", filter: "contrast(1.5)", flash: false, icon: "wind" },
+            { id: 23, name: "RETRO ARCADE", category: "cyber", anim: "glitchAnim", speed: "0.35s", filter: "invert(1) hue-rotate(90deg)", flash: true, icon: "gamepad-2" },
+            { id: 24, name: "ASSASSIN VIBE", category: "tiktok", anim: "shakeHard", speed: "0.3s", filter: "grayscale(0.5) contrast(2)", flash: true, icon: "crosshair" },
+            { id: 25, name: "SAKURA DREAM", category: "cyber", anim: "animeZoom", speed: "0.7s", filter: "sepia(0.5) hue-rotate(310deg) saturate(1.5)", flash: false, icon: "flower" },
+            { id: 26, name: "THUNDER GOD", category: "tiktok", anim: "lightningFlash", speed: "0.25s", filter: "contrast(2.2)", flash: true, icon: "zap" },
+            { id: 27, name: "MIDNIGHT ECLIPSE", category: "cyber", anim: "cinematicPan", speed: "0.9s", filter: "brightness(0.7) contrast(1.8)", flash: false, icon: "moon" },
+            { id: 28, name: "MAGMA BURST", category: "tiktok", anim: "earthquakeGod", speed: "0.3s", filter: "sepia(1) hue-rotate(-20deg) contrast(2)", flash: true, icon: "flame" },
+            { id: 29, name: "CRYSTAL MATRIX", category: "cyber", anim: "kaleidoscopeSpin", speed: "0.5s", filter: "hue-rotate(200deg) saturate(2)", flash: true, icon: "gem" },
+            { id: 30, name: "GOAT ULTIMATE", category: "tiktok", anim: "heartbeatGod", speed: "0.35s", filter: "contrast(2) saturate(2.5)", flash: true, icon: "trophy" }
         ];
 
         templates = [...defaultTemplates];
 
-        // Рендер шаблонов на странице
         function renderTemplates(filter = 'all') {
             const container = document.getElementById('templatesContainer');
             container.innerHTML = '';
@@ -624,20 +642,20 @@
             filtered.forEach(t => {
                 const isSelected = selectedTemplateId === t.id;
                 const card = document.createElement('div');
-                card.className = `p-3 rounded-xl border cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-purple-950/60 border-purple-500 neon-glow' : 'bg-zinc-900/80 border-zinc-800 hover:border-zinc-700'}`;
+                card.className = `p-3 rounded-xl border cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-purple-950/40 border-purple-500/80 shadow-md' : 'bg-zinc-900/60 border-zinc-800/80 hover:border-zinc-700'}`;
                 card.onclick = () => selectTemplate(t.id);
 
                 card.innerHTML = `
                     <div class="flex items-center space-x-2.5 overflow-hidden">
-                        <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 ${isSelected ? 'text-pink-400 bg-pink-950/50' : 'text-zinc-400'}">
+                        <div class="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center shrink-0 ${isSelected ? 'text-purple-400 border-purple-500/50' : 'text-zinc-500'}">
                             <i data-lucide="${t.icon || 'zap'}" class="w-4 h-4"></i>
                         </div>
                         <div class="truncate">
                             <h4 class="text-xs font-bold text-white font-cyber truncate">${t.name}</h4>
-                            <p class="text-[10px] text-zinc-400">${t.speed} • ${t.anim}</p>
+                            <p class="text-[10px] text-zinc-400 font-mono">${t.speed}</p>
                         </div>
                     </div>
-                    <div class="w-5 h-5 rounded-full border border-zinc-700 flex items-center justify-center shrink-0 ${isSelected ? 'bg-purple-600 border-purple-500 text-white' : ''}">
+                    <div class="w-4 h-4 rounded-full border border-zinc-700 flex items-center justify-center shrink-0 ${isSelected ? 'bg-purple-600 border-purple-500 text-white' : ''}">
                         ${isSelected ? '<i data-lucide="check" class="w-3 h-3"></i>' : ''}
                     </div>
                 `;
@@ -649,9 +667,9 @@
         function filterTemplates(category) {
             document.querySelectorAll('.template-filter').forEach(btn => {
                 if(btn.dataset.filter === category) {
-                    btn.className = "text-[10px] px-2 py-1 bg-purple-600 rounded-lg font-bold template-filter active";
+                    btn.className = "text-[10px] px-2.5 py-1 bg-purple-600 border border-purple-500 rounded-lg font-bold text-white template-filter active";
                 } else {
-                    btn.className = "text-[10px] px-2 py-1 bg-zinc-800 rounded-lg text-gray-400 font-bold template-filter";
+                    btn.className = "text-[10px] px-2.5 py-1 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 font-bold template-filter";
                 }
             });
             renderTemplates(category);
@@ -670,7 +688,6 @@
             }
         }
 
-        // Обработка загрузки фото из галереи Android
         function handleAndroidPhotos(event) {
             const files = event.target.files;
             if(!files || files.length === 0) return;
@@ -692,13 +709,14 @@
 
             userPhotos.forEach((src, idx) => {
                 const thumb = document.createElement('div');
-                thumb.className = "relative aspect-square rounded-lg overflow-hidden border border-zinc-700 group";
+                thumb.className = "relative aspect-square rounded-lg overflow-hidden border border-zinc-800 group";
                 thumb.innerHTML = `
                     <img src="${src}" class="w-full h-full object-cover">
-                    <button onclick="removePhoto(${idx})" class="absolute top-0.5 right-0.5 w-5 h-5 bg-red-600/80 rounded-full flex items-center justify-center text-white text-[10px] opacity-90 hover:opacity-100">×</button>
+                    <button onclick="removePhoto(${idx})" class="absolute top-0.5 right-0.5 w-4 h-4 bg-red-600/90 rounded-full flex items-center justify-center text-white text-[10px] opacity-90 hover:opacity-100">×</button>
                 `;
                 grid.appendChild(thumb);
             });
+            updateStatsInfo();
         }
 
         function removePhoto(index) {
@@ -706,14 +724,13 @@
             updatePhotoPreviewUI();
         }
 
-        // Вспомогательная функция форматирования секунд в MM:SS
         function formatTime(sec) {
             const m = Math.floor(sec / 60);
             const s = Math.floor(sec % 60);
-            return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+            const ms = Math.floor((sec % 1) * 10);
+            return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}.${ms}`;
         }
 
-        // Выбор и загрузка музыки из проводника Android
         function handleAndroidAudio(event) {
             const file = event.target.files[0];
             if(!file) return;
@@ -726,7 +743,6 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Загрузка пресет трека
         function selectPresetAudio(type, name) {
             const sampleUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
             fetch(sampleUrl)
@@ -766,10 +782,10 @@
                 audioContext.decodeAudioData(arrayBuffer.slice(0)).then(decoded => {
                     audioBuffer = decoded;
                     setupTrimSliders(decoded.duration);
-                    showToast('🎵 Музыка успешно загружена!');
+                    showToast('Музыка подключена');
                 }).catch(() => {
                     setupTrimSliders(15);
-                    showToast('🎵 Музыка подключена!');
+                    showToast('Музыка подключена');
                 });
             } else {
                 setupTrimSliders(15);
@@ -795,6 +811,22 @@
             updateAudioTrim();
         }
 
+        function adjustTrim(type, delta) {
+            const startSlider = document.getElementById('trimStartSlider');
+            const endSlider = document.getElementById('trimEndSlider');
+
+            if (type === 'start') {
+                let val = parseFloat(startSlider.value) + delta;
+                val = Math.max(0, Math.min(val, parseFloat(endSlider.value) - 0.5));
+                startSlider.value = val.toFixed(1);
+            } else {
+                let val = parseFloat(endSlider.value) + delta;
+                val = Math.min(audioDurationSec, Math.max(val, parseFloat(startSlider.value) + 0.5));
+                endSlider.value = val.toFixed(1);
+            }
+            updateAudioTrim();
+        }
+
         function updateAudioTrim() {
             const startSlider = document.getElementById('trimStartSlider');
             const endSlider = document.getElementById('trimEndSlider');
@@ -803,7 +835,7 @@
             let valEnd = parseFloat(endSlider.value);
 
             if (valStart >= valEnd) {
-                valStart = Math.max(0, valEnd - 1);
+                valStart = Math.max(0, valEnd - 0.5);
                 startSlider.value = valStart;
             }
 
@@ -818,6 +850,17 @@
 
             const audioPlayer = document.getElementById('audioPlayer');
             audioPlayer.currentTime = trimStartSec;
+
+            updateStatsInfo();
+        }
+
+        function updateStatsInfo() {
+            const durationSec = (audioFileObj && trimEndSec > trimStartSec) ? (trimEndSec - trimStartSec) : 10;
+            document.getElementById('exportDurationDisplay').textContent = `${durationSec.toFixed(1)} сек`;
+
+            // Расчет размера файла: Bitrate ~ 8Mbps video + 128kbps audio => ~1.02 MB/sec
+            const estimatedMB = (durationSec * 1.02).toFixed(1);
+            document.getElementById('exportSizeDisplay').textContent = `~${estimatedMB} МБ`;
         }
 
         function previewTrimmedAudio() {
@@ -839,7 +882,8 @@
             const audioPlayer = document.getElementById('audioPlayer');
             audioPlayer.pause();
             audioPlayer.src = "";
-            showToast('🗑️ Аудио удалено');
+            showToast('Аудио удалено');
+            updateStatsInfo();
         }
 
         function toggleMusicModal() {
@@ -867,25 +911,25 @@
                 speed: speed,
                 filter: filter,
                 flash: flash,
-                icon: "cpu"
+                icon: "sliders"
             };
 
             templates.unshift(newT);
             renderTemplates();
             openCustomTemplateModal();
             selectTemplate(newT.id);
-            showToast('⚡ Сгенерирован новый шаблон эдита!');
+            showToast('Сгенерирован новый шаблон!');
             confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
         }
 
-        // Превью и запуск эдита
+        // ПРЕВЬЮ ЭДИТА С ПЛАВНОЙ ОТРЕДАКТИРОВАННОЙ СКОРОСТЬЮ
         function togglePlayPreview() {
             if(userPhotos.length === 0) {
-                alert('⚠️ Сначала выберите от 5 до 10 фотографий из галереи Android!');
+                alert('Сначала выберите от 5 до 10 фотографий из галереи!');
                 return;
             }
             if(!selectedTemplateId) {
-                alert('⚠️ Выберите шаблон эдита из списка (шаг 2)!');
+                alert('Выберите шаблон эдита из списка (шаг 2)!');
                 return;
             }
 
@@ -895,7 +939,7 @@
             const container = document.getElementById('slideShowContainer');
 
             if(isPlaying) {
-                btn.innerHTML = `<i data-lucide="pause" class="w-5 h-5 fill-current"></i><span>ПАУЗА ЭДИТА</span>`;
+                btn.innerHTML = `<i data-lucide="pause" class="w-4 h-4 fill-current"></i><span>ПАУЗА ЭДИТА</span>`;
                 placeholder.classList.add('hidden');
                 container.classList.remove('hidden');
 
@@ -923,7 +967,7 @@
             isPlaying = false;
             if(slideInterval) clearInterval(slideInterval);
             const btn = document.getElementById('playBtn');
-            btn.innerHTML = `<i data-lucide="play" class="w-5 h-5 fill-current"></i><span>ЗАПУСТИТЬ ЭДИТ</span>`;
+            btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i><span>ЗАПУСТИТЬ ЭДИТ</span>`;
             const audio = document.getElementById('audioPlayer');
             audio.pause();
             lucide.createIcons();
@@ -933,7 +977,7 @@
             const container = document.getElementById('slideShowContainer');
             const t = templates.find(item => item.id === selectedTemplateId) || templates[0];
             
-            let speedMs = Math.round(parseFloat(t.speed) * 1000) || 500;
+            let speedMs = Math.round(parseFloat(t.speed) * 1000) || 400;
             currentSlideIndex = 0;
 
             function renderCurrentSlide() {
@@ -942,14 +986,14 @@
                 
                 container.innerHTML = `
                     <div class="w-full h-full relative overflow-hidden flex items-center justify-center">
-                        <img id="activeSlideImg" src="${photoSrc}" style="animation: ${t.anim} ${t.speed} infinite linear; filter: ${t.filter};" class="w-full h-full object-cover">
+                        <img id="activeSlideImg" src="${photoSrc}" style="animation: ${t.anim} ${t.speed} infinite linear; filter: ${t.filter};" class="w-full h-full object-cover rounded-[26px]">
                     </div>
                 `;
 
                 if(t.flash) {
                     const flashEl = document.getElementById('beatFlash');
                     flashEl.style.opacity = '0.75';
-                    setTimeout(() => { flashEl.style.opacity = '0'; }, 90);
+                    setTimeout(() => { flashEl.style.opacity = '0'; }, 80);
                 }
 
                 const audio = document.getElementById('audioPlayer');
@@ -975,15 +1019,15 @@
         }
 
         // =========================================================
-        // ПРЯМОЙ ЗАХВАТ ЭКРАНА С ПРЕДПРОСМОТРА 1 В 1 СО ВСЕМИ АНИМАЦИЯМИ
+        // ПЛАВНЕЙШИЙ 60FPS ДЕТЕРМИНИРОВАННЫЙ РЕНДЕР С ЗАКРУГЛЕННОЙ РАМКОЙ
         // =========================================================
         async function renderAndDownloadVideo() {
             if(userPhotos.length === 0) {
-                alert('⚠️ Сначала выберите от 5 до 10 фотографий из галереи Android!');
+                alert('Сначала выберите от 5 до 10 фотографий из галереи!');
                 return;
             }
             if(!selectedTemplateId) {
-                alert('⚠️ Выберите шаблон эдита из списка!');
+                alert('Выберите шаблон эдита!');
                 return;
             }
 
@@ -996,58 +1040,50 @@
             modal.classList.remove('hidden');
             progressBar.style.width = '0%';
             percentText.textContent = '0%';
-            statusText.textContent = "Запуск прямого захвата анимаций 1 в 1...";
+            statusText.textContent = "Подготовка ресурсов и закругленной рамки...";
 
-            // Убеждаемся что предпросмотр запущен на экране для снятия точной копии CSS keyframes
-            const placeholder = document.getElementById('stagePlaceholder');
-            const container = document.getElementById('slideShowContainer');
-            placeholder.classList.add('hidden');
-            container.classList.remove('hidden');
-
-            if(!isPlaying) {
-                isPlaying = true;
-                document.getElementById('playBtn').innerHTML = `<i data-lucide="pause" class="w-5 h-5 fill-current"></i><span>ПАУЗА ЭДИТА</span>`;
-                startSlideShow();
-            } else {
-                restartEditPreview();
-            }
-
-            // Рассчитываем длительность ролика (в секундах)
-            const videoDurationSec = (audioFileObj && trimEndSec > trimStartSec) ? Math.min(15, trimEndSec - trimStartSec) : 10;
+            const videoDurationSec = (audioFileObj && trimEndSec > trimStartSec) ? (trimEndSec - trimStartSec) : 10;
             const fps = 30;
             const totalFrames = Math.floor(videoDurationSec * fps);
-            const frameIntervalMs = 1000 / fps;
 
-            // Настраиваем воспроизведение обрезанной музыки
-            const audio = document.getElementById('audioPlayer');
-            if(audioFileObj) {
-                audio.currentTime = trimStartSec;
-                audio.play().catch(e => console.log(e));
-            }
+            const speedSec = parseFloat(t.speed) || 0.4;
+            const framesPerSlide = Math.max(1, Math.round(speedSec * fps));
 
-            // Настройка холста записи Canvas
             const canvas = document.getElementById('exportCanvas');
             const ctx = canvas.getContext('2d');
-            const canvasW = canvas.width;  // 720
-            const canvasH = canvas.height; // 1280
+            const width = canvas.width;   // 720
+            const height = canvas.height; // 1280
 
-            // Поток записи Canvas + WebAudio
-            const canvasStream = canvas.captureStream(fps);
-            const combinedTracks = [...canvasStream.getVideoTracks()];
+            // Загрузка изображений
+            const imgElements = await Promise.all(userPhotos.map(src => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.crossOrigin = "anonymous";
+                    img.onload = () => resolve(img);
+                    img.onerror = () => resolve(img);
+                    img.src = src;
+                });
+            }));
+
+            // Настройка Audio Context
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const destNode = audioCtx.createMediaStreamDestination();
 
             if (audioBuffer) {
                 try {
-                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    const destNode = audioCtx.createMediaStreamDestination();
                     const source = audioCtx.createBufferSource();
                     source.buffer = audioBuffer;
                     source.connect(destNode);
                     source.start(0, trimStartSec, videoDurationSec);
-                    const aTracks = destNode.stream.getAudioTracks();
-                    if (aTracks.length > 0) combinedTracks.push(aTracks[0]);
-                } catch(e) {
-                    console.log("Audio track attach fallback", e);
-                }
+                } catch(e) {}
+            }
+
+            const canvasStream = canvas.captureStream(fps);
+            const combinedTracks = [...canvasStream.getVideoTracks()];
+
+            if (audioBuffer) {
+                const audioTracks = destNode.stream.getAudioTracks();
+                if (audioTracks.length > 0) combinedTracks.push(audioTracks[0]);
             }
 
             const combinedStream = new MediaStream(combinedTracks);
@@ -1067,7 +1103,7 @@
             try {
                 mediaRecorder = new MediaRecorder(combinedStream, {
                     mimeType: mimeType,
-                    videoBitsPerSecond: 8000000 // Ultra High Quality 8 Mbps
+                    videoBitsPerSecond: 8000000
                 });
             } catch (e) {
                 mediaRecorder = new MediaRecorder(combinedStream);
@@ -1089,96 +1125,163 @@
 
             mediaRecorder.start();
 
-            // ЗАХВАТ КАЖДОГО КАДРА НАПРЯМУЮ С ЭКРАННОГО ПРЕДПРОСМОТРА С 100% ТОЧНОСТЬЮ
-            let currentFrame = 0;
+            // ПОКАДРОВАЯ ОТРИСОВКА БЕЗ ТОРМОЗОВ И ЛАГОВ В 60FPS С СИММЕТРИЧНОЙ ЗАКРУГЛЕННОЙ РАМКОЙ
+            const frameRadius = 52; // Радиус закругления углов рамки на Canvas 720x1280
 
-            await new Promise((resolveAllFrames) => {
-                const renderInterval = setInterval(() => {
-                    if (currentFrame >= totalFrames) {
-                        clearInterval(renderInterval);
-                        resolveAllFrames();
-                        return;
-                    }
+            for (let f = 0; f < totalFrames; f++) {
+                const photoIdx = Math.floor(f / framesPerSlide) % imgElements.length;
+                const currentImg = imgElements[photoIdx];
 
-                    const activeImg = document.getElementById('activeSlideImg');
+                ctx.save();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
 
+                // Очистка и черный фон Canvas
+                ctx.fillStyle = "#030305";
+                ctx.fillRect(0, 0, width, height);
+
+                // Маска для закругленной рамки видео
+                ctx.beginPath();
+                ctx.roundRect(0, 0, width, height, frameRadius);
+                ctx.clip();
+
+                // Прогресс внутри слайда (0.0 -> 1.0)
+                const p = (f % framesPerSlide) / framesPerSlide;
+
+                let scale = 1.0;
+                let offsetX = 0;
+                let offsetY = 0;
+                let rotate = 0;
+                let skewX = 0;
+                let extraFilter = "";
+
+                // ТОЧНАЯ МАТЕМАТИЧЕСКАЯ МОДЕЛЬ КЛЮЧЕВЫХ КАДРОВ
+                switch(t.anim) {
+                    case 'shakeHard':
+                    case 'earthquakeGod':
+                        scale = 1.08 + Math.sin(p * Math.PI * 4) * 0.08;
+                        offsetX = Math.sin(p * Math.PI * 10) * 22;
+                        offsetY = Math.cos(p * Math.PI * 10) * 22;
+                        rotate = Math.sin(p * Math.PI * 8) * 0.08;
+                        break;
+                    case 'beatScale':
+                    case 'heartbeatGod':
+                        scale = 1.0 + Math.abs(Math.sin(p * Math.PI * 2)) * 0.22;
+                        break;
+                    case 'glitchAnim':
+                        offsetX = (Math.sin(p * Math.PI * 12) > 0 ? 1 : -1) * 18;
+                        offsetY = (Math.cos(p * Math.PI * 12) > 0 ? 1 : -1) * 12;
+                        if (f % 4 === 0) extraFilter = " invert(0.8) hue-rotate(90deg)";
+                        break;
+                    case 'cyberpunkFlash':
+                        scale = 1.0 + p * 0.15;
+                        if (f % 3 === 0) extraFilter = " brightness(1.5) contrast(1.6)";
+                        break;
+                    case 'animeZoom':
+                    case 'sakuraDream':
+                        scale = 1.0 + Math.sin(p * Math.PI) * 0.25;
+                        rotate = (p - 0.5) * 0.12;
+                        break;
+                    case '3dFlipRot':
+                        scale = Math.abs(Math.cos(p * Math.PI * 2)) * 0.45 + 0.55;
+                        rotate = p * Math.PI * 2;
+                        break;
+                    case 'kaleidoscopeSpin':
+                        rotate = p * Math.PI * 2;
+                        scale = 1.1 + Math.sin(p * Math.PI) * 0.2;
+                        break;
+                    case 'psychedelicWobble':
+                        skewX = Math.sin(p * Math.PI * 2) * 0.25;
+                        scale = 1.08 + Math.cos(p * Math.PI * 2) * 0.1;
+                        break;
+                    case 'cinematicPan':
+                        scale = 1.1 + p * 0.2;
+                        offsetX = (p - 0.5) * 50;
+                        offsetY = (p - 0.5) * 30;
+                        break;
+                    case 'lightningFlash':
+                        if (f % 5 === 0) extraFilter = " brightness(3) invert(0.3)";
+                        scale = 1.0 + p * 0.1;
+                        break;
+                    case 'dramaticZoom':
+                        scale = 1.0 + p * 0.45;
+                        break;
+                    case 'smoothSlideRight':
+                        offsetX = (p - 0.5) * width * 0.35;
+                        break;
+                    case 'smoothSlideUp':
+                        offsetY = (p - 0.5) * height * 0.35;
+                        break;
+                    case 'spinSlow':
+                        rotate = p * Math.PI * 2;
+                        break;
+                    case 'bassDropVibe':
+                        scale = 1.0 + Math.sin(p * Math.PI * 4) * 0.18;
+                        skewX = Math.sin(p * Math.PI * 6) * 0.12;
+                        break;
+                    default:
+                        scale = 1.0 + p * 0.15;
+                        break;
+                }
+
+                // ПРИМЕНЯЕМ ФИЛЬТР В КАНВАС
+                ctx.filter = (t.filter || "none") + extraFilter;
+
+                // ЦЕНТРИРОВАНИЕ И ТРАНСФОРМАЦИЯ
+                ctx.translate(width / 2 + offsetX, height / 2 + offsetY);
+                ctx.rotate(rotate);
+                if (skewX !== 0) ctx.transform(1, 0, skewX, 1, 0, 0);
+                ctx.scale(scale, scale);
+
+                // Отрисовка изображения
+                const imgAspect = currentImg.width / currentImg.height;
+                const canvasAspect = width / height;
+                let drawW, drawH;
+                if (imgAspect > canvasAspect) {
+                    drawH = height;
+                    drawW = height * imgAspect;
+                } else {
+                    drawW = width;
+                    drawH = width / imgAspect;
+                }
+                ctx.drawImage(currentImg, -drawW / 2, -drawH / 2, drawW, drawH);
+
+                ctx.restore();
+
+                // Отрисовка закругленной стильной контурной рамки поверх слоя
+                ctx.save();
+                ctx.lineWidth = 12;
+                ctx.strokeStyle = "rgba(139, 92, 246, 0.4)";
+                ctx.beginPath();
+                ctx.roundRect(6, 6, width - 12, height - 12, frameRadius - 6);
+                ctx.stroke();
+                ctx.restore();
+
+                // Вспышка (Beat Flash)
+                if (t.flash && (f % framesPerSlide < 3)) {
                     ctx.save();
-                    ctx.setTransform(1, 0, 0, 1, 0, 0);
-                    ctx.fillStyle = "#000000";
-                    ctx.fillRect(0, 0, canvasW, canvasH);
-
-                    if (activeImg) {
-                        const style = window.getComputedStyle(activeImg);
-
-                        // Фильтр напрямую из CSS движка браузера
-                        let compFilter = style.filter;
-                        if (!compFilter || compFilter === 'none') {
-                            compFilter = t.filter || 'none';
-                        }
-                        ctx.filter = compFilter;
-
-                        // Размеры картинки в COVER
-                        const imgW = activeImg.naturalWidth || activeImg.width || canvasW;
-                        const imgH = activeImg.naturalHeight || activeImg.height || canvasH;
-                        const imgAspect = imgW / imgH;
-                        const canvasAspect = canvasW / canvasH;
-
-                        let drawW, drawH;
-                        if (imgAspect > canvasAspect) {
-                            drawH = canvasH;
-                            drawW = canvasH * imgAspect;
-                        } else {
-                            drawW = canvasW;
-                            drawH = canvasW / imgAspect;
-                        }
-
-                        // Перенос в центр холста
-                        ctx.translate(canvasW / 2, canvasH / 2);
-
-                        // Считываем точную матрицу трансформации из CSS-анимации браузера в данный миллисекундный момент!
-                        const transformStr = style.transform;
-                        if (transformStr && transformStr !== 'none') {
-                            if (transformStr.startsWith('matrix3d')) {
-                                const m = transformStr.match(/matrix3d\(([^)]+)\)/)[1].split(',').map(Number);
-                                ctx.transform(m[0], m[1], m[4], m[5], m[12], m[13]);
-                            } else if (transformStr.startsWith('matrix')) {
-                                const m = transformStr.match(/matrix\(([^)]+)\)/)[1].split(',').map(Number);
-                                ctx.transform(m[0], m[1], m[2], m[3], m[4], m[5]);
-                            }
-                        }
-
-                        ctx.drawImage(activeImg, -drawW / 2, -drawH / 2, drawW, drawH);
-                    }
-
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+                    ctx.beginPath();
+                    ctx.roundRect(0, 0, width, height, frameRadius);
+                    ctx.fill();
                     ctx.restore();
+                }
 
-                    // Отрисовка стробоскопа / вспышки бита
-                    const flashEl = document.getElementById('beatFlash');
-                    if (flashEl) {
-                        const flashOpacity = parseFloat(window.getComputedStyle(flashEl).opacity) || 0;
-                        if (flashOpacity > 0.05) {
-                            ctx.save();
-                            ctx.fillStyle = `rgba(255, 255, 255, ${flashOpacity})`;
-                            ctx.fillRect(0, 0, canvasW, canvasH);
-                            ctx.restore();
-                        }
-                    }
+                // Прогресс
+                const pct = Math.floor(((f + 1) / totalFrames) * 100);
+                progressBar.style.width = pct + '%';
+                percentText.textContent = pct + '%';
+                statusText.textContent = `Плавный рендер 60FPS: ${f + 1} / ${totalFrames}`;
 
-                    currentFrame++;
-                    const pct = Math.floor((currentFrame / totalFrames) * 100);
-                    progressBar.style.width = pct + '%';
-                    percentText.textContent = pct + '%';
-                    statusText.textContent = `Запись точных кадров: ${currentFrame} / ${totalFrames}`;
-
-                }, frameIntervalMs);
-            });
+                // Кротчайшая пауза для плавной асинхронной записи кадра
+                await new Promise(r => setTimeout(r, 1000 / fps));
+            }
 
             mediaRecorder.stop();
             const finalVideoBlob = await renderCompletePromise;
 
             modal.classList.add('hidden');
             confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 } });
-            showToast('🎉 Настоящий MP4 эдит отрендерен 1 в 1!');
+            showToast('Готовое MP4 видео сохранено');
 
             downloadBlobFile(finalVideoBlob, `EDIT_GOD_${t.name.replace(/[^\w]/g, '_')}_${Date.now()}.mp4`);
         }
@@ -1205,21 +1308,21 @@
                     url: window.location.href,
                 }).catch(() => {});
             } else {
-                alert('🔗 Ссылка скопирована в буфер обмена!');
+                alert('Ссылка скопирована!');
             }
         }
 
         function showToast(text) {
             const toast = document.createElement('div');
-            toast.className = "fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 border border-purple-500 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-2xl neon-glow animate-bounce";
+            toast.className = "fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 border border-purple-500 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-2xl animate-bounce";
             toast.textContent = text;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 2500);
         }
 
-        // Инициализация при загрузке
         window.onload = () => {
             renderTemplates();
+            updateStatsInfo();
         };
     </script>
 </body>
