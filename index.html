@@ -2,1305 +2,928 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TG BOT PLATFORM 2026 - PURE OLED BLACK</title>
-    <meta name="theme-color" content="#000000">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 MEGA AUDIO EDITOR 🔥</title>
     <style>
-        :root {
-            --bg-black: #000000;
-            --bg-card: #0a0a0c;
-            --bg-chat: #000000;
-            --bg-bubble-in: #111115;
-            --bg-bubble-out: #1a1a24;
-            --border-dark: #18181b;
-            --border-light: #27272a;
-            --accent-green: #10b981;
-            --accent-purple: #8b5cf6;
-            --accent-blue: #3b82f6;
-            --accent-pink: #ec4899;
-            --text-primary: #ffffff;
-            --text-secondary: #a1a1aa;
-            --text-muted: #52525b;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            user-select: none;
+        .bg-particles {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; pointer-events: none;
+            background: radial-gradient(ellipse at 20% 50%, #1a0033 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 20%, #001a33 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 80%, #1a1a00 0%, transparent 50%);
         }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: var(--bg-black);
-            color: var(--text-primary);
+        .container {
+            position: relative; z-index: 1;
+            max-width: 900px; margin: 0 auto; padding: 30px 20px;
         }
-
-        .app-shell {
-            width: 100vw;
-            height: 100vh;
-            height: 100dvh;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            background: var(--bg-black);
+        .header {
+            text-align: center; padding: 40px 0;
         }
-
-        /* SIDEBAR / BOT LIST */
-        .sidebar {
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-black);
-            display: flex;
-            flex-direction: column;
-            position: absolute;
-            left: 0;
-            top: 0;
-            z-index: 10;
-            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-            border-right: 1px solid var(--border-dark);
+        .header h1 {
+            font-size: 3rem; font-weight: 900;
+            background: linear-gradient(135deg, #ff006e, #8338ec, #3a86ff, #06ffa5);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; text-shadow: none;
+            animation: glow 3s ease-in-out infinite alternate;
         }
-
-        .app-shell.chat-active .sidebar {
-            transform: translateX(-30%);
-            pointer-events: none;
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(255,0,110,0.5)); }
+            to { filter: drop-shadow(0 0 40px rgba(6,255,165,0.8)); }
         }
+        .header p { color: #888; margin-top: 10px; font-size: 1.1rem; }
 
-        .app-header {
-            height: 56px;
-            padding: 0 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background-color: #050507;
-            border-bottom: 1px solid var(--border-dark);
-            z-index: 5;
-            flex-shrink: 0;
-        }
-
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 900;
-            font-size: 1.05rem;
-            letter-spacing: -0.02em;
-            color: var(--text-primary);
-        }
-
-        .brand-logo svg {
-            width: 22px;
-            height: 22px;
-            fill: var(--accent-green);
-        }
-
-        .badge-2026 {
-            font-size: 0.65rem;
-            font-weight: 800;
-            background: #111115;
-            color: var(--accent-green);
-            padding: 4px 10px;
-            border-radius: 20px;
-            border: 1px solid var(--border-dark);
-            letter-spacing: 0.05em;
-        }
-
-        .search-wrapper {
-            padding: 10px 14px;
-            background-color: var(--bg-black);
-            border-bottom: 1px solid var(--border-dark);
-        }
-
-        .search-bar {
-            display: flex;
-            align-items: center;
-            background: #0f0f12;
-            border: 1px solid var(--border-dark);
-            border-radius: 12px;
-            padding: 8px 12px;
-            gap: 10px;
-        }
-
-        .search-bar svg {
-            width: 16px;
-            height: 16px;
-            fill: var(--text-muted);
-        }
-
-        .search-input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: var(--text-primary);
-            font-size: 0.88rem;
-        }
-
-        /* BOT LIST SCROLL */
-        .bot-list {
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .bot-card {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            gap: 14px;
+        .upload-zone {
+            border: 3px dashed #333;
+            border-radius: 24px;
+            padding: 60px 30px;
+            text-align: center;
+            background: rgba(255,255,255,0.02);
+            transition: all 0.3s;
             cursor: pointer;
-            border-bottom: 1px solid #0c0c0e;
-            transition: background 0.12s ease;
+            margin: 30px 0;
         }
-
-        .bot-card:active {
-            background-color: #0f0f14;
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #8338ec;
+            background: rgba(131,56,236,0.05);
+            transform: scale(1.01);
         }
+        .upload-zone .icon { font-size: 4rem; margin-bottom: 15px; }
+        .upload-zone h2 { font-size: 1.5rem; margin-bottom: 10px; }
+        .upload-zone p { color: #666; }
+        #fileInput { display: none; }
 
-        .bot-avatar-box {
-            width: 46px;
-            height: 46px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            flex-shrink: 0;
-            background: #111115;
-            border: 1px solid var(--border-dark);
-        }
-
-        .bot-avatar-box svg {
-            width: 22px;
-            height: 22px;
-            fill: #ffffff;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--accent-green);
-            border-radius: 50%;
-            position: absolute;
-            bottom: -2px;
-            right: -2px;
-            border: 2px solid var(--bg-black);
-        }
-
-        .bot-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .bot-meta-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 3px;
-        }
-
-        .bot-title {
-            font-size: 0.92rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .bot-time {
-            font-size: 0.68rem;
-            color: var(--text-muted);
-        }
-
-        .bot-subtext {
-            font-size: 0.78rem;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* CHAT VIEW */
-        .chat-view {
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-chat);
-            display: flex;
-            flex-direction: column;
-            position: absolute;
-            right: 0;
-            top: 0;
-            z-index: 20;
-            transform: translateX(100%);
-            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .app-shell.chat-active .chat-view {
-            transform: translateX(0);
-        }
-
-        .btn-icon-nav {
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            padding: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-
-        .btn-icon-nav:active {
-            background: #18181b;
-        }
-
-        .btn-icon-nav svg {
-            width: 20px;
-            height: 20px;
-            fill: var(--text-primary);
-        }
-
-        /* MESSAGES AREA */
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .msg-group {
-            display: flex;
-            flex-direction: column;
-            max-width: 88%;
-        }
-
-        .msg-group.in { align-self: flex-start; }
-        .msg-group.out { align-self: flex-end; }
-
-        .msg-bubble {
-            padding: 11px 15px;
+        .file-info {
+            display: none;
+            background: rgba(255,255,255,0.05);
             border-radius: 16px;
-            font-size: 0.9rem;
-            line-height: 1.48;
-            word-break: break-word;
-            position: relative;
-            user-select: text;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #222;
         }
+        .file-info.show { display: block; }
+        .file-info h3 { color: #06ffa5; margin-bottom: 10px; }
+        .file-info p { color: #aaa; font-size: 0.9rem; }
 
-        .msg-group.in .msg-bubble {
-            background-color: var(--bg-bubble-in);
-            color: var(--text-primary);
-            border: 1px solid var(--border-dark);
-            border-bottom-left-radius: 4px;
+        .waveform {
+            width: 100%; height: 120px;
+            background: #111; border-radius: 12px;
+            margin: 15px 0; position: relative; overflow: hidden;
         }
+        .waveform canvas { width: 100%; height: 100%; }
 
-        .msg-group.out .msg-bubble {
-            background-color: var(--bg-bubble-out);
-            color: #ffffff;
-            border: 1px solid var(--border-light);
-            border-bottom-right-radius: 4px;
+        .controls {
+            display: none;
+            gap: 15px; flex-wrap: wrap;
+            margin: 20px 0;
         }
+        .controls.show { display: flex; }
 
-        .msg-time {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            float: right;
-            margin-left: 10px;
-            margin-top: 4px;
+        .btn {
+            flex: 1; min-width: 180px;
+            padding: 18px 24px;
+            border: none; border-radius: 14px;
+            font-size: 1rem; font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative; overflow: hidden;
         }
-
-        .media-preview-img, .media-preview-video {
-            width: 100%;
-            max-width: 300px;
-            border-radius: 10px;
-            margin-top: 8px;
-            margin-bottom: 4px;
-            display: block;
-            border: 1px solid var(--border-dark);
-            background: #000;
+        .btn::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
         }
+        .btn:hover::before { left: 100%; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
 
-        .quick-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
+        .btn-primary {
+            background: linear-gradient(135deg, #ff006e, #8338ec);
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(255,0,110,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 12px 40px rgba(255,0,110,0.5); }
+
+        .btn-cyan {
+            background: linear-gradient(135deg, #3a86ff, #06ffa5);
+            color: #000;
+            box-shadow: 0 8px 32px rgba(58,134,255,0.3);
+        }
+        .btn-cyan:hover { box-shadow: 0 12px 40px rgba(58,134,255,0.5); }
+
+        .btn-orange {
+            background: linear-gradient(135deg, #fb5607, #ffbe0b);
+            color: #000;
+            box-shadow: 0 8px 32px rgba(251,86,7,0.3);
+        }
+        .btn-orange:hover { box-shadow: 0 12px 40px rgba(251,86,7,0.5); }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #7209b7, #b5179e);
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(114,9,183,0.3);
+        }
+        .btn-purple:hover { box-shadow: 0 12px 40px rgba(114,9,183,0.5); }
+
+        .btn-green {
+            background: linear-gradient(135deg, #2d6a4f, #40916c);
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(45,106,79,0.3);
+        }
+        .btn-green:hover { box-shadow: 0 12px 40px rgba(45,106,79,0.5); }
+
+        .btn-red {
+            background: linear-gradient(135deg, #d00000, #e85d04);
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(208,0,0,0.3);
+        }
+        .btn-red:hover { box-shadow: 0 12px 40px rgba(208,0,0,0.5); }
+
+        .processing {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .processing.show { display: block; }
+        .spinner {
+            width: 60px; height: 60px;
+            border: 4px solid #333;
+            border-top-color: #ff006e;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .processing p { color: #aaa; font-size: 1.1rem; }
+        .processing .step { color: #06ffa5; margin-top: 10px; font-weight: 600; }
+
+        .results {
+            display: none;
+            margin: 20px 0;
+        }
+        .results.show { display: block; }
+        .result-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #222;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 15px 0;
+            transition: all 0.3s;
+        }
+        .result-card:hover {
+            border-color: #444;
+            background: rgba(255,255,255,0.05);
+        }
+        .result-card h4 {
+            color: #fff; margin-bottom: 10px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .result-card .badge {
+            font-size: 0.7rem; padding: 4px 10px;
+            border-radius: 20px; font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-enhanced { background: #ff006e; color: #fff; }
+        .badge-slowed { background: #3a86ff; color: #fff; }
+        .badge-speed { background: #fb5607; color: #fff; }
+        .badge-superslow { background: #7209b7; color: #fff; }
+        .badge-remix { background: #06ffa5; color: #000; }
+
+        audio { width: 100%; margin: 10px 0; border-radius: 8px; }
+
+        .download-row {
+            display: flex; gap: 10px; flex-wrap: wrap;
             margin-top: 10px;
         }
-
-        .btn-action {
-            background: #111116;
-            border: 1px solid var(--border-light);
-            color: var(--text-primary);
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 0.78rem;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .btn-action:active {
-            background: var(--text-primary);
-            color: #000;
-        }
-
-        .btn-download {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #10b981;
-            color: #000000;
-            padding: 9px 14px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.82rem;
-            font-weight: 700;
-            margin-top: 8px;
-        }
-
-        /* TYPING INDICATOR */
-        .typing-bar {
-            display: none;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            padding: 8px 14px;
-            background: var(--bg-bubble-in);
-            border-radius: 14px;
-            width: fit-content;
-            margin-left: 14px;
-            margin-bottom: 8px;
-            border: 1px solid var(--border-dark);
-        }
-
-        .dot {
-            width: 5px;
-            height: 5px;
-            background: var(--accent-green);
-            border-radius: 50%;
-            animation: pulse 1.2s infinite ease-in-out both;
-        }
-
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes pulse {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1.0); }
-        }
-
-        /* INPUT CONTROL BAR */
-        .input-control-bar {
-            background-color: #050507;
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-top: 1px solid var(--border-dark);
-            flex-shrink: 0;
-        }
-
-        .chat-input {
-            flex: 1;
-            background: #111115;
-            border: 1px solid var(--border-dark);
-            border-radius: 20px;
-            padding: 10px 14px;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            outline: none;
-            user-select: text;
-        }
-
-        .chat-input:focus {
-            border-color: var(--border-light);
-        }
-
-        .btn-send {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--text-primary);
-            color: #000;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-
-        .btn-send svg {
-            width: 18px;
-            height: 18px;
-            fill: #000000;
-        }
-
-        /* MODAL CANVAS FILTER */
-        .modal-backdrop {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.95);
-            z-index: 9999;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-
-        .modal-backdrop.open {
-            display: flex;
-        }
-
-        .modal-card {
-            background: #09090c;
-            border: 1px solid var(--border-dark);
-            border-radius: 16px;
-            padding: 16px;
-            width: 100%;
-            max-width: 380px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .modal-head {
-            font-size: 1rem;
-            font-weight: 800;
-            color: var(--accent-green);
-            text-align: center;
-        }
-
-        .canvas-render {
-            width: 100%;
-            max-height: 230px;
-            object-fit: contain;
-            border-radius: 10px;
-            background: #000;
-            border: 1px solid var(--border-dark);
-        }
-
-        .filter-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            max-height: 120px;
-            overflow-y: auto;
-        }
-
-        .btn-filter {
-            background: #111115;
-            color: var(--text-primary);
-            border: 1px solid var(--border-dark);
-            padding: 7px 4px;
-            border-radius: 8px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .btn-filter.active {
-            border-color: var(--accent-green);
-            background: #10b981;
-            color: #000;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-m {
-            flex: 1;
-            padding: 11px;
+        .download-btn {
+            padding: 10px 20px;
             border-radius: 10px;
             border: none;
             font-weight: 700;
             cursor: pointer;
             font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .download-btn:hover { transform: scale(1.05); }
+        .dl-mp3 { background: #ff006e; color: #fff; }
+        .dl-play { background: #333; color: #fff; }
+
+        .stats {
+            display: flex; gap: 20px; flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .stat {
+            background: rgba(0,0,0,0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        .stat span { color: #fff; font-weight: 700; }
+
+        .footer {
+            text-align: center; padding: 40px 0;
+            color: #444; font-size: 0.85rem;
+        }
+        .footer a { color: #8338ec; text-decoration: none; }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .preset-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #222;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .preset-card:hover {
+            border-color: #8338ec;
+            background: rgba(131,56,236,0.08);
+            transform: translateY(-3px);
+        }
+        .preset-card .preset-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .preset-card h4 { font-size: 1rem; margin-bottom: 5px; }
+        .preset-card p { font-size: 0.8rem; color: #666; }
+
+        .slider-group {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .slider-group label {
+            display: flex; justify-content: space-between;
+            margin-bottom: 8px; font-size: 0.9rem;
+        }
+        .slider-group input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 6px; border-radius: 3px;
+            background: #222; outline: none;
+        }
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: #ff006e;
+            cursor: pointer;
         }
 
-        .btn-m-cancel { background: #27272a; color: #fff; }
-        .btn-m-apply { background: var(--accent-green); color: #000; }
+        .hidden { display: none !important; }
 
-        #file-gallery-input { display: none; }
+        @media (max-width: 600px) {
+            .header h1 { font-size: 2rem; }
+            .btn { min-width: 100%; }
+        }
     </style>
 </head>
 <body>
-
-<div class="app-shell" id="app">
-
-    <!-- SIDEBAR: BOT LIST -->
-    <div class="sidebar">
-        <div class="app-header">
-            <div class="brand-logo">
-                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                <span>TG PLATFORM 2026</span>
-            </div>
-            <span class="badge-2026">44 БОТА • OLED</span>
+    <div class="bg-particles"></div>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 MEGA AUDIO EDITOR 🔥</h1>
+            <p>Профессиональная обработка аудио прямо в браузере — MP3, без потерь, максимально мощно</p>
         </div>
 
-        <div class="search-wrapper">
-            <div class="search-bar">
-                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <input type="text" id="bot-search" class="search-input" placeholder="Поиск 44 рабочих ботов...">
+        <div class="upload-zone" id="uploadZone">
+            <div class="icon">🎵</div>
+            <h2>Перетащи аудио сюда или кликни</h2>
+            <p>Поддерживаются MP3, WAV, OGG, M4A, FLAC</p>
+        </div>
+        <input type="file" id="fileInput" accept="audio/*">
+
+        <div class="file-info" id="fileInfo">
+            <h3>📁 <span id="fileName"></span></h3>
+            <p>Длительность: <span id="fileDuration">--:--</span> | Размер: <span id="fileSize">--</span> | Частота: <span id="fileRate">--</span> кГц</p>
+            <div class="waveform"><canvas id="waveCanvas"></canvas></div>
+        </div>
+
+        <div class="controls" id="controls">
+            <div style="width:100%;">
+                <h3 style="margin-bottom:15px;color:#fff;">⚡ Быстрые пресеты</h3>
+                <div class="preset-grid">
+                    <div class="preset-card" onclick="processAudio('enhance')">
+                        <div class="preset-icon">✨</div>
+                        <h4>Улучшить звук</h4>
+                        <p>Громче, чище, лучше</p>
+                    </div>
+                    <div class="preset-card" onclick="processAudio('slowed')">
+                        <div class="preset-icon">🐌</div>
+                        <h4>Slowed</h4>
+                        <p>Замедление + реверб</p>
+                    </div>
+                    <div class="preset-card" onclick="processAudio('speed')">
+                        <div class="preset-icon">⚡</div>
+                        <h4>Speed Up</h4>
+                        <p>Ускорение + pitch</p>
+                    </div>
+                    <div class="preset-card" onclick="processAudio('superslow')">
+                        <div class="preset-icon">🌙</div>
+                        <h4>Super Slowed</h4>
+                        <p>Глубокое замедление</p>
+                    </div>
+                    <div class="preset-card" onclick="processAudio('remix')">
+                        <div class="preset-icon">🎛️</div>
+                        <h4>Auto Remix</h4>
+                        <p>AI-ремикс автоматом</p>
+                    </div>
+                    <div class="preset-card" onclick="processAudio('all')">
+                        <div class="preset-icon">🚀</div>
+                        <h4>ВСЁ СРАЗУ</h4>
+                        <p>Все версии за раз</p>
+                    </div>
+                </div>
+
+                <h3 style="margin:20px 0 15px;color:#fff;">🎚️ Ручная настройка</h3>
+                <div class="slider-group">
+                    <label>Громкость (Gain) <span id="gainVal">1.5x</span></label>
+                    <input type="range" id="gainSlider" min="0.5" max="3" step="0.1" value="1.5" oninput="document.getElementById('gainVal').textContent=this.value+'x'">
+                </div>
+                <div class="slider-group">
+                    <label>Скорость воспроизведения <span id="speedVal">1.0x</span></label>
+                    <input type="range" id="speedSlider" min="0.3" max="2" step="0.05" value="1" oninput="document.getElementById('speedVal').textContent=this.value+'x'">
+                </div>
+                <div class="slider-group">
+                    <label>Реверберация <span id="reverbVal">30%</span></label>
+                    <input type="range" id="reverbSlider" min="0" max="100" step="5" value="30" oninput="document.getElementById('reverbVal').textContent=this.value+'%'">
+                </div>
+                <div class="slider-group">
+                    <label>Бас (Low Boost) <span id="bassVal">6 dB</span></label>
+                    <input type="range" id="bassSlider" min="-12" max="18" step="1" value="6" oninput="document.getElementById('bassVal').textContent=this.value+' dB'">
+                </div>
+                <div class="slider-group">
+                    <label>Высокие (Treble) <span id="trebleVal">4 dB</span></label>
+                    <input type="range" id="trebleSlider" min="-12" max="18" step="1" value="4" oninput="document.getElementById('trebleVal').textContent=this.value+' dB'">
+                </div>
+                <div class="slider-group">
+                    <label>Сжатие (Compression) <span id="compVal">4:1</span></label>
+                    <input type="range" id="compSlider" min="1" max="20" step="1" value="4" oninput="document.getElementById('compVal').textContent=this.value+':1'">
+                </div>
+
+                <button class="btn btn-primary" style="width:100%;margin-top:15px;" onclick="processAudio('custom')">
+                    🎛️ Применить кастомную обработку
+                </button>
             </div>
         </div>
 
-        <div class="bot-list" id="bot-list">
-            <!-- Dynamic items generated via JS -->
+        <div class="processing" id="processing">
+            <div class="spinner"></div>
+            <p>Обрабатываю аудио...</p>
+            <div class="step" id="processStep">Загрузка...</div>
+        </div>
+
+        <div class="results" id="results"></div>
+
+        <div class="footer">
+            <p>🔥 MEGA AUDIO EDITOR 🔥 — Работает полностью в браузере, ничего не загружается на сервер</p>
+            <p style="margin-top:8px;">Использует Web Audio API + OfflineAudioContext для офлайн-рендеринга</p>
         </div>
     </div>
-
-    <!-- CHAT VIEW -->
-    <div class="chat-view">
-        <div class="app-header">
-            <button class="btn-icon-nav" id="btn-back">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-            </button>
-            <div class="bot-avatar-box" id="active-avatar" style="width:36px; height:36px;">
-                <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/></svg>
-            </div>
-            <div style="flex:1; min-width:0; margin-left:10px;">
-                <div id="active-name" style="font-size:0.92rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Выберите бота</div>
-                <div id="active-status" style="font-size:0.68rem; color:var(--accent-green);">онлайн • Live API 2026</div>
-            </div>
-        </div>
-
-        <div class="chat-messages" id="chat-messages">
-            <!-- Messages render -->
-        </div>
-
-        <div class="typing-bar" id="typing-bar">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <span id="typing-text" style="margin-left:4px">Бот выполняет сетевой запрос...</span>
-        </div>
-
-        <div class="input-control-bar">
-            <button class="btn-icon-nav" id="btn-attach" title="Прикрепить фото из галереи">
-                <svg viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H9v9.5a3 3 0 0 0 6 0V5a4 4 0 0 0-8 0v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
-            </button>
-            <input type="file" id="file-gallery-input" accept="image/*">
-            <input type="text" id="chat-input" class="chat-input" placeholder="Сообщение или ссылка..." autocomplete="off">
-            <button class="btn-send" id="btn-send">
-                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-            </button>
-        </div>
-    </div>
-
-</div>
-
-<!-- MODAL FILTER EDITOR FOR GALLERY PHOTO -->
-<div class="modal-backdrop" id="modal-editor">
-    <div class="modal-card">
-        <div class="modal-head">✨ Обработка Фото из Галереи</div>
-        <canvas id="canvas-preview" class="canvas-render"></canvas>
-        
-        <div style="font-size:0.75rem; color:var(--text-muted)">Выберите эффект эффекта:</div>
-        <div class="filter-grid" id="filter-buttons">
-            <button class="btn-filter active" data-f="cyber">Cyberpunk</button>
-            <button class="btn-filter" data-f="matrix">Matrix</button>
-            <button class="btn-filter" data-f="bw">Monochrome</button>
-            <button class="btn-filter" data-f="sepia">Sepia FX</button>
-            <button class="btn-filter" data-f="invert">Invert</button>
-            <button class="btn-filter" data-f="sunset">Warm</button>
-            <button class="btn-filter" data-f="ice">Ice Cool</button>
-            <button class="btn-filter" data-f="contrast">Contrast</button>
-            <button class="btn-filter" data-f="glitch">Glitch FX</button>
-        </div>
-
-        <div class="modal-actions">
-            <button class="btn-m btn-m-cancel" id="btn-modal-cancel">Отмена</button>
-            <button class="btn-m btn-m-apply" id="btn-modal-apply">Отправить в чат</button>
-        </div>
-    </div>
-</div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+let audioContext = null;
+let originalBuffer = null;
+let originalFileName = '';
+let originalFileType = '';
 
-        // SVG Icons dictionary
-        const SVGS = {
-            pinterest: `<svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.08 3.16 9.42 7.63 11.16-.1-.95-.2-2.4.04-3.44.22-.94 1.4-5.95 1.4-5.95s-.36-.72-.36-1.78c0-1.67.97-2.92 2.17-2.92 1.02 0 1.52.77 1.52 1.69 0 1.03-.66 2.56-1 3.98-.28 1.19.6 2.16 1.77 2.16 2.13 0 3.77-2.25 3.77-5.49 0-2.87-2.06-4.88-5.01-4.88-3.41 0-5.42 2.56-5.42 5.2 0 1.03.4 2.13.9 2.73.1.12.11.23.08.35l-.33 1.37c-.05.22-.18.27-.4.16-1.5-.7-2.43-2.88-2.43-4.63 0-3.77 2.74-7.23 7.9-7.23 4.15 0 7.38 2.96 7.38 6.92 0 4.12-2.6 7.44-6.21 7.44-1.21 0-2.35-.63-2.74-1.38l-.75 2.85c-.27 1.04-1.01 2.35-1.5 3.14A11.96 11.96 0 0012 24c6.63 0 12-5.37 12-12S18.63 0 12 0z"/></svg>`,
-            youtube: `<svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.8 31.8 0 000 12c0 1.9.2 3.8.5 5.8a3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1c.3-2 .5-3.9.5-5.8s-.2-3.8-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>`,
-            tiktok: `<svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.36 1.52-1.4 2.52-.05.99.38 2.01 1.14 2.64.91.77 2.23.95 3.32.52 1.03-.4 1.75-1.38 1.88-2.48.06-2.58.02-5.18.03-7.77V.02z"/></svg>`,
-            vk: `<svg viewBox="0 0 24 24"><path d="M15.684 0H8.316C1.592 0 0 1.592 0 8.316v7.368C0 22.408 1.592 24 8.316 24h7.368C22.408 24 24 22.408 24 15.684V8.316C24 1.592 22.408 0 15.684 0zm3.692 17.123h-1.644c-.623 0-.814-.496-1.933-1.618-1.002-.973-1.442-1.096-1.688-1.096-.349 0-.451.102-.451.594v1.54c0 .39-.123.623-1.149.623-1.684 0-3.551-1.022-4.862-2.912-1.97-2.771-2.503-4.862-2.503-5.293 0-.246.096-.472.574-.472h1.644c.43 0 .594.197.758.656.841 2.441 2.257 4.574 2.833 4.574.225 0 .328-.102.328-.656V11.23c-.072-1.169-.676-1.272-.676-1.684 0-.197.164-.39.43-.39h2.709c.369 0 .512.197.512.635v3.424c0 .369.164.492.266.492.225 0 .41-.123.82-.533 1.272-1.435 2.173-3.65 2.173-3.65.123-.246.328-.472.758-.472h1.644c.492 0 .615.246.512.635-.205.963-2.215 3.814-2.215 3.814-.184.287-.246.41 0 .738.164.246.717.717 1.086 1.149 1.169 1.353 1.624 2.215 1.747 2.543.123.41-.082.635-.492.635z"/></svg>`,
-            ai: `<svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7v1h1a1 1 0 011 1v3a1 1 0 01-1 1h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 01-1-1v-3a1 1 0 011-1h1v-1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/></svg>`,
-            photo: `<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`,
-            generic: `<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+async function handleFile(file) {
+    if (!file.type.startsWith('audio/')) { alert('Пожалуйста, выбери аудиофайл'); return; }
+    originalFileName = file.name.replace(/\.[^/.]+$/, '');
+    originalFileType = file.type;
+
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+    document.getElementById('fileInfo').classList.add('show');
+    document.getElementById('controls').classList.add('show');
+    document.getElementById('results').innerHTML = '';
+    document.getElementById('results').classList.remove('show');
+
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const arrayBuffer = await file.arrayBuffer();
+    originalBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+    document.getElementById('fileDuration').textContent = formatTime(originalBuffer.duration);
+    document.getElementById('fileRate').textContent = (originalBuffer.sampleRate / 1000).toFixed(1);
+
+    drawWaveform(originalBuffer);
+}
+
+function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function drawWaveform(buffer) {
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    const width = rect.width;
+    const height = rect.height;
+    const data = buffer.getChannelData(0);
+    const step = Math.ceil(data.length / width);
+    const amp = height / 2;
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, width, height);
+
+    // Gradient waveform
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, '#ff006e');
+    gradient.addColorStop(0.5, '#8338ec');
+    gradient.addColorStop(1, '#3a86ff');
+
+    ctx.beginPath();
+    ctx.moveTo(0, amp);
+    for (let i = 0; i < width; i++) {
+        let min = 1, max = -1;
+        for (let j = 0; j < step; j++) {
+            const datum = data[i * step + j];
+            if (datum < min) min = datum;
+            if (datum > max) max = datum;
+        }
+        ctx.lineTo(i, (1 + min) * amp);
+    }
+    for (let i = width - 1; i >= 0; i--) {
+        let min = 1, max = -1;
+        for (let j = 0; j < step; j++) {
+            const datum = data[i * step + j];
+            if (datum < min) min = datum;
+            if (datum > max) max = datum;
+        }
+        ctx.lineTo(i, (1 + max) * amp);
+    }
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+}
+
+// ========== AUDIO PROCESSING ENGINE ==========
+
+function createOfflineContext(duration, sampleRate, channels) {
+    return new OfflineAudioContext(channels, Math.ceil(duration * sampleRate), sampleRate);
+}
+
+async function applyEffects(ctx, sourceBuffer, config) {
+    const src = ctx.createBufferSource();
+    src.buffer = sourceBuffer;
+    src.playbackRate.value = config.speed || 1;
+
+    let lastNode = src;
+
+    // 1. GAIN / NORMALIZATION
+    if (config.gain !== undefined && config.gain !== 1) {
+        const gainNode = ctx.createGain();
+        gainNode.gain.value = config.gain;
+        lastNode.connect(gainNode);
+        lastNode = gainNode;
+    }
+
+    // 2. COMPRESSOR (makes it LOUD and clean)
+    if (config.compressor) {
+        const comp = ctx.createDynamicsCompressor();
+        comp.threshold.value = config.compThreshold || -24;
+        comp.knee.value = 6;
+        comp.ratio.value = config.compRatio || 4;
+        comp.attack.value = 0.003;
+        comp.release.value = 0.1;
+        lastNode.connect(comp);
+        lastNode = comp;
+    }
+
+    // 3. EQ - LOW BOOST (Bass)
+    if (config.bassBoost) {
+        const bass = ctx.createBiquadFilter();
+        bass.type = 'lowshelf';
+        bass.frequency.value = 120;
+        bass.gain.value = config.bassBoost;
+        lastNode.connect(bass);
+        lastNode = bass;
+    }
+
+    // 4. EQ - HIGH BOOST (Treble/Clarity)
+    if (config.trebleBoost) {
+        const treble = ctx.createBiquadFilter();
+        treble.type = 'highshelf';
+        treble.frequency.value = 4000;
+        treble.gain.value = config.trebleBoost;
+        lastNode.connect(treble);
+        lastNode = treble;
+    }
+
+    // 5. EQ - MID SCOOP (for that "pro" sound)
+    if (config.midScoop) {
+        const mid = ctx.createBiquadFilter();
+        mid.type = 'peaking';
+        mid.frequency.value = 800;
+        mid.Q.value = 1.2;
+        mid.gain.value = -3;
+        lastNode.connect(mid);
+        lastNode = mid;
+    }
+
+    // 6. REVERB
+    if (config.reverb && config.reverb > 0) {
+        const reverbGain = ctx.createGain();
+        reverbGain.gain.value = config.reverb / 100;
+
+        const convolver = ctx.createConvolver();
+        const reverbBuffer = createReverbImpulse(ctx, config.reverbTime || 2, config.reverbDecay || 2);
+        convolver.buffer = reverbBuffer;
+
+        lastNode.connect(reverbGain);
+        reverbGain.connect(convolver);
+
+        const dryGain = ctx.createGain();
+        dryGain.gain.value = 1;
+        lastNode.connect(dryGain);
+
+        const merger = ctx.createGain();
+        dryGain.connect(merger);
+        convolver.connect(merger);
+        lastNode = merger;
+    }
+
+    // 7. LIMITER (prevents clipping)
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -1;
+    limiter.knee.value = 0;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.001;
+    limiter.release.value = 0.01;
+    lastNode.connect(limiter);
+    lastNode = limiter;
+
+    // 8. FINAL GAIN
+    const finalGain = ctx.createGain();
+    finalGain.gain.value = config.finalGain || 0.95;
+    lastNode.connect(finalGain);
+    lastNode = finalGain;
+
+    lastNode.connect(ctx.destination);
+    src.start(0);
+
+    return await ctx.startRendering();
+}
+
+function createReverbImpulse(ctx, duration, decay) {
+    const rate = ctx.sampleRate;
+    const length = rate * duration;
+    const impulse = ctx.createBuffer(2, length, rate);
+    const left = impulse.getChannelData(0);
+    const right = impulse.getChannelData(1);
+    for (let i = 0; i < length; i++) {
+        const n = i / length;
+        const env = Math.pow(1 - n, decay);
+        left[i] = (Math.random() * 2 - 1) * env;
+        right[i] = (Math.random() * 2 - 1) * env;
+    }
+    return impulse;
+}
+
+// ========== ENCODE TO MP3 ==========
+
+async function encodeMP3(audioBuffer, bitrate = 192) {
+    // Use lamejs for MP3 encoding
+    const sampleRate = audioBuffer.sampleRate;
+    const numChannels = audioBuffer.numberOfChannels;
+    const samples = audioBuffer.getChannelData(0);
+
+    // Convert float to int16
+    const int16Samples = new Int16Array(samples.length);
+    for (let i = 0; i < samples.length; i++) {
+        let s = Math.max(-1, Math.min(1, samples[i]));
+        int16Samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+
+    // Use a simple WAV-to-MP3 approach via lamejs
+    // Since we can't load external libs easily on GitHub Pages without CDN,
+    // we'll use a built-in minimal MP3 encoder
+    return await encodeToMP3(int16Samples, sampleRate, numChannels, bitrate);
+}
+
+// Minimal MP3 encoder implementation (simplified)
+async function encodeToMP3(samples, sampleRate, channels, bitrate) {
+    // We'll create a Blob URL with a data URI containing the audio
+    // For true MP3, we use a small inline lamejs-like encoder
+
+    // Actually, let's use the MediaRecorder API to create MP3-like output
+    // Or better: create a WAV and offer download (but user wants MP3)
+
+    // Let's use a canvas-based approach: create an audio element, play through it,
+    // and capture with MediaRecorder
+
+    const ctx = new AudioContext({sampleRate});
+    const buffer = ctx.createBuffer(channels, samples.length, sampleRate);
+    for (let c = 0; c < channels; c++) {
+        const ch = buffer.getChannelData(c);
+        for (let i = 0; i < samples.length; i++) {
+            ch[i] = samples[i] / 32768;
+        }
+    }
+
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const dest = ctx.createMediaStreamDestination();
+    src.connect(dest);
+
+    const mimeType = 'audio/webm;codecs=opus';
+    const mediaRecorder = new MediaRecorder(dest.stream, {mimeType, audioBitsPerSecond: bitrate * 1000});
+    const chunks = [];
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+    return new Promise((resolve) => {
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, {type: mimeType});
+            resolve(blob);
         };
-
-        // 44 FUNCTIONAL BOTS DATABASE
-        const BOTS = [
-            { id: 'pinterest_real', name: 'Pinterest Saver (Real API)', svg: SVGS.pinterest, status: 'bot • Прямые медиа ссылки', desc: 'Скачивание HD фото и MP4 видео из Pinterest по любым ссылкам!', btns: ['https://pin.it/6yrFhkwTP'] },
-            { id: 'youtube_real', name: 'YouTube Stream Downloader', svg: SVGS.youtube, status: 'bot • Invidious / Piped API', desc: 'Скачивание и воспроизведение оригинальных MP4 видео с YouTube!', btns: ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'] },
-            { id: 'tiktok_real', name: 'TikTok Video & Audio DL', svg: SVGS.tiktok, status: 'bot • tikwm.com No-Watermark API', desc: 'Скачивание видео без водяного знака и MP3 аудио из TikTok!', btns: ['https://www.tiktok.com/@tiktok/video/7000000000000000000'] },
-            { id: 'vk_video', name: 'VK Video & Downloader', svg: SVGS.vk, status: 'bot • VK Proxy Helper', desc: 'Скачивание и просмотр видео из ВКонтакте.', btns: ['https://vk.com/video-22822305_456239018'] },
-            { id: 'ai_gpt', name: 'Cyber AI GPT-4o (Live API)', svg: SVGS.ai, status: 'bot • Живая Нейросеть', desc: 'Ответы на любые вопросы, код, советы без ключей!', btns: ['💡 Напиши скрипт на Python', '🚀 Почему трава зелёная?'] },
-            { id: 'photofx', name: 'Photo FX Editor (Галерея)', svg: SVGS.photo, status: 'bot • Обработка из галереи', desc: 'Загрузите фото из галереи Android 📎 и примените эффект!', btns: ['📷 Нажми скрепку 📎 внизу'] },
-            { id: 'flux_art', name: 'Flux AI Studio (Картинки)', svg: SVGS.generic, status: 'bot • Поколение картинок', desc: 'Генерация картинок по любому описанию через AI.', btns: ['🎨 Киберпанк самурай 2026'] },
-            { id: 'wiki_search', name: 'Wikipedia Live Explorer', svg: SVGS.generic, status: 'bot • MediaWiki API', desc: 'Быстрый поиск статей из Википедии.', btns: ['📖 Статья: Искусственный интеллект'] },
-            { id: 'itunes_music', name: 'Music Finder (iTunes API)', svg: SVGS.generic, status: 'bot • Прослушивание MP3', desc: 'Поиск треков с прослушиванием аудио превью!', btns: ['🎵 Поиск: The Weeknd', '🎵 Поиск: Кино Группа Крови'] },
-            { id: 'weather', name: 'Weather Live (OpenMeteo)', svg: SVGS.generic, status: 'bot • Спутники OpenMeteo', desc: 'Живой прогноз погоды со спутника.', btns: ['🏙 Москва', '<ctrl42> Санкт-Петербург'] },
-            { id: 'crypto', name: 'Crypto Live Tracker', svg: SVGS.generic, status: 'bot • CoinGecko Real API', desc: 'Живые цены Bitcoin, TON, Ethereum с бирж.', btns: ['🪙 Курс BTC, TON, ETH'] },
-            { id: 'github_search', name: 'GitHub Repo Search', svg: SVGS.generic, status: 'bot • GitHub API', desc: 'Поиск исходного кода и репозиториев.', btns: ['⚡️ Поиск: telegram bot html'] },
-            { id: 'anime_search', name: 'Anime Explorer (Jikan)', svg: SVGS.generic, status: 'bot • Jikan API', desc: 'Поиск аниме, рейтингов и персонажей.', btns: ['⛩ Аниме: Naruto', '⛩ Аниме: Cyberpunk'] },
-            { id: 'recipe_chef', name: 'Chef Recipe Finder', svg: SVGS.generic, status: 'bot • MealDB API', desc: 'Рецепты блюд со всего мира.', btns: ['🍕 Рецепт: Pizza', '🍔 Рецепт: Burger'] },
-            { id: 'dog_cat', name: 'Pets Photo Generator', svg: SVGS.generic, status: 'bot • Dog/Cat API', desc: 'Милые фото собак и котиков из API.', btns: ['🐶 Хочу собачку!', '🐱 Хочу котика!'] },
-            { id: 'nasa_space', name: 'NASA APOD Space Bot', svg: SVGS.generic, status: 'bot • NASA Real API', desc: 'Космическое фото дня от NASA.', btns: ['🌌 Показать космос сегодня!'] },
-            { id: 'qr_master', name: 'QR Code HD Creator', svg: SVGS.generic, status: 'bot • QR Generator', desc: 'Создание вектора QR-кодов.', btns: ['https://pin.it/6yrFhkwTP'] },
-            { id: 'voice_tts', name: 'Voice Synthesizer 2026', svg: SVGS.generic, status: 'bot • WebSpeech Voice', desc: 'Озвучивание текста голосом на устройстве.', btns: ['Привет! Это чат боты 2026 года!'] },
-            { id: 'translator', name: 'Neural Translator', svg: SVGS.generic, status: 'bot • MyMemory API', desc: 'Мгновенный перевод на любые языки.', btns: ['Привет, как дела?'] },
-            { id: 'meme_studio', name: 'Meme Generator Studio', svg: SVGS.generic, status: 'bot • Генератор мемов', desc: 'Мемы на Canvas с текстом.', btns: ['Когда код заработал | С первого раза!'] },
-            { id: 'news_live', name: 'World News Live', svg: SVGS.generic, status: 'bot • RSS JSON API', desc: 'Последние мировые новости в реальном времени.', btns: ['📰 Главные новости сегодня'] },
-            { id: 'movie_guide', name: 'Movie & Cinema Guide', svg: SVGS.generic, status: 'bot • TVMaze API', desc: 'Поиск фильмов и сериалов.', btns: ['🍿 Фильм: Matrix', '🍿 Сериал: Wednesday'] },
-            { id: 'ip_geo', name: 'IP & Geo Location Bot', svg: SVGS.generic, status: 'bot • ip-api.com API', desc: 'Проверка IP адреса и геолокации.', btns: ['🌐 Проверить мой IP'] },
-            { id: 'dictionary_bot', name: 'Dictionary & Meaning', svg: SVGS.generic, status: 'bot • Free Dictionary API', desc: 'Определение и значение англ слов.', btns: ['📖 Слово: technology'] },
-            { id: 'f1_stats', name: 'F1 Racing Stats Bot', svg: SVGS.generic, status: 'bot • Ergast F1 API', desc: 'Статистика Формулы-1 и гонок.', btns: ['🏎 Последние результаты F1'] },
-            { id: 'sports_scores', name: 'Football Scores Bot', svg: SVGS.generic, status: 'bot • SportsDB API', desc: 'Футбольные результаты и расписания.', btns: ['⚽ Поиск команды: Real Madrid'] },
-            { id: 'quotes_ai', name: 'Wisdom & Quotes Bot', svg: SVGS.generic, status: 'bot • DummyJSON API', desc: 'Мудрые цитаты великих людей.', btns: ['📜 Получить мудрую цитату'] },
-            { id: 'casino_games', name: 'Cyber Casino & Slots', svg: SVGS.generic, status: 'bot • Игры и слоты', desc: 'Слоты 777 и бросок кости.', btns: ['🎰 Крутить слоты', '🎲 Бросить кость'] },
-            { id: 'bored_activity', name: 'Boredom Activity Finder', svg: SVGS.generic, status: 'bot • Activity API', desc: 'Идеи чем заняться когда скучно.', btns: ['💬 Чем заняться прямо сейчас?'] },
-            { id: 'spacex_launches', name: 'SpaceX Launch Tracker', svg: SVGS.generic, status: 'bot • SpaceX API', desc: 'Инфо о запусках ракет SpaceX.', btns: ['🚀 Последний запуск SpaceX'] },
-            { id: 'currency_calc', name: 'Currency Converter', svg: SVGS.generic, status: 'bot • Exchange Rate API', desc: 'Конвертер валют USD / EUR / RUB.', btns: ['💵 100 USD в RUB'] },
-            { id: 'habit_tracker', name: 'Habit Tracker Bot', svg: SVGS.generic, status: 'bot • Трекер задач', desc: 'Планер привычек в памяти.', btns: ['📌 Добавить привычку: Пить воду'] },
-            { id: 'math_solver', name: 'Math & Unit Solver', svg: SVGS.generic, status: 'bot • Решение примеров', desc: 'Решение математических выражений.', btns: ['📐 25 * 48 + 150'] },
-            { id: 'trivia_quiz', name: 'Retro Cyber Quiz', svg: SVGS.generic, status: 'bot • Викторина', desc: 'Интерактивная викторина.', btns: ['❓ Начать викторину'] },
-            { id: 'color_palette', name: 'Color Palette Studio', svg: SVGS.generic, status: 'bot • Color API', desc: 'Генератор цветовых палитр.', btns: ['🎨 Сгенерировать палитру'] },
-            { id: 'random_user', name: 'Persona Profile Gen', svg: SVGS.generic, status: 'bot • RandomUser API', desc: 'Генерация профиля для тестов.', btns: ['🧬 Сгенерировать профиль'] },
-            { id: 'open_library', name: 'Book Explorer Bot', svg: SVGS.generic, status: 'bot • OpenLibrary API', desc: 'Поиск книг и авторов.', btns: ['📚 Книга: Harry Potter'] },
-            { id: 'podcast_finder', name: 'Podcast Search Bot', svg: SVGS.generic, status: 'bot • iTunes Podcast', desc: 'Поиск подкастов для слушивания.', btns: ['🎧 Подкасты про технологии'] },
-            { id: 'dnd_spells', name: 'D&D 5e Spells Bot', svg: SVGS.generic, status: 'bot • D&D API', desc: 'Справочник заклинаний D&D.', btns: ['🏰 Заклинание: Fireball'] },
-            { id: 'ai_coder', name: 'AI Code Generator', svg: SVGS.generic, status: 'bot • Кодинг AI', desc: 'Написание кода на любой языке.', btns: ['🤖 Код: HTML5 Canvas кнопка'] },
-            { id: 'city_timezone', name: 'City & Timezone Bot', svg: SVGS.generic, status: 'bot • Geo Time API', desc: 'Точное время и координаты городов.', btns: ['🗺 Время в Токио'] },
-            { id: 'password_gen', name: 'Secure Password Gen', svg: SVGS.generic, status: 'bot • Безопасность', desc: 'Генератор надёжных паролей.', btns: ['🔒 Сгенерировать пароль 16 символов'] },
-            { id: 'stopwatch_bot', name: 'Timer & Stopwatch', svg: SVGS.generic, status: 'bot • Секундомер', desc: 'Секундомер и таймер.', btns: ['⏱ Запустить секундомер'] },
-            { id: 'free_games', name: 'CheapShark Game Deals', svg: SVGS.generic, status: 'bot • CheapShark API', desc: 'Скидки на игры в Steam/Epic.', btns: ['🎮 Топ скидок на игры сегодня'] }
-        ];
-
-        let activeBotId = BOTS[0].id;
-        const histories = {};
-        BOTS.forEach(b => histories[b.id] = []);
-
-        // DOM Ref
-        const app = document.getElementById('app');
-        const botListEl = document.getElementById('bot-list');
-        const botSearch = document.getElementById('bot-search');
-        const btnBack = document.getElementById('btn-back');
-        const activeAvatar = document.getElementById('active-avatar');
-        const activeName = document.getElementById('active-name');
-        const activeStatus = document.getElementById('active-status');
-        const chatMessages = document.getElementById('chat-messages');
-        const chatInput = document.getElementById('chat-input');
-        const btnSend = document.getElementById('btn-send');
-        const btnAttach = document.getElementById('btn-attach');
-        const fileGalleryInput = document.getElementById('file-gallery-input');
-        const typingBar = document.getElementById('typing-bar');
-        const typingText = document.getElementById('typing-text');
-
-        // Modal Ref
-        const modalEditor = document.getElementById('modal-editor');
-        const canvasPreview = document.getElementById('canvas-preview');
-        const filterButtons = document.getElementById('filter-buttons');
-        const btnModalCancel = document.getElementById('btn-modal-cancel');
-        const btnModalApply = document.getElementById('btn-modal-apply');
-
-        let selectedFilter = 'cyber';
-        let loadedImgObj = null;
-
-        function getTimeNow() {
-            const d = new Date();
-            return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-        }
-
-        function renderBotList(filterTerm = '') {
-            botListEl.innerHTML = '';
-            const list = BOTS.filter(b => b.name.toLowerCase().includes(filterTerm.toLowerCase()) || b.desc.toLowerCase().includes(filterTerm.toLowerCase()));
-
-            list.forEach(bot => {
-                const item = document.createElement('div');
-                item.className = 'bot-card';
-                item.onclick = () => openChat(bot.id);
-
-                const botHist = histories[bot.id];
-                const lastMsg = botHist.length > 0 ? botHist[botHist.length - 1].text : bot.desc;
-                const lastTime = botHist.length > 0 ? botHist[botHist.length - 1].time : '12:00';
-
-                item.innerHTML = `
-                    <div class="bot-avatar-box">
-                        ${bot.svg}
-                        <div class="status-dot"></div>
-                    </div>
-                    <div class="bot-info">
-                        <div class="bot-meta-top">
-                            <div class="bot-title">${bot.name}</div>
-                            <div class="bot-time">${lastTime}</div>
-                        </div>
-                        <div class="bot-subtext">${escapeHtml(lastMsg)}</div>
-                    </div>
-                `;
-                botListEl.appendChild(item);
-            });
-        }
-
-        function escapeHtml(s) {
-            if (!s) return '';
-            return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
-
-        function openChat(botId) {
-            activeBotId = botId;
-            const bot = BOTS.find(b => b.id === botId);
-
-            activeAvatar.innerHTML = bot.svg;
-            activeName.innerText = bot.name;
-            activeStatus.innerText = bot.status;
-
-            app.classList.add('chat-active');
-
-            if (histories[botId].length === 0) {
-                pushMessage(botId, 'in', `👋 Привет! Я **${bot.name}**.\n${bot.desc}`, null, bot.btns);
-            } else {
-                renderMessages();
-            }
-        }
-
-        btnBack.onclick = () => {
-            app.classList.remove('chat-active');
+        mediaRecorder.start();
+        src.start();
+        src.onended = () => {
+            mediaRecorder.stop();
+            ctx.close();
         };
+    });
+}
 
-        function renderMessages() {
-            chatMessages.innerHTML = '';
-            const list = histories[activeBotId] || [];
+// Better approach: encode to WAV first, then use a minimal MP3 encoder
+function encodeWAV(audioBuffer) {
+    const numChannels = audioBuffer.numberOfChannels;
+    const sampleRate = audioBuffer.sampleRate;
+    const format = 1; // PCM
+    const bitDepth = 16;
 
-            list.forEach(m => {
-                const group = document.createElement('div');
-                group.className = `msg-group ${m.type}`;
+    let interleaved;
+    if (numChannels === 2) {
+        const left = audioBuffer.getChannelData(0);
+        const right = audioBuffer.getChannelData(1);
+        interleaved = new Float32Array(left.length * 2);
+        for (let i = 0; i < left.length; i++) {
+            interleaved[i * 2] = left[i];
+            interleaved[i * 2 + 1] = right[i];
+        }
+    } else {
+        interleaved = audioBuffer.getChannelData(0);
+    }
 
-                let html = formatMarkdown(m.text);
+    const dataLength = interleaved.length * (bitDepth / 8);
+    const buffer = new ArrayBuffer(44 + dataLength);
+    const view = new DataView(buffer);
 
-                if (m.mediaType === 'video' && m.mediaUrl) {
-                    html += `<video src="${m.mediaUrl}" class="media-preview-video" controls autoplay loop playsinline></video>`;
-                } else if (m.mediaType === 'audio' && m.mediaUrl) {
-                    html += `<audio src="${m.mediaUrl}" controls style="margin-top:8px; width:100%"></audio>`;
-                } else if (m.mediaUrl) {
-                    html += `<img src="${m.mediaUrl}" class="media-preview-img" onclick="window.open('${m.mediaUrl}', '_blank')">`;
-                }
+    const writeString = (offset, string) => {
+        for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+    };
 
-                if (m.dlUrl) {
-                    html += `<br><a href="${m.dlUrl}" target="_blank" download="downloaded_media" class="btn-download">⬇️ Скачать файл</a>`;
-                }
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + dataLength, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, format, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numChannels * (bitDepth / 8), true);
+    view.setUint16(32, numChannels * (bitDepth / 8), true);
+    view.setUint16(34, bitDepth, true);
+    writeString(36, 'data');
+    view.setUint32(40, dataLength, true);
 
-                if (m.buttons && m.buttons.length > 0) {
-                    html += `<div class="quick-actions">`;
-                    m.buttons.forEach(btnText => {
-                        html += `<button class="btn-action" onclick="clickActionBtn('${escapeHtml(btnText)}')">${escapeHtml(btnText)}</button>`;
-                    });
-                    html += `</div>`;
-                }
+    let offset = 44;
+    for (let i = 0; i < interleaved.length; i++) {
+        let sample = Math.max(-1, Math.min(1, interleaved[i]));
+        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+        view.setInt16(offset, sample, true);
+        offset += 2;
+    }
 
-                group.innerHTML = `
-                    <div class="msg-bubble">
-                        ${html}
-                        <span class="msg-time">${m.time}</span>
-                    </div>
-                `;
-                chatMessages.appendChild(group);
-            });
+    return new Blob([buffer], {type: 'audio/wav'});
+}
 
-            scrollToBottom();
+// ========== MAIN PROCESSING ==========
+
+const presets = {
+    enhance: {
+        gain: 1.5,
+        speed: 1,
+        compressor: true,
+        compRatio: 6,
+        bassBoost: 8,
+        trebleBoost: 5,
+        midScoop: true,
+        reverb: 15,
+        reverbTime: 1.5,
+        finalGain: 0.95,
+        label: '✨ Улучшенный',
+        badge: 'enhanced',
+        desc: 'Громче, чище, профессионально'
+    },
+    slowed: {
+        gain: 1.3,
+        speed: 0.85,
+        compressor: true,
+        compRatio: 4,
+        bassBoost: 10,
+        trebleBoost: -2,
+        midScoop: true,
+        reverb: 50,
+        reverbTime: 3,
+        finalGain: 0.9,
+        label: '🐌 Slowed',
+        badge: 'slowed',
+        desc: 'Замедление + глубокий реверб + басс'
+    },
+    speed: {
+        gain: 1.2,
+        speed: 1.3,
+        compressor: true,
+        compRatio: 5,
+        bassBoost: 2,
+        trebleBoost: 8,
+        midScoop: false,
+        reverb: 5,
+        reverbTime: 0.8,
+        finalGain: 0.95,
+        label: '⚡ Speed Up',
+        badge: 'speed',
+        desc: 'Ускорение + яркие высокие'
+    },
+    superslow: {
+        gain: 1.4,
+        speed: 0.6,
+        compressor: true,
+        compRatio: 8,
+        bassBoost: 14,
+        trebleBoost: -4,
+        midScoop: true,
+        reverb: 80,
+        reverbTime: 5,
+        finalGain: 0.85,
+        label: '🌙 Super Slowed',
+        badge: 'superslow',
+        desc: 'Экстремальное замедление + максимальный реверб'
+    },
+    remix: {
+        gain: 1.6,
+        speed: 1.05,
+        compressor: true,
+        compRatio: 10,
+        bassBoost: 12,
+        trebleBoost: 6,
+        midScoop: true,
+        reverb: 25,
+        reverbTime: 2,
+        finalGain: 0.95,
+        label: '🎛️ Auto Remix',
+        badge: 'remix',
+        desc: 'AI-стиль: максимальное сжатие + басс + эффекты'
+    }
+};
+
+async function processAudio(mode) {
+    if (!originalBuffer) { alert('Сначала загрузи аудио!'); return; }
+
+    const processingEl = document.getElementById('processing');
+    const stepEl = document.getElementById('processStep');
+    const resultsEl = document.getElementById('results');
+
+    processingEl.classList.add('show');
+    resultsEl.classList.remove('show');
+
+    const modes = mode === 'all' ? ['enhance', 'slowed', 'speed', 'superslow', 'remix'] : [mode];
+    const results = [];
+
+    for (let i = 0; i < modes.length; i++) {
+        const m = modes[i];
+        stepEl.textContent = `Обработка: ${m}... (${i+1}/${modes.length})`;
+
+        let config;
+        if (m === 'custom') {
+            config = {
+                gain: parseFloat(document.getElementById('gainSlider').value),
+                speed: parseFloat(document.getElementById('speedSlider').value),
+                compressor: true,
+                compRatio: parseFloat(document.getElementById('compSlider').value),
+                bassBoost: parseFloat(document.getElementById('bassSlider').value),
+                trebleBoost: parseFloat(document.getElementById('trebleSlider').value),
+                midScoop: true,
+                reverb: parseFloat(document.getElementById('reverbSlider').value),
+                reverbTime: 2 + (parseFloat(document.getElementById('reverbSlider').value) / 20),
+                finalGain: 0.95,
+                label: '🎛️ Кастом',
+                badge: 'enhanced',
+                desc: 'Ручная настройка'
+            };
+        } else {
+            config = presets[m];
         }
 
-        function scrollToBottom() {
-            setTimeout(() => {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 60);
-        }
+        const duration = originalBuffer.duration / (config.speed || 1);
+        const ctx = createOfflineContext(duration + 5, originalBuffer.sampleRate, originalBuffer.numberOfChannels);
 
-        function formatMarkdown(txt) {
-            if (!txt) return '';
-            let s = escapeHtml(txt);
-            s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            s = s.replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px">$1</code>');
-            s = s.replace(/\n/g, '<br>');
-            return s;
-        }
+        const processed = await applyEffects(ctx, originalBuffer, config);
 
-        function pushMessage(botId, type, text, mediaUrl = null, buttons = null, dlUrl = null, mediaType = 'image') {
-            const time = getTimeNow();
-            histories[botId].push({ type, text, mediaUrl, buttons, dlUrl, mediaType, time });
-            if (botId === activeBotId) {
-                renderMessages();
-            }
-            renderBotList(botSearch.value);
-        }
+        // Create download blob
+        const wavBlob = encodeWAV(processed);
+        const url = URL.createObjectURL(wavBlob);
 
-        window.clickActionBtn = function(txt) {
-            chatInput.value = txt;
-            onSend();
-        };
-
-        function showTyping(botName = 'Бот') {
-            typingText.innerText = `${botName} делает сетевой запрос...`;
-            typingBar.style.display = 'flex';
-            scrollToBottom();
-        }
-
-        function hideTyping() {
-            typingBar.style.display = 'none';
-        }
-
-        function onSend() {
-            const val = chatInput.value.trim();
-            if (!val) return;
-
-            chatInput.value = '';
-            pushMessage(activeBotId, 'out', val);
-
-            const botObj = BOTS.find(b => b.id === activeBotId);
-            showTyping(botObj.name);
-
-            setTimeout(() => {
-                dispatchBot(activeBotId, val);
-            }, 300);
-        }
-
-        btnSend.onclick = onSend;
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') onSend();
+        results.push({
+            config,
+            url,
+            duration: processed.duration,
+            size: wavBlob.size
         });
 
-        btnAttach.onclick = () => {
-            fileGalleryInput.click();
-        };
+        // Small delay for UI
+        await new Promise(r => setTimeout(r, 100));
+    }
 
-        fileGalleryInput.onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+    processingEl.classList.remove('show');
 
-            if (activeBotId === 'photofx') {
-                openModalEditor(file);
-            } else {
-                const reader = new FileReader();
-                reader.onload = (evt) => {
-                    pushMessage(activeBotId, 'out', '📷 Загружено фото из галереи Android', evt.target.result);
-                    showTyping();
-                    setTimeout(() => {
-                        hideTyping();
-                        pushMessage(activeBotId, 'in', 'Фото получено! Перейдите в **Photo FX Editor** для наложения фильтров.');
-                    }, 600);
-                };
-                reader.readAsDataURL(file);
-            }
-            fileGalleryInput.value = '';
-        };
+    // Render results
+    let html = '<h3 style="margin-bottom:20px;color:#fff;font-size:1.3rem;">🎉 Готово! Скачай результаты:</h3>';
 
-        botSearch.oninput = (e) => {
-            renderBotList(e.target.value);
-        };
-
-        // -------------------------------------------------------------
-        // REAL WORKING PINTEREST, TIKTOK, YOUTUBE & VK API
-        // -------------------------------------------------------------
-        async function fetchTikTok(url) {
-            try {
-                const res = await fetch(`https://api.tikwm.com/api/?url=${encodeURIComponent(url)}`);
-                const data = await res.json();
-                if (data && data.data) {
-                    return {
-                        video: data.data.play,
-                        audio: data.data.music,
-                        cover: data.data.cover,
-                        title: data.data.title || 'TikTok Video'
-                    };
-                }
-            } catch(e) {}
-            return null;
-        }
-
-        async function fetchRealPinterest(url) {
-            const cleanUrl = url.trim();
-            try {
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(cleanUrl)}`;
-                const res = await fetch(proxyUrl);
-                if (res.ok) {
-                    const json = await res.json();
-                    const html = json.contents || '';
-
-                    // Match Video or HD Image
-                    const vMatch = html.match(/https:\/\/[^\s"']+\.mp4/i);
-                    const iMatch = html.match(/https:\/\/i\.pinimg\.com\/[^\s"']+\.(jpg|png|webp)/i);
-
-                    if (vMatch) {
-                        return { type: 'video', url: vMatch[0] };
-                    } else if (iMatch) {
-                        const hdImage = iMatch[0].replace(/\/(236x|474x|564x|736x)\//, '/originals/');
-                        return { type: 'image', url: hdImage };
-                    }
-                }
-            } catch(e) {}
-
-            return {
-                type: 'image',
-                url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80'
-            };
-        }
-
-        async function fetchInvidiousYouTube(url) {
-            let videoId = 'dQw4w9WgXcQ';
-            const m = url.match(/(?:v=|\/embed\/|\/1\/|\/v\/|https:\/\/youtu\.be\/|\/shorts\/)([a-zA-Z0-9_-]{11})/);
-            if (m) videoId = m[1];
-
-            const instances = [
-                `https://inv.tux.pizza/api/v1/videos/${videoId}`,
-                `https://invidious.nerdvpn.de/api/v1/videos/${videoId}`,
-                `https://vid.puffyan.us/api/v1/videos/${videoId}`
-            ];
-
-            for (let inst of instances) {
-                try {
-                    const res = await fetch(inst);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.formatStreams && data.formatStreams.length > 0) {
-                            const stream = data.formatStreams[0];
-                            return {
-                                title: data.title || 'YouTube Video',
-                                videoUrl: stream.url,
-                                author: data.author
-                            };
-                        }
-                    }
-                } catch(e) {}
-            }
-
-            return {
-                title: 'YouTube Stream',
-                videoUrl: `https://www.youtube.com/embed/${videoId}`,
-                isEmbed: true
-            };
-        }
-
-        // -------------------------------------------------------------
-        // MAIN BOTS ROUTER
-        // -------------------------------------------------------------
-        async function dispatchBot(botId, text) {
-            switch (botId) {
-                case 'pinterest_real':
-                    try {
-                        const res = await fetchRealPinterest(text);
-                        hideTyping();
-                        if (res.type === 'video') {
-                            pushMessage('pinterest_real', 'in', `📌 **НАСТОЯЩЕЕ ВИДЕО PINTEREST ИЗВЛЕЧЕНО:**`, res.url, [text], res.url, 'video');
-                        } else {
-                            pushMessage('pinterest_real', 'in', `📌 **НАСТОЯЩЕЕ HD ФОТО PINTEREST ИЗВЛЕЧЕНО:**`, res.url, [text], res.url, 'image');
-                        }
-                    } catch(e) {
-                        hideTyping();
-                        pushMessage('pinterest_real', 'in', `❌ Ошибка парсинга ссылки Pinterest.`);
-                    }
-                    break;
-
-                case 'youtube_real':
-                    try {
-                        const yt = await fetchInvidiousYouTube(text);
-                        hideTyping();
-                        pushMessage('youtube_real', 'in', `🎬 **НАСТОЯЩЕЕ YOUTUBE ВИДЕО ИЗВЛЕЧЕНО (Invidious API):**\nНазвание: **${yt.title}**`, yt.videoUrl, [text], yt.videoUrl, 'video');
-                    } catch(e) {
-                        hideTyping();
-                        pushMessage('youtube_real', 'in', `❌ Ошибка извлечения YouTube видео.`);
-                    }
-                    break;
-
-                case 'tiktok_real':
-                    try {
-                        const tt = await fetchTikTok(text);
-                        hideTyping();
-                        if (tt && tt.video) {
-                            pushMessage('tiktok_real', 'in', `🎵 **НАСТОЯЩЕЕ ВИДЕО TIKTOK ИЗВЛЕЧЕНО (tikwm.com API):**\nНазвание: **${tt.title}**`, tt.video, [text], tt.video, 'video');
-                        } else {
-                            pushMessage('tiktok_real', 'in', `❌ Не удалось получить видео из TikTok. Проверьте ссылку.`);
-                        }
-                    } catch(e) {
-                        hideTyping();
-                        pushMessage('tiktok_real', 'in', `❌ Ошибка API TikTok.`);
-                    }
-                    break;
-
-                case 'vk_video':
-                    hideTyping();
-                    pushMessage('vk_video', 'in', `🎬 **VK Video Downloader:**\nДля скачивания видео из ВКонтакте без ограничений используйте сервисный токен VK API или отправьте прямую ссылку на видео.`);
-                    break;
-
-                case 'ai_gpt':
-                    try {
-                        const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(text)}`);
-                        if (res.ok) {
-                            const txt = await res.text();
-                            hideTyping();
-                            pushMessage('ai_gpt', 'in', txt);
-                            return;
-                        }
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('ai_gpt', 'in', `🤖 **Cyber AI GPT-4o:** Принял запрос: "${text}". Работаю на базе свободного эндпоинта AI.`);
-                    break;
-
-                case 'photofx':
-                    hideTyping();
-                    pushMessage('photofx', 'in', 'Нажмите на скрепку 📎 слева внизу, выберите любое фото из вашей Галереи Android и откроется FX редактор!');
-                    break;
-
-                case 'flux_art':
-                    hideTyping();
-                    const prompt = encodeURIComponent(text);
-                    const artUrl = `https://image.pollinations.ai/prompt/${prompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random()*99999)}`;
-                    pushMessage('flux_art', 'in', `🎨 **Сгенерировано изображение AI:**\n"${text}"`, artUrl, ['🎨 Киберпанк самурай 2026'], artUrl);
-                    break;
-
-                case 'itunes_music':
-                    try {
-                        const q = text.replace('🎵 Поиск:', '').trim();
-                        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&limit=1`).then(r=>r.json());
-                        if (res.results && res.results[0]) {
-                            const tr = res.results[0];
-                            hideTyping();
-                            pushMessage('itunes_music', 'in', `🎵 **Найден трек:** ${tr.artistName} - ${tr.trackName}\nАльбом: ${tr.collectionName}`, tr.artworkUrl100.replace('100x100bb', '400x400bb'), ['🎵 Поиск: The Weeknd'], tr.previewUrl, 'audio');
-                            return;
-                        }
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('itunes_music', 'in', `🎵 По запросу треки не найдены.`);
-                    break;
-
-                case 'weather':
-                    try {
-                        const clean = text.replace('🏙', '').replace('🌆', '').trim();
-                        const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(clean)}&count=1&language=ru`).then(r=>r.json());
-                        if (geo.results && geo.results[0]) {
-                            const { latitude, longitude, name, country } = geo.results[0];
-                            const w = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`).then(r=>r.json());
-                            hideTyping();
-                            pushMessage('weather', 'in', `🌤 **Погода в ${name}, ${country}:**\n\n🌡 Температура: **${w.current_weather.temperature}°C**\n💨 Ветер: ${w.current_weather.windspeed} км/ч`, null, ['🏙 Москва']);
-                            return;
-                        }
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('weather', 'in', `🌤 Погода в ${text}: +21°C.`);
-                    break;
-
-                case 'crypto':
-                    try {
-                        const c = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,toncoin,solana&vs_currencies=usd&include_24hr_change=true').then(r=>r.json());
-                        hideTyping();
-                        let t = `🪙 **Курс Криптовалют Live:**\n\n`;
-                        t += `₿ **Bitcoin:** $${c.bitcoin?.usd} (${c.bitcoin?.usd_24h_change?.toFixed(1)}%)\n`;
-                        t += `Ξ **Ethereum:** $${c.ethereum?.usd} (${c.ethereum?.usd_24h_change?.toFixed(1)}%)\n`;
-                        t += `💎 **TON Coin:** $${c.toncoin?.usd} (${c.toncoin?.usd_24h_change?.toFixed(1)}%)`;
-                        pushMessage('crypto', 'in', t, null, ['🪙 Курс BTC, TON, ETH']);
-                        return;
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('crypto', 'in', `🪙 **BTC:** $68,400 | **TON:** $6.95`);
-                    break;
-
-                case 'wiki_search':
-                    try {
-                        const q = text.replace('📖 Статья:', '').trim();
-                        const res = await fetch(`https://ru.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`).then(r=>r.json());
-                        if (res.extract) {
-                            hideTyping();
-                            pushMessage('wiki_search', 'in', `📖 **${res.title}:**\n\n${res.extract}`, res.thumbnail?.source, ['📖 Статья: Искусственный интеллект']);
-                            return;
-                        }
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('wiki_search', 'in', `📖 Статья не найдена.`);
-                    break;
-
-                case 'dog_cat':
-                    try {
-                        if (text.includes('котика')) {
-                            const cat = await fetch('https://api.thecatapi.com/v1/images/search').then(r=>r.json());
-                            hideTyping();
-                            pushMessage('dog_cat', 'in', `🐱 **Милый котик:**`, cat[0].url, ['🐱 Хочу котика!'], cat[0].url);
-                            return;
-                        } else {
-                            const dog = await fetch('https://dog.ceo/api/breeds/image/random').then(r=>r.json());
-                            hideTyping();
-                            pushMessage('dog_cat', 'in', `🐶 **Забавный песик:**`, dog.message, ['🐶 Хочу собачку!'], dog.message);
-                            return;
-                        }
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('dog_cat', 'in', `🐶 Фото собачки загружено.`);
-                    break;
-
-                case 'quotes_ai':
-                    try {
-                        const q = await fetch('https://dummyjson.com/quotes/random').then(r=>r.json());
-                        hideTyping();
-                        pushMessage('quotes_ai', 'in', `📜 **Мудрость:**\n\n"${q.quote}"\n\n— *${q.author}*`, null, ['📜 Получить мудрую цитату']);
-                        return;
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('quotes_ai', 'in', `📜 *"Успех — это движение от неудачи к неудаче без потери энтузиазма."*`);
-                    break;
-
-                case 'qr_master':
-                    hideTyping();
-                    const qr = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(text)}`;
-                    pushMessage('qr_master', 'in', `📱 **Ваш HD QR-код:**\n\`${text}\``, qr, null, qr);
-                    break;
-
-                case 'voice_tts':
-                    hideTyping();
-                    if ('speechSynthesis' in window) {
-                        const u = new SpeechSynthesisUtterance(text);
-                        u.lang = 'ru-RU';
-                        window.speechSynthesis.speak(u);
-                        pushMessage('voice_tts', 'in', `🔊 **Озвучивание в динамике:**\n"${text}"`);
-                    } else {
-                        pushMessage('voice_tts', 'in', 'Синтез речи не поддерживается.');
-                    }
-                    break;
-
-                case 'translator':
-                    try {
-                        const tr = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ru|en`).then(r=>r.json());
-                        hideTyping();
-                        pushMessage('translator', 'in', `🌐 **Перевод:**\n\n${tr.responseData.translatedText}`);
-                        return;
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('translator', 'in', `🌐 **Перевод:** ${text} ➔ Translated.`);
-                    break;
-
-                default:
-                    hideTyping();
-                    pushMessage(botId, 'in', `Запрос к боту "${BOTS.find(b=>b.id===botId)?.name}" успешно выполнен!`);
-            }
-        }
-
-        // -------------------------------------------------------------
-        // PHOTO FX CANVAS MODAL LOGIC
-        // -------------------------------------------------------------
-        function openModalEditor(file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    loadedImgObj = img;
-                    renderCanvasFX('cyber');
-                    modalEditor.classList.add('open');
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function renderCanvasFX(filterType) {
-            if (!loadedImgObj) return;
-            const ctx = canvasPreview.getContext('2d');
-            canvasPreview.width = loadedImgObj.width;
-            canvasPreview.height = loadedImgObj.height;
-
-            ctx.drawImage(loadedImgObj, 0, 0);
-
-            const imgData = ctx.getImageData(0, 0, canvasPreview.width, canvasPreview.height);
-            const d = imgData.data;
-
-            for (let i = 0; i < d.length; i += 4) {
-                let r = d[i], g = d[i+1], b = d[i+2];
-
-                if (filterType === 'cyber') {
-                    d[i] = Math.min(255, r * 1.3 + 30);
-                    d[i+1] = Math.max(0, g * 0.5);
-                    d[i+2] = Math.min(255, b * 1.6 + 50);
-                } else if (filterType === 'matrix') {
-                    d[i] = Math.max(0, r * 0.3);
-                    d[i+1] = Math.min(255, g * 1.5 + 40);
-                    d[i+2] = Math.max(0, b * 0.3);
-                } else if (filterType === 'bw') {
-                    let avg = (r + g + b) / 3;
-                    d[i] = avg; d[i+1] = avg; d[i+2] = avg;
-                } else if (filterType === 'sepia') {
-                    d[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
-                    d[i+1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
-                    d[i+2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
-                } else if (filterType === 'invert') {
-                    d[i] = 255 - r; d[i+1] = 255 - g; d[i+2] = 255 - b;
-                } else if (filterType === 'sunset') {
-                    d[i] = Math.min(255, r + 50);
-                    d[i+1] = Math.min(255, g + 20);
-                    d[i+2] = Math.max(0, b - 30);
-                } else if (filterType === 'ice') {
-                    d[i] = Math.max(0, r - 30);
-                    d[i+1] = Math.min(255, g + 20);
-                    d[i+2] = Math.min(255, b + 60);
-                } else if (filterType === 'contrast') {
-                    d[i] = r > 128 ? Math.min(255, r * 1.25) : Math.max(0, r * 0.75);
-                    d[i+1] = g > 128 ? Math.min(255, g * 1.25) : Math.max(0, g * 0.75);
-                    d[i+2] = b > 128 ? Math.min(255, b * 1.25) : Math.max(0, b * 0.75);
-                } else if (filterType === 'glitch') {
-                    d[i] = (i % 8 === 0) ? 255 : r;
-                    d[i+1] = g;
-                    d[i+2] = (i % 16 === 0) ? 255 : b;
-                }
-            }
-
-            ctx.putImageData(imgData, 0, 0);
-        }
-
-        filterButtons.onclick = (e) => {
-            if (e.target.tagName === 'BUTTON') {
-                document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
-                e.target.classList.add('active');
-                selectedFilter = e.target.getAttribute('data-f');
-                renderCanvasFX(selectedFilter);
-            }
-        };
-
-        btnModalCancel.onclick = () => {
-            modalEditor.classList.remove('open');
-        };
-
-        btnModalApply.onclick = () => {
-            const outUrl = canvasPreview.toDataURL('image/png');
-            modalEditor.classList.remove('open');
-
-            pushMessage('photofx', 'out', `📷 Мое фото из галереи [Эффект: ${selectedFilter}]`, outUrl);
-
-            showTyping('Photo FX Editor');
-            setTimeout(() => {
-                hideTyping();
-                pushMessage('photofx', 'in', `✨ **Фото успешно обработано!**\nПрименен эффект: \`${selectedFilter.toUpperCase()}\``, outUrl, ['📷 Выбрать еще фото 📎'], outUrl);
-            }, 700);
-        };
-
-        // Render initial list
-        renderBotList();
+    results.forEach((res, idx) => {
+        const cfg = res.config;
+        html += `
+        <div class="result-card">
+            <h4>${cfg.label} <span class="badge badge-${cfg.badge}">${cfg.badge}</span></h4>
+            <p style="color:#888;font-size:0.85rem;margin-bottom:10px;">${cfg.desc}</p>
+            <audio controls src="${res.url}"></audio>
+            <div class="stats">
+                <div class="stat">Длительность: <span>${formatTime(res.duration)}</span></div>
+                <div class="stat">Размер: <span>${(res.size/1024/1024).toFixed(2)} MB</span></div>
+                <div class="stat">Громкость: <span>${cfg.gain}x</span></div>
+                <div class="stat">Скорость: <span>${cfg.speed}x</span></div>
+                <div class="stat">Басс: <span>${cfg.bassBoost}dB</span></div>
+                <div class="stat">Реверб: <span>${cfg.reverb}%</span></div>
+            </div>
+            <div class="download-row">
+                <button class="download-btn dl-mp3" onclick="downloadAudio('${res.url}', '${originalFileName}_${cfg.badge}.wav')">
+                    ⬇️ Скачать WAV
+                </button>
+                <button class="download-btn dl-play" onclick="window.open('${res.url}', '_blank')">
+                    ▶️ Открыть
+                </button>
+            </div>
+        </div>
+        `;
     });
+
+    resultsEl.innerHTML = html;
+    resultsEl.classList.add('show');
+
+    // Scroll to results
+    resultsEl.scrollIntoView({behavior: 'smooth'});
+}
+
+function downloadAudio(url, filename) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// Auto-resize canvas on window resize
+window.addEventListener('resize', () => {
+    if (originalBuffer) drawWaveform(originalBuffer);
+});
 </script>
 </body>
-</html>
+                                                        </html>
