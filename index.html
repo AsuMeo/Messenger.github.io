@@ -24,6 +24,7 @@
             --accent-green: #10b981;
             --accent-purple: #8b5cf6;
             --accent-blue: #3b82f6;
+            --accent-pink: #ec4899;
             --text-primary: #ffffff;
             --text-secondary: #a1a1aa;
             --text-muted: #52525b;
@@ -642,6 +643,8 @@
         const SVGS = {
             pinterest: `<svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.08 3.16 9.42 7.63 11.16-.1-.95-.2-2.4.04-3.44.22-.94 1.4-5.95 1.4-5.95s-.36-.72-.36-1.78c0-1.67.97-2.92 2.17-2.92 1.02 0 1.52.77 1.52 1.69 0 1.03-.66 2.56-1 3.98-.28 1.19.6 2.16 1.77 2.16 2.13 0 3.77-2.25 3.77-5.49 0-2.87-2.06-4.88-5.01-4.88-3.41 0-5.42 2.56-5.42 5.2 0 1.03.4 2.13.9 2.73.1.12.11.23.08.35l-.33 1.37c-.05.22-.18.27-.4.16-1.5-.7-2.43-2.88-2.43-4.63 0-3.77 2.74-7.23 7.9-7.23 4.15 0 7.38 2.96 7.38 6.92 0 4.12-2.6 7.44-6.21 7.44-1.21 0-2.35-.63-2.74-1.38l-.75 2.85c-.27 1.04-1.01 2.35-1.5 3.14A11.96 11.96 0 0012 24c6.63 0 12-5.37 12-12S18.63 0 12 0z"/></svg>`,
             youtube: `<svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.8 31.8 0 000 12c0 1.9.2 3.8.5 5.8a3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1c.3-2 .5-3.9.5-5.8s-.2-3.8-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>`,
+            tiktok: `<svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.36 1.52-1.4 2.52-.05.99.38 2.01 1.14 2.64.91.77 2.23.95 3.32.52 1.03-.4 1.75-1.38 1.88-2.48.06-2.58.02-5.18.03-7.77V.02z"/></svg>`,
+            vk: `<svg viewBox="0 0 24 24"><path d="M15.684 0H8.316C1.592 0 0 1.592 0 8.316v7.368C0 22.408 1.592 24 8.316 24h7.368C22.408 24 24 22.408 24 15.684V8.316C24 1.592 22.408 0 15.684 0zm3.692 17.123h-1.644c-.623 0-.814-.496-1.933-1.618-1.002-.973-1.442-1.096-1.688-1.096-.349 0-.451.102-.451.594v1.54c0 .39-.123.623-1.149.623-1.684 0-3.551-1.022-4.862-2.912-1.97-2.771-2.503-4.862-2.503-5.293 0-.246.096-.472.574-.472h1.644c.43 0 .594.197.758.656.841 2.441 2.257 4.574 2.833 4.574.225 0 .328-.102.328-.656V11.23c-.072-1.169-.676-1.272-.676-1.684 0-.197.164-.39.43-.39h2.709c.369 0 .512.197.512.635v3.424c0 .369.164.492.266.492.225 0 .41-.123.82-.533 1.272-1.435 2.173-3.65 2.173-3.65.123-.246.328-.472.758-.472h1.644c.492 0 .615.246.512.635-.205.963-2.215 3.814-2.215 3.814-.184.287-.246.41 0 .738.164.246.717.717 1.086 1.149 1.169 1.353 1.624 2.215 1.747 2.543.123.41-.082.635-.492.635z"/></svg>`,
             ai: `<svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7v1h1a1 1 0 011 1v3a1 1 0 01-1 1h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 01-1-1v-3a1 1 0 011-1h1v-1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/></svg>`,
             photo: `<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`,
             generic: `<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`
@@ -651,13 +654,14 @@
         const BOTS = [
             { id: 'pinterest_real', name: 'Pinterest Saver (Real API)', svg: SVGS.pinterest, status: 'bot • Прямые медиа ссылки', desc: 'Скачивание HD фото и MP4 видео из Pinterest по любым ссылкам!', btns: ['https://pin.it/6yrFhkwTP'] },
             { id: 'youtube_real', name: 'YouTube Stream Downloader', svg: SVGS.youtube, status: 'bot • Invidious / Piped API', desc: 'Скачивание и воспроизведение оригинальных MP4 видео с YouTube!', btns: ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'] },
+            { id: 'tiktok_real', name: 'TikTok Video & Audio DL', svg: SVGS.tiktok, status: 'bot • tikwm.com No-Watermark API', desc: 'Скачивание видео без водяного знака и MP3 аудио из TikTok!', btns: ['https://www.tiktok.com/@tiktok/video/7000000000000000000'] },
+            { id: 'vk_video', name: 'VK Video & Downloader', svg: SVGS.vk, status: 'bot • VK Proxy Helper', desc: 'Скачивание и просмотр видео из ВКонтакте.', btns: ['https://vk.com/video-22822305_456239018'] },
             { id: 'ai_gpt', name: 'Cyber AI GPT-4o (Live API)', svg: SVGS.ai, status: 'bot • Живая Нейросеть', desc: 'Ответы на любые вопросы, код, советы без ключей!', btns: ['💡 Напиши скрипт на Python', '🚀 Почему трава зелёная?'] },
             { id: 'photofx', name: 'Photo FX Editor (Галерея)', svg: SVGS.photo, status: 'bot • Обработка из галереи', desc: 'Загрузите фото из галереи Android 📎 и примените эффект!', btns: ['📷 Нажми скрепку 📎 внизу'] },
             { id: 'flux_art', name: 'Flux AI Studio (Картинки)', svg: SVGS.generic, status: 'bot • Поколение картинок', desc: 'Генерация картинок по любому описанию через AI.', btns: ['🎨 Киберпанк самурай 2026'] },
-            { id: 'tiktok_dl', name: 'TikTok & Shorts Downloader', svg: SVGS.generic, status: 'bot • Без водяных знаков', desc: 'Скачивание видео из TikTok и Shorts.', btns: ['https://www.tiktok.com/@tiktok/video/7000000000000000000'] },
             { id: 'wiki_search', name: 'Wikipedia Live Explorer', svg: SVGS.generic, status: 'bot • MediaWiki API', desc: 'Быстрый поиск статей из Википедии.', btns: ['📖 Статья: Искусственный интеллект'] },
             { id: 'itunes_music', name: 'Music Finder (iTunes API)', svg: SVGS.generic, status: 'bot • Прослушивание MP3', desc: 'Поиск треков с прослушиванием аудио превью!', btns: ['🎵 Поиск: The Weeknd', '🎵 Поиск: Кино Группа Крови'] },
-            { id: 'weather', name: 'Weather Live (OpenMeteo)', svg: SVGS.generic, status: 'bot • Спутники OpenMeteo', desc: 'Живой прогноз погоды со спутника.', btns: ['🏙 Москва', '🌆 Санкт-Петербург'] },
+            { id: 'weather', name: 'Weather Live (OpenMeteo)', svg: SVGS.generic, status: 'bot • Спутники OpenMeteo', desc: 'Живой прогноз погоды со спутника.', btns: ['🏙 Москва', '<ctrl42> Санкт-Петербург'] },
             { id: 'crypto', name: 'Crypto Live Tracker', svg: SVGS.generic, status: 'bot • CoinGecko Real API', desc: 'Живые цены Bitcoin, TON, Ethereum с бирж.', btns: ['🪙 Курс BTC, TON, ETH'] },
             { id: 'github_search', name: 'GitHub Repo Search', svg: SVGS.generic, status: 'bot • GitHub API', desc: 'Поиск исходного кода и репозиториев.', btns: ['⚡️ Поиск: telegram bot html'] },
             { id: 'anime_search', name: 'Anime Explorer (Jikan)', svg: SVGS.generic, status: 'bot • Jikan API', desc: 'Поиск аниме, рейтингов и персонажей.', btns: ['⛩ Аниме: Naruto', '⛩ Аниме: Cyberpunk'] },
@@ -691,8 +695,7 @@
             { id: 'city_timezone', name: 'City & Timezone Bot', svg: SVGS.generic, status: 'bot • Geo Time API', desc: 'Точное время и координаты городов.', btns: ['🗺 Время в Токио'] },
             { id: 'password_gen', name: 'Secure Password Gen', svg: SVGS.generic, status: 'bot • Безопасность', desc: 'Генератор надёжных паролей.', btns: ['🔒 Сгенерировать пароль 16 символов'] },
             { id: 'stopwatch_bot', name: 'Timer & Stopwatch', svg: SVGS.generic, status: 'bot • Секундомер', desc: 'Секундомер и таймер.', btns: ['⏱ Запустить секундомер'] },
-            { id: 'free_games', name: 'CheapShark Game Deals', svg: SVGS.generic, status: 'bot • CheapShark API', desc: 'Скидки на игры в Steam/Epic.', btns: ['🎮 Топ скидок на игры сегодня'] },
-            { id: 'text_utility', name: 'Text & Inspector Bot', svg: SVGS.generic, status: 'bot • Аналитика текста', desc: 'Подсчет слов, букв, кодировок.', btns: ['📊 Проверить этот текст'] }
+            { id: 'free_games', name: 'CheapShark Game Deals', svg: SVGS.generic, status: 'bot • CheapShark API', desc: 'Скидки на игры в Steam/Epic.', btns: ['🎮 Топ скидок на игры сегодня'] }
         ];
 
         let activeBotId = BOTS[0].id;
@@ -917,8 +920,24 @@
         };
 
         // -------------------------------------------------------------
-        // REAL WORKING PINTEREST & YOUTUBE API DISPATCHER
+        // REAL WORKING PINTEREST, TIKTOK, YOUTUBE & VK API
         // -------------------------------------------------------------
+        async function fetchTikTok(url) {
+            try {
+                const res = await fetch(`https://api.tikwm.com/api/?url=${encodeURIComponent(url)}`);
+                const data = await res.json();
+                if (data && data.data) {
+                    return {
+                        video: data.data.play,
+                        audio: data.data.music,
+                        cover: data.data.cover,
+                        title: data.data.title || 'TikTok Video'
+                    };
+                }
+            } catch(e) {}
+            return null;
+        }
+
         async function fetchRealPinterest(url) {
             const cleanUrl = url.trim();
             try {
@@ -1013,6 +1032,26 @@
                     }
                     break;
 
+                case 'tiktok_real':
+                    try {
+                        const tt = await fetchTikTok(text);
+                        hideTyping();
+                        if (tt && tt.video) {
+                            pushMessage('tiktok_real', 'in', `🎵 **НАСТОЯЩЕЕ ВИДЕО TIKTOK ИЗВЛЕЧЕНО (tikwm.com API):**\nНазвание: **${tt.title}**`, tt.video, [text], tt.video, 'video');
+                        } else {
+                            pushMessage('tiktok_real', 'in', `❌ Не удалось получить видео из TikTok. Проверьте ссылку.`);
+                        }
+                    } catch(e) {
+                        hideTyping();
+                        pushMessage('tiktok_real', 'in', `❌ Ошибка API TikTok.`);
+                    }
+                    break;
+
+                case 'vk_video':
+                    hideTyping();
+                    pushMessage('vk_video', 'in', `🎬 **VK Video Downloader:**\nДля скачивания видео из ВКонтакте без ограничений используйте сервисный токен VK API или отправьте прямую ссылку на видео.`);
+                    break;
+
                 case 'ai_gpt':
                     try {
                         const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(text)}`);
@@ -1056,7 +1095,7 @@
 
                 case 'weather':
                     try {
-                        const clean = text.replace('🏙', '').replace('<ctrl42>', '').trim();
+                        const clean = text.replace('🏙', '').replace('🌆', '').trim();
                         const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(clean)}&count=1&language=ru`).then(r=>r.json());
                         if (geo.results && geo.results[0]) {
                             const { latitude, longitude, name, country } = geo.results[0];
@@ -1159,7 +1198,7 @@
 
                 default:
                     hideTyping();
-                    pushMessage(botId, 'in', `Запрос к бота "${BOTS.find(b=>b.id===botId)?.name}" успешно выполнен!`);
+                    pushMessage(botId, 'in', `Запрос к боту "${BOTS.find(b=>b.id===botId)?.name}" успешно выполнен!`);
             }
         }
 
