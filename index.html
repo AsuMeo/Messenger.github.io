@@ -2,61 +2,57 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pinterest → VK</title>
+  <title>TG Anon Comments</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: #0a0a0a;
       color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: -apple-system, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       padding: 20px;
     }
-    .container {
+    .box {
       width: 100%;
-      max-width: 480px;
+      max-width: 400px;
       background: #141414;
       border-radius: 16px;
       padding: 32px;
       border: 1px solid #222;
     }
     h1 {
-      font-size: 24px;
+      font-size: 22px;
       margin-bottom: 8px;
-      background: linear-gradient(90deg, #e60023, #bd081c);
+      background: linear-gradient(90deg, #0088cc, #00a8e8);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    p { color: #888; font-size: 14px; margin-bottom: 24px; }
+    p { color: #888; font-size: 13px; margin-bottom: 24px; }
     .input-group { margin-bottom: 16px; }
     label {
       display: block;
-      font-size: 12px;
+      font-size: 11px;
       color: #666;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
       margin-bottom: 6px;
     }
-    input, textarea {
+    input {
       width: 100%;
       background: #0a0a0a;
       border: 1px solid #333;
       border-radius: 10px;
-      padding: 12px 14px;
+      padding: 12px;
       color: #fff;
-      font-size: 15px;
+      font-size: 14px;
       outline: none;
-      transition: border-color 0.2s;
     }
-    input:focus, textarea:focus { border-color: #e60023; }
-    textarea { resize: none; height: 100px; font-family: monospace; font-size: 12px; }
+    input:focus { border-color: #0088cc; }
     button {
       width: 100%;
-      background: linear-gradient(135deg, #e60023, #bd081c);
+      background: linear-gradient(135deg, #0088cc, #00a8e8);
       border: none;
       border-radius: 10px;
       padding: 14px;
@@ -64,10 +60,8 @@
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s;
     }
-    button:hover { opacity: 0.9; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button:disabled { opacity: 0.5; }
     .status {
       margin-top: 16px;
       padding: 12px;
@@ -75,139 +69,68 @@
       font-size: 14px;
       display: none;
     }
-    .status.loading {
-      display: block;
-      background: #1a237e;
-      color: #82b1ff;
-    }
-    .status.success {
-      display: block;
-      background: #1b5e20;
-      color: #69f0ae;
-    }
-    .status.error {
-      display: block;
-      background: #b71c1c;
-      color: #ff8a80;
-    }
-    .hint {
-      margin-top: 20px;
-      padding: 12px;
-      background: #0a0a0a;
-      border-radius: 10px;
-      border-left: 3px solid #e60023;
-    }
-    .hint h3 { font-size: 13px; color: #e60023; margin-bottom: 6px; }
-    .hint ol { padding-left: 16px; color: #888; font-size: 13px; line-height: 1.8; }
-    .hint a { color: #e60023; }
-    .parsed {
-      font-size: 12px;
-      color: #e60023;
-      margin-top: 4px;
-      display: none;
-    }
+    .status.ok { display: block; background: #1b5e20; color: #69f0ae; }
+    .status.err { display: block; background: #b71c1c; color: #ff8a80; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Pinterest → VK</h1>
-    <p>Скачай видео с Pinterest и загрузи на свой аккаунт ВК</p>
+  <div class="box">
+    <h1>TG Anon Comments</h1>
+    <p>Бот удаляет комментарии и пишет их от своего имени</p>
 
     <div class="input-group">
-      <label>Ссылка на Pinterest</label>
-      <input type="text" id="url" placeholder="https://pinterest.com/pin/1234567890..." autocomplete="off">
-      <div class="parsed" id="parsedUrl"></div>
+      <label>Bot Token</label>
+      <input type="text" id="token" placeholder="123456:ABC-DEF..." autocomplete="off">
     </div>
 
     <div class="input-group">
-      <label>Токен доступа VK (или полная ссылка с vkhost)</label>
-      <textarea id="token" placeholder="vk1.a.xxx... или https://oauth.vk.com/blank.html#access_token=..." spellcheck="false"></textarea>
-      <div class="parsed" id="parsedToken"></div>
+      <label>Chat ID (чат комментариев)</label>
+      <input type="text" id="chatId" placeholder="-1001234567890" autocomplete="off">
     </div>
 
-    <button id="btn" onclick="upload()">Загрузить на VK</button>
-
+    <button id="btn" onclick="start()">Запустить бота</button>
     <div id="status" class="status"></div>
-
-    <div class="hint">
-      <h3>Как получить токен VK:</h3>
-      <ol>
-        <li>Открой: <a href="https://vkhost.github.io/" target="_blank">vkhost.github.io</a></li>
-        <li>Выбери "VK Admin"</li>
-        <li>Нажми "Получить", разреши доступ</li>
-        <li>Скопируй <b>всю ссылку</b> из адресной строки и вставь сюда 👆</li>
-      </ol>
-    </div>
   </div>
 
   <script>
-    const urlInput = document.getElementById('url');
-    const tokenInput = document.getElementById('token');
-    const parsedUrl = document.getElementById('parsedUrl');
-    const parsedToken = document.getElementById('parsedToken');
-
-    function parseToken(input) {
-      const match = input.match(/access_token=([a-zA-Z0-9_.-]+)/);
-      return match ? match[1] : input.trim();
-    }
-
-    function extractPinId(url) {
-      const match = url.match(/pin\/(\d+)/);
-      return match ? match[1] : null;
-    }
-
-    urlInput.addEventListener('input', () => {
-      const pinId = extractPinId(urlInput.value);
-      parsedUrl.style.display = pinId ? 'block' : 'none';
-      parsedUrl.textContent = pinId ? `Pin ID: ${pinId}` : '';
-    });
-
-    tokenInput.addEventListener('input', () => {
-      const parsed = parseToken(tokenInput.value);
-      const isFullUrl = tokenInput.value.includes('access_token=');
-      parsedToken.style.display = isFullUrl ? 'block' : 'none';
-      parsedToken.textContent = isFullUrl ? `Токен извлечён: ${parsed.slice(0, 20)}...` : '';
-    });
-
-    async function upload() {
-      const url = urlInput.value.trim();
-      const token = tokenInput.value.trim();
+    async function start() {
+      const token = document.getElementById('token').value.trim();
+      const chatId = document.getElementById('chatId').value.trim();
       const btn = document.getElementById('btn');
       const status = document.getElementById('status');
 
-      if (!url || !token) {
-        showStatus('error', 'Заполни все поля');
+      if (!token || !chatId) {
+        show('err', 'Заполни все поля');
         return;
       }
 
       btn.disabled = true;
-      showStatus('loading', 'Ищу видео на Pinterest...');
+      show('ok', 'Запускаю...');
 
       try {
-        const res = await fetch('/api/upload', {
+        const res = await fetch('/api/start', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pinterestUrl: url, vkToken: token })
+          body: JSON.stringify({ token, chatId })
         });
 
         const data = await res.json();
-
         if (data.success) {
-          showStatus('success', `✅ ${data.message}<br><br><a href="${data.vkUrl}" target="_blank" style="color:#69f0ae;text-decoration:underline">Открыть видео в VK</a>`);
+          show('ok', 'Бот запущен! Оставь вкладку открытой.');
         } else {
-          showStatus('error', data.error || 'Ошибка');
+          show('err', data.error || 'Ошибка');
         }
-      } catch (err) {
-        showStatus('error', 'Ошибка сети: ' + err.message);
+      } catch (e) {
+        show('err', 'Ошибка сети');
       } finally {
         btn.disabled = false;
       }
     }
 
-    function showStatus(type, text) {
+    function show(type, text) {
       const el = document.getElementById('status');
-      el.className = 'status ' + type;
-      el.innerHTML = text;
+      el.className = 'status ' + (type === 'ok' ? 'ok' : 'err');
+      el.textContent = text;
     }
   </script>
 </body>
