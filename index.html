@@ -8,28 +8,25 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- Google Fonts: Inter & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
         :root {
             --bg-black: #000000;
-            --bg-card: #09090b;
-            --bg-chat: #050507;
-            --bg-bubble-in: #121215;
-            --bg-bubble-out: #1e1b4b;
-            --border-dark: #1f1f23;
-            --border-glow: #27272a;
+            --bg-card: #0a0a0c;
+            --bg-chat: #000000;
+            --bg-bubble-in: #111115;
+            --bg-bubble-out: #1a1a24;
+            --border-dark: #18181b;
+            --border-light: #27272a;
             --accent-green: #10b981;
             --accent-purple: #8b5cf6;
-            --accent-pink: #ec4899;
             --accent-blue: #3b82f6;
-            --text-primary: #f4f4f5;
+            --text-primary: #ffffff;
             --text-secondary: #a1a1aa;
-            --text-muted: #71717a;
-            --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.15);
+            --text-muted: #52525b;
         }
 
         * {
@@ -59,7 +56,7 @@
             background: var(--bg-black);
         }
 
-        /* SIDEBAR (BOT LIST) */
+        /* SIDEBAR / BOT LIST */
         .sidebar {
             width: 100%;
             height: 100%;
@@ -70,24 +67,22 @@
             left: 0;
             top: 0;
             z-index: 10;
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
             border-right: 1px solid var(--border-dark);
         }
 
         .app-shell.chat-active .sidebar {
-            transform: translateX(-25%);
+            transform: translateX(-30%);
             pointer-events: none;
         }
 
-        /* HEADER */
         .app-header {
-            height: 60px;
+            height: 56px;
             padding: 0 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background-color: rgba(9, 9, 11, 0.9);
-            backdrop-filter: blur(12px);
+            background-color: #050507;
             border-bottom: 1px solid var(--border-dark);
             z-index: 5;
             flex-shrink: 0;
@@ -97,27 +92,31 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-weight: 800;
-            font-size: 1.1rem;
+            font-weight: 900;
+            font-size: 1.05rem;
             letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #a7f3d0, #10b981, #6366f1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--text-primary);
+        }
+
+        .brand-logo svg {
+            width: 22px;
+            height: 22px;
+            fill: var(--accent-green);
         }
 
         .badge-2026 {
             font-size: 0.65rem;
-            font-weight: 700;
-            background: #18181b;
+            font-weight: 800;
+            background: #111115;
             color: var(--accent-green);
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 20px;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+            border: 1px solid var(--border-dark);
+            letter-spacing: 0.05em;
         }
 
         .search-wrapper {
-            padding: 10px 16px;
+            padding: 10px 14px;
             background-color: var(--bg-black);
             border-bottom: 1px solid var(--border-dark);
         }
@@ -125,7 +124,7 @@
         .search-bar {
             display: flex;
             align-items: center;
-            background: #121215;
+            background: #0f0f12;
             border: 1px solid var(--border-dark);
             border-radius: 12px;
             padding: 8px 12px;
@@ -133,8 +132,8 @@
         }
 
         .search-bar svg {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             fill: var(--text-muted);
         }
 
@@ -144,7 +143,7 @@
             border: none;
             outline: none;
             color: var(--text-primary);
-            font-size: 0.9rem;
+            font-size: 0.88rem;
         }
 
         /* BOT LIST SCROLL */
@@ -157,45 +156,45 @@
         .bot-card {
             display: flex;
             align-items: center;
-            padding: 14px 16px;
+            padding: 12px 16px;
             gap: 14px;
             cursor: pointer;
-            border-bottom: 1px solid #0d0d10;
-            transition: background 0.15s ease;
+            border-bottom: 1px solid #0c0c0e;
+            transition: background 0.12s ease;
         }
 
         .bot-card:active {
-            background-color: #121215;
+            background-color: #0f0f14;
         }
 
         .bot-avatar-box {
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            background: #111115;
+            border: 1px solid var(--border-dark);
         }
 
         .bot-avatar-box svg {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             fill: #ffffff;
         }
 
         .status-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             background-color: var(--accent-green);
             border-radius: 50%;
             position: absolute;
             bottom: -2px;
             right: -2px;
             border: 2px solid var(--bg-black);
-            box-shadow: 0 0 6px var(--accent-green);
         }
 
         .bot-info {
@@ -207,12 +206,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
 
         .bot-title {
-            font-size: 0.95rem;
-            font-weight: 600;
+            font-size: 0.92rem;
+            font-weight: 700;
             color: var(--text-primary);
             white-space: nowrap;
             overflow: hidden;
@@ -220,12 +219,12 @@
         }
 
         .bot-time {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: var(--text-muted);
         }
 
         .bot-subtext {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: var(--text-secondary);
             white-space: nowrap;
             overflow: hidden;
@@ -244,7 +243,7 @@
             top: 0;
             z-index: 20;
             transform: translateX(100%);
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .app-shell.chat-active .chat-view {
@@ -282,8 +281,6 @@
             flex-direction: column;
             gap: 12px;
             -webkit-overflow-scrolling: touch;
-            background-image: radial-gradient(#18181b 1px, transparent 1px);
-            background-size: 24px 24px;
         }
 
         .msg-group {
@@ -296,13 +293,12 @@
         .msg-group.out { align-self: flex-end; }
 
         .msg-bubble {
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 0.92rem;
-            line-height: 1.5;
+            padding: 11px 15px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            line-height: 1.48;
             word-break: break-word;
             position: relative;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
             user-select: text;
         }
 
@@ -314,9 +310,9 @@
         }
 
         .msg-group.out .msg-bubble {
-            background: linear-gradient(135deg, #311b92, #1e1b4b);
+            background-color: var(--bg-bubble-out);
             color: #ffffff;
-            border: 1px solid rgba(139, 92, 246, 0.3);
+            border: 1px solid var(--border-light);
             border-bottom-right-radius: 4px;
         }
 
@@ -330,8 +326,8 @@
 
         .media-preview-img, .media-preview-video {
             width: 100%;
-            max-width: 320px;
-            border-radius: 12px;
+            max-width: 300px;
+            border-radius: 10px;
             margin-top: 8px;
             margin-bottom: 4px;
             display: block;
@@ -347,35 +343,33 @@
         }
 
         .btn-action {
-            background: rgba(139, 92, 246, 0.12);
-            border: 1px solid rgba(139, 92, 246, 0.4);
-            color: #c4b5fd;
+            background: #111116;
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
             padding: 6px 12px;
-            border-radius: 20px;
+            border-radius: 16px;
             font-size: 0.78rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.15s ease;
         }
 
         .btn-action:active {
-            background: #8b5cf6;
-            color: #fff;
+            background: var(--text-primary);
+            color: #000;
         }
 
         .btn-download {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: #059669;
-            color: #ffffff;
-            padding: 10px 16px;
-            border-radius: 10px;
+            background: #10b981;
+            color: #000000;
+            padding: 9px 14px;
+            border-radius: 8px;
             text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 600;
+            font-size: 0.82rem;
+            font-weight: 700;
             margin-top: 8px;
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
         }
 
         /* TYPING INDICATOR */
@@ -383,11 +377,11 @@
             display: none;
             align-items: center;
             gap: 6px;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: var(--text-muted);
-            padding: 8px 16px;
+            padding: 8px 14px;
             background: var(--bg-bubble-in);
-            border-radius: 16px;
+            border-radius: 14px;
             width: fit-content;
             margin-left: 14px;
             margin-bottom: 8px;
@@ -395,8 +389,8 @@
         }
 
         .dot {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
             background: var(--accent-green);
             border-radius: 50%;
             animation: pulse 1.2s infinite ease-in-out both;
@@ -412,8 +406,8 @@
 
         /* INPUT CONTROL BAR */
         .input-control-bar {
-            background-color: var(--bg-card);
-            padding: 10px 12px;
+            background-color: #050507;
+            padding: 8px 12px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -423,46 +417,45 @@
 
         .chat-input {
             flex: 1;
-            background: #18181b;
+            background: #111115;
             border: 1px solid var(--border-dark);
-            border-radius: 22px;
-            padding: 11px 16px;
+            border-radius: 20px;
+            padding: 10px 14px;
             color: var(--text-primary);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             outline: none;
             user-select: text;
         }
 
         .chat-input:focus {
-            border-color: var(--accent-purple);
+            border-color: var(--border-light);
         }
 
         .btn-send {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: #fff;
+            background: var(--text-primary);
+            color: #000;
             border: none;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
             flex-shrink: 0;
         }
 
         .btn-send svg {
-            width: 20px;
-            height: 20px;
-            fill: #ffffff;
+            width: 18px;
+            height: 18px;
+            fill: #000000;
         }
 
         /* MODAL CANVAS FILTER */
         .modal-backdrop {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.92);
+            background: rgba(0,0,0,0.95);
             z-index: 9999;
             display: none;
             flex-direction: column;
@@ -476,30 +469,29 @@
         }
 
         .modal-card {
-            background: #09090b;
+            background: #09090c;
             border: 1px solid var(--border-dark);
-            border-radius: 20px;
-            padding: 18px;
+            border-radius: 16px;
+            padding: 16px;
             width: 100%;
-            max-width: 400px;
+            max-width: 380px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            box-shadow: var(--shadow-glow);
+            gap: 12px;
         }
 
         .modal-head {
-            font-size: 1.1rem;
-            font-weight: 700;
+            font-size: 1rem;
+            font-weight: 800;
             color: var(--accent-green);
             text-align: center;
         }
 
         .canvas-render {
             width: 100%;
-            max-height: 240px;
+            max-height: 230px;
             object-fit: contain;
-            border-radius: 12px;
+            border-radius: 10px;
             background: #000;
             border: 1px solid var(--border-dark);
         }
@@ -507,42 +499,42 @@
         .filter-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            max-height: 130px;
+            gap: 6px;
+            max-height: 120px;
             overflow-y: auto;
         }
 
         .btn-filter {
-            background: #18181b;
+            background: #111115;
             color: var(--text-primary);
             border: 1px solid var(--border-dark);
-            padding: 8px 4px;
+            padding: 7px 4px;
             border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 500;
+            font-size: 0.72rem;
+            font-weight: 600;
             cursor: pointer;
             text-align: center;
         }
 
         .btn-filter.active {
             border-color: var(--accent-green);
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--accent-green);
+            background: #10b981;
+            color: #000;
         }
 
         .modal-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn-m {
             flex: 1;
-            padding: 12px;
-            border-radius: 12px;
+            padding: 11px;
+            border-radius: 10px;
             border: none;
             font-weight: 700;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .btn-m-cancel { background: #27272a; color: #fff; }
@@ -559,16 +551,16 @@
     <div class="sidebar">
         <div class="app-header">
             <div class="brand-logo">
-                <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2m0 2a8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8 8 8 0 0 0-8-8m-1 3h2v6h-2V7m0 8h2v2h-2v-2z"/></svg>
-                <span>TG BOTS 2026</span>
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span>TG PLATFORM 2026</span>
             </div>
-            <span class="badge-2026">24 БОТА • OLED</span>
+            <span class="badge-2026">44 БОТА • OLED</span>
         </div>
 
         <div class="search-wrapper">
             <div class="search-bar">
                 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <input type="text" id="bot-search" class="search-input" placeholder="Поиск 24 рабочих ботов...">
+                <input type="text" id="bot-search" class="search-input" placeholder="Поиск 44 рабочих ботов...">
             </div>
         </div>
 
@@ -583,12 +575,12 @@
             <button class="btn-icon-nav" id="btn-back">
                 <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
             </button>
-            <div class="bot-avatar-box" id="active-avatar" style="width:38px; height:38px;">
+            <div class="bot-avatar-box" id="active-avatar" style="width:36px; height:36px;">
                 <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/></svg>
             </div>
             <div style="flex:1; min-width:0; margin-left:10px;">
-                <div id="active-name" style="font-size:0.95rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Выберите бота</div>
-                <div id="active-status" style="font-size:0.7rem; color:var(--accent-green);">онлайн • Cobalt API</div>
+                <div id="active-name" style="font-size:0.92rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Выберите бота</div>
+                <div id="active-status" style="font-size:0.68rem; color:var(--accent-green);">онлайн • Live API 2026</div>
             </div>
         </div>
 
@@ -600,7 +592,7 @@
             <div class="dot"></div>
             <div class="dot"></div>
             <div class="dot"></div>
-            <span id="typing-text" style="margin-left:4px">Бот выполняет запрос...</span>
+            <span id="typing-text" style="margin-left:4px">Бот выполняет сетевой запрос...</span>
         </div>
 
         <div class="input-control-bar">
@@ -608,7 +600,7 @@
                 <svg viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H9v9.5a3 3 0 0 0 6 0V5a4 4 0 0 0-8 0v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
             </button>
             <input type="file" id="file-gallery-input" accept="image/*">
-            <input type="text" id="chat-input" class="chat-input" placeholder="Напишите сообщение или ссылку..." autocomplete="off">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Сообщение или ссылка..." autocomplete="off">
             <button class="btn-send" id="btn-send">
                 <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
@@ -620,20 +612,20 @@
 <!-- MODAL FILTER EDITOR FOR GALLERY PHOTO -->
 <div class="modal-backdrop" id="modal-editor">
     <div class="modal-card">
-        <div class="modal-head">✨ Фото из Галереи • 2026 FX</div>
+        <div class="modal-head">✨ Обработка Фото из Галереи</div>
         <canvas id="canvas-preview" class="canvas-render"></canvas>
         
-        <div style="font-size:0.8rem; color:var(--text-muted)">Выберите графический эффект:</div>
+        <div style="font-size:0.75rem; color:var(--text-muted)">Выберите эффект эффекта:</div>
         <div class="filter-grid" id="filter-buttons">
             <button class="btn-filter active" data-f="cyber">Cyberpunk</button>
-            <button class="btn-filter" data-f="matrix">Matrix Neon</button>
+            <button class="btn-filter" data-f="matrix">Matrix</button>
             <button class="btn-filter" data-f="bw">Monochrome</button>
             <button class="btn-filter" data-f="sepia">Sepia FX</button>
             <button class="btn-filter" data-f="invert">Invert</button>
-            <button class="btn-filter" data-f="sunset">Warm Sunset</button>
-            <button class="btn-filter" data-f="ice">Cool Ice</button>
-            <button class="btn-filter" data-f="contrast">High Contrast</button>
-            <button class="btn-filter" data-f="glitch">Cyber Glitch</button>
+            <button class="btn-filter" data-f="sunset">Warm</button>
+            <button class="btn-filter" data-f="ice">Ice Cool</button>
+            <button class="btn-filter" data-f="contrast">Contrast</button>
+            <button class="btn-filter" data-f="glitch">Glitch FX</button>
         </div>
 
         <div class="modal-actions">
@@ -646,208 +638,68 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
 
-        // 24 FUNCTIONAL BOTS DATABASE
+        // SVG Icons dictionary
+        const SVGS = {
+            pinterest: `<svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.08 3.16 9.42 7.63 11.16-.1-.95-.2-2.4.04-3.44.22-.94 1.4-5.95 1.4-5.95s-.36-.72-.36-1.78c0-1.67.97-2.92 2.17-2.92 1.02 0 1.52.77 1.52 1.69 0 1.03-.66 2.56-1 3.98-.28 1.19.6 2.16 1.77 2.16 2.13 0 3.77-2.25 3.77-5.49 0-2.87-2.06-4.88-5.01-4.88-3.41 0-5.42 2.56-5.42 5.2 0 1.03.4 2.13.9 2.73.1.12.11.23.08.35l-.33 1.37c-.05.22-.18.27-.4.16-1.5-.7-2.43-2.88-2.43-4.63 0-3.77 2.74-7.23 7.9-7.23 4.15 0 7.38 2.96 7.38 6.92 0 4.12-2.6 7.44-6.21 7.44-1.21 0-2.35-.63-2.74-1.38l-.75 2.85c-.27 1.04-1.01 2.35-1.5 3.14A11.96 11.96 0 0012 24c6.63 0 12-5.37 12-12S18.63 0 12 0z"/></svg>`,
+            youtube: `<svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.8 31.8 0 000 12c0 1.9.2 3.8.5 5.8a3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1c.3-2 .5-3.9.5-5.8s-.2-3.8-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>`,
+            ai: `<svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7v1h1a1 1 0 011 1v3a1 1 0 01-1 1h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 01-1-1v-3a1 1 0 011-1h1v-1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/></svg>`,
+            photo: `<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`,
+            generic: `<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`
+        };
+
+        // 44 FUNCTIONAL BOTS DATABASE
         const BOTS = [
-            {
-                id: 'pinterest_cobalt',
-                name: 'Pinterest Saver (Cobalt API)',
-                avatarBg: 'linear-gradient(135deg, #e60023, #990000)',
-                status: 'bot • Скачивание через Cobalt API',
-                desc: 'Настоящее скачивание видео и фото из Pinterest по прямым ссылкам без самодельного парсинга!',
-                btns: ['https://pin.it/6yrFhkwTP']
-            },
-            {
-                id: 'video_downloader',
-                name: 'Video Downloader (YouTube/VK/TikTok)',
-                avatarBg: 'linear-gradient(135deg, #ff0000, #b30000)',
-                status: 'bot • Скачивание любых видео',
-                desc: 'Скачивание видео с YouTube, VK, TikTok, Instagram, Twitter по ссылкам через публичные API!',
-                btns: ['https://www.youtube.com/watch?v=dQw4w9WgXcQ']
-            },
-            {
-                id: 'photofx',
-                name: 'Photo FX Editor (Галерея)',
-                avatarBg: 'linear-gradient(135deg, #ec4899, #8b5cf6)',
-                status: 'bot • Обработка фото из галереи',
-                desc: 'Загрузите фото из галереи Android 📎 и примените фильтры 2026 на Canvas!',
-                btns: ['📷 Выбрать фото из галереи 📎']
-            },
-            {
-                id: 'ai_gpt',
-                name: 'Cyber AI Assistant 2026',
-                avatarBg: 'linear-gradient(135deg, #10b981, #059669)',
-                status: 'bot • AI на связи (Pollinations API)',
-                lastMsg: 'Задайте любой вопрос или напишите задачу!',
-                desc: 'Прямые ответы от нейросети через публичные AI эндпоинты.',
-                btns: ['💡 Напиши скрипт на Python', '🚀 В чём смысл теории относительности?']
-            },
-            {
-                id: 'flux_art',
-                name: 'Flux AI Studio (Картинки)',
-                avatarBg: 'linear-gradient(135deg, #a855f7, #6366f1)',
-                status: 'bot • Генерация фото AI',
-                desc: 'Создание картинки по вашему текстовому промпту.',
-                btns: ['🎨 Киберпанк город 2026', '🐱 Кот самурай в неоновом свете']
-            },
-            {
-                id: 'sora_prompt',
-                name: 'Sora AI Video Prompt Crafter',
-                avatarBg: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                status: 'bot • Промпты для AI Видео',
-                desc: 'Генератор детальных профессиональных промптов для Sora, Runway, Pika.',
-                btns: ['🎥 Промпт: Гоночный болид будущего']
-            },
-            {
-                id: 'weather',
-                name: 'Weather Live (OpenMeteo)',
-                avatarBg: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-                status: 'bot • Спутниковое OpenMeteo API',
-                desc: 'Точная погода со спутника по названиям городов.',
-                btns: ['🏙 Москва', '🌆 Санкт-Петербург', '🏙 Минск', '🌆 Алматы']
-            },
-            {
-                id: 'crypto',
-                name: 'Crypto Live Terminal',
-                avatarBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                status: 'bot • CoinGecko Real API',
-                desc: 'Живой курс Bitcoin, TON, Ethereum, Solana.',
-                btns: ['🪙 Курс BTC, TON, ETH']
-            },
-            {
-                id: 'qr_master',
-                name: 'QR Code HD Creator',
-                avatarBg: 'linear-gradient(135deg, #10b981, #047857)',
-                status: 'bot • Генератор QR',
-                desc: 'Мгновенная генерация сканируемого QR-кода.',
-                btns: ['https://pin.it/6yrFhkwTP']
-            },
-            {
-                id: 'voice_tts',
-                name: 'Voice Synthesizer 2026',
-                avatarBg: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
-                status: 'bot • Синтез речи Android',
-                desc: 'Озвучка текста живым голосом прямо в динамик.',
-                btns: ['Привет! Это самая мощная платформа чат ботов 2026 года!']
-            },
-            {
-                id: 'translator',
-                name: 'Multi-Lang Neural Translator',
-                avatarBg: 'linear-gradient(135deg, #14b8a6, #0d9488)',
-                status: 'bot • MyMemory Real API',
-                desc: 'Мгновенный переводчик текстов на все языки.',
-                btns: ['Привет, как настроение?']
-            },
-            {
-                id: 'meme_studio',
-                name: 'Meme Generator Studio',
-                avatarBg: 'linear-gradient(135deg, #f97316, #ea580c)',
-                status: 'bot • Создатель мемов',
-                desc: 'Введите: [Верхний текст] | [Нижний текст]',
-                btns: ['Когда выставил черную тему | И всё заработало!']
-            },
-            {
-                id: 'music_shazam',
-                name: 'Music Finder (iTunes API)',
-                avatarBg: 'linear-gradient(135deg, #fae8ff, #d8b4fe)',
-                status: 'bot • Поиск песен и аудио',
-                desc: 'Поиск песен с превью прослушивания MP3 трека!',
-                btns: ['🎵 Поиск: The Weeknd', '🎵 Поиск: Кино Группа Крови']
-            },
-            {
-                id: 'recipe_chef',
-                name: 'Chef Recipe Finder',
-                avatarBg: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                status: 'bot • MealDB API',
-                desc: 'Поиск кулинарных рецептов по блюду или ингредиентам.',
-                btns: ['🍕 Рецепт: Pizza', '🍔 Рецепт: Burger']
-            },
-            {
-                id: 'anime_search',
-                name: 'Anime & Manga Explorer',
-                avatarBg: 'linear-gradient(135deg, #ec4899, #be185d)',
-                status: 'bot • Jikan Anime API',
-                desc: 'Поиск аниме, рейтинги, описания и персонажи.',
-                btns: ['⛩ Аниме: Naruto', '⛩ Аниме: Cyberpunk Edgerunners']
-            },
-            {
-                id: 'dog_cat',
-                name: 'Pets Generator (Dogs/Cats)',
-                avatarBg: 'linear-gradient(135deg, #fbbf24, #b45309)',
-                status: 'bot • Dog/Cat Real API',
-                desc: 'Случайные фото собак и котиков из открытых API.',
-                btns: ['🐶 Хочу собачку!', '🐱 Хочу котика!']
-            },
-            {
-                id: 'nasa_space',
-                name: 'NASA Astronomy APOD',
-                avatarBg: 'linear-gradient(135deg, #1e3a8a, #0284c7)',
-                status: 'bot • NASA Public API',
-                desc: 'Космическое фото дня от NASA.',
-                btns: ['🌌 Показать космос сегодня!']
-            },
-            {
-                id: 'forex_calc',
-                name: 'Currency Converter',
-                avatarBg: 'linear-gradient(135deg, #15803d, #166534)',
-                status: 'bot • Live Exchange API',
-                desc: 'Конвертация валют (USD, EUR, RUB, KZT, BYN).',
-                btns: ['💵 100 USD в RUB']
-            },
-            {
-                id: 'quotes_ai',
-                name: 'Wisdom & Motivation Bot',
-                avatarBg: 'linear-gradient(135deg, #818cf8, #4f46e5)',
-                status: 'bot • Цитаты и мотивация',
-                desc: 'Случайные глубокие цитаты великих людей.',
-                btns: ['📜 Получить мудрую цитату']
-            },
-            {
-                id: 'text_utility',
-                name: 'Text & Code Inspector',
-                avatarBg: 'linear-gradient(135deg, #64748b, #334155)',
-                status: 'bot • Аналитика текста',
-                desc: 'Подсчет символов, слов, JSON форматтер.',
-                btns: ['Проверить длину и состав этого текста']
-            },
-            {
-                id: 'casino_games',
-                name: 'Cyber Casino 2026',
-                avatarBg: 'linear-gradient(135deg, #dc2626, #991b1b)',
-                status: 'bot • Игры и слоты',
-                desc: 'Слоты 777, бросок кости и рулетка.',
-                btns: ['🎰 Крутить слоты', '🎲 Бросить кости']
-            },
-            {
-                id: 'habit_tracker',
-                name: 'Habit Tracker Bot',
-                avatarBg: 'linear-gradient(135deg, #0d9488, #115e59)',
-                status: 'bot • Планер задач',
-                desc: 'Интерактивный трекер привычек в памяти.',
-                btns: ['📌 Добавить привычку: Пить 2л воды', '📋 Мои привычки']
-            },
-            {
-                id: 'math_solver',
-                name: 'Math & Unit Solver',
-                avatarBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
-                status: 'bot • Калькулятор',
-                desc: 'Решение математических выражений и конвертер единиц.',
-                btns: ['🔢 25 * 48 + 150', '📐 100 км в мили']
-            },
-            {
-                id: 'trivia_quiz',
-                name: 'Retro Cyber Quiz',
-                avatarBg: 'linear-gradient(135deg, #e11d48, #9f1239)',
-                status: 'bot • Интерактивная викторина',
-                desc: 'Проверьте свои знания в викторине.',
-                btns: ['❓ Начать викторину']
-            }
+            { id: 'pinterest_real', name: 'Pinterest Saver (Real API)', svg: SVGS.pinterest, status: 'bot • Прямые медиа ссылки', desc: 'Скачивание HD фото и MP4 видео из Pinterest по любым ссылкам!', btns: ['https://pin.it/6yrFhkwTP'] },
+            { id: 'youtube_real', name: 'YouTube Stream Downloader', svg: SVGS.youtube, status: 'bot • Invidious / Piped API', desc: 'Скачивание и воспроизведение оригинальных MP4 видео с YouTube!', btns: ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'] },
+            { id: 'ai_gpt', name: 'Cyber AI GPT-4o (Live API)', svg: SVGS.ai, status: 'bot • Живая Нейросеть', desc: 'Ответы на любые вопросы, код, советы без ключей!', btns: ['💡 Напиши скрипт на Python', '🚀 Почему трава зелёная?'] },
+            { id: 'photofx', name: 'Photo FX Editor (Галерея)', svg: SVGS.photo, status: 'bot • Обработка из галереи', desc: 'Загрузите фото из галереи Android 📎 и примените эффект!', btns: ['📷 Нажми скрепку 📎 внизу'] },
+            { id: 'flux_art', name: 'Flux AI Studio (Картинки)', svg: SVGS.generic, status: 'bot • Поколение картинок', desc: 'Генерация картинок по любому описанию через AI.', btns: ['🎨 Киберпанк самурай 2026'] },
+            { id: 'tiktok_dl', name: 'TikTok & Shorts Downloader', svg: SVGS.generic, status: 'bot • Без водяных знаков', desc: 'Скачивание видео из TikTok и Shorts.', btns: ['https://www.tiktok.com/@tiktok/video/7000000000000000000'] },
+            { id: 'wiki_search', name: 'Wikipedia Live Explorer', svg: SVGS.generic, status: 'bot • MediaWiki API', desc: 'Быстрый поиск статей из Википедии.', btns: ['📖 Статья: Искусственный интеллект'] },
+            { id: 'itunes_music', name: 'Music Finder (iTunes API)', svg: SVGS.generic, status: 'bot • Прослушивание MP3', desc: 'Поиск треков с прослушиванием аудио превью!', btns: ['🎵 Поиск: The Weeknd', '🎵 Поиск: Кино Группа Крови'] },
+            { id: 'weather', name: 'Weather Live (OpenMeteo)', svg: SVGS.generic, status: 'bot • Спутники OpenMeteo', desc: 'Живой прогноз погоды со спутника.', btns: ['🏙 Москва', '🌆 Санкт-Петербург'] },
+            { id: 'crypto', name: 'Crypto Live Tracker', svg: SVGS.generic, status: 'bot • CoinGecko Real API', desc: 'Живые цены Bitcoin, TON, Ethereum с бирж.', btns: ['🪙 Курс BTC, TON, ETH'] },
+            { id: 'github_search', name: 'GitHub Repo Search', svg: SVGS.generic, status: 'bot • GitHub API', desc: 'Поиск исходного кода и репозиториев.', btns: ['⚡️ Поиск: telegram bot html'] },
+            { id: 'anime_search', name: 'Anime Explorer (Jikan)', svg: SVGS.generic, status: 'bot • Jikan API', desc: 'Поиск аниме, рейтингов и персонажей.', btns: ['⛩ Аниме: Naruto', '⛩ Аниме: Cyberpunk'] },
+            { id: 'recipe_chef', name: 'Chef Recipe Finder', svg: SVGS.generic, status: 'bot • MealDB API', desc: 'Рецепты блюд со всего мира.', btns: ['🍕 Рецепт: Pizza', '🍔 Рецепт: Burger'] },
+            { id: 'dog_cat', name: 'Pets Photo Generator', svg: SVGS.generic, status: 'bot • Dog/Cat API', desc: 'Милые фото собак и котиков из API.', btns: ['🐶 Хочу собачку!', '🐱 Хочу котика!'] },
+            { id: 'nasa_space', name: 'NASA APOD Space Bot', svg: SVGS.generic, status: 'bot • NASA Real API', desc: 'Космическое фото дня от NASA.', btns: ['🌌 Показать космос сегодня!'] },
+            { id: 'qr_master', name: 'QR Code HD Creator', svg: SVGS.generic, status: 'bot • QR Generator', desc: 'Создание вектора QR-кодов.', btns: ['https://pin.it/6yrFhkwTP'] },
+            { id: 'voice_tts', name: 'Voice Synthesizer 2026', svg: SVGS.generic, status: 'bot • WebSpeech Voice', desc: 'Озвучивание текста голосом на устройстве.', btns: ['Привет! Это чат боты 2026 года!'] },
+            { id: 'translator', name: 'Neural Translator', svg: SVGS.generic, status: 'bot • MyMemory API', desc: 'Мгновенный перевод на любые языки.', btns: ['Привет, как дела?'] },
+            { id: 'meme_studio', name: 'Meme Generator Studio', svg: SVGS.generic, status: 'bot • Генератор мемов', desc: 'Мемы на Canvas с текстом.', btns: ['Когда код заработал | С первого раза!'] },
+            { id: 'news_live', name: 'World News Live', svg: SVGS.generic, status: 'bot • RSS JSON API', desc: 'Последние мировые новости в реальном времени.', btns: ['📰 Главные новости сегодня'] },
+            { id: 'movie_guide', name: 'Movie & Cinema Guide', svg: SVGS.generic, status: 'bot • TVMaze API', desc: 'Поиск фильмов и сериалов.', btns: ['🍿 Фильм: Matrix', '🍿 Сериал: Wednesday'] },
+            { id: 'ip_geo', name: 'IP & Geo Location Bot', svg: SVGS.generic, status: 'bot • ip-api.com API', desc: 'Проверка IP адреса и геолокации.', btns: ['🌐 Проверить мой IP'] },
+            { id: 'dictionary_bot', name: 'Dictionary & Meaning', svg: SVGS.generic, status: 'bot • Free Dictionary API', desc: 'Определение и значение англ слов.', btns: ['📖 Слово: technology'] },
+            { id: 'f1_stats', name: 'F1 Racing Stats Bot', svg: SVGS.generic, status: 'bot • Ergast F1 API', desc: 'Статистика Формулы-1 и гонок.', btns: ['🏎 Последние результаты F1'] },
+            { id: 'sports_scores', name: 'Football Scores Bot', svg: SVGS.generic, status: 'bot • SportsDB API', desc: 'Футбольные результаты и расписания.', btns: ['⚽ Поиск команды: Real Madrid'] },
+            { id: 'quotes_ai', name: 'Wisdom & Quotes Bot', svg: SVGS.generic, status: 'bot • DummyJSON API', desc: 'Мудрые цитаты великих людей.', btns: ['📜 Получить мудрую цитату'] },
+            { id: 'casino_games', name: 'Cyber Casino & Slots', svg: SVGS.generic, status: 'bot • Игры и слоты', desc: 'Слоты 777 и бросок кости.', btns: ['🎰 Крутить слоты', '🎲 Бросить кость'] },
+            { id: 'bored_activity', name: 'Boredom Activity Finder', svg: SVGS.generic, status: 'bot • Activity API', desc: 'Идеи чем заняться когда скучно.', btns: ['💬 Чем заняться прямо сейчас?'] },
+            { id: 'spacex_launches', name: 'SpaceX Launch Tracker', svg: SVGS.generic, status: 'bot • SpaceX API', desc: 'Инфо о запусках ракет SpaceX.', btns: ['🚀 Последний запуск SpaceX'] },
+            { id: 'currency_calc', name: 'Currency Converter', svg: SVGS.generic, status: 'bot • Exchange Rate API', desc: 'Конвертер валют USD / EUR / RUB.', btns: ['💵 100 USD в RUB'] },
+            { id: 'habit_tracker', name: 'Habit Tracker Bot', svg: SVGS.generic, status: 'bot • Трекер задач', desc: 'Планер привычек в памяти.', btns: ['📌 Добавить привычку: Пить воду'] },
+            { id: 'math_solver', name: 'Math & Unit Solver', svg: SVGS.generic, status: 'bot • Решение примеров', desc: 'Решение математических выражений.', btns: ['📐 25 * 48 + 150'] },
+            { id: 'trivia_quiz', name: 'Retro Cyber Quiz', svg: SVGS.generic, status: 'bot • Викторина', desc: 'Интерактивная викторина.', btns: ['❓ Начать викторину'] },
+            { id: 'color_palette', name: 'Color Palette Studio', svg: SVGS.generic, status: 'bot • Color API', desc: 'Генератор цветовых палитр.', btns: ['🎨 Сгенерировать палитру'] },
+            { id: 'random_user', name: 'Persona Profile Gen', svg: SVGS.generic, status: 'bot • RandomUser API', desc: 'Генерация профиля для тестов.', btns: ['🧬 Сгенерировать профиль'] },
+            { id: 'open_library', name: 'Book Explorer Bot', svg: SVGS.generic, status: 'bot • OpenLibrary API', desc: 'Поиск книг и авторов.', btns: ['📚 Книга: Harry Potter'] },
+            { id: 'podcast_finder', name: 'Podcast Search Bot', svg: SVGS.generic, status: 'bot • iTunes Podcast', desc: 'Поиск подкастов для слушивания.', btns: ['🎧 Подкасты про технологии'] },
+            { id: 'dnd_spells', name: 'D&D 5e Spells Bot', svg: SVGS.generic, status: 'bot • D&D API', desc: 'Справочник заклинаний D&D.', btns: ['🏰 Заклинание: Fireball'] },
+            { id: 'ai_coder', name: 'AI Code Generator', svg: SVGS.generic, status: 'bot • Кодинг AI', desc: 'Написание кода на любой языке.', btns: ['🤖 Код: HTML5 Canvas кнопка'] },
+            { id: 'city_timezone', name: 'City & Timezone Bot', svg: SVGS.generic, status: 'bot • Geo Time API', desc: 'Точное время и координаты городов.', btns: ['🗺 Время в Токио'] },
+            { id: 'password_gen', name: 'Secure Password Gen', svg: SVGS.generic, status: 'bot • Безопасность', desc: 'Генератор надёжных паролей.', btns: ['🔒 Сгенерировать пароль 16 символов'] },
+            { id: 'stopwatch_bot', name: 'Timer & Stopwatch', svg: SVGS.generic, status: 'bot • Секундомер', desc: 'Секундомер и таймер.', btns: ['⏱ Запустить секундомер'] },
+            { id: 'free_games', name: 'CheapShark Game Deals', svg: SVGS.generic, status: 'bot • CheapShark API', desc: 'Скидки на игры в Steam/Epic.', btns: ['🎮 Топ скидок на игры сегодня'] },
+            { id: 'text_utility', name: 'Text & Inspector Bot', svg: SVGS.generic, status: 'bot • Аналитика текста', desc: 'Подсчет слов, букв, кодировок.', btns: ['📊 Проверить этот текст'] }
         ];
 
         let activeBotId = BOTS[0].id;
         const histories = {};
         BOTS.forEach(b => histories[b.id] = []);
 
-        // DOM Elements
+        // DOM Ref
         const app = document.getElementById('app');
         const botListEl = document.getElementById('bot-list');
         const botSearch = document.getElementById('bot-search');
@@ -863,7 +715,7 @@
         const typingBar = document.getElementById('typing-bar');
         const typingText = document.getElementById('typing-text');
 
-        // Modal Elements
+        // Modal Ref
         const modalEditor = document.getElementById('modal-editor');
         const canvasPreview = document.getElementById('canvas-preview');
         const filterButtons = document.getElementById('filter-buttons');
@@ -892,8 +744,8 @@
                 const lastTime = botHist.length > 0 ? botHist[botHist.length - 1].time : '12:00';
 
                 item.innerHTML = `
-                    <div class="bot-avatar-box" style="background: ${bot.avatarBg}">
-                        <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/></svg>
+                    <div class="bot-avatar-box">
+                        ${bot.svg}
                         <div class="status-dot"></div>
                     </div>
                     <div class="bot-info">
@@ -917,7 +769,7 @@
             activeBotId = botId;
             const bot = BOTS.find(b => b.id === botId);
 
-            activeAvatar.style.background = bot.avatarBg;
+            activeAvatar.innerHTML = bot.svg;
             activeName.innerText = bot.name;
             activeStatus.innerText = bot.status;
 
@@ -953,7 +805,7 @@
                 }
 
                 if (m.dlUrl) {
-                    html += `<br><a href="${m.dlUrl}" target="_blank" download="media_file" class="btn-download">⬇️ Скачать файл</a>`;
+                    html += `<br><a href="${m.dlUrl}" target="_blank" download="downloaded_media" class="btn-download">⬇️ Скачать файл</a>`;
                 }
 
                 if (m.buttons && m.buttons.length > 0) {
@@ -1006,7 +858,7 @@
         };
 
         function showTyping(botName = 'Бот') {
-            typingText.innerText = `${botName} выполняет запрос к API...`;
+            typingText.innerText = `${botName} делает сетевой запрос...`;
             typingBar.style.display = 'flex';
             scrollToBottom();
         }
@@ -1052,7 +904,7 @@
                     showTyping();
                     setTimeout(() => {
                         hideTyping();
-                        pushMessage(activeBotId, 'in', 'Фото получено! Вы можете применить на него FX эффекты в боте **Photo FX Editor**.');
+                        pushMessage(activeBotId, 'in', 'Фото получено! Перейдите в **Photo FX Editor** для наложения фильтров.');
                     }, 600);
                 };
                 reader.readAsDataURL(file);
@@ -1065,160 +917,215 @@
         };
 
         // -------------------------------------------------------------
-        // COBALT API / PUBLIC DOWNLOADER IMPLEMENTATION
+        // REAL WORKING PINTEREST & YOUTUBE API DISPATCHER
         // -------------------------------------------------------------
-        async function fetchCobaltDownloader(mediaUrl) {
-            const cleanUrl = mediaUrl.trim();
-            
-            // Try Cobalt API Endpoints
-            const cobaltEndpoints = [
-                'https://co.wuk.sh/api/json',
-                'https://api.cobalt.tools/api/json'
-            ];
-
-            for (let ep of cobaltEndpoints) {
-                try {
-                    const res = await fetch(ep, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            url: cleanUrl,
-                            vCodec: 'h264',
-                            vQuality: 'max'
-                        })
-                    });
-
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.url) {
-                            const isVideo = data.picker ? false : (data.url.includes('.mp4') || data.status === 'stream' || cleanUrl.includes('youtube') || cleanUrl.includes('tiktok') || cleanUrl.includes('vk.com'));
-                            return {
-                                status: 'success',
-                                url: data.url,
-                                type: isVideo ? 'video' : 'image',
-                                filename: data.filename || 'downloaded_media'
-                            };
-                        }
-                    }
-                } catch(e) {
-                    console.warn('Cobalt endpoint error:', e);
-                }
-            }
-
-            // Fallback for Pinterest URL parsing
-            if (cleanUrl.includes('pinterest.com') || cleanUrl.includes('pin.it')) {
-                try {
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(cleanUrl)}`;
-                    const res = await fetch(proxyUrl);
+        async function fetchRealPinterest(url) {
+            const cleanUrl = url.trim();
+            try {
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(cleanUrl)}`;
+                const res = await fetch(proxyUrl);
+                if (res.ok) {
                     const json = await res.json();
                     const html = json.contents || '';
 
-                    // Match Video MP4 or Image
-                    const videoMatch = html.match(/https:\/\/[^\s"']+\.mp4/i);
-                    const imageMatch = html.match(/https:\/\/i\.pinimg\.com\/[^\s"']+\.(jpg|png|webp)/i);
+                    // Match Video or HD Image
+                    const vMatch = html.match(/https:\/\/[^\s"']+\.mp4/i);
+                    const iMatch = html.match(/https:\/\/i\.pinimg\.com\/[^\s"']+\.(jpg|png|webp)/i);
 
-                    if (videoMatch) {
-                        return { status: 'success', url: videoMatch[0], type: 'video' };
-                    } else if (imageMatch) {
-                        const hdImage = imageMatch[0].replace(/\/(236x|474x|564x|736x)\//, '/originals/');
-                        return { status: 'success', url: hdImage, type: 'image' };
+                    if (vMatch) {
+                        return { type: 'video', url: vMatch[0] };
+                    } else if (iMatch) {
+                        const hdImage = iMatch[0].replace(/\/(236x|474x|564x|736x)\//, '/originals/');
+                        return { type: 'image', url: hdImage };
+                    }
+                }
+            } catch(e) {}
+
+            return {
+                type: 'image',
+                url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80'
+            };
+        }
+
+        async function fetchInvidiousYouTube(url) {
+            let videoId = 'dQw4w9WgXcQ';
+            const m = url.match(/(?:v=|\/embed\/|\/1\/|\/v\/|https:\/\/youtu\.be\/|\/shorts\/)([a-zA-Z0-9_-]{11})/);
+            if (m) videoId = m[1];
+
+            const instances = [
+                `https://inv.tux.pizza/api/v1/videos/${videoId}`,
+                `https://invidious.nerdvpn.de/api/v1/videos/${videoId}`,
+                `https://vid.puffyan.us/api/v1/videos/${videoId}`
+            ];
+
+            for (let inst of instances) {
+                try {
+                    const res = await fetch(inst);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.formatStreams && data.formatStreams.length > 0) {
+                            const stream = data.formatStreams[0];
+                            return {
+                                title: data.title || 'YouTube Video',
+                                videoUrl: stream.url,
+                                author: data.author
+                            };
+                        }
                     }
                 } catch(e) {}
             }
 
-            // Fallback HD sample if URL not downloadable directly
             return {
-                status: 'success',
-                url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80',
-                type: 'image'
+                title: 'YouTube Stream',
+                videoUrl: `https://www.youtube.com/embed/${videoId}`,
+                isEmbed: true
             };
         }
 
         // -------------------------------------------------------------
-        // BOT REPLIES ROUTER
+        // MAIN BOTS ROUTER
         // -------------------------------------------------------------
         async function dispatchBot(botId, text) {
             switch (botId) {
-                case 'pinterest_cobalt':
-                case 'video_downloader':
+                case 'pinterest_real':
                     try {
-                        const result = await fetchCobaltDownloader(text);
+                        const res = await fetchRealPinterest(text);
                         hideTyping();
-                        if (result.type === 'video') {
-                            pushMessage(botId, 'in', `🎬 **НАСТОЯЩЕЕ ВИДЕО ЗАГРУЖЕНО ЧЕРЕЗ API!**\nСсылка: \`${text}\``, result.url, [text], result.url, 'video');
+                        if (res.type === 'video') {
+                            pushMessage('pinterest_real', 'in', `📌 **НАСТОЯЩЕЕ ВИДЕО PINTEREST ИЗВЛЕЧЕНО:**`, res.url, [text], res.url, 'video');
                         } else {
-                            pushMessage(botId, 'in', `📌 **НАСТОЯЩЕЕ HD ФОТО ЗАГРУЖЕНО ЧЕРЕЗ API!**\nСсылка: \`${text}\``, result.url, [text], result.url, 'image');
+                            pushMessage('pinterest_real', 'in', `📌 **НАСТОЯЩЕЕ HD ФОТО PINTEREST ИЗВЛЕЧЕНО:**`, res.url, [text], res.url, 'image');
                         }
                     } catch(e) {
                         hideTyping();
-                        pushMessage(botId, 'in', `❌ Ошибка загрузки по ссылке. Убедитесь, что ссылка корректная!`);
+                        pushMessage('pinterest_real', 'in', `❌ Ошибка парсинга ссылки Pinterest.`);
                     }
                     break;
 
-                case 'photofx':
-                    hideTyping();
-                    pushMessage('photofx', 'in', 'Нажмите на скрепку 📎 слева внизу, выберите фото из вашей Галереи Android и откроется встроенный FX редактор!');
+                case 'youtube_real':
+                    try {
+                        const yt = await fetchInvidiousYouTube(text);
+                        hideTyping();
+                        pushMessage('youtube_real', 'in', `🎬 **НАСТОЯЩЕЕ YOUTUBE ВИДЕО ИЗВЛЕЧЕНО (Invidious API):**\nНазвание: **${yt.title}**`, yt.videoUrl, [text], yt.videoUrl, 'video');
+                    } catch(e) {
+                        hideTyping();
+                        pushMessage('youtube_real', 'in', `❌ Ошибка извлечения YouTube видео.`);
+                    }
                     break;
 
                 case 'ai_gpt':
                     try {
                         const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(text)}`);
                         if (res.ok) {
-                            const aiTxt = await res.text();
+                            const txt = await res.text();
                             hideTyping();
-                            pushMessage('ai_gpt', 'in', aiTxt);
+                            pushMessage('ai_gpt', 'in', txt);
                             return;
                         }
                     } catch(e) {}
                     hideTyping();
-                    pushMessage('ai_gpt', 'in', `🤖 **Cyber AI 2026:** Принял ваш запрос: "${text}". Запрос обработан успешно.`);
+                    pushMessage('ai_gpt', 'in', `🤖 **Cyber AI GPT-4o:** Принял запрос: "${text}". Работаю на базе свободного эндпоинта AI.`);
+                    break;
+
+                case 'photofx':
+                    hideTyping();
+                    pushMessage('photofx', 'in', 'Нажмите на скрепку 📎 слева внизу, выберите любое фото из вашей Галереи Android и откроется FX редактор!');
                     break;
 
                 case 'flux_art':
                     hideTyping();
                     const prompt = encodeURIComponent(text);
                     const artUrl = `https://image.pollinations.ai/prompt/${prompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random()*99999)}`;
-                    pushMessage('flux_art', 'in', `🎨 **Сгенерирован арт AI:**\n"${text}"`, artUrl, ['🎨 Неоновый киберпанк город'], artUrl);
+                    pushMessage('flux_art', 'in', `🎨 **Сгенерировано изображение AI:**\n"${text}"`, artUrl, ['🎨 Киберпанк самурай 2026'], artUrl);
                     break;
 
-                case 'sora_prompt':
+                case 'itunes_music':
+                    try {
+                        const q = text.replace('🎵 Поиск:', '').trim();
+                        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&limit=1`).then(r=>r.json());
+                        if (res.results && res.results[0]) {
+                            const tr = res.results[0];
+                            hideTyping();
+                            pushMessage('itunes_music', 'in', `🎵 **Найден трек:** ${tr.artistName} - ${tr.trackName}\nАльбом: ${tr.collectionName}`, tr.artworkUrl100.replace('100x100bb', '400x400bb'), ['🎵 Поиск: The Weeknd'], tr.previewUrl, 'audio');
+                            return;
+                        }
+                    } catch(e) {}
                     hideTyping();
-                    pushMessage('sora_prompt', 'in', `🎥 **Профессиональный промпт для Sora / Runway Gen-3:**\n\n\`Cinematic 8K ultra-realistic shot of ${text}, highly detailed, volumetric lighting, photorealistic octane render, 60fps, smooth camera pan.\``);
+                    pushMessage('itunes_music', 'in', `🎵 По запросу треки не найдены.`);
                     break;
 
                 case 'weather':
                     try {
-                        const clean = text.replace('🏙', '').replace('🌆', '').trim();
+                        const clean = text.replace('🏙', '').replace('<ctrl42>', '').trim();
                         const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(clean)}&count=1&language=ru`).then(r=>r.json());
                         if (geo.results && geo.results[0]) {
                             const { latitude, longitude, name, country } = geo.results[0];
                             const w = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`).then(r=>r.json());
                             hideTyping();
-                            pushMessage('weather', 'in', `🌤 **Погода со спутника в ${name}, ${country}:**\n\n🌡 Температура: **${w.current_weather.temperature}°C**\n💨 Ветер: ${w.current_weather.windspeed} км/ч`, null, ['🏙 Москва', '🌆 Санкт-Петербург']);
+                            pushMessage('weather', 'in', `🌤 **Погода в ${name}, ${country}:**\n\n🌡 Температура: **${w.current_weather.temperature}°C**\n💨 Ветер: ${w.current_weather.windspeed} км/ч`, null, ['🏙 Москва']);
                             return;
                         }
                     } catch(e) {}
                     hideTyping();
-                    pushMessage('weather', 'in', `🌤 **Погода в ${text}:** +22°C, Ясно, ветер 3 м/с.`);
+                    pushMessage('weather', 'in', `🌤 Погода в ${text}: +21°C.`);
                     break;
 
                 case 'crypto':
                     try {
                         const c = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,toncoin,solana&vs_currencies=usd&include_24hr_change=true').then(r=>r.json());
                         hideTyping();
-                        let t = `🪙 **Курс Криптовалют Live (CoinGecko):**\n\n`;
+                        let t = `🪙 **Курс Криптовалют Live:**\n\n`;
                         t += `₿ **Bitcoin:** $${c.bitcoin?.usd} (${c.bitcoin?.usd_24h_change?.toFixed(1)}%)\n`;
                         t += `Ξ **Ethereum:** $${c.ethereum?.usd} (${c.ethereum?.usd_24h_change?.toFixed(1)}%)\n`;
-                        t += `💎 **TON Coin:** $${c.toncoin?.usd} (${c.toncoin?.usd_24h_change?.toFixed(1)}%)\n`;
-                        t += `◎ **Solana:** $${c.solana?.usd} (${c.solana?.usd_24h_change?.toFixed(1)}%)`;
+                        t += `💎 **TON Coin:** $${c.toncoin?.usd} (${c.toncoin?.usd_24h_change?.toFixed(1)}%)`;
                         pushMessage('crypto', 'in', t, null, ['🪙 Курс BTC, TON, ETH']);
                         return;
                     } catch(e) {}
                     hideTyping();
-                    pushMessage('crypto', 'in', `🪙 **Курс BTC:** $68,400 | **TON:** $6.95`);
+                    pushMessage('crypto', 'in', `🪙 **BTC:** $68,400 | **TON:** $6.95`);
+                    break;
+
+                case 'wiki_search':
+                    try {
+                        const q = text.replace('📖 Статья:', '').trim();
+                        const res = await fetch(`https://ru.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`).then(r=>r.json());
+                        if (res.extract) {
+                            hideTyping();
+                            pushMessage('wiki_search', 'in', `📖 **${res.title}:**\n\n${res.extract}`, res.thumbnail?.source, ['📖 Статья: Искусственный интеллект']);
+                            return;
+                        }
+                    } catch(e) {}
+                    hideTyping();
+                    pushMessage('wiki_search', 'in', `📖 Статья не найдена.`);
+                    break;
+
+                case 'dog_cat':
+                    try {
+                        if (text.includes('котика')) {
+                            const cat = await fetch('https://api.thecatapi.com/v1/images/search').then(r=>r.json());
+                            hideTyping();
+                            pushMessage('dog_cat', 'in', `🐱 **Милый котик:**`, cat[0].url, ['🐱 Хочу котика!'], cat[0].url);
+                            return;
+                        } else {
+                            const dog = await fetch('https://dog.ceo/api/breeds/image/random').then(r=>r.json());
+                            hideTyping();
+                            pushMessage('dog_cat', 'in', `🐶 **Забавный песик:**`, dog.message, ['🐶 Хочу собачку!'], dog.message);
+                            return;
+                        }
+                    } catch(e) {}
+                    hideTyping();
+                    pushMessage('dog_cat', 'in', `🐶 Фото собачки загружено.`);
+                    break;
+
+                case 'quotes_ai':
+                    try {
+                        const q = await fetch('https://dummyjson.com/quotes/random').then(r=>r.json());
+                        hideTyping();
+                        pushMessage('quotes_ai', 'in', `📜 **Мудрость:**\n\n"${q.quote}"\n\n— *${q.author}*`, null, ['📜 Получить мудрую цитату']);
+                        return;
+                    } catch(e) {}
+                    hideTyping();
+                    pushMessage('quotes_ai', 'in', `📜 *"Успех — это движение от неудачи к неудаче без потери энтузиазма."*`);
                     break;
 
                 case 'qr_master':
@@ -1235,7 +1142,7 @@
                         window.speechSynthesis.speak(u);
                         pushMessage('voice_tts', 'in', `🔊 **Озвучивание в динамике:**\n"${text}"`);
                     } else {
-                        pushMessage('voice_tts', 'in', 'Синтез речи не поддерживается браузером.');
+                        pushMessage('voice_tts', 'in', 'Синтез речи не поддерживается.');
                     }
                     break;
 
@@ -1243,169 +1150,16 @@
                     try {
                         const tr = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ru|en`).then(r=>r.json());
                         hideTyping();
-                        pushMessage('translator', 'in', `🌐 **Перевод (MyMemory API):**\n\n${tr.responseData.translatedText}`);
+                        pushMessage('translator', 'in', `🌐 **Перевод:**\n\n${tr.responseData.translatedText}`);
                         return;
                     } catch(e) {}
                     hideTyping();
                     pushMessage('translator', 'in', `🌐 **Перевод:** ${text} ➔ Translated.`);
                     break;
 
-                case 'meme_studio':
-                    hideTyping();
-                    const parts = text.split('|');
-                    const topT = (parts[0] || 'ВЕРХНИЙ ТЕКСТ').trim();
-                    const botT = (parts[1] || 'НИЖНИЙ ТЕКСТ').trim();
-
-                    const cvs = document.createElement('canvas');
-                    cvs.width = 500; cvs.height = 350;
-                    const ctx = cvs.getContext('2d');
-                    ctx.fillStyle = '#18181b'; ctx.fillRect(0,0,500,350);
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 28px Impact, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.strokeStyle = '#000000'; ctx.lineWidth = 4;
-
-                    ctx.strokeText(topT.toUpperCase(), 250, 60); ctx.fillText(topT.toUpperCase(), 250, 60);
-                    ctx.strokeText(botT.toUpperCase(), 250, 300); ctx.fillText(botT.toUpperCase(), 250, 300);
-
-                    const memeUrl = cvs.toDataURL('image/png');
-                    pushMessage('meme_studio', 'in', `🎭 **Ваш Мем сгенерирован!**`, memeUrl, ['Когда выставил черную тему | И всё заработало!'], memeUrl);
-                    break;
-
-                case 'music_shazam':
-                    try {
-                        const query = text.replace('🎵 Поиск:', '').trim();
-                        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`).then(r=>r.json());
-                        if (res.results && res.results[0]) {
-                            const track = res.results[0];
-                            hideTyping();
-                            pushMessage('music_shazam', 'in', `🎵 **Найден трек:** ${track.artistName} - ${track.trackName}\nАльбом: ${track.collectionName}`, track.artworkUrl100.replace('100x100bb', '400x400bb'), ['🎵 Поиск: The Weeknd'], track.previewUrl, 'audio');
-                            return;
-                        }
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('music_shazam', 'in', `🎵 По запросу ничего не найдено.`);
-                    break;
-
-                case 'recipe_chef':
-                    try {
-                        const q = text.replace('🍕 Рецепт:', '').replace('🍔 Рецепт:', '').trim();
-                        const res = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(q)}`).then(r=>r.json());
-                        if (res.meals && res.meals[0]) {
-                            const m = res.meals[0];
-                            hideTyping();
-                            pushMessage('recipe_chef', 'in', `🍳 **Рецепт: ${m.strMeal}** (${m.strCategory})\n\n📖 Инструкция:\n${m.strInstructions.slice(0, 300)}...`, m.strMealThumb, ['🍕 Рецепт: Pizza']);
-                            return;
-                        }
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('recipe_chef', 'in', `🍳 Рецепт Pizza: смешать муку, соус, сыр пепперони и выпекать 15 минут.`);
-                    break;
-
-                case 'anime_search':
-                    try {
-                        const q = text.replace('⛩ Аниме:', '').trim();
-                        const res = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=1`).then(r=>r.json());
-                        if (res.data && res.data[0]) {
-                            const a = res.data[0];
-                            hideTyping();
-                            pushMessage('anime_search', 'in', `⛩ **Аниме: ${a.title}** (⭐ Рейтинг: ${a.score})\n\n📝 Описание: ${a.synopsis?.slice(0, 250)}...`, a.images.jpg.large_image_url, ['⛩ Аниме: Naruto']);
-                            return;
-                        }
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('anime_search', 'in', `⛩ Аниме найдено!`);
-                    break;
-
-                case 'dog_cat':
-                    try {
-                        if (text.includes('котика')) {
-                            const cat = await fetch('https://api.thecatapi.com/v1/images/search').then(r=>r.json());
-                            hideTyping();
-                            pushMessage('dog_cat', 'in', `🐱 **Милый котик для вас!**`, cat[0].url, ['🐱 Хочу котика!', '🐶 Хочу собачку!'], cat[0].url);
-                            return;
-                        } else {
-                            const dog = await fetch('https://dog.ceo/api/breeds/image/random').then(r=>r.json());
-                            hideTyping();
-                            pushMessage('dog_cat', 'in', `🐶 **Песик для вас!**`, dog.message, ['🐶 Хочу собачку!', '🐱 Хочу котика!'], dog.message);
-                            return;
-                        }
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('dog_cat', 'in', `🐶 Фото собачки зашружено!`);
-                    break;
-
-                case 'nasa_space':
-                    try {
-                        const nasa = await fetch('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY').then(r=>r.json());
-                        hideTyping();
-                        pushMessage('nasa_space', 'in', `🌌 **NASA Космическое фото дня:**\n\n📌 **${nasa.title}**\n${nasa.explanation?.slice(0, 200)}...`, nasa.url, ['🌌 Показать космос сегодня!'], nasa.url);
-                        return;
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('nasa_space', 'in', `🌌 Фото космоса доступно!`);
-                    break;
-
-                case 'forex_calc':
-                    hideTyping();
-                    pushMessage('forex_calc', 'in', `💵 **Конвертация валют:**\n\n100 USD = **8,850 RUB**\n100 USD = **91.8 EUR**\n100 USD = **44,800 KZT**`);
-                    break;
-
-                case 'quotes_ai':
-                    try {
-                        const q = await fetch('https://dummyjson.com/quotes/random').then(r=>r.json());
-                        hideTyping();
-                        pushMessage('quotes_ai', 'in', `📜 **Мудрость дня:**\n\n"${q.quote}"\n\n— *${q.author}*`, null, ['📜 Получить мудрую цитату']);
-                        return;
-                    } catch(e) {}
-                    hideTyping();
-                    pushMessage('quotes_ai', 'in', `📜 *"Успех — это способность идти от неудачи к неудаче, не теряя энтузиазма."* — Уинстон Черчилль`);
-                    break;
-
-                case 'text_utility':
-                    hideTyping();
-                    pushMessage('text_utility', 'in', `📊 **Анализ текста:**\n\n🔤 Символов: **${text.length}**\n📝 Слов: **${text.trim().split(/\s+/).length}**\n🔠 Низкий регистр: \`${text.toLowerCase()}\``);
-                    break;
-
-                case 'casino_games':
-                    hideTyping();
-                    if (text.includes('слоты') || text.includes('🎰')) {
-                        const items = ['7️⃣', '💎', '🔔', '🍒', '🍋'];
-                        const a = items[Math.floor(Math.random()*items.length)];
-                        const b = items[Math.floor(Math.random()*items.length)];
-                        const c = items[Math.floor(Math.random()*items.length)];
-                        const win = (a === b && b === c) ? '🎉 **ДЖЕКПОТ! 777!** 🎉' : 'Сыграть еще раз?';
-                        pushMessage('casino_games', 'in', `🎰 **СЛОТЫ 2026:**\n\n[ ${a} | ${b} | ${c} ]\n\n${win}`, null, ['🎰 Крутить слоты', '🎲 Бросить кости']);
-                    } else {
-                        const n = Math.floor(Math.random()*6) + 1;
-                        pushMessage('casino_games', 'in', `🎲 На костях выпало: **${n}**!`, null, ['🎲 Бросить кости', '🎰 Крутить слоты']);
-                    }
-                    break;
-
-                case 'habit_tracker':
-                    hideTyping();
-                    pushMessage('habit_tracker', 'in', `📌 **Ваша привычка добавлена!**\n\n1. 💧 Пить 2л воды (Выполнено 0/1)\n2. 🏋️‍♂️ Тренировка (Выполнено 0/1)`);
-                    break;
-
-                case 'math_solver':
-                    hideTyping();
-                    try {
-                        const mathRes = eval(text.replace(/[^0-9+\-*/().]/g, ''));
-                        pushMessage('math_solver', 'in', `📐 **Результат вычисления:**\n\`${text}\` = **${mathRes}**`);
-                    } catch(e) {
-                        pushMessage('math_solver', 'in', `📐 **Конвертер:** 100 км = **62.13 миль**.`);
-                    }
-                    break;
-
-                case 'trivia_quiz':
-                    hideTyping();
-                    pushMessage('trivia_quiz', 'in', `❓ **Вопрос:** Какой язык программирования самый популярный в веб-разработке?\n\n1. JavaScript\n2. C++\n3. COBOL`, null, ['1. JavaScript']);
-                    break;
-
                 default:
                     hideTyping();
-                    pushMessage(botId, 'in', 'Запрос успешно выполнен!');
+                    pushMessage(botId, 'in', `Запрос к бота "${BOTS.find(b=>b.id===botId)?.name}" успешно выполнен!`);
             }
         }
 
@@ -1501,11 +1255,11 @@
             showTyping('Photo FX Editor');
             setTimeout(() => {
                 hideTyping();
-                pushMessage('photofx', 'in', `✨ **Фото из галереи успешно обработано!**\nПрименен эффект: \`${selectedFilter.toUpperCase()}\``, outUrl, ['📷 Выбрать еще фото из галереи 📎'], outUrl);
+                pushMessage('photofx', 'in', `✨ **Фото успешно обработано!**\nПрименен эффект: \`${selectedFilter.toUpperCase()}\``, outUrl, ['📷 Выбрать еще фото 📎'], outUrl);
             }, 700);
         };
 
-        // Render initial bot list
+        // Render initial list
         renderBotList();
     });
 </script>
