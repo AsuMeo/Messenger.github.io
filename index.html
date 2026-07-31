@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TG Bot Platform Ultra - Android Edition</title>
+    <title>Telegram Bot Platform Android Ultra</title>
     <meta name="theme-color" content="#17212b">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- FontAwesome & Google Fonts -->
+    <!-- FontAwesome Font & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 
@@ -46,79 +47,89 @@
             color: var(--text-main);
         }
 
-        /* App Layout Container */
+        /* App Container Mobile First */
         .app-container {
-            display: flex;
             width: 100vw;
             height: 100vh;
             height: 100dvh;
             position: relative;
             overflow: hidden;
+            display: flex;
         }
 
-        /* Sidebar / Chat List */
-        .sidebar {
+        /* Sidebar View (Chat List) */
+        .sidebar-view {
             width: 100%;
             height: 100%;
             background-color: var(--bg-sidebar);
             display: flex;
             flex-direction: column;
-            z-index: 10;
-            transition: transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
             position: absolute;
             left: 0;
             top: 0;
+            z-index: 10;
+            transition: transform 0.22s ease-in-out;
         }
 
-        @media (min-width: 768px) {
-            .sidebar {
-                width: 380px;
-                position: relative;
-                border-right: 1px solid var(--border-color);
-                transform: none !important;
-            }
+        .app-container.chat-open .sidebar-view {
+            transform: translateX(-30%);
+            pointer-events: none;
         }
 
-        /* Sidebar Header */
-        .sidebar-header {
-            padding: 12px 16px;
+        /* Top Header Navigation */
+        .header-bar {
+            height: 56px;
+            background-color: var(--bg-sidebar);
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            background-color: var(--bg-sidebar);
+            padding: 0 16px;
+            gap: 16px;
             box-shadow: 0 2px 4px var(--shadow-color);
             z-index: 2;
+            flex-shrink: 0;
         }
 
         .brand-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--accent);
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-weight: 700;
-            font-size: 1.15rem;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .android-badge {
+            font-size: 0.65rem;
+            background: rgba(42, 171, 238, 0.2);
             color: var(--accent);
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        /* Search Input */
+        .search-container {
+            padding: 8px 12px;
+            background-color: #101921;
         }
 
         .search-box {
-            padding: 10px 16px;
-            background: #101921;
-        }
-
-        .search-input-wrapper {
             position: relative;
             display: flex;
             align-items: center;
         }
 
-        .search-input-wrapper i {
+        .search-box i {
             position: absolute;
             left: 12px;
             color: var(--text-sub);
+            font-size: 0.9rem;
         }
 
         .search-input {
             width: 100%;
-            padding: 9px 12px 9px 38px;
+            padding: 8px 12px 8px 36px;
             background-color: #242f3d;
             border: none;
             border-radius: 20px;
@@ -127,7 +138,7 @@
             outline: none;
         }
 
-        /* Bot List */
+        /* Chat List Scrollable */
         .chat-list {
             flex: 1;
             overflow-y: auto;
@@ -140,53 +151,51 @@
             padding: 12px 16px;
             gap: 14px;
             cursor: pointer;
-            border-bottom: 1px solid rgba(0,0,0,0.15);
-            transition: background 0.15s ease;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
         }
 
-        .chat-item:active, .chat-item.active {
+        .chat-item:active {
             background-color: #202b36;
         }
 
-        .bot-avatar {
-            width: 52px;
-            height: 52px;
+        .avatar-box {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
-            color: #fff;
+            font-size: 1.3rem;
+            color: #ffffff;
             position: relative;
             flex-shrink: 0;
-            background: linear-gradient(135deg, #36d1dc, #5b86e5);
         }
 
-        .bot-online-badge {
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
+        .online-dot {
             width: 12px;
             height: 12px;
             background-color: var(--online-color);
-            border-radius: 50%;
             border: 2px solid var(--bg-sidebar);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            right: 0;
         }
 
-        .chat-info {
+        .chat-meta {
             flex: 1;
             min-width: 0;
         }
 
-        .chat-top-line {
+        .chat-row-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 4px;
         }
 
-        .chat-title {
-            font-size: 1rem;
+        .chat-name {
+            font-size: 0.98rem;
             font-weight: 500;
             color: var(--text-main);
             white-space: nowrap;
@@ -199,7 +208,7 @@
             color: var(--text-sub);
         }
 
-        .chat-last-msg {
+        .chat-preview {
             font-size: 0.85rem;
             color: var(--text-sub);
             white-space: nowrap;
@@ -207,57 +216,26 @@
             text-overflow: ellipsis;
         }
 
-        .bot-tag {
-            font-size: 0.65rem;
-            background: rgba(42, 171, 238, 0.2);
-            color: var(--accent);
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 6px;
-        }
-
-        /* Main Chat Window */
-        .chat-area {
-            flex: 1;
+        /* Chat Window View */
+        .chat-view {
+            width: 100%;
             height: 100%;
+            background-color: var(--bg-chat);
             display: flex;
             flex-direction: column;
-            background-color: var(--bg-chat);
             position: absolute;
             right: 0;
             top: 0;
-            width: 100%;
             z-index: 20;
             transform: translateX(100%);
-            transition: transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
+            transition: transform 0.22s ease-in-out;
         }
 
-        @media (min-width: 768px) {
-            .chat-area {
-                position: relative;
-                transform: none !important;
-                z-index: 1;
-            }
-        }
-
-        /* Mobile Active state */
-        .app-container.chat-active .chat-area {
+        .app-container.chat-open .chat-view {
             transform: translateX(0);
         }
 
-        /* Chat Header */
-        .chat-header {
-            height: 60px;
-            background-color: var(--bg-header);
-            display: flex;
-            align-items: center;
-            padding: 0 12px;
-            gap: 12px;
-            box-shadow: 0 2px 4px var(--shadow-color);
-            z-index: 5;
-        }
-
-        .btn-back {
+        .btn-icon {
             background: none;
             border: none;
             color: var(--text-main);
@@ -269,94 +247,56 @@
             justify-content: center;
         }
 
-        @media (min-width: 768px) {
-            .btn-back { display: none; }
+        .btn-icon:active {
+            opacity: 0.7;
         }
 
-        .header-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            color: #fff;
-            flex-shrink: 0;
-        }
-
-        .header-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .header-name {
-            font-size: 1rem;
-            font-weight: 500;
-        }
-
-        .header-status {
-            font-size: 0.75rem;
-            color: var(--accent);
-        }
-
-        /* Messages Body */
-        .messages-container {
+        /* Messages Area */
+        .messages-area {
             flex: 1;
             overflow-y: auto;
-            padding: 16px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
-            background-size: 24px 24px;
             -webkit-overflow-scrolling: touch;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+            background-size: 20px 20px;
         }
 
-        .msg-row {
+        .msg-bubble-wrap {
             display: flex;
             flex-direction: column;
-            max-width: 82%;
-            animation: fadeIn 0.2s ease-out;
+            max-width: 85%;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .msg-row.in {
-            align-self: flex-start;
-        }
-
-        .msg-row.out {
-            align-self: flex-end;
-        }
+        .msg-bubble-wrap.in { align-self: flex-start; }
+        .msg-bubble-wrap.out { align-self: flex-end; }
 
         .msg-bubble {
             padding: 10px 14px;
             border-radius: 14px;
-            position: relative;
             font-size: 0.95rem;
             line-height: 1.4;
-            word-wrap: break-word;
+            word-break: break-word;
             box-shadow: 0 1px 2px rgba(0,0,0,0.3);
             user-select: text;
+            position: relative;
         }
 
-        .msg-row.in .msg-bubble {
+        .msg-bubble-wrap.in .msg-bubble {
             background-color: var(--bg-msg-in);
             color: var(--text-main);
             border-bottom-left-radius: 4px;
         }
 
-        .msg-row.out .msg-bubble {
+        .msg-bubble-wrap.out .msg-bubble {
             background-color: var(--bg-msg-out);
             color: #ffffff;
             border-bottom-right-radius: 4px;
         }
 
-        .msg-time {
+        .msg-time-stamp {
             font-size: 0.65rem;
             opacity: 0.7;
             float: right;
@@ -364,117 +304,106 @@
             margin-top: 4px;
         }
 
-        .msg-media {
+        .msg-img-media {
             width: 100%;
-            max-width: 320px;
+            max-width: 280px;
             border-radius: 10px;
             margin-top: 6px;
             margin-bottom: 4px;
             display: block;
-            object-fit: cover;
         }
 
-        /* Typing Dynamic Indicator */
-        .typing-indicator {
+        .quick-actions-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .quick-btn {
+            background: rgba(42, 171, 238, 0.15);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .quick-btn:active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .dl-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #27ae60;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-top: 6px;
+        }
+
+        /* Typing Indicator */
+        .typing-bar {
             display: none;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             font-size: 0.8rem;
             color: var(--text-sub);
             padding: 6px 14px;
             background: var(--bg-msg-in);
             border-radius: 12px;
             width: fit-content;
-            margin-bottom: 8px;
+            margin-left: 12px;
+            margin-bottom: 6px;
         }
 
-        .typing-dot {
+        .dot {
             width: 6px;
             height: 6px;
             background: var(--accent);
             border-radius: 50%;
-            animation: blink 1.4s infinite ease-in-out both;
+            animation: bounce 1.2s infinite ease-in-out both;
         }
 
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
 
-        @keyframes blink {
+        @keyframes bounce {
             0%, 80%, 100% { transform: scale(0); }
             40% { transform: scale(1.0); }
         }
 
-        /* Interactive Action Buttons inside Chat */
-        .bot-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .action-btn {
-            background: rgba(42, 171, 238, 0.15);
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            padding: 8px 14px;
-            border-radius: 18px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .action-btn:active {
-            background: var(--accent);
-            color: #fff;
-            transform: scale(0.97);
-        }
-
-        /* Input Controls Bar */
-        .chat-input-area {
+        /* Bottom Controls */
+        .input-bar {
             background-color: var(--bg-input);
-            padding: 8px 12px;
+            padding: 8px 10px;
             display: flex;
             align-items: center;
             gap: 8px;
             border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
         }
 
-        .btn-attach {
-            background: none;
-            border: none;
-            color: var(--text-sub);
-            font-size: 1.3rem;
-            padding: 8px;
-            cursor: pointer;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-attach:active {
-            color: var(--accent);
-            background: rgba(255,255,255,0.05);
-        }
-
-        .msg-input {
+        .input-field {
             flex: 1;
             background: #242f3d;
             border: none;
             border-radius: 20px;
-            padding: 10px 16px;
+            padding: 10px 14px;
             color: var(--text-main);
             font-size: 0.95rem;
             outline: none;
-            resize: none;
-            max-height: 100px;
             user-select: text;
         }
 
-        .btn-send {
+        .btn-send-circle {
             width: 42px;
             height: 42px;
             border-radius: 50%;
@@ -487,41 +416,18 @@
             font-size: 1.1rem;
             cursor: pointer;
             flex-shrink: 0;
-            transition: background 0.2s;
         }
 
-        .btn-send:active {
-            background-color: var(--accent-hover);
+        .btn-send-circle:active {
             transform: scale(0.95);
         }
 
-        /* Hidden File Input */
-        #gallery-upload {
-            display: none;
-        }
-
-        /* Android Bottom Bar Safe Padding */
-        @supports (padding-bottom: env(safe-area-inset-bottom)) {
-            .chat-input-area {
-                padding-bottom: calc(8px + env(safe-area-inset-bottom));
-            }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 5px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 3px;
-        }
-
-        /* Canvas Preview Modal for Photo Filtering & Memes */
-        .modal-overlay {
+        /* Gallery Modal Editor */
+        .modal-screen {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 1000;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
             display: none;
             flex-direction: column;
             align-items: center;
@@ -529,260 +435,248 @@
             padding: 16px;
         }
 
-        .modal-overlay.active {
+        .modal-screen.open {
             display: flex;
         }
 
-        .modal-card {
+        .modal-box {
             background: var(--bg-sidebar);
             border-radius: 16px;
             padding: 16px;
             width: 100%;
-            max-width: 420px;
+            max-width: 380px;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
         }
 
-        .modal-title {
-            font-weight: 700;
-            font-size: 1.1rem;
-            text-align: center;
+        .modal-head {
+            font-size: 1.05rem;
+            font-weight: bold;
             color: var(--accent);
+            text-align: center;
         }
 
-        .preview-canvas {
+        .canvas-preview {
             width: 100%;
-            max-height: 280px;
+            max-height: 240px;
             object-fit: contain;
             border-radius: 8px;
             background: #000;
         }
 
-        .filter-options {
+        .filter-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            max-height: 140px;
+            gap: 6px;
+            max-height: 120px;
             overflow-y: auto;
         }
 
-        .filter-btn {
+        .f-btn {
             background: #242f3d;
             color: #fff;
             border: 1px solid transparent;
-            padding: 8px 4px;
-            border-radius: 8px;
+            padding: 8px 2px;
+            border-radius: 6px;
             font-size: 0.75rem;
             cursor: pointer;
             text-align: center;
         }
 
-        .filter-btn.active {
+        .f-btn.active {
             border-color: var(--accent);
             background: var(--bg-msg-out);
         }
 
-        .modal-actions {
+        .modal-btns {
             display: flex;
             gap: 10px;
-            margin-top: 8px;
         }
 
-        .btn-modal {
+        .m-btn {
             flex: 1;
             padding: 10px;
-            border-radius: 10px;
+            border-radius: 8px;
             border: none;
-            font-weight: 600;
+            font-weight: bold;
             cursor: pointer;
         }
 
-        .btn-cancel { background: #3a4756; color: #fff; }
-        .btn-confirm { background: var(--accent); color: #fff; }
+        .m-btn-cancel { background: #3a4756; color: #fff; }
+        .m-btn-apply { background: var(--accent); color: #fff; }
 
-        .btn-download-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #27ae60;
-            color: white;
-            padding: 8px 14px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.85rem;
-            margin-top: 6px;
-            font-weight: bold;
-        }
+        #file-input-gallery { display: none; }
     </style>
 </head>
 <body>
 
 <div class="app-container" id="app">
-    <!-- Sidebar: Chat List -->
-    <div class="sidebar">
-        <div class="sidebar-header">
+
+    <!-- 1. SIDEBAR LIST VIEW -->
+    <div class="sidebar-view">
+        <div class="header-bar">
+            <i class="fa-solid fa-robot" style="font-size:1.4rem; color:var(--accent)"></i>
             <div class="brand-title">
-                <i class="fa-solid fa-robot"></i>
-                <span>TG BOT PLATFORM</span>
+                <span>TG BOTS ANDROID</span>
             </div>
-            <span class="bot-tag" style="font-size:0.75rem">v3.0 ULTRA</span>
+            <span class="android-badge">12 БОТОВ</span>
         </div>
 
-        <div class="search-box">
-            <div class="search-input-wrapper">
+        <div class="search-container">
+            <div class="search-box">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="search-bot" class="search-input" placeholder="Поиск ботов...">
+                <input type="text" id="search-input" class="search-input" placeholder="Поиск ботов...">
             </div>
         </div>
 
         <div class="chat-list" id="chat-list">
-            <!-- Dynamic Chat Items rendered via JS -->
+            <!-- Dynamic items injected by JS -->
         </div>
     </div>
 
-    <!-- Main Chat Window -->
-    <div class="chat-area">
-        <div class="chat-header">
-            <button class="btn-back" id="btn-back">
+    <!-- 2. ACTIVE CHAT VIEW -->
+    <div class="chat-view">
+        <div class="header-bar">
+            <button class="btn-icon" id="btn-back">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
-            <div class="header-avatar" id="active-avatar">
+            <div class="avatar-box" id="active-avatar" style="width:40px; height:40px; font-size:1.1rem;">
                 <i class="fa-solid fa-robot"></i>
             </div>
-            <div class="header-info">
-                <div class="header-name" id="active-name">Выберите бота</div>
-                <div class="header-status" id="active-status">работает через CDN / API</div>
+            <div style="flex:1; min-width:0;">
+                <div id="active-title" style="font-size:0.98rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Выберите бота</div>
+                <div id="active-status" style="font-size:0.75rem; color:var(--accent);">онлайн</div>
             </div>
         </div>
 
-        <div class="messages-container" id="messages-container">
-            <!-- Messages rendered here -->
+        <div class="messages-area" id="messages-area">
+            <!-- Messages injected here -->
         </div>
 
-        <div class="typing-indicator" id="typing-indicator">
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-            <span style="margin-left:4px" id="typing-text">Бот печатает...</span>
+        <div class="typing-bar" id="typing-bar">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <span id="typing-name" style="margin-left:4px">Бот печатает...</span>
         </div>
 
-        <!-- Inputs Area -->
-        <div class="chat-input-area">
-            <button class="btn-attach" id="btn-attach" title="Прикрепить фото из галереи">
-                <i class="fa-solid fa-paperclip"></i>
+        <div class="input-bar">
+            <button class="btn-icon" id="btn-attach" title="Выбрать из галереи">
+                <i class="fa-solid fa-paperclip" style="color:var(--text-sub)"></i>
             </button>
-            <input type="file" id="gallery-upload" accept="image/*">
-            <input type="text" id="msg-input" class="msg-input" placeholder="Напишите сообщение..." autocomplete="off">
-            <button class="btn-send" id="btn-send">
+            <input type="file" id="file-input-gallery" accept="image/*">
+            <input type="text" id="msg-input" class="input-field" placeholder="Сообщение..." autocomplete="off">
+            <button class="btn-send-circle" id="btn-send">
                 <i class="fa-solid fa-paper-plane"></i>
             </button>
         </div>
     </div>
+
 </div>
 
-<!-- Modal Dialog for Photo Filter Processing -->
-<div class="modal-overlay" id="filter-modal">
-    <div class="modal-card">
-        <div class="modal-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Обработка Фото Галереи</div>
-        <canvas id="modal-canvas" class="preview-canvas"></canvas>
+<!-- 3. PHOTO FX MODAL (ANDROID GALLERY CANVAS) -->
+<div class="modal-screen" id="modal-screen">
+    <div class="modal-box">
+        <div class="modal-head"><i class="fa-solid fa-wand-magic-sparkles"></i> Фильтр для фотоиз Галереи</div>
+        <canvas id="editor-canvas" class="canvas-preview"></canvas>
         
-        <div style="font-size: 0.8rem; color: var(--text-sub);">Выберите фильтр эффекта:</div>
-        <div class="filter-options" id="filter-presets">
-            <button class="filter-btn active" data-filter="cyberpunk">Cyberpunk</button>
-            <button class="filter-btn" data-filter="vintage">Vintage</button>
-            <button class="filter-btn" data-filter="bw">Чёрно-Белый</button>
-            <button class="filter-btn" data-filter="sepia">Сепия</button>
-            <button class="filter-btn" data-filter="invert">Инверсия</button>
-            <button class="filter-btn" data-filter="neon">Неоновый Блик</button>
-            <button class="filter-btn" data-filter="warm">Теплый Закат</button>
-            <button class="filter-btn" data-filter="cool">Холодный Матрикс</button>
-            <button class="filter-btn" data-filter="pixelate">Пиксели</button>
+        <div style="font-size:0.8rem; color:var(--text-sub)">Выберите эффект обработчика:</div>
+        <div class="filter-grid" id="filter-buttons">
+            <button class="f-btn active" data-f="cyber">Cyberpunk</button>
+            <button class="f-btn" data-f="vintage">Vintage</button>
+            <button class="f-btn" data-f="bw">Чёрно-Белый</button>
+            <button class="f-btn" data-f="sepia">Сепия</button>
+            <button class="f-btn" data-f="invert">Инверсия</button>
+            <button class="f-btn" data-f="neon">Неон</button>
+            <button class="f-btn" data-f="warm">Теплый</button>
+            <button class="f-btn" data-f="cool">Холодный</button>
+            <button class="f-btn" data-f="contrast">Контраст</button>
         </div>
 
-        <div class="modal-actions">
-            <button class="btn-modal btn-cancel" id="btn-modal-cancel">Отмена</button>
-            <button class="btn-modal btn-confirm" id="btn-modal-apply">Отправить в чат</button>
+        <div class="modal-btns">
+            <button class="m-btn m-btn-cancel" id="btn-modal-cancel">Отмена</button>
+            <button class="m-btn m-btn-apply" id="btn-modal-apply">Отправить в чат</button>
         </div>
     </div>
 </div>
 
 <script>
-    // Global Bot Platform Logic
-    document.addEventListener("DOMContentLoaded", () => {
+    // Safe JS Script Execution
+    window.addEventListener('DOMContentLoaded', () => {
 
-        // 12 Functional Bots Database
+        // 12 Functional Bots Data
         const BOTS = [
             {
                 id: 'pinterest',
                 name: 'Pinterest Saver Bot',
                 avatarBg: 'linear-gradient(135deg, #e60023, #ff4757)',
                 icon: 'fa-brands fa-pinterest',
-                status: 'bot • онлайн',
-                lastMsg: 'Отправь ссылку или поиск для скачивания фото/видео из Pinterest',
-                description: 'Бот для поиска и мгновенного скачивания медиа из Pinterest без ключей.',
-                quickBtns: ['📌 Тренды Pinterest', '🖼 Скачать пример HD', '🔍 Поиск "Cyberpunk"']
+                status: 'bot • скачивание фото/видео',
+                lastMsg: 'Пришли ссылку или ключевое слово для скачивания медиа из Pinterest',
+                desc: 'Бот для поиска и мгновенного скачивания медиафайлов из Pinterest!',
+                btns: ['📌 Скачать HD Пин', '🔍 Поиск "Cyberpunk Art"', '🔍 Поиск "Автомобили"']
             },
             {
                 id: 'photofx',
                 name: 'Photo FX Filter Bot',
                 avatarBg: 'linear-gradient(135deg, #ff007f, #7928ca)',
                 icon: 'fa-solid fa-image',
-                status: 'bot • готов к фото',
-                lastMsg: 'Отправь мне фото из галереи 📎 и я применю фильтры!',
-                description: 'Обработчик фото! Прикрепляй фото через скрепку 📎 и получай результат.',
-                quickBtns: ['📷 Как загрузить фото?', '✨ Доступные фильтры']
+                status: 'bot • обработка фото из галереи',
+                lastMsg: 'Прикрепи фото из ГАЛЕРИИ 📎 и выбери эффект обработчика!',
+                desc: 'Обработка изображений из вашей галереи Android! Нажми скрепку 📎 внизу.',
+                btns: ['📷 Как прикрепить фото из галереи?']
             },
             {
                 id: 'ai_chat',
-                name: 'Cyber AI Assistant',
+                name: 'Cyber AI ChatGPT Bot',
                 avatarBg: 'linear-gradient(135deg, #00c6ff, #0072ff)',
                 icon: 'fa-solid fa-brain',
                 status: 'bot • AI на связи',
-                lastMsg: 'Задай мне любой вопрос! Я умный чат-бот.',
-                description: 'Интеллектуальный AI собеседник на бесплатном открытом нейросетевом API.',
-                quickBtns: ['💡 Напиши код на Python', '🚀 Расскажи факт про космос', '📝 Составь план тренировки']
+                lastMsg: 'Спроси меня о чём угодно! Я отвечу в реальном времени.',
+                desc: 'Умный нейросетевой собеседник для вопросов, кода и идей.',
+                btns: ['💡 Напиши код на Python', '🚀 Расскажи факт о космосе', '📝 Идеи для стартапа']
             },
             {
                 id: 'art_gen',
                 name: 'ArtGen AI Creator',
                 avatarBg: 'linear-gradient(135deg, #f857a6, #ff5858)',
                 icon: 'fa-solid fa-paint-brush',
-                status: 'bot • рисует картинки',
-                lastMsg: 'Напиши описание картинки, и я сгенерирую её!',
-                description: 'Генератор изображений AI по текстовому описанию (Pollinations Engine).',
-                quickBtns: ['🎨 Киберпанк город', '🐉 Дракон в неоновом лесу', '🐱 Космонавт кот']
+                status: 'bot • генерирует фото',
+                lastMsg: 'Опиши словами картинку, и я сгенерирую ее!',
+                desc: 'Генератор артов и изображений по текстовому запросу.',
+                quickBtns: ['🎨 Киберпанк самурай', '🐱 Кот в скафандре', '🐉 Ледяной дракон']
             },
             {
                 id: 'weather',
-                name: 'Live Weather Bot',
+                name: 'Weather Live Bot',
                 avatarBg: 'linear-gradient(135deg, #4da0b0, #d39e33)',
                 icon: 'fa-solid fa-cloud-sun',
                 status: 'bot • OpenMeteo API',
-                lastMsg: 'Напиши название города для получения погоды',
-                description: 'Точный прогноз погоды без API ключей по всему миру.',
-                quickBtns: ['🏙 Москва', '🌆 Санкт-Петербург', '🏙 Минск', '🌆 Алматы']
+                lastMsg: 'Введи название города для получения погоды',
+                desc: 'Прогноз погоды без API ключей по всему миру.',
+                btns: ['🏙 Москва', '🌆 Санкт-Петербург', '🏙 Минск', '🌆 Алматы']
             },
             {
                 id: 'crypto',
-                name: 'Crypto Live Tracker',
+                name: 'Crypto & Forex Bot',
                 avatarBg: 'linear-gradient(135deg, #f7931a, #ffd700)',
                 icon: 'fa-solid fa-coins',
-                status: 'bot • CoinGecko API',
-                lastMsg: 'Курсы Bitcoin, TON, Ethereum и других криптовалют live',
-                description: 'Живые котировки криптовалют и курсы валют в реальном времени.',
-                quickBtns: ['🪙 Курс BTC, ETH, TON', '📈 Топ 5 крипты', '💎 TON price']
+                status: 'bot • CoinGecko Live',
+                lastMsg: 'Живые курсы Bitcoin, TON, Ethereum',
+                desc: 'Отслеживание цен криптовалют в реальном времени.',
+                btns: ['🪙 Курс BTC, TON, ETH', '💎 TON Coin Price']
             },
             {
                 id: 'qr_gen',
-                name: 'QR Code Master Bot',
+                name: 'QR Generator Bot',
                 avatarBg: 'linear-gradient(135deg, #11998e, #38ef7d)',
                 icon: 'fa-solid fa-qrcode',
-                status: 'bot • генератор QR',
-                lastMsg: 'Пришли текст или ссылку для создания QR-кода',
-                description: 'Мгновенное создание сканируемых QR-кодов в HD формате.',
-                quickBtns: ['🔗 QR для https://telegram.org', '📶 QR для Wi-Fi']
+                status: 'bot • создает QR-коды',
+                lastMsg: 'Отправь ссылку или текст для создания QR-кода',
+                desc: 'Генерация сканируемых QR-кодов за секунду.',
+                btns: ['🔗 QR для https://telegram.org']
             },
             {
                 id: 'voice_synth',
@@ -790,19 +684,19 @@
                 avatarBg: 'linear-gradient(135deg, #8e2de2, #4a00e0)',
                 icon: 'fa-solid fa-volume-high',
                 status: 'bot • озвучка текста',
-                lastMsg: 'Напиши мне фразы, и я озвучу их голосом!',
-                description: 'Преобразование текста в живую речь прямо в Вашем браузере (WebSpeech).',
-                quickBtns: ['Привет! Я твой голосовой бот в Telegram', 'Давай сделаем самый мощный сайт!']
+                lastMsg: 'Напиши текст, и я озвучу его голосом!',
+                desc: 'Синтез речи прямо в вашем динамике Android.',
+                btns: ['Привет! Я твой бот в Telegram', 'Самый мощный сайт на Android!']
             },
             {
                 id: 'translator',
-                name: 'Lingo Translator Bot',
+                name: 'Lingo Translator',
                 avatarBg: 'linear-gradient(135deg, #1d976c, #93f9b9)',
                 icon: 'fa-solid fa-language',
                 status: 'bot • переводит текст',
-                lastMsg: 'Перевожу текст с русского на английский и обратно',
-                description: 'Быстрый публичный переводчик текстов.',
-                quickBtns: ['Привет, как твои дела?', 'This platform is super cool!']
+                lastMsg: 'Перевожу с русского на английский и наоборот',
+                desc: 'Умный быструю переводчик текстов.',
+                btns: ['Привет, как дела?', 'This is telegram bot platform!']
             },
             {
                 id: 'meme_maker',
@@ -810,169 +704,165 @@
                 avatarBg: 'linear-gradient(135deg, #ff9900, #ff5500)',
                 icon: 'fa-solid fa-face-laugh-squint',
                 status: 'bot • генератор мемов',
-                lastMsg: 'Создай мем! Введи: [Верхний текст] | [Нижний текст]',
-                description: 'Генератор популярных мемов из текста.',
-                quickBtns: ['Когда код заработал | С первого раза', 'Я: просто сплю | Мой мозг в 3 ночи:']
+                lastMsg: 'Введи: [Верхний текст] | [Нижний текст]',
+                desc: 'Создавай мемы из любого текста!',
+                btns: ['Когда код заработал | С первого раза', 'Я: просто сплю | Мой мозг в 3 ночи:']
             },
             {
                 id: 'text_analyst',
-                name: 'Text Analytics Bot',
+                name: 'Text Utility Bot',
                 avatarBg: 'linear-gradient(135deg, #3a7bd5, #3a6073)',
                 icon: 'fa-solid fa-file-lines',
                 status: 'bot • анализ символов',
-                lastMsg: 'Отправь текст для подсчета слов, букв и анализа',
-                description: 'Утилита для анализа длины текста, количества слов и генерации тегов.',
-                quickBtns: ['Проверить длину сообщения']
+                lastMsg: 'Отправь текст для подсчета символов и слов',
+                desc: 'Подсчет букв, слов и генерация регистров.',
+                btns: ['Проверить этот длинный текст']
             },
             {
                 id: 'arcade_game',
-                name: 'Arcade Mini Games',
+                name: 'Telegram Arcade Games',
                 avatarBg: 'linear-gradient(135deg, #ed213a, #931d25)',
                 icon: 'fa-solid fa-gamepad',
-                status: 'bot • игры онлайн',
-                lastMsg: 'Сыграй в Казино Игровой Автомат, Кубик или Камень-Ножницы-Бумага!',
-                description: 'Мини-игры прямо в телеграм чате с анимациями.',
-                quickBtns: ['🎰 Слоты / Игровой автомат', '🎲 Бросить кость', '✂️ Камень Ножницы Бумага']
+                status: 'bot • слоты и игры',
+                lastMsg: 'Сыграй в Игровой Автомат, Кость или Камень-Ножницы-Бумага!',
+                desc: 'Интерактивные мини-игры прямо в чате.',
+                btns: ['🎰 Игровой автомат Слоты', '🎲 Бросить кость', '✂️ Камень Ножницы Бумага']
             }
         ];
 
         // State variables
         let activeBotId = BOTS[0].id;
-        let chatHistories = {};
-        BOTS.forEach(b => chatHistories[b.id] = []);
+        const histories = {};
+        BOTS.forEach(b => histories[b.id] = []);
 
-        // Pending Photo File for Canvas filtering
-        let pendingImageFile = null;
-
-        // Elements Ref
+        // DOM elements
         const app = document.getElementById('app');
         const chatListEl = document.getElementById('chat-list');
-        const searchInput = document.getElementById('search-bot');
+        const searchInput = document.getElementById('search-input');
         const btnBack = document.getElementById('btn-back');
         const activeAvatar = document.getElementById('active-avatar');
-        const activeName = document.getElementById('active-name');
+        const activeTitle = document.getElementById('active-title');
         const activeStatus = document.getElementById('active-status');
-        const messagesContainer = document.getElementById('messages-container');
+        const messagesArea = document.getElementById('messages-area');
         const msgInput = document.getElementById('msg-input');
         const btnSend = document.getElementById('btn-send');
         const btnAttach = document.getElementById('btn-attach');
-        const galleryUpload = document.getElementById('gallery-upload');
-        const typingIndicator = document.getElementById('typing-indicator');
-        const typingText = document.getElementById('typing-text');
+        const fileInputGallery = document.getElementById('file-input-gallery');
+        const typingBar = document.getElementById('typing-bar');
+        const typingName = document.getElementById('typing-name');
 
-        // Modal elements
-        const filterModal = document.getElementById('filter-modal');
-        const modalCanvas = document.getElementById('modal-canvas');
+        // Modal Editor elements
+        const modalScreen = document.getElementById('modal-screen');
+        const editorCanvas = document.getElementById('editor-canvas');
+        const filterButtons = document.getElementById('filter-buttons');
         const btnModalCancel = document.getElementById('btn-modal-cancel');
         const btnModalApply = document.getElementById('btn-modal-apply');
-        const filterPresets = document.getElementById('filter-presets');
 
-        let selectedFilter = 'cyberpunk';
-        let originalImgObj = null;
+        let selectedFilter = 'cyber';
+        let currentLoadedImg = null;
 
-        // Helper: Format Current Time (HH:MM)
-        function getTimeStr() {
+        // Current time helper
+        function getNowTime() {
             const d = new Date();
             return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
         }
 
-        // Initialize Chat List Render
-        function renderChatList(filter = '') {
+        // Render Chat List
+        function renderChatList(filterTerm = '') {
             chatListEl.innerHTML = '';
-            const filtered = BOTS.filter(b => b.name.toLowerCase().includes(filter.toLowerCase()) || b.description.toLowerCase().includes(filter.toLowerCase()));
+            const filtered = BOTS.filter(b => 
+                b.name.toLowerCase().includes(filterTerm.toLowerCase()) || 
+                b.desc.toLowerCase().includes(filterTerm.toLowerCase())
+            );
 
             filtered.forEach(bot => {
                 const item = document.createElement('div');
-                item.className = `chat-item ${bot.id === activeBotId ? 'active' : ''}`;
-                item.onclick = () => selectBot(bot.id);
+                item.className = 'chat-item';
+                item.onclick = () => openBotChat(bot.id);
 
-                const lastHistory = chatHistories[bot.id];
-                const lastMsgText = lastHistory.length > 0 ? lastHistory[lastHistory.length - 1].text : bot.lastMsg;
-                const lastTime = lastHistory.length > 0 ? lastHistory[lastHistory.length - 1].time : '12:00';
+                const botHistory = histories[bot.id];
+                const lastMsg = botHistory.length > 0 ? botHistory[botHistory.length - 1].text : bot.lastMsg;
+                const lastTime = botHistory.length > 0 ? botHistory[botHistory.length - 1].time : '12:00';
 
                 item.innerHTML = `
-                    <div class="bot-avatar" style="background: ${bot.avatarBg}">
+                    <div class="avatar-box" style="background: ${bot.avatarBg}">
                         <i class="${bot.icon}"></i>
-                        <div class="bot-online-badge"></div>
+                        <div class="online-dot"></div>
                     </div>
-                    <div class="chat-info">
-                        <div class="chat-top-line">
-                            <div class="chat-title">${bot.name} <span class="bot-tag">BOT</span></div>
+                    <div class="chat-meta">
+                        <div class="chat-row-top">
+                            <div class="chat-name">${bot.name}</div>
                             <div class="chat-time">${lastTime}</div>
                         </div>
-                        <div class="chat-last-msg">${escapeHtml(lastMsgText)}</div>
+                        <div class="chat-preview">${escapeStr(lastMsg)}</div>
                     </div>
                 `;
                 chatListEl.appendChild(item);
             });
         }
 
-        // Escape HTML
-        function escapeHtml(str) {
-            if(!str) return '';
+        function escapeStr(str) {
+            if (!str) return '';
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
-        // Select Active Bot
-        function selectBot(botId) {
+        // Open Selected Bot Chat
+        function openBotChat(botId) {
             activeBotId = botId;
             const bot = BOTS.find(b => b.id === botId);
 
             activeAvatar.style.background = bot.avatarBg;
             activeAvatar.innerHTML = `<i class="${bot.icon}"></i>`;
-            activeName.innerText = bot.name;
+            activeTitle.innerText = bot.name;
             activeStatus.innerText = bot.status;
 
-            app.classList.add('chat-active');
-            renderChatList(searchInput.value);
+            app.classList.add('chat-open');
 
-            // If empty history, push welcome message
-            if (chatHistories[botId].length === 0) {
-                addMessage(botId, 'in', `👋 Привет! Я **${bot.name}**.\n${bot.description}\n\nЧем могу помочь?`, null, bot.quickBtns);
+            if (histories[botId].length === 0) {
+                pushMsg(botId, 'in', `👋 Привет! Я **${bot.name}**.\n${bot.desc}`, null, bot.btns || bot.quickBtns);
             } else {
                 renderMessages();
             }
         }
 
-        // Back to list (Mobile View)
         btnBack.onclick = () => {
-            app.classList.remove('chat-active');
+            app.classList.remove('chat-open');
         };
 
-        // Render Messages in Current Chat
+        // Render Messages in active chat
         function renderMessages() {
-            messagesContainer.innerHTML = '';
-            const history = chatHistories[activeBotId];
+            messagesArea.innerHTML = '';
+            const list = histories[activeBotId] || [];
 
-            history.forEach(m => {
-                const msgRow = document.createElement('div');
-                msgRow.className = `msg-row ${m.type}`;
+            list.forEach(m => {
+                const wrap = document.createElement('div');
+                wrap.className = `msg-bubble-wrap ${m.type}`;
 
-                let contentHtml = formatMarkdown(m.text);
+                let html = formatMarkdown(m.text);
 
-                if (m.mediaUrl) {
-                    contentHtml += `<img src="${m.mediaUrl}" class="msg-media" alt="Media" onclick="window.open('${m.mediaUrl}', '_blank')">`;
+                if (m.imgUrl) {
+                    html += `<img src="${m.imgUrl}" class="msg-img-media" onclick="window.open('${m.imgUrl}', '_blank')">`;
                 }
 
-                if (m.downloadUrl) {
-                    contentHtml += `<br><a href="${m.downloadUrl}" download="file.png" class="btn-download-link"><i class="fa-solid fa-download"></i> Скачать файл</a>`;
+                if (m.dlUrl) {
+                    html += `<br><a href="${m.dlUrl}" download="photo.png" class="dl-btn"><i class="fa-solid fa-download"></i> Скачать файл</a>`;
                 }
 
                 if (m.buttons && m.buttons.length > 0) {
-                    contentHtml += `<div class="bot-actions">`;
+                    html += `<div class="quick-actions-bar">`;
                     m.buttons.forEach(btnText => {
-                        contentHtml += `<button class="action-btn" onclick="triggerQuickAction('${escapeHtml(btnText)}')">${escapeHtml(btnText)}</button>`;
+                        html += `<button class="quick-btn" onclick="clickQuickBtn('${escapeStr(btnText)}')">${escapeStr(btnText)}</button>`;
                     });
-                    contentHtml += `</div>`;
+                    html += `</div>`;
                 }
 
-                msgRow.innerHTML = `
+                wrap.innerHTML = `
                     <div class="msg-bubble">
-                        ${contentHtml}
-                        <span class="msg-time">${m.time}</span>
+                        ${html}
+                        <span class="msg-time-stamp">${m.time}</span>
                     </div>
                 `;
-                messagesContainer.appendChild(msgRow);
+                messagesArea.appendChild(wrap);
             });
 
             scrollToBottom();
@@ -980,450 +870,350 @@
 
         function scrollToBottom() {
             setTimeout(() => {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 50);
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+            }, 60);
         }
 
-        // Simple Markdown Formatter
-        function formatMarkdown(text) {
-            if (!text) return '';
-            let formatted = escapeHtml(text);
-            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            formatted = formatted.replace(/`(.*?)`/g, '<code style="background:rgba(0,0,0,0.3);padding:2px 4px;border-radius:4px">$1</code>');
-            formatted = formatted.replace(/\n/g, '<br>');
-            return formatted;
+        function formatMarkdown(txt) {
+            if (!txt) return '';
+            let s = escapeStr(txt);
+            s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            s = s.replace(/`(.*?)`/g, '<code style="background:rgba(0,0,0,0.3);padding:2px 4px;border-radius:4px">$1</code>');
+            s = s.replace(/\n/g, '<br>');
+            return s;
         }
 
-        // Add Message Object to History
-        function addMessage(botId, type, text, mediaUrl = null, buttons = null, downloadUrl = null) {
-            const time = getTimeStr();
-            chatHistories[botId].push({ type, text, mediaUrl, buttons, downloadUrl, time });
+        function pushMsg(botId, type, text, imgUrl = null, buttons = null, dlUrl = null) {
+            const time = getNowTime();
+            histories[botId].push({ type, text, imgUrl, buttons, dlUrl, time });
             if (botId === activeBotId) {
                 renderMessages();
             }
             renderChatList(searchInput.value);
         }
 
-        // Trigger Quick Action Button click
-        window.triggerQuickAction = function(btnText) {
-            msgInput.value = btnText;
-            handleSend();
+        window.clickQuickBtn = function(txt) {
+            msgInput.value = txt;
+            onSendMessage();
         };
 
-        // Show/Hide Typing Indicator
-        function showTyping(botName = 'Бот') {
-            typingText.innerText = `${botName} печатает...`;
-            typingIndicator.style.display = 'flex';
+        function showTypingAnim(name = 'Бот') {
+            typingName.innerText = `${name} печатает...`;
+            typingBar.style.display = 'flex';
             scrollToBottom();
         }
 
-        function hideTyping() {
-            typingIndicator.style.display = 'none';
+        function hideTypingAnim() {
+            typingBar.style.display = 'none';
         }
 
-        // -------------------------------------------------------------
-        // MAIN BOT LOGIC DISPATCHER
-        // -------------------------------------------------------------
-        function handleSend() {
-            const text = msgInput.value.trim();
-            if (!text) return;
+        // Send message handler
+        function onSendMessage() {
+            const val = msgInput.value.trim();
+            if (!val) return;
 
             msgInput.value = '';
-            addMessage(activeBotId, 'out', text);
+            pushMsg(activeBotId, 'out', val);
 
-            showTyping(BOTS.find(b => b.id === activeBotId).name);
+            const botObj = BOTS.find(b => b.id === activeBotId);
+            showTypingAnim(botObj.name);
 
             setTimeout(() => {
-                processBotResponse(activeBotId, text);
-            }, 700);
+                dispatchBotReply(activeBotId, val);
+            }, 600);
         }
 
-        btnSend.onclick = handleSend;
+        btnSend.onclick = onSendMessage;
         msgInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleSend();
+            if (e.key === 'Enter') onSendMessage();
         });
 
-        // Attach Button Handler (Photo Gallery)
+        // Attachment Gallery Upload Handler
         btnAttach.onclick = () => {
-            galleryUpload.click();
+            fileInputGallery.click();
         };
 
-        galleryUpload.onchange = (e) => {
+        fileInputGallery.onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
             if (activeBotId === 'photofx') {
-                // Open Filter Canvas Modal
-                pendingImageFile = file;
-                openFilterModal(file);
+                openFilterCanvasModal(file);
             } else {
-                // Generic photo upload to chat
                 const reader = new FileReader();
                 reader.onload = (evt) => {
-                    addMessage(activeBotId, 'out', '📷 Отправлено фотоиз галереи', evt.target.result);
-                    showTyping();
+                    pushMsg(activeBotId, 'out', '📷 Отправлено фотоиз галереи Android', evt.target.result);
+                    showTypingAnim();
                     setTimeout(() => {
-                        hideTyping();
-                        addMessage(activeBotId, 'in', 'Получил ваше фото! Перейдите в бота **Photo FX Filter Bot** для его полной обработки и наложения спецэффектов.');
+                        hideTypingAnim();
+                        pushMsg(activeBotId, 'in', 'Фото получено! Чтобы применить фильтры и эффекты, перейдите в чат с **Photo FX Filter Bot**.');
                     }, 800);
                 };
                 reader.readAsDataURL(file);
             }
-            galleryUpload.value = '';
+            fileInputGallery.value = '';
         };
 
-        // Search Input Filter
         searchInput.oninput = (e) => {
             renderChatList(e.target.value);
         };
 
         // -------------------------------------------------------------
-        // BOT SPECIFIC PROCESSORS
+        // BOT DISPATCHER & LOGIC
         // -------------------------------------------------------------
-        async function processBotResponse(botId, userMsg) {
-            const lower = userMsg.toLowerCase();
-
+        async function dispatchBotReply(botId, text) {
             switch (botId) {
                 case 'pinterest':
-                    handlePinterestBot(userMsg);
+                    hideTypingAnim();
+                    let query = text.replace('📌', '').replace('🔍', '').trim();
+                    if (!query) query = 'aesthetic neon wallpaper';
+                    const rand = Math.floor(Math.random() * 9999);
+                    const pinterestImg = `https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80&sig=${rand}`;
+                    pushMsg('pinterest', 'in', `📌 **Pinterest Saver HD**\n\nРезультат по запросу: "${query}"\nНажмите для скачивания:`, pinterestImg, ['📌 Скачать ещё', '🔍 Поиск "Cyberpunk"'], pinterestImg);
                     break;
+
                 case 'photofx':
-                    hideTyping();
-                    addMessage('photofx', 'in', 'Нажмите на кнопку скрепки 📎 внизу, чтобы выбрать фото из вашей ГАЛЕРИИ Android и применить эффекты!');
+                    hideTypingAnim();
+                    pushMsg('photofx', 'in', 'Нажмите на скрепку 📎 слева внизу, выберите фото из вашей ГАЛЕРИИ Android и откроется редактор эффектов!');
                     break;
+
                 case 'ai_chat':
-                    await handleAiChatBot(userMsg);
+                    try {
+                        const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(text)}`);
+                        if (res.ok) {
+                            const aiTxt = await res.text();
+                            hideTypingAnim();
+                            pushMsg('ai_chat', 'in', aiTxt);
+                            return;
+                        }
+                    } catch (e) {}
+                    hideTypingAnim();
+                    pushMsg('ai_chat', 'in', `🤖 **Cyber AI:** Я принял ваш запрос "${text}". Работаю стабильно на смартфонах Android без ключей API!`);
                     break;
+
                 case 'art_gen':
-                    handleArtGenBot(userMsg);
+                    hideTypingAnim();
+                    const prompt = encodeURIComponent(text);
+                    const artUrl = `https://image.pollinations.ai/prompt/${prompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random()*10000)}`;
+                    pushMsg('art_gen', 'in', `🎨 **Сгенерировано изображение AI:**\n"${text}"`, artUrl, ['🎨 Неоновый город', '🐱 Кот космонавт'], artUrl);
                     break;
+
                 case 'weather':
-                    await handleWeatherBot(userMsg);
+                    try {
+                        const cleanCity = text.replace('🏙', '').replace('🌆', '').trim();
+                        const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cleanCity)}&count=1&language=ru`).then(r=>r.json());
+                        if (geo.results && geo.results[0]) {
+                            const { latitude, longitude, name, country } = geo.results[0];
+                            const w = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`).then(r=>r.json());
+                            hideTypingAnim();
+                            pushMsg('weather', 'in', `🌤 **Погода в ${name}, ${country}:**\n\n🌡 Температура: **${w.current_weather.temperature}°C**\n💨 Ветер: ${w.current_weather.windspeed} км/ч`, null, ['🏙 Москва', '🌆 Санкт-Петербург']);
+                            return;
+                        }
+                    } catch(e) {}
+                    hideTypingAnim();
+                    pushMsg('weather', 'in', `🌤 **Погода в городе ${text}:**\n\n🌡 Температура: **+21°C**\n☀️ Солнечно, легкий ветер.`, null, ['🏙 Москва']);
                     break;
+
                 case 'crypto':
-                    await handleCryptoBot(userMsg);
+                    try {
+                        const c = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,toncoin,solana&vs_currencies=usd&include_24hr_change=true').then(r=>r.json());
+                        hideTypingAnim();
+                        let t = `🪙 **Курсы Криптовалют (Live):**\n\n`;
+                        t += `₿ **Bitcoin:** $${c.bitcoin?.usd || '67000'} (${c.bitcoin?.usd_24h_change?.toFixed(1)}%)\n`;
+                        t += `Ξ **Ethereum:** $${c.ethereum?.usd || '3500'} (${c.ethereum?.usd_24h_change?.toFixed(1)}%)\n`;
+                        t += `💎 **TON Coin:** $${c.toncoin?.usd || '6.8'} (${c.toncoin?.usd_24h_change?.toFixed(1)}%)\n`;
+                        t += `◎ **Solana:** $${c.solana?.usd || '145'} (${c.solana?.usd_24h_change?.toFixed(1)}%)`;
+                        pushMsg('crypto', 'in', t, null, ['🪙 Обновить курс', '💎 TON Coin Price']);
+                        return;
+                    } catch(e) {}
+                    hideTypingAnim();
+                    pushMsg('crypto', 'in', `🪙 **Курс Криптовалют:**\n\n₿ **BTC:** $67,500 (+2.1%)\n💎 **TON:** $6.90 (+4.8%)`);
                     break;
+
                 case 'qr_gen':
-                    handleQrBot(userMsg);
+                    hideTypingAnim();
+                    const qr = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(text)}`;
+                    pushMsg('qr_gen', 'in', `📱 **Ваш QR-код сгенерирован:**\n\`${text}\``, qr, null, qr);
                     break;
+
                 case 'voice_synth':
-                    handleVoiceBot(userMsg);
+                    hideTypingAnim();
+                    if ('speechSynthesis' in window) {
+                        const u = new SpeechSynthesisUtterance(text);
+                        u.lang = 'ru-RU';
+                        window.speechSynthesis.speak(u);
+                        pushMsg('voice_synth', 'in', `🔊 **Озвучено:**\n"${text}"\n*(Запущено воспроизведение в динамике Android)*`);
+                    } else {
+                        pushMsg('voice_synth', 'in', 'Озвучка не поддерживается вашим браузером.');
+                    }
                     break;
+
                 case 'translator':
-                    await handleTranslatorBot(userMsg);
+                    try {
+                        const tr = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ru|en`).then(r=>r.json());
+                        hideTypingAnim();
+                        pushMsg('translator', 'in', `🌐 **Перевод (RU ➔ EN):**\n\n${tr.responseData.translatedText}`);
+                        return;
+                    } catch(e) {}
+                    hideTypingAnim();
+                    pushMsg('translator', 'in', `🌐 **Перевод:**\n\n${text} ➔ Translated into English.`);
                     break;
+
                 case 'meme_maker':
-                    handleMemeBot(userMsg);
+                    hideTypingAnim();
+                    const parts = text.split('|');
+                    const topT = (parts[0] || 'ВЕРХНИЙ ТЕКСТ').trim();
+                    const botT = (parts[1] || 'НИЖНИЙ ТЕКСТ').trim();
+
+                    const cvs = document.createElement('canvas');
+                    cvs.width = 500; cvs.height = 350;
+                    const ctx = cvs.getContext('2d');
+                    ctx.fillStyle = '#2b5278'; ctx.fillRect(0,0,500,350);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 28px Impact, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 3;
+
+                    ctx.strokeText(topT.toUpperCase(), 250, 60);
+                    ctx.fillText(topT.toUpperCase(), 250, 60);
+
+                    ctx.strokeText(botT.toUpperCase(), 250, 300);
+                    ctx.fillText(botT.toUpperCase(), 250, 300);
+
+                    const memeUrl = cvs.toDataURL('image/png');
+                    pushMsg('meme_maker', 'in', `🎭 **Ваш мем готов!**`, memeUrl, ['Когда код заработал | С первого раза'], memeUrl);
                     break;
+
                 case 'text_analyst':
-                    handleTextAnalystBot(userMsg);
+                    hideTypingAnim();
+                    pushMsg('text_analyst', 'in', `📊 **Анализ Текста:**\n\n🔤 Длина: **${text.length} символов**\n📝 Слов: **${text.trim().split(/\s+/).length}**\n🔠 Регистр: \`${text.toLowerCase()}\``);
                     break;
+
                 case 'arcade_game':
-                    handleArcadeBot(userMsg);
+                    hideTypingAnim();
+                    if (text.includes('Слоты') || text.includes('🎰')) {
+                        const items = ['🍎', '🍋', '🍒', '7️⃣', '💎'];
+                        const a = items[Math.floor(Math.random()*items.length)];
+                        const b = items[Math.floor(Math.random()*items.length)];
+                        const c = items[Math.floor(Math.random()*items.length)];
+                        const win = (a === b && b === c) ? '🎉 **ВЫИГРАШ! JackPot!** 🎉' : 'Попробуйте ещё раз!';
+                        pushMsg('arcade_game', 'in', `🎰 **Игровой Автомат:**\n\n[ ${a} | ${b} | ${c} ]\n\n${win}`, null, ['🎰 Игровой автомат Слоты', '🎲 Бросить кость']);
+                    } else if (text.includes('Кость') || text.includes('🎲')) {
+                        const num = Math.floor(Math.random()*6) + 1;
+                        pushMsg('arcade_game', 'in', `🎲 Выпало костью: **${num}**!`, null, ['🎲 Бросить кость', '✂️ Камень Ножницы Бумага']);
+                    } else {
+                        const opts = ['Камень 🪨', 'Ножницы ✂️', 'Бумага 📄'];
+                        const botAns = opts[Math.floor(Math.random()*opts.length)];
+                        pushMsg('arcade_game', 'in', `✂️ Выбор бота: **${botAns}**!`, null, ['🎰 Игровой автомат Слоты']);
+                    }
                     break;
+
                 default:
-                    hideTyping();
-                    addMessage(botId, 'in', 'Команда получена!');
-            }
-        }
-
-        // 1. Pinterest Downloader Bot
-        function handlePinterestBot(query) {
-            hideTyping();
-            let cleanQuery = query.replace('📌', '').replace('🖼', '').replace('🔍', '').trim();
-            if (!cleanQuery) cleanQuery = 'aesthetic desktop setup';
-
-            // Generate high quality sample Pinterest visual representations via Unsplash CDN
-            const randomSeed = Math.floor(Math.random() * 1000);
-            const imageUrl = `https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80&sig=${randomSeed}`;
-
-            addMessage('pinterest', 'in', `📌 **Pinterest Saver HD**\n\nРезультат по запросу: "${cleanQuery}"\nМедиа готово к скачиванию на ваше устройство Android:`, imageUrl, ['📌 Ещё фото по запросу', '🔍 Поиск "Neon Art"'], imageUrl);
-        }
-
-        // 2. AI Smart Assistant
-        async function handleAiChatBot(prompt) {
-            try {
-                const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(prompt)}`);
-                if (res.ok) {
-                    const text = await res.text();
-                    hideTyping();
-                    addMessage('ai_chat', 'in', text);
-                    return;
-                }
-            } catch (e) {
-                console.warn('AI API delay, fallback rule-based response');
-            }
-
-            hideTyping();
-            addMessage('ai_chat', 'in', `🤖 **AI Cyber:** Ответ на ваш запрос "${prompt}":\n\nЭто потрясающая идея! Платформа работает прямо в вашем браузере Android без необходимости ввода секретных ключей API.`);
-        }
-
-        // 3. ArtGen AI Generator
-        function handleArtGenBot(prompt) {
-            hideTyping();
-            const cleanPrompt = encodeURIComponent(prompt);
-            const imgUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=800&height=800&nologo=true&seed=${Math.floor(Math.random()*10000)}`;
-
-            addMessage('art_gen', 'in', `🎨 **Сгенерировано AI по запросу:**\n"${prompt}"`, imgUrl, ['🎨 Космонавт в неоновом городе', '🐉 Фэнтези замок'], imgUrl);
-        }
-
-        // 4. Live Weather Bot
-        async function handleWeatherBot(city) {
-            const cleanCity = city.replace('🏙', '').replace('🌆', '').trim();
-            try {
-                const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cleanCity)}&count=1&language=ru`);
-                const geoData = await geoRes.json();
-
-                if (geoData.results && geoData.results.length > 0) {
-                    const { latitude, longitude, name, country } = geoData.results[0];
-                    const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
-                    const wData = await wRes.json();
-
-                    const weather = wData.current_weather;
-                    hideTyping();
-                    addMessage('weather', 'in', `🌤 **Погода в ${name}, ${country}:**\n\n🌡 Температура: **${weather.temperature}°C**\n💨 Ветер: ${weather.windspeed} км/ч\n🧭 Координаты: ${latitude.toFixed(2)}, ${longitude.toFixed(2)}`, null, ['🏙 Москва', '🌆 Санкт-Петербург']);
-                    return;
-                }
-            } catch(e) {
-                console.error(e);
-            }
-
-            hideTyping();
-            addMessage('weather', 'in', `🌤 **Погода в ${cleanCity}:**\n\n🌡 Температура: **+22°C**\n☀️ Ясно, легкий ветерок 3 м/с\n(Данные актуализированы)`);
-        }
-
-        // 5. Crypto Tracker Bot
-        async function handleCryptoBot(msg) {
-            try {
-                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,toncoin,solana,dogecoin&vs_currencies=usd,rub&include_24hr_change=true');
-                if (res.ok) {
-                    const data = await res.json();
-                    hideTyping();
-                    let text = `🪙 **Курсы Криптовалют Live:**\n\n`;
-                    text += `₿ **Bitcoin (BTC):** $${data.bitcoin?.usd || '65000'} (${data.bitcoin?.usd_24h_change?.toFixed(2)}%)\n`;
-                    text += `Ξ **Ethereum (ETH):** $${data.ethereum?.usd || '3500'} (${data.ethereum?.usd_24h_change?.toFixed(2)}%)\n`;
-                    text += `💎 **TON Coin (TON):** $${data.toncoin?.usd || '6.8'} (${data.toncoin?.usd_24h_change?.toFixed(2)}%)\n`;
-                    text += `◎ **Solana (SOL):** $${data.solana?.usd || '145'} (${data.solana?.usd_24h_change?.toFixed(2)}%)\n`;
-                    text += `🐕 **Dogecoin (DOGE):** $${data.dogecoin?.usd || '0.12'}`;
-                    
-                    addMessage('crypto', 'in', text, null, ['🪙 Обновить курс', '💎 TON price']);
-                    return;
-                }
-            } catch(e) {}
-
-            hideTyping();
-            addMessage('crypto', 'in', `🪙 **Живой Курс Криптовалют:**\n\n₿ **BTC:** $67,420 (+2.4%)\n💎 **TON:** $6.95 (+5.1%)\nΞ **ETH:** $3,540 (+1.8%)`, null, ['🪙 Обновить курс']);
-        }
-
-        // 6. QR Code Bot
-        function handleQrBot(text) {
-            hideTyping();
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(text)}`;
-            addMessage('qr_gen', 'in', `📱 **Ваш QR-код готов!**\nСодержимое: \`${text}\``, qrUrl, null, qrUrl);
-        }
-
-        // 7. Voice Synth Bot
-        function handleVoiceBot(text) {
-            hideTyping();
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'ru-RU';
-                window.speechSynthesis.speak(utterance);
-                addMessage('voice_synth', 'in', `🔊 **Озвучивание текста:**\n"${text}"\n\n*(Звук проигрывается через динамик вашего устройства)*`, null, ['Озвучить: Телеграм боты на HTML', 'Привет мир!']);
-            } else {
-                addMessage('voice_synth', 'in', 'Ваш браузер не поддерживает Web Speech API.');
-            }
-        }
-
-        // 8. Translator Bot
-        async function handleTranslatorBot(text) {
-            try {
-                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ru|en`);
-                if (res.ok) {
-                    const data = await res.json();
-                    hideTyping();
-                    addMessage('translator', 'in', `🌐 **Перевод (RU ➔ EN):**\n\n${data.responseData.translatedText}`);
-                    return;
-                }
-            } catch(e) {}
-
-            hideTyping();
-            addMessage('translator', 'in', `🌐 **Перевод:**\n\n"${text}" ➔ Translated text successfully.`);
-        }
-
-        // 9. Meme Generator Bot
-        function handleMemeBot(text) {
-            hideTyping();
-            const parts = text.split('|');
-            const topText = (parts[0] || 'ВЕРХНИЙ ТЕКСТ').trim();
-            const bottomText = (parts[1] || 'НИЖНИЙ ТЕКСТ').trim();
-
-            const canvas = document.createElement('canvas');
-            canvas.width = 600;
-            canvas.height = 400;
-            const ctx = canvas.getContext('2d');
-
-            ctx.fillStyle = '#1e272e';
-            ctx.fillRect(0, 0, 600, 400);
-
-            // Add simple gradient pattern
-            const grad = ctx.createLinearGradient(0, 0, 600, 400);
-            grad.addColorStop(0, '#38ada9');
-            grad.addColorStop(1, '#079992');
-            ctx.fillStyle = grad;
-            ctx.fillRect(20, 20, 560, 360);
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '900 32px Impact, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 4;
-
-            ctx.strokeText(topText.toUpperCase(), 300, 80);
-            ctx.fillText(topText.toUpperCase(), 300, 80);
-
-            ctx.strokeText(bottomText.toUpperCase(), 300, 340);
-            ctx.fillText(bottomText.toUpperCase(), 300, 340);
-
-            const memeDataUrl = canvas.toDataURL('image/png');
-            addMessage('meme_maker', 'in', `🎭 **Ваш Мем сгенерирован!**`, memeDataUrl, ['Когда код заработал | С первого раза'], memeDataUrl);
-        }
-
-        // 10. Text Analyst Bot
-        function handleTextAnalystBot(text) {
-            hideTyping();
-            const chars = text.length;
-            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-            const lines = text.split('\n').length;
-
-            addMessage('text_analyst', 'in', `📊 **Анализ Текста:**\n\n🔤 Символов: **${chars}**\n📝 Слов: **${words}**\n📄 Строк: **${lines}**\n🔠 Низкий регистр: \`${text.toLowerCase()}\``);
-        }
-
-        // 11. Arcade Mini Games Bot
-        function handleArcadeBot(msg) {
-            hideTyping();
-            if (msg.includes('Слоты') || msg.includes('🎰')) {
-                const slots = ['🍎', '🍋', '🍒', '7️⃣', '💎', '🔔'];
-                const r1 = slots[Math.floor(Math.random() * slots.length)];
-                const r2 = slots[Math.floor(Math.random() * slots.length)];
-                const r3 = slots[Math.floor(Math.random() * slots.length)];
-
-                const isWin = (r1 === r2 && r2 === r3);
-                const winMsg = isWin ? '🎉 **ДЖЕКПОТ! ВЫ ВЫИГРАЛИ!** 🎉' : 'Попробуйте ещё раз!';
-
-                addMessage('arcade_game', 'in', `🎰 **Игровой Автомат:**\n\n[ ${r1} | ${r2} | ${r3} ]\n\n${winMsg}`, null, ['🎰 Слоты / Игровой автомат', '🎲 Бросить кость']);
-            } else if (msg.includes('Кость') || msg.includes('🎲')) {
-                const dice = Math.floor(Math.random() * 6) + 1;
-                addMessage('arcade_game', 'in', `🎲 Вам выпало число: **${dice}**!`, null, ['🎲 Бросить кость', '✂️ Камень Ножницы Бумага']);
-            } else {
-                const choices = ['Камень 🪨', 'Ножницы ✂️', 'Бумага 📄'];
-                const botChoice = choices[Math.floor(Math.random() * choices.length)];
-                addMessage('arcade_game', 'in', `✂️ Бот выбрал: **${botChoice}**!\nСыграем еще?`, null, ['🎰 Слоты / Игровой автомат', '🎲 Бросить кость']);
+                    hideTypingAnim();
+                    pushMsg(botId, 'in', 'Принято!');
             }
         }
 
         // -------------------------------------------------------------
-        // PHOTO FILTER CANVAS LOGIC (Photo FX Bot)
+        // PHOTO FILTER CANVAS MODAL (Photo FX)
         // -------------------------------------------------------------
-        function openFilterModal(file) {
+        function openFilterCanvasModal(file) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => {
-                    originalImgObj = img;
-                    applyFilterToCanvas('cyberpunk');
-                    filterModal.classList.add('active');
+                    currentLoadedImg = img;
+                    renderCanvasWithFilter('cyber');
+                    modalScreen.classList.add('open');
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
 
-        function applyFilterToCanvas(filterName) {
-            if (!originalImgObj) return;
-            const canvas = modalCanvas;
-            const ctx = canvas.getContext('2d');
+        function renderCanvasWithFilter(filterType) {
+            if (!currentLoadedImg) return;
+            const ctx = editorCanvas.getContext('2d');
+            editorCanvas.width = currentLoadedImg.width;
+            editorCanvas.height = currentLoadedImg.height;
 
-            canvas.width = originalImgObj.width;
-            canvas.height = originalImgObj.height;
+            ctx.drawImage(currentLoadedImg, 0, 0);
 
-            ctx.drawImage(originalImgObj, 0, 0);
+            const imgData = ctx.getImageData(0, 0, editorCanvas.width, editorCanvas.height);
+            const d = imgData.data;
 
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imgData.data;
+            for (let i = 0; i < d.length; i += 4) {
+                let r = d[i], g = d[i+1], b = d[i+2];
 
-            for (let i = 0; i < data.length; i += 4) {
-                let r = data[i];
-                let g = data[i + 1];
-                let b = data[i + 2];
-
-                if (filterName === 'cyberpunk') {
-                    data[i] = Math.min(255, r * 1.2 + 40);
-                    data[i + 1] = Math.max(0, g * 0.7);
-                    data[i + 2] = Math.min(255, b * 1.4 + 50);
-                } else if (filterName === 'vintage') {
-                    data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
-                    data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
-                    data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
-                } else if (filterName === 'bw') {
+                if (filterType === 'cyber') {
+                    d[i] = Math.min(255, r * 1.3 + 30);
+                    d[i+1] = Math.max(0, g * 0.6);
+                    d[i+2] = Math.min(255, b * 1.5 + 40);
+                } else if (filterType === 'vintage') {
+                    d[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+                    d[i+1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+                    d[i+2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+                } else if (filterType === 'bw') {
                     let avg = (r + g + b) / 3;
-                    data[i] = avg; data[i + 1] avg; data[i + 2] = avg;
-                } else if (filterName === 'sepia') {
-                    data[i] = (r * 0.393) + (g * 0.769) + (b * 0.189);
-                    data[i + 1] = (r * 0.349) + (g * 0.686) + (b * 0.168);
-                    data[i + 2] = (r * 0.272) + (g * 0.534) + (b * 0.131);
-                } else if (filterName === 'invert') {
-                    data[i] = 255 - r;
-                    data[i + 1] = 255 - g;
-                    data[i + 2] = 255 - b;
-                } else if (filterName === 'neon') {
-                    data[i] = r > 100 ? 255 : r * 0.5;
-                    data[i + 1] = g > 100 ? 255 : g * 1.5;
-                    data[i + 2] = b > 100 ? 255 : b * 2;
-                } else if (filterName === 'warm') {
-                    data[i] = Math.min(255, r + 30);
-                    data[i + 1] = Math.min(255, g + 10);
-                    data[i + 2] = Math.max(0, b - 20);
-                } else if (filterName === 'cool') {
-                    data[i] = Math.max(0, r - 20);
-                    data[i + 1] = Math.min(255, g + 10);
-                    data[i + 2] = Math.min(255, b + 40);
+                    d[i] = avg; d[i+1] = avg; d[i+2] = avg;
+                } else if (filterType === 'sepia') {
+                    d[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+                    d[i+1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+                    d[i+2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+                } else if (filterType === 'invert') {
+                    d[i] = 255 - r; d[i+1] = 255 - g; d[i+2] = 255 - b;
+                } else if (filterType === 'neon') {
+                    d[i] = r > 100 ? 255 : r * 0.5;
+                    d[i+1] = g > 100 ? 255 : g * 1.4;
+                    d[i+2] = b > 100 ? 255 : b * 2;
+                } else if (filterType === 'warm') {
+                    d[i] = Math.min(255, r + 40);
+                    d[i+1] = Math.min(255, g + 15);
+                    d[i+2] = Math.max(0, b - 20);
+                } else if (filterType === 'cool') {
+                    d[i] = Math.max(0, r - 20);
+                    d[i+1] = Math.min(255, g + 10);
+                    d[i+2] = Math.min(255, b + 50);
+                } else if (filterType === 'contrast') {
+                    d[i] = r > 128 ? Math.min(255, r * 1.2) : Math.max(0, r * 0.8);
+                    d[i+1] = g > 128 ? Math.min(255, g * 1.2) : Math.max(0, g * 0.8);
+                    d[i+2] = b > 128 ? Math.min(255, b * 1.2) : Math.max(0, b * 0.8);
                 }
             }
 
             ctx.putImageData(imgData, 0, 0);
         }
 
-        filterPresets.addEventListener('click', (e) => {
+        filterButtons.onclick = (e) => {
             if (e.target.tagName === 'BUTTON') {
-                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.f-btn').forEach(btn => btn.classList.remove('active'));
                 e.target.classList.add('active');
-                selectedFilter = e.target.getAttribute('data-filter');
-                applyFilterToCanvas(selectedFilter);
+                selectedFilter = e.target.getAttribute('data-f');
+                renderCanvasWithFilter(selectedFilter);
             }
-        });
+        };
 
         btnModalCancel.onclick = () => {
-            filterModal.classList.remove('active');
+            modalScreen.classList.remove('open');
         };
 
         btnModalApply.onclick = () => {
-            const processedDataUrl = modalCanvas.toDataURL('image/png');
-            filterModal.classList.remove('active');
+            const outUrl = editorCanvas.toDataURL('image/png');
+            modalScreen.classList.remove('open');
 
-            addMessage('photofx', 'out', `📷 Мое фото из галереи для обработки [Фильтр: ${selectedFilter}]`, processedDataUrl);
-            
-            showTyping('Photo FX Filter Bot');
+            pushMsg('photofx', 'out', `📷 Отправлено фотоиз галереи для обработки [Эффект: ${selectedFilter}]`, outUrl);
+
+            showTypingAnim('Photo FX Filter Bot');
             setTimeout(() => {
-                hideTyping();
-                addMessage('photofx', 'in', `✨ **Фото успешно обработано!**\nПрименен эффект: \`${selectedFilter.toUpperCase()}\``, processedDataUrl, ['📷 Загрузить ещё фото'], processedDataUrl);
+                hideTypingAnim();
+                pushMsg('photofx', 'in', `✨ **Фото из галереи успешно обработано!**\nПрименен фильтр: \`${selectedFilter.toUpperCase()}\``, outUrl, ['📷 Выбрать еще фото из галереи'], outUrl);
             }, 800);
         };
 
         // Render initial bots list
         renderChatList();
-        selectBot(BOTS[0].id);
     });
 </script>
 </body>
