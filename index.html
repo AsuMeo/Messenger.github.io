@@ -1,929 +1,321 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔥 MEGA AUDIO EDITOR 🔥</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #0a0a0a;
-            color: #fff;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        .bg-particles {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 0; pointer-events: none;
-            background: radial-gradient(ellipse at 20% 50%, #1a0033 0%, transparent 50%),
-                        radial-gradient(ellipse at 80% 20%, #001a33 0%, transparent 50%),
-                        radial-gradient(ellipse at 50% 80%, #1a1a00 0%, transparent 50%);
-        }
-        .container {
-            position: relative; z-index: 1;
-            max-width: 900px; margin: 0 auto; padding: 30px 20px;
-        }
-        .header {
-            text-align: center; padding: 40px 0;
-        }
-        .header h1 {
-            font-size: 3rem; font-weight: 900;
-            background: linear-gradient(135deg, #ff006e, #8338ec, #3a86ff, #06ffa5);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text; text-shadow: none;
-            animation: glow 3s ease-in-out infinite alternate;
-        }
-        @keyframes glow {
-            from { filter: drop-shadow(0 0 20px rgba(255,0,110,0.5)); }
-            to { filter: drop-shadow(0 0 40px rgba(6,255,165,0.8)); }
-        }
-        .header p { color: #888; margin-top: 10px; font-size: 1.1rem; }
-
-        .upload-zone {
-            border: 3px dashed #333;
-            border-radius: 24px;
-            padding: 60px 30px;
-            text-align: center;
-            background: rgba(255,255,255,0.02);
-            transition: all 0.3s;
-            cursor: pointer;
-            margin: 30px 0;
-        }
-        .upload-zone:hover, .upload-zone.dragover {
-            border-color: #8338ec;
-            background: rgba(131,56,236,0.05);
-            transform: scale(1.01);
-        }
-        .upload-zone .icon { font-size: 4rem; margin-bottom: 15px; }
-        .upload-zone h2 { font-size: 1.5rem; margin-bottom: 10px; }
-        .upload-zone p { color: #666; }
-        #fileInput { display: none; }
-
-        .file-info {
-            display: none;
-            background: rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 20px;
-            margin: 20px 0;
-            border: 1px solid #222;
-        }
-        .file-info.show { display: block; }
-        .file-info h3 { color: #06ffa5; margin-bottom: 10px; }
-        .file-info p { color: #aaa; font-size: 0.9rem; }
-
-        .waveform {
-            width: 100%; height: 120px;
-            background: #111; border-radius: 12px;
-            margin: 15px 0; position: relative; overflow: hidden;
-        }
-        .waveform canvas { width: 100%; height: 100%; }
-
-        .controls {
-            display: none;
-            gap: 15px; flex-wrap: wrap;
-            margin: 20px 0;
-        }
-        .controls.show { display: flex; }
-
-        .btn {
-            flex: 1; min-width: 180px;
-            padding: 18px 24px;
-            border: none; border-radius: 14px;
-            font-size: 1rem; font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative; overflow: hidden;
-        }
-        .btn::before {
-            content: ''; position: absolute; top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-        .btn:hover::before { left: 100%; }
-        .btn:hover { transform: translateY(-2px); }
-        .btn:active { transform: translateY(0); }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #ff006e, #8338ec);
-            color: #fff;
-            box-shadow: 0 8px 32px rgba(255,0,110,0.3);
-        }
-        .btn-primary:hover { box-shadow: 0 12px 40px rgba(255,0,110,0.5); }
-
-        .btn-cyan {
-            background: linear-gradient(135deg, #3a86ff, #06ffa5);
-            color: #000;
-            box-shadow: 0 8px 32px rgba(58,134,255,0.3);
-        }
-        .btn-cyan:hover { box-shadow: 0 12px 40px rgba(58,134,255,0.5); }
-
-        .btn-orange {
-            background: linear-gradient(135deg, #fb5607, #ffbe0b);
-            color: #000;
-            box-shadow: 0 8px 32px rgba(251,86,7,0.3);
-        }
-        .btn-orange:hover { box-shadow: 0 12px 40px rgba(251,86,7,0.5); }
-
-        .btn-purple {
-            background: linear-gradient(135deg, #7209b7, #b5179e);
-            color: #fff;
-            box-shadow: 0 8px 32px rgba(114,9,183,0.3);
-        }
-        .btn-purple:hover { box-shadow: 0 12px 40px rgba(114,9,183,0.5); }
-
-        .btn-green {
-            background: linear-gradient(135deg, #2d6a4f, #40916c);
-            color: #fff;
-            box-shadow: 0 8px 32px rgba(45,106,79,0.3);
-        }
-        .btn-green:hover { box-shadow: 0 12px 40px rgba(45,106,79,0.5); }
-
-        .btn-red {
-            background: linear-gradient(135deg, #d00000, #e85d04);
-            color: #fff;
-            box-shadow: 0 8px 32px rgba(208,0,0,0.3);
-        }
-        .btn-red:hover { box-shadow: 0 12px 40px rgba(208,0,0,0.5); }
-
-        .processing {
-            display: none;
-            text-align: center;
-            padding: 40px;
-        }
-        .processing.show { display: block; }
-        .spinner {
-            width: 60px; height: 60px;
-            border: 4px solid #333;
-            border-top-color: #ff006e;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .processing p { color: #aaa; font-size: 1.1rem; }
-        .processing .step { color: #06ffa5; margin-top: 10px; font-weight: 600; }
-
-        .results {
-            display: none;
-            margin: 20px 0;
-        }
-        .results.show { display: block; }
-        .result-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid #222;
-            border-radius: 16px;
-            padding: 20px;
-            margin: 15px 0;
-            transition: all 0.3s;
-        }
-        .result-card:hover {
-            border-color: #444;
-            background: rgba(255,255,255,0.05);
-        }
-        .result-card h4 {
-            color: #fff; margin-bottom: 10px;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .result-card .badge {
-            font-size: 0.7rem; padding: 4px 10px;
-            border-radius: 20px; font-weight: 700;
-            text-transform: uppercase;
-        }
-        .badge-enhanced { background: #ff006e; color: #fff; }
-        .badge-slowed { background: #3a86ff; color: #fff; }
-        .badge-speed { background: #fb5607; color: #fff; }
-        .badge-superslow { background: #7209b7; color: #fff; }
-        .badge-remix { background: #06ffa5; color: #000; }
-
-        audio { width: 100%; margin: 10px 0; border-radius: 8px; }
-
-        .download-row {
-            display: flex; gap: 10px; flex-wrap: wrap;
-            margin-top: 10px;
-        }
-        .download-btn {
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: none;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-        .download-btn:hover { transform: scale(1.05); }
-        .dl-mp3 { background: #ff006e; color: #fff; }
-        .dl-play { background: #333; color: #fff; }
-
-        .stats {
-            display: flex; gap: 20px; flex-wrap: wrap;
-            margin-top: 10px;
-        }
-        .stat {
-            background: rgba(0,0,0,0.3);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            color: #aaa;
-        }
-        .stat span { color: #fff; font-weight: 700; }
-
-        .footer {
-            text-align: center; padding: 40px 0;
-            color: #444; font-size: 0.85rem;
-        }
-        .footer a { color: #8338ec; text-decoration: none; }
-
-        .preset-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        .preset-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid #222;
-            border-radius: 16px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .preset-card:hover {
-            border-color: #8338ec;
-            background: rgba(131,56,236,0.08);
-            transform: translateY(-3px);
-        }
-        .preset-card .preset-icon { font-size: 2.5rem; margin-bottom: 10px; }
-        .preset-card h4 { font-size: 1rem; margin-bottom: 5px; }
-        .preset-card p { font-size: 0.8rem; color: #666; }
-
-        .slider-group {
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
-            padding: 15px;
-            margin: 10px 0;
-        }
-        .slider-group label {
-            display: flex; justify-content: space-between;
-            margin-bottom: 8px; font-size: 0.9rem;
-        }
-        .slider-group input[type="range"] {
-            width: 100%;
-            -webkit-appearance: none;
-            height: 6px; border-radius: 3px;
-            background: #222; outline: none;
-        }
-        .slider-group input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px; height: 18px;
-            border-radius: 50%;
-            background: #ff006e;
-            cursor: pointer;
-        }
-
-        .hidden { display: none !important; }
-
-        @media (max-width: 600px) {
-            .header h1 { font-size: 2rem; }
-            .btn { min-width: 100%; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Java → APK Компилятор</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#0d1117; color:#c9d1d9; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  min-height:100vh; display:flex; flex-direction:column;
+}
+header {
+  background:#161b22; border-bottom:1px solid #30363d; padding:12px 16px;
+  position:sticky; top:0; z-index:100;
+}
+header h1 { font-size:16px; color:#58a6ff; display:flex; align-items:center; gap:8px; }
+header h1::before { content:"⚡"; }
+.container { flex:1; padding:12px; max-width:100%; }
+.section { background:#161b22; border:1px solid #30363d; border-radius:12px; margin-bottom:12px; overflow:hidden; }
+.section-title {
+  background:#21262d; padding:10px 14px; font-size:13px; font-weight:600; color:#8b949e;
+  display:flex; align-items:center; gap:6px;
+}
+.section-body { padding:12px; }
+label { display:block; font-size:12px; color:#8b949e; margin-bottom:4px; }
+input[type="text"], select {
+  width:100%; background:#0d1117; border:1px solid #30363d; border-radius:8px;
+  padding:10px 12px; color:#c9d1d9; font-size:14px; outline:none; margin-bottom:8px;
+}
+input:focus, select:focus { border-color:#58a6ff; }
+textarea {
+  width:100%; background:#0d1117; border:1px solid #30363d; border-radius:8px;
+  padding:12px; color:#c9d1d9; font-size:13px; font-family:"SF Mono", Monaco, monospace;
+  outline:none; resize:vertical; min-height:280px; line-height:1.6;
+}
+textarea:focus { border-color:#58a6ff; }
+.btn {
+  width:100%; padding:14px; border:none; border-radius:10px; font-size:15px; font-weight:600;
+  cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.btn-primary { background:#238636; color:#fff; }
+.btn-primary:active { background:#2ea043; transform:scale(.98); }
+.btn-secondary { background:#1f6feb; color:#fff; margin-top:8px; }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+.status {
+  padding:12px; border-radius:8px; font-size:13px; margin-top:12px; display:none;
+}
+.status.show { display:block; }
+.status-info { background:rgba(88,166,255,.1); border:1px solid rgba(88,166,255,.3); color:#58a6ff; }
+.status-success { background:rgba(35,134,54,.1); border:1px solid rgba(35,134,54,.3); color:#3fb950; }
+.status-error { background:rgba(248,81,73,.1); border:1px solid rgba(248,81,73,.3); color:#f85149; }
+.status-warn { background:rgba(210,153,34,.1); border:1px solid rgba(210,153,34,.3); color:#d29922; }
+.apk-link {
+  display:block; margin-top:10px; padding:12px; background:#238636; color:#fff;
+  text-align:center; border-radius:10px; text-decoration:none; font-weight:600;
+}
+.apk-link:active { background:#2ea043; }
+.logs {
+  background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:10px;
+  font-family:"SF Mono", monospace; font-size:11px; color:#8b949e; max-height:150px;
+  overflow-y:auto; margin-top:10px; white-space:pre-wrap; word-break:break-all;
+}
+.template-btn {
+  display:inline-block; padding:6px 12px; background:#21262d; border:1px solid #30363d;
+  border-radius:6px; font-size:11px; color:#8b949e; margin:0 4px 4px 0; cursor:pointer;
+}
+.template-btn:active { background:#30363d; color:#c9d1d9; }
+.hint { font-size:11px; color:#484f58; margin-top:4px; }
+.spinner {
+  width:16px; height:16px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff;
+  border-radius:50%; animation:spin 1s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+footer { text-align:center; padding:16px; font-size:11px; color:#484f58; }
+</style>
 </head>
 <body>
-    <div class="bg-particles"></div>
-    <div class="container">
-        <div class="header">
-            <h1>🔥 MEGA AUDIO EDITOR 🔥</h1>
-            <p>Профессиональная обработка аудио прямо в браузере — MP3, без потерь, максимально мощно</p>
-        </div>
+<header>
+  <h1>Java → APK Компилятор</h1>
+</header>
 
-        <div class="upload-zone" id="uploadZone">
-            <div class="icon">🎵</div>
-            <h2>Перетащи аудио сюда или кликни</h2>
-            <p>Поддерживаются MP3, WAV, OGG, M4A, FLAC</p>
-        </div>
-        <input type="file" id="fileInput" accept="audio/*">
-
-        <div class="file-info" id="fileInfo">
-            <h3>📁 <span id="fileName"></span></h3>
-            <p>Длительность: <span id="fileDuration">--:--</span> | Размер: <span id="fileSize">--</span> | Частота: <span id="fileRate">--</span> кГц</p>
-            <div class="waveform"><canvas id="waveCanvas"></canvas></div>
-        </div>
-
-        <div class="controls" id="controls">
-            <div style="width:100%;">
-                <h3 style="margin-bottom:15px;color:#fff;">⚡ Быстрые пресеты</h3>
-                <div class="preset-grid">
-                    <div class="preset-card" onclick="processAudio('enhance')">
-                        <div class="preset-icon">✨</div>
-                        <h4>Улучшить звук</h4>
-                        <p>Громче, чище, лучше</p>
-                    </div>
-                    <div class="preset-card" onclick="processAudio('slowed')">
-                        <div class="preset-icon">🐌</div>
-                        <h4>Slowed</h4>
-                        <p>Замедление + реверб</p>
-                    </div>
-                    <div class="preset-card" onclick="processAudio('speed')">
-                        <div class="preset-icon">⚡</div>
-                        <h4>Speed Up</h4>
-                        <p>Ускорение + pitch</p>
-                    </div>
-                    <div class="preset-card" onclick="processAudio('superslow')">
-                        <div class="preset-icon">🌙</div>
-                        <h4>Super Slowed</h4>
-                        <p>Глубокое замедление</p>
-                    </div>
-                    <div class="preset-card" onclick="processAudio('remix')">
-                        <div class="preset-icon">🎛️</div>
-                        <h4>Auto Remix</h4>
-                        <p>AI-ремикс автоматом</p>
-                    </div>
-                    <div class="preset-card" onclick="processAudio('all')">
-                        <div class="preset-icon">🚀</div>
-                        <h4>ВСЁ СРАЗУ</h4>
-                        <p>Все версии за раз</p>
-                    </div>
-                </div>
-
-                <h3 style="margin:20px 0 15px;color:#fff;">🎚️ Ручная настройка</h3>
-                <div class="slider-group">
-                    <label>Громкость (Gain) <span id="gainVal">1.5x</span></label>
-                    <input type="range" id="gainSlider" min="0.5" max="3" step="0.1" value="1.5" oninput="document.getElementById('gainVal').textContent=this.value+'x'">
-                </div>
-                <div class="slider-group">
-                    <label>Скорость воспроизведения <span id="speedVal">1.0x</span></label>
-                    <input type="range" id="speedSlider" min="0.3" max="2" step="0.05" value="1" oninput="document.getElementById('speedVal').textContent=this.value+'x'">
-                </div>
-                <div class="slider-group">
-                    <label>Реверберация <span id="reverbVal">30%</span></label>
-                    <input type="range" id="reverbSlider" min="0" max="100" step="5" value="30" oninput="document.getElementById('reverbVal').textContent=this.value+'%'">
-                </div>
-                <div class="slider-group">
-                    <label>Бас (Low Boost) <span id="bassVal">6 dB</span></label>
-                    <input type="range" id="bassSlider" min="-12" max="18" step="1" value="6" oninput="document.getElementById('bassVal').textContent=this.value+' dB'">
-                </div>
-                <div class="slider-group">
-                    <label>Высокие (Treble) <span id="trebleVal">4 dB</span></label>
-                    <input type="range" id="trebleSlider" min="-12" max="18" step="1" value="4" oninput="document.getElementById('trebleVal').textContent=this.value+' dB'">
-                </div>
-                <div class="slider-group">
-                    <label>Сжатие (Compression) <span id="compVal">4:1</span></label>
-                    <input type="range" id="compSlider" min="1" max="20" step="1" value="4" oninput="document.getElementById('compVal').textContent=this.value+':1'">
-                </div>
-
-                <button class="btn btn-primary" style="width:100%;margin-top:15px;" onclick="processAudio('custom')">
-                    🎛️ Применить кастомную обработку
-                </button>
-            </div>
-        </div>
-
-        <div class="processing" id="processing">
-            <div class="spinner"></div>
-            <p>Обрабатываю аудио...</p>
-            <div class="step" id="processStep">Загрузка...</div>
-        </div>
-
-        <div class="results" id="results"></div>
-
-        <div class="footer">
-            <p>🔥 MEGA AUDIO EDITOR 🔥 — Работает полностью в браузере, ничего не загружается на сервер</p>
-            <p style="margin-top:8px;">Использует Web Audio API + OfflineAudioContext для офлайн-рендеринга</p>
-        </div>
+<div class="container">
+  <div class="section">
+    <div class="section-title">📱 Настройки приложения</div>
+    <div class="section-body">
+      <label>Название приложения</label>
+      <input type="text" id="appName" value="MyApp" placeholder="MyApp">
+      <label>Package name</label>
+      <input type="text" id="packageName" value="com.example.myapp" placeholder="com.example.myapp">
+      <label>Min SDK</label>
+      <select id="minSdk">
+        <option value="21">API 21 (Android 5.0)</option>
+        <option value="24">API 24 (Android 7.0)</option>
+        <option value="26" selected>API 26 (Android 8.0)</option>
+        <option value="28">API 28 (Android 9.0)</option>
+        <option value="30">API 30 (Android 11)</option>
+      </select>
     </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">📝 Java код</div>
+    <div class="section-body">
+      <div style="margin-bottom:8px;">
+        <span class="template-btn" onclick="loadTemplate('hello')">Hello World</span>
+        <span class="template-btn" onclick="loadTemplate('button')">Кнопка</span>
+        <span class="template-btn" onclick="loadTemplate('webview')">WebView</span>
+        <span class="template-btn" onclick="loadTemplate('calc')">Калькулятор</span>
+      </div>
+      <textarea id="javaCode" spellcheck="false" placeholder="// Вставь свой Java код здесь...">package com.example.myapp;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.widget.TextView;
+
+public class MainActivity extends Activity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        TextView tv = new TextView(this);
+        tv.setText("Hello World!");
+        tv.setTextSize(24);
+        setContentView(tv);
+    }
+}</textarea>
+      <div class="hint">Пиши код класса MainActivity. Остальное (AndroidManifest, ресурсы) соберётся автоматически.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-body">
+      <button class="btn btn-primary" id="buildBtn" onclick="buildApk()">
+        <span id="btnText">🔨 Собрать APK</span>
+      </button>
+      <div class="status" id="status"></div>
+      <div class="logs" id="logs" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Работает через Render • Мобильная версия
+</footer>
 
 <script>
-let audioContext = null;
-let originalBuffer = null;
-let originalFileName = '';
-let originalFileType = '';
+const RENDER_URL = "https://android-compiler-api.onrender.com"; // ЗАМЕНИ НА СВОЙ URL
 
-const uploadZone = document.getElementById('uploadZone');
-const fileInput = document.getElementById('fileInput');
+const templates = {
+  hello: `package com.example.myapp;
 
-uploadZone.addEventListener('click', () => fileInput.click());
-uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-uploadZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadZone.classList.remove('dragover');
-    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-});
-fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
+import android.app.Activity;
+import android.os.Bundle;
+import android.widget.TextView;
 
-async function handleFile(file) {
-    if (!file.type.startsWith('audio/')) { alert('Пожалуйста, выбери аудиофайл'); return; }
-    originalFileName = file.name.replace(/\.[^/.]+$/, '');
-    originalFileType = file.type;
-
-    document.getElementById('fileName').textContent = file.name;
-    document.getElementById('fileSize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
-    document.getElementById('fileInfo').classList.add('show');
-    document.getElementById('controls').classList.add('show');
-    document.getElementById('results').innerHTML = '';
-    document.getElementById('results').classList.remove('show');
-
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const arrayBuffer = await file.arrayBuffer();
-    originalBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-    document.getElementById('fileDuration').textContent = formatTime(originalBuffer.duration);
-    document.getElementById('fileRate').textContent = (originalBuffer.sampleRate / 1000).toFixed(1);
-
-    drawWaveform(originalBuffer);
-}
-
-function formatTime(sec) {
-    const m = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60);
-    return m + ':' + (s < 10 ? '0' : '') + s;
-}
-
-function drawWaveform(buffer) {
-    const canvas = document.getElementById('waveCanvas');
-    const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
-
-    const width = rect.width;
-    const height = rect.height;
-    const data = buffer.getChannelData(0);
-    const step = Math.ceil(data.length / width);
-    const amp = height / 2;
-
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(0, 0, width, height);
-
-    // Gradient waveform
-    const gradient = ctx.createLinearGradient(0, 0, 0, height);
-    gradient.addColorStop(0, '#ff006e');
-    gradient.addColorStop(0.5, '#8338ec');
-    gradient.addColorStop(1, '#3a86ff');
-
-    ctx.beginPath();
-    ctx.moveTo(0, amp);
-    for (let i = 0; i < width; i++) {
-        let min = 1, max = -1;
-        for (let j = 0; j < step; j++) {
-            const datum = data[i * step + j];
-            if (datum < min) min = datum;
-            if (datum > max) max = datum;
-        }
-        ctx.lineTo(i, (1 + min) * amp);
+public class MainActivity extends Activity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        TextView tv = new TextView(this);
+        tv.setText("Hello World!");
+        tv.setTextSize(24);
+        setContentView(tv);
     }
-    for (let i = width - 1; i >= 0; i--) {
-        let min = 1, max = -1;
-        for (let j = 0; j < step; j++) {
-            const datum = data[i * step + j];
-            if (datum < min) min = datum;
-            if (datum > max) max = datum;
-        }
-        ctx.lineTo(i, (1 + max) * amp);
+}`,
+  button: `package com.example.myapp;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.Toast;
+
+public class MainActivity extends Activity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(40, 40, 40, 40);
+
+        Button btn = new Button(this);
+        btn.setText("Нажми меня");
+        btn.setOnClickListener(v -> Toast.makeText(this, "Привет!", Toast.LENGTH_SHORT).show());
+        layout.addView(btn);
+
+        setContentView(layout);
     }
-    ctx.closePath();
-    ctx.fillStyle = gradient;
-    ctx.fill();
-}
+}`,
+  webview: `package com.example.myapp;
 
-// ========== AUDIO PROCESSING ENGINE ==========
+import android.app.Activity;
+import android.os.Bundle;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
-function createOfflineContext(duration, sampleRate, channels) {
-    return new OfflineAudioContext(channels, Math.ceil(duration * sampleRate), sampleRate);
-}
-
-async function applyEffects(ctx, sourceBuffer, config) {
-    const src = ctx.createBufferSource();
-    src.buffer = sourceBuffer;
-    src.playbackRate.value = config.speed || 1;
-
-    let lastNode = src;
-
-    // 1. GAIN / NORMALIZATION
-    if (config.gain !== undefined && config.gain !== 1) {
-        const gainNode = ctx.createGain();
-        gainNode.gain.value = config.gain;
-        lastNode.connect(gainNode);
-        lastNode = gainNode;
+public class MainActivity extends Activity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        WebView webView = new WebView(this);
+        webView.setWebViewClient(new WebViewClient());
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.loadUrl("https://example.com");
+        setContentView(webView);
     }
+}`,
+  calc: `package com.example.myapp;
 
-    // 2. COMPRESSOR (makes it LOUD and clean)
-    if (config.compressor) {
-        const comp = ctx.createDynamicsCompressor();
-        comp.threshold.value = config.compThreshold || -24;
-        comp.knee.value = 6;
-        comp.ratio.value = config.compRatio || 4;
-        comp.attack.value = 0.003;
-        comp.release.value = 0.1;
-        lastNode.connect(comp);
-        lastNode = comp;
+import android.app.Activity;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+public class MainActivity extends Activity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(40, 40, 40, 40);
+
+        EditText a = new EditText(this);
+        a.setHint("Число A");
+        layout.addView(a);
+
+        EditText b = new EditText(this);
+        b.setHint("Число B");
+        layout.addView(b);
+
+        TextView result = new TextView(this);
+        result.setTextSize(18);
+        layout.addView(result);
+
+        Button btn = new Button(this);
+        btn.setText("Сложить");
+        btn.setOnClickListener(v -> {
+            try {
+                int sum = Integer.parseInt(a.getText().toString()) + Integer.parseInt(b.getText().toString());
+                result.setText("Результат: " + sum);
+            } catch(Exception e) {
+                result.setText("Ошибка ввода");
+            }
+        });
+        layout.addView(btn);
+
+        setContentView(layout);
     }
-
-    // 3. EQ - LOW BOOST (Bass)
-    if (config.bassBoost) {
-        const bass = ctx.createBiquadFilter();
-        bass.type = 'lowshelf';
-        bass.frequency.value = 120;
-        bass.gain.value = config.bassBoost;
-        lastNode.connect(bass);
-        lastNode = bass;
-    }
-
-    // 4. EQ - HIGH BOOST (Treble/Clarity)
-    if (config.trebleBoost) {
-        const treble = ctx.createBiquadFilter();
-        treble.type = 'highshelf';
-        treble.frequency.value = 4000;
-        treble.gain.value = config.trebleBoost;
-        lastNode.connect(treble);
-        lastNode = treble;
-    }
-
-    // 5. EQ - MID SCOOP (for that "pro" sound)
-    if (config.midScoop) {
-        const mid = ctx.createBiquadFilter();
-        mid.type = 'peaking';
-        mid.frequency.value = 800;
-        mid.Q.value = 1.2;
-        mid.gain.value = -3;
-        lastNode.connect(mid);
-        lastNode = mid;
-    }
-
-    // 6. REVERB
-    if (config.reverb && config.reverb > 0) {
-        const reverbGain = ctx.createGain();
-        reverbGain.gain.value = config.reverb / 100;
-
-        const convolver = ctx.createConvolver();
-        const reverbBuffer = createReverbImpulse(ctx, config.reverbTime || 2, config.reverbDecay || 2);
-        convolver.buffer = reverbBuffer;
-
-        lastNode.connect(reverbGain);
-        reverbGain.connect(convolver);
-
-        const dryGain = ctx.createGain();
-        dryGain.gain.value = 1;
-        lastNode.connect(dryGain);
-
-        const merger = ctx.createGain();
-        dryGain.connect(merger);
-        convolver.connect(merger);
-        lastNode = merger;
-    }
-
-    // 7. LIMITER (prevents clipping)
-    const limiter = ctx.createDynamicsCompressor();
-    limiter.threshold.value = -1;
-    limiter.knee.value = 0;
-    limiter.ratio.value = 20;
-    limiter.attack.value = 0.001;
-    limiter.release.value = 0.01;
-    lastNode.connect(limiter);
-    lastNode = limiter;
-
-    // 8. FINAL GAIN
-    const finalGain = ctx.createGain();
-    finalGain.gain.value = config.finalGain || 0.95;
-    lastNode.connect(finalGain);
-    lastNode = finalGain;
-
-    lastNode.connect(ctx.destination);
-    src.start(0);
-
-    return await ctx.startRendering();
-}
-
-function createReverbImpulse(ctx, duration, decay) {
-    const rate = ctx.sampleRate;
-    const length = rate * duration;
-    const impulse = ctx.createBuffer(2, length, rate);
-    const left = impulse.getChannelData(0);
-    const right = impulse.getChannelData(1);
-    for (let i = 0; i < length; i++) {
-        const n = i / length;
-        const env = Math.pow(1 - n, decay);
-        left[i] = (Math.random() * 2 - 1) * env;
-        right[i] = (Math.random() * 2 - 1) * env;
-    }
-    return impulse;
-}
-
-// ========== ENCODE TO MP3 ==========
-
-async function encodeMP3(audioBuffer, bitrate = 192) {
-    // Use lamejs for MP3 encoding
-    const sampleRate = audioBuffer.sampleRate;
-    const numChannels = audioBuffer.numberOfChannels;
-    const samples = audioBuffer.getChannelData(0);
-
-    // Convert float to int16
-    const int16Samples = new Int16Array(samples.length);
-    for (let i = 0; i < samples.length; i++) {
-        let s = Math.max(-1, Math.min(1, samples[i]));
-        int16Samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-    }
-
-    // Use a simple WAV-to-MP3 approach via lamejs
-    // Since we can't load external libs easily on GitHub Pages without CDN,
-    // we'll use a built-in minimal MP3 encoder
-    return await encodeToMP3(int16Samples, sampleRate, numChannels, bitrate);
-}
-
-// Minimal MP3 encoder implementation (simplified)
-async function encodeToMP3(samples, sampleRate, channels, bitrate) {
-    // We'll create a Blob URL with a data URI containing the audio
-    // For true MP3, we use a small inline lamejs-like encoder
-
-    // Actually, let's use the MediaRecorder API to create MP3-like output
-    // Or better: create a WAV and offer download (but user wants MP3)
-
-    // Let's use a canvas-based approach: create an audio element, play through it,
-    // and capture with MediaRecorder
-
-    const ctx = new AudioContext({sampleRate});
-    const buffer = ctx.createBuffer(channels, samples.length, sampleRate);
-    for (let c = 0; c < channels; c++) {
-        const ch = buffer.getChannelData(c);
-        for (let i = 0; i < samples.length; i++) {
-            ch[i] = samples[i] / 32768;
-        }
-    }
-
-    const src = ctx.createBufferSource();
-    src.buffer = buffer;
-    const dest = ctx.createMediaStreamDestination();
-    src.connect(dest);
-
-    const mimeType = 'audio/webm;codecs=opus';
-    const mediaRecorder = new MediaRecorder(dest.stream, {mimeType, audioBitsPerSecond: bitrate * 1000});
-    const chunks = [];
-    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-
-    return new Promise((resolve) => {
-        mediaRecorder.onstop = () => {
-            const blob = new Blob(chunks, {type: mimeType});
-            resolve(blob);
-        };
-        mediaRecorder.start();
-        src.start();
-        src.onended = () => {
-            mediaRecorder.stop();
-            ctx.close();
-        };
-    });
-}
-
-// Better approach: encode to WAV first, then use a minimal MP3 encoder
-function encodeWAV(audioBuffer) {
-    const numChannels = audioBuffer.numberOfChannels;
-    const sampleRate = audioBuffer.sampleRate;
-    const format = 1; // PCM
-    const bitDepth = 16;
-
-    let interleaved;
-    if (numChannels === 2) {
-        const left = audioBuffer.getChannelData(0);
-        const right = audioBuffer.getChannelData(1);
-        interleaved = new Float32Array(left.length * 2);
-        for (let i = 0; i < left.length; i++) {
-            interleaved[i * 2] = left[i];
-            interleaved[i * 2 + 1] = right[i];
-        }
-    } else {
-        interleaved = audioBuffer.getChannelData(0);
-    }
-
-    const dataLength = interleaved.length * (bitDepth / 8);
-    const buffer = new ArrayBuffer(44 + dataLength);
-    const view = new DataView(buffer);
-
-    const writeString = (offset, string) => {
-        for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
-    };
-
-    writeString(0, 'RIFF');
-    view.setUint32(4, 36 + dataLength, true);
-    writeString(8, 'WAVE');
-    writeString(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, format, true);
-    view.setUint16(22, numChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * numChannels * (bitDepth / 8), true);
-    view.setUint16(32, numChannels * (bitDepth / 8), true);
-    view.setUint16(34, bitDepth, true);
-    writeString(36, 'data');
-    view.setUint32(40, dataLength, true);
-
-    let offset = 44;
-    for (let i = 0; i < interleaved.length; i++) {
-        let sample = Math.max(-1, Math.min(1, interleaved[i]));
-        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-        view.setInt16(offset, sample, true);
-        offset += 2;
-    }
-
-    return new Blob([buffer], {type: 'audio/wav'});
-}
-
-// ========== MAIN PROCESSING ==========
-
-const presets = {
-    enhance: {
-        gain: 1.5,
-        speed: 1,
-        compressor: true,
-        compRatio: 6,
-        bassBoost: 8,
-        trebleBoost: 5,
-        midScoop: true,
-        reverb: 15,
-        reverbTime: 1.5,
-        finalGain: 0.95,
-        label: '✨ Улучшенный',
-        badge: 'enhanced',
-        desc: 'Громче, чище, профессионально'
-    },
-    slowed: {
-        gain: 1.3,
-        speed: 0.85,
-        compressor: true,
-        compRatio: 4,
-        bassBoost: 10,
-        trebleBoost: -2,
-        midScoop: true,
-        reverb: 50,
-        reverbTime: 3,
-        finalGain: 0.9,
-        label: '🐌 Slowed',
-        badge: 'slowed',
-        desc: 'Замедление + глубокий реверб + басс'
-    },
-    speed: {
-        gain: 1.2,
-        speed: 1.3,
-        compressor: true,
-        compRatio: 5,
-        bassBoost: 2,
-        trebleBoost: 8,
-        midScoop: false,
-        reverb: 5,
-        reverbTime: 0.8,
-        finalGain: 0.95,
-        label: '⚡ Speed Up',
-        badge: 'speed',
-        desc: 'Ускорение + яркие высокие'
-    },
-    superslow: {
-        gain: 1.4,
-        speed: 0.6,
-        compressor: true,
-        compRatio: 8,
-        bassBoost: 14,
-        trebleBoost: -4,
-        midScoop: true,
-        reverb: 80,
-        reverbTime: 5,
-        finalGain: 0.85,
-        label: '🌙 Super Slowed',
-        badge: 'superslow',
-        desc: 'Экстремальное замедление + максимальный реверб'
-    },
-    remix: {
-        gain: 1.6,
-        speed: 1.05,
-        compressor: true,
-        compRatio: 10,
-        bassBoost: 12,
-        trebleBoost: 6,
-        midScoop: true,
-        reverb: 25,
-        reverbTime: 2,
-        finalGain: 0.95,
-        label: '🎛️ Auto Remix',
-        badge: 'remix',
-        desc: 'AI-стиль: максимальное сжатие + басс + эффекты'
-    }
+}`
 };
 
-async function processAudio(mode) {
-    if (!originalBuffer) { alert('Сначала загрузи аудио!'); return; }
+function loadTemplate(name) {
+  document.getElementById('javaCode').value = templates[name];
+}
 
-    const processingEl = document.getElementById('processing');
-    const stepEl = document.getElementById('processStep');
-    const resultsEl = document.getElementById('results');
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.className = 'status show status-' + type;
+  el.innerHTML = msg;
+}
 
-    processingEl.classList.add('show');
-    resultsEl.classList.remove('show');
+function addLog(line) {
+  const el = document.getElementById('logs');
+  el.style.display = 'block';
+  el.textContent += line + '\n';
+  el.scrollTop = el.scrollHeight;
+}
 
-    const modes = mode === 'all' ? ['enhance', 'slowed', 'speed', 'superslow', 'remix'] : [mode];
-    const results = [];
+async function buildApk() {
+  const btn = document.getElementById('buildBtn');
+  const btnText = document.getElementById('btnText');
+  const logs = document.getElementById('logs');
 
-    for (let i = 0; i < modes.length; i++) {
-        const m = modes[i];
-        stepEl.textContent = `Обработка: ${m}... (${i+1}/${modes.length})`;
+  btn.disabled = true;
+  btnText.innerHTML = '<span class="spinner"></span> Компиляция...';
+  document.getElementById('status').className = 'status';
+  logs.style.display = 'none';
+  logs.textContent = '';
 
-        let config;
-        if (m === 'custom') {
-            config = {
-                gain: parseFloat(document.getElementById('gainSlider').value),
-                speed: parseFloat(document.getElementById('speedSlider').value),
-                compressor: true,
-                compRatio: parseFloat(document.getElementById('compSlider').value),
-                bassBoost: parseFloat(document.getElementById('bassSlider').value),
-                trebleBoost: parseFloat(document.getElementById('trebleSlider').value),
-                midScoop: true,
-                reverb: parseFloat(document.getElementById('reverbSlider').value),
-                reverbTime: 2 + (parseFloat(document.getElementById('reverbSlider').value) / 20),
-                finalGain: 0.95,
-                label: '🎛️ Кастом',
-                badge: 'enhanced',
-                desc: 'Ручная настройка'
-            };
-        } else {
-            config = presets[m];
-        }
+  const data = {
+    appName: document.getElementById('appName').value || 'MyApp',
+    packageName: document.getElementById('packageName').value || 'com.example.myapp',
+    minSdk: parseInt(document.getElementById('minSdk').value),
+    javaCode: document.getElementById('javaCode').value
+  };
 
-        const duration = originalBuffer.duration / (config.speed || 1);
-        const ctx = createOfflineContext(duration + 5, originalBuffer.sampleRate, originalBuffer.numberOfChannels);
+  try {
+    setStatus('⏳ Отправка на сервер...', 'info');
 
-        const processed = await applyEffects(ctx, originalBuffer, config);
-
-        // Create download blob
-        const wavBlob = encodeWAV(processed);
-        const url = URL.createObjectURL(wavBlob);
-
-        results.push({
-            config,
-            url,
-            duration: processed.duration,
-            size: wavBlob.size
-        });
-
-        // Small delay for UI
-        await new Promise(r => setTimeout(r, 100));
-    }
-
-    processingEl.classList.remove('show');
-
-    // Render results
-    let html = '<h3 style="margin-bottom:20px;color:#fff;font-size:1.3rem;">🎉 Готово! Скачай результаты:</h3>';
-
-    results.forEach((res, idx) => {
-        const cfg = res.config;
-        html += `
-        <div class="result-card">
-            <h4>${cfg.label} <span class="badge badge-${cfg.badge}">${cfg.badge}</span></h4>
-            <p style="color:#888;font-size:0.85rem;margin-bottom:10px;">${cfg.desc}</p>
-            <audio controls src="${res.url}"></audio>
-            <div class="stats">
-                <div class="stat">Длительность: <span>${formatTime(res.duration)}</span></div>
-                <div class="stat">Размер: <span>${(res.size/1024/1024).toFixed(2)} MB</span></div>
-                <div class="stat">Громкость: <span>${cfg.gain}x</span></div>
-                <div class="stat">Скорость: <span>${cfg.speed}x</span></div>
-                <div class="stat">Басс: <span>${cfg.bassBoost}dB</span></div>
-                <div class="stat">Реверб: <span>${cfg.reverb}%</span></div>
-            </div>
-            <div class="download-row">
-                <button class="download-btn dl-mp3" onclick="downloadAudio('${res.url}', '${originalFileName}_${cfg.badge}.wav')">
-                    ⬇️ Скачать WAV
-                </button>
-                <button class="download-btn dl-play" onclick="window.open('${res.url}', '_blank')">
-                    ▶️ Открыть
-                </button>
-            </div>
-        </div>
-        `;
+    const res = await fetch(RENDER_URL + '/build', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
 
-    resultsEl.innerHTML = html;
-    resultsEl.classList.add('show');
+    const result = await res.json();
 
-    // Scroll to results
-    resultsEl.scrollIntoView({behavior: 'smooth'});
+    if (result.logs) {
+      result.logs.forEach(l => addLog(l));
+    }
+
+    if (result.success && result.downloadUrl) {
+      setStatus(
+        '✅ APK собран!<br><a class="apk-link" href="' + result.downloadUrl + '" download>Скачать ' + result.appName + '.apk</a>',
+        'success'
+      );
+    } else {
+      setStatus('❌ Ошибка: ' + (result.error || 'Неизвестная ошибка'), 'error');
+    }
+  } catch(e) {
+    setStatus('❌ Ошибка сети. Сервер спит? Подожди 30 сек и попробуй снова.<br><small>' + e.message + '</small>', 'error');
+  }
+
+  btn.disabled = false;
+  btnText.textContent = '🔨 Собрать APK';
 }
-
-function downloadAudio(url, filename) {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
-
-// Auto-resize canvas on window resize
-window.addEventListener('resize', () => {
-    if (originalBuffer) drawWaveform(originalBuffer);
-});
 </script>
 </body>
-                                                        </html>
+</html>
