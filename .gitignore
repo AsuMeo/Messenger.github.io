@@ -3,5 +3,4 @@ __pycache__/
 *.apk
 *.dex
 *.class
-*.keystore
 /tmp/
