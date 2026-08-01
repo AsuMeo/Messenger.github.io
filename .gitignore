@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.apk
+*.dex
+*.class
+*.keystore
+/tmp/
