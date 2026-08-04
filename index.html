@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Splitter</title>
+<style>
+  :root { --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #c9d1d9; --accent: #58a6ff; --ok: #238636; --warn: #d29922; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: ui-monospace, SFMono-Regular, monospace; display: flex; flex-direction: column; height: 100vh; }
+  header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  header h1 { font-size: 16px; color: var(--accent); }
+  .ctrl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .ctrl label { font-size: 12px; color: #8b949e; }
+  .ctrl input, .ctrl select { background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; font-size: 13px; }
+  .ctrl button { background: var(--ok); border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .ctrl button.secondary { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
+  .main { display: flex; flex: 1; min-height: 0; }
+  .col { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); min-width: 0; }
+  .col:last-child { border-right: none; }
+  .col-header { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: #8b949e; display: flex; justify-content: space-between; }
+  textarea { flex: 1; background: var(--bg); color: var(--text); border: none; padding: 12px; font-size: 13px; resize: none; outline: none; font-family: inherit; line-height: 1.5; }
+  .parts { display: flex; flex-direction: column; gap: 8px; padding: 12px; overflow-y: auto; }
+  .part-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+  .part-card h3 { font-size: 13px; color: var(--accent); margin-bottom: 6px; }
+  .part-card pre { background: var(--bg); padding: 8px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; }
+  .part-card .actions { margin-top: 8px; display: flex; gap: 8px; }
+  .part-card button { background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+  .part-card button:hover { border-color: var(--accent); }
+  .badge { background: var(--warn); color: #000; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🔪 Code Splitter</h1>
+  <div class="ctrl">
+    <label>Разделить на:</label>
+    <select id="partCount">
+      <option value="2">2 части</option>
+      <option value="3">3 части</option>
+      <option value="4">4 части</option>
+      <option value="5">5 частей</option>
+    </select>
+    <button onclick="splitCode()">Разделить</button>
+    <button class="secondary" onclick="downloadAll()">Скачать все</button>
+    <button class="secondary" onclick="copyAll()">Копировать все</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="col">
+    <div class="col-header">Вставь код сюда <span class="badge">HTML + CSS + JS</span></div>
+    <textarea id="source" placeholder="<!DOCTYPE html>...
+<style>...</style>
+<script>...</script>"></textarea>
+  </div>
+  <div class="col" id="resultCol">
+    <div class="col-header">Результат</div>
+    <div class="parts" id="parts"></div>
+  </div>
+</div>
+
+<script>
+  window.splitCode = function() {
+    const src = document.getElementById("source").value;
+    const count = parseInt(document.getElementById("partCount").value);
+    const container = document.getElementById("parts");
+    container.innerHTML = "";
+    if (!src.trim()) { container.innerHTML = "<div style=\"padding:20px;color:#8b949e\">Вставь код сначала</div>"; return; }
+    let css = "", js = "";
+    const styleMatch = src.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+    if (styleMatch) css = styleMatch.map(m => m.replace(/<\/?style[^>]*>/gi, "")).join("\n");
+    const scriptMatch = src.match(/<script[^>]*>([\s\S]*?)<\/script>/gi);
+    if (scriptMatch) js = scriptMatch.map(m => m.replace(/<\/?script[^>]*>/gi, "")).join("\n");
+    let htmlBody = src;
+    if (styleMatch) styleMatch.forEach(m => htmlBody = htmlBody.replace(m, ""));
+    if (scriptMatch) scriptMatch.forEach(m => htmlBody = htmlBody.replace(m, ""));
+    htmlBody = htmlBody.replace(/<!DOCTYPE[^>]*>/i, "").replace(/<html[^>]*>|<\/html>/gi, "").replace(/<head[^>]*>[\s\S]*?<\/head>/i, "").replace(/<body[^>]*>|<\/body>/gi, "").trim();
+    const parts = [];
+    if (count === 2) {
+      parts.push({ name: "part1.html", content: `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<style>\n${css || "/* no css */"}\n</style>\n</head>\n<body>\n${htmlBody || "<!-- no html -->"}\n<script src="part2.js"><\/script>\n</body>\n</html>`, type: "HTML + CSS" });
+      parts.push({ name: "part2.js", content: js || "// no js", type: "JS" });
+    } else if (count === 3) {
+      parts.push({ name: "part1.html", content: `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<link rel="stylesheet" href="part2.css">\n</head>\n<body>\n${htmlBody || "<!-- no html -->"}\n<script src="part3.js"><\/script>\n</body>\n</html>`, type: "HTML" });
+      parts.push({ name: "part2.css", content: css || "/* no css */", type: "CSS" });
+      parts.push({ name: "part3.js", content: js || "// no js", type: "JS" });
+    } else if (count === 4) {
+      let js1 = "", js2 = "";
+      if (js) { const mid = Math.floor(js.length / 2); const splitAt = js.lastIndexOf("\n", mid); js1 = js.slice(0, splitAt > 0 ? splitAt : mid); js2 = js.slice(splitAt > 0 ? splitAt : mid); }
+      parts.push({ name: "part1.html", content: `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<link rel="stylesheet" href="part2.css">\n</head>\n<body>\n${htmlBody || "<!-- no html -->"}\n<script src="part3.js"><\/script>\n<script src="part4.js"><\/script>\n</body>\n</html>`, type: "HTML" });
+      parts.push({ name: "part2.css", content: css || "/* no css */", type: "CSS" });
+      parts.push({ name: "part3.js", content: js1 || "// js part 1", type: "JS (part 1)" });
+      parts.push({ name: "part4.js", content: js2 || "// js part 2", type: "JS (part 2)" });
+    } else {
+      let html1 = "", html2 = "";
+      if (htmlBody) { const mid = Math.floor(htmlBody.length / 2); const splitAt = htmlBody.lastIndexOf("\n", mid); html1 = htmlBody.slice(0, splitAt > 0 ? splitAt : mid); html2 = htmlBody.slice(splitAt > 0 ? splitAt : mid); }
+      let js1 = "", js2 = "";
+      if (js) { const mid = Math.floor(js.length / 2); const splitAt = js.lastIndexOf("\n", mid); js1 = js.slice(0, splitAt > 0 ? splitAt : mid); js2 = js.slice(splitAt > 0 ? splitAt : mid); }
+      parts.push({ name: "part1.html", content: `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<link rel="stylesheet" href="part2.css">\n</head>\n<body>\n${html1 || "<!-- html part 1 -->"}\n<script src="part4.js"><\/script>\n</body>\n</html>`, type: "HTML (part 1)" });
+      parts.push({ name: "part2.css", content: css || "/* no css */", type: "CSS" });
+      parts.push({ name: "part3.html", content: `${html2 || "<!-- html part 2 -->"}\n<script src="part5.js"><\/script>`, type: "HTML (part 2)" });
+      parts.push({ name: "part4.js", content: js1 || "// js part 1", type: "JS (part 1)" });
+      parts.push({ name: "part5.js", content: js2 || "// js part 2", type: "JS (part 2)" });
+    }
+    window._parts = parts;
+    parts.forEach((p, i) => {
+      const card = document.createElement("div");
+      card.className = "part-card";
+      card.innerHTML = `<h3>${p.name} <span style="color:#8b949e;font-weight:normal">— ${p.type}</span></h3><pre>${p.content.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre><div class="actions"><button onclick="copyPart(${i})">Копировать</button><button onclick="downloadPart(${i})">Скачать</button></div>`;
+      container.appendChild(card);
+    });
+  };
+  window.copyPart = function(i) { navigator.clipboard.writeText(window._parts[i].content); };
+  window.downloadPart = function(i) { const p = window._parts[i]; const blob = new Blob([p.content], {type: "text/plain"}); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = p.name; a.click(); };
+  window.copyAll = function() { const all = window._parts.map(p => `=== ${p.name} ===\n${p.content}`).join("\n\n"); navigator.clipboard.writeText(all); };
+  window.downloadAll = function() { if (!window._parts) return; window._parts.forEach((p, i) => setTimeout(() => window.downloadPart(i), i * 200)); };
+</script>
+</body>
+</html>
